@@ -1,0 +1,126 @@
+import 'package:core/core.dart';
+import 'package:test/test.dart';
+
+void main() {
+  const parser = PushMessageParser();
+
+  Map<String, Object?> validPayload({
+    Map<String, Object?> overrides = const {},
+  }) => {
+    'id': 'msg-1',
+    'title': 'Build finished',
+    'body': 'Release 1.0.0 is ready.',
+    'sentAt': '2026-08-06T09:30:00Z',
+    ...overrides,
+  };
+
+  group('PushMessageParser.parse', () {
+    test('maps a well-formed payload onto a PushMessage', () {
+      final message = parser.parse(validPayload());
+
+      expect(message.id, 'msg-1');
+      expect(message.title, 'Build finished');
+      expect(message.body, 'Release 1.0.0 is ready.');
+      expect(message.sentAt, DateTime.utc(2026, 8, 6, 9, 30));
+      expect(message.data, isEmpty);
+    });
+
+    test('normalises the timestamp to UTC', () {
+      final message = parser.parse(
+        validPayload(overrides: {'sentAt': '2026-08-06T11:30:00+02:00'}),
+      );
+
+      expect(message.sentAt.isUtc, isTrue);
+      expect(message.sentAt, DateTime.utc(2026, 8, 6, 9, 30));
+    });
+
+    test('passes non-reserved keys through as data', () {
+      final message = parser.parse(
+        validPayload(overrides: {'deepLink': '/builds/42', 'retries': 3}),
+      );
+
+      expect(message.data, {'deepLink': '/builds/42', 'retries': '3'});
+    });
+
+    test('returns an unmodifiable data map', () {
+      final message = parser.parse(
+        validPayload(overrides: {'deepLink': '/builds/42'}),
+      );
+
+      expect(() => message.data['injected'] = 'nope', throwsUnsupportedError);
+    });
+
+    for (final field in PushMessageParser.reservedKeys) {
+      test('throws when $field is missing', () {
+        final payload = validPayload()..remove(field);
+
+        expect(
+          () => parser.parse(payload),
+          throwsA(
+            isA<PushMessageFormatException>()
+                .having((e) => e.field, 'field', field)
+                .having((e) => e.reason, 'reason', 'missing'),
+          ),
+        );
+      });
+
+      test('throws when $field is blank', () {
+        expect(
+          () => parser.parse(validPayload(overrides: {field: '   '})),
+          throwsA(
+            isA<PushMessageFormatException>().having(
+              (e) => e.field,
+              'field',
+              field,
+            ),
+          ),
+        );
+      });
+
+      test('throws when $field is not a String', () {
+        expect(
+          () => parser.parse(validPayload(overrides: {field: 42})),
+          throwsA(
+            isA<PushMessageFormatException>().having(
+              (e) => e.field,
+              'field',
+              field,
+            ),
+          ),
+        );
+      });
+    }
+
+    test('throws when sentAt is not ISO-8601', () {
+      expect(
+        () => parser.parse(validPayload(overrides: {'sentAt': 'yesterday'})),
+        throwsA(
+          isA<PushMessageFormatException>()
+              .having((e) => e.field, 'field', 'sentAt')
+              .having((e) => e.reason, 'reason', contains('ISO-8601')),
+        ),
+      );
+    });
+  });
+
+  group('PushMessage', () {
+    test('two messages parsed from the same payload are equal', () {
+      expect(parser.parse(validPayload()), parser.parse(validPayload()));
+      expect(
+        parser.parse(validPayload()).hashCode,
+        parser.parse(validPayload()).hashCode,
+      );
+    });
+
+    test('differing ids are not equal', () {
+      expect(
+        parser.parse(validPayload()),
+        isNot(parser.parse(validPayload(overrides: {'id': 'msg-2'}))),
+      );
+    });
+
+    test('toString names the message without dumping the body', () {
+      expect(parser.parse(validPayload()).toString(), contains('msg-1'));
+    });
+  });
+}

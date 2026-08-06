@@ -1,0 +1,65 @@
+# Shared analyzer, linter and DCM configuration for every package in the
+# workspace. Packages include this file alongside their own lint preset
+# (flutter_lints for the app, lints for pure Dart) — see their
+# analysis_options.yaml.
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # Unresolved TODOs should not fail `--fatal-infos`.
+    todo: ignore
+  exclude:
+    - "**/*.freezed.dart"
+    - "**/*.g.dart"
+    - "**/generated_plugin_registrant.dart"
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_print
+    - cancel_subscriptions
+    - close_sinks
+    - prefer_final_in_for_each
+    - prefer_final_locals
+    - prefer_single_quotes
+    - require_trailing_commas
+    - sort_pub_dependencies
+    - unawaited_futures
+    - unnecessary_await_in_return
+    - unnecessary_parenthesis
+    - use_super_parameters
+
+dart_code_metrics:
+  metrics:
+    cyclomatic-complexity: 15
+    maximum-nesting-level: 5
+    number-of-parameters: 5
+    source-lines-of-code: 50
+  metrics-exclude:
+    - test/**
+  rules:
+    # Dart
+    - avoid-collection-methods-with-unrelated-types
+    - avoid-nested-conditional-expressions
+    - avoid-unnecessary-type-assertions
+    - avoid-unnecessary-type-casts
+    - avoid-unused-parameters
+    - double-literal-format
+    - newline-before-return
+    - no-boolean-literal-compare
+    - no-empty-block
+    - no-equal-then-else
+    - prefer-correct-type-name
+    - prefer-match-file-name
+    - prefer-trailing-comma
+    # Flutter
+    - always-remove-listener
+    - avoid-border-all
+    - avoid-returning-widgets
+    - avoid-unnecessary-setstate
+    - prefer-const-border-radius
+    - prefer-single-widget-per-file
+    - use-setstate-synchronously

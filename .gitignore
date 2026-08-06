@@ -1,0 +1,30 @@
+# FVM — the SDK cache. The version pin itself lives in .fvmrc, which is tracked.
+.fvm/
+
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+*.iml
+.idea/
+.vscode/
+doc/api/
+
+# Pub workspace: one lockfile at the root, none in members.
+apps/*/pubspec.lock
+packages/*/pubspec.lock
+
+# Flutter tooling
+apps/*/.flutter-plugins
+apps/*/.flutter-plugins-dependencies
+apps/*/ios/Flutter/Generated.xcconfig
+apps/*/ios/Flutter/flutter_export_environment.sh
+apps/*/ios/Pods/
+apps/*/ios/.symlinks/
+apps/*/android/.gradle/
+apps/*/android/local.properties
+apps/*/android/app/google-services.json
+apps/*/ios/Runner/GoogleService-Info.plist
+
+# OS
+.DS_Store

@@ -1,0 +1,71 @@
+name: fcm_workspace
+description: Dart pub workspace root for the FCM sample app. Not a real package — it exists to give every member a single shared dependency resolution.
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+
+# Every member listed here shares one pubspec.lock and one .dart_tool at the
+# repo root, so `melos bootstrap` is a single `pub get` instead of one per
+# package. Members opt in with `resolution: workspace` in their own pubspec.
+workspace:
+  - apps/fcm_app
+  - packages/core
+
+dev_dependencies:
+  melos: ^8.2.2
+
+# Melos 8 reads its configuration from the pub workspace root, not melos.yaml.
+# Every script shells out through `fvm` so the SDK pinned in .fvmrc is used,
+# regardless of which Flutter happens to be on PATH.
+melos:
+  scripts:
+    analyze:
+      description: Run the Dart analyzer over every package, treating infos as failures.
+      exec: fvm dart analyze --fatal-infos --fatal-warnings .
+
+    dcm:
+      description: Run DCM over the whole workspace.
+      # `fvm exec` rather than `fvm dcm` — fvm only proxies dart and flutter, so
+      # third-party tools go through exec, which puts the pinned SDK on PATH.
+      run: fvm exec dcm analyze --fatal-style --fatal-warnings .
+
+    format:
+      description: Format all Dart sources in place.
+      run: fvm dart format .
+
+    format:check:
+      description: Fail if any Dart source is not formatted.
+      run: fvm dart format --output=none --set-exit-if-changed .
+
+    fix:
+      description: Apply automated analyzer fixes in every package.
+      exec: fvm dart fix --apply
+
+    test:core:
+      description: Run pure-Dart tests (no Flutter binding required).
+      exec: fvm dart test
+      packageFilters:
+        flutter: false
+        dirExists: test
+
+    test:app:
+      description: Run Flutter widget tests.
+      exec: fvm flutter test
+      packageFilters:
+        flutter: true
+        dirExists: test
+
+    test:
+      description: Run every test suite in the workspace.
+      steps:
+        - test:core
+        - test:app
+
+    ci:
+      description: The full gate — formatting, analyzer, DCM, then tests.
+      steps:
+        - format:check
+        - analyze
+        - dcm
+        - test
