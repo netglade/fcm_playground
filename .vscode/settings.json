@@ -1,0 +1,15 @@
+{
+  // Point the Dart/Flutter extension at the fvm-pinned SDK instead of PATH.
+  // Without this the extension cannot find Flutter at all on a machine that
+  // only has fvm installed, and the launch configs will not start.
+  "dart.flutterSdkPath": ".fvm/flutter_sdk",
+
+  // The SDK cache is ~2 GB of Dart sources. Leaving it in the search index and
+  // the file watcher makes both noticeably worse.
+  "search.exclude": {
+    "**/.fvm": true
+  },
+  "files.watcherExclude": {
+    "**/.fvm/**": true
+  }
+}

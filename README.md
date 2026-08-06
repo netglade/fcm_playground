@@ -61,6 +61,37 @@ Each script shells out through `fvm`, so the pinned SDK is used no matter what
 is on `PATH`. Note `fvm exec dcm …` rather than `fvm dcm …`: fvm only proxies
 `dart` and `flutter`, and `exec` is how third-party tools get the pinned SDK.
 
+## Debugging in VS Code
+
+`.vscode/launch.json` and `.vscode/settings.json` are tracked; the rest of
+`.vscode/` is not. Four configurations, all with `cwd` set to `apps/fcm_app`
+because the repo root is a pub workspace rather than a Flutter project:
+
+| Configuration | Target |
+| --- | --- |
+| `fcm_app · Android phone` | the phone pinned by serial, debug mode |
+| `fcm_app · Android phone (profile)` | same phone, profile mode for real frame times |
+| `fcm_app · pick device` | whatever is selected in the status bar — use this on another machine |
+| `fcm_app · Chrome` | Chrome on a fixed port, `http://localhost:5555` |
+
+`dart.flutterSdkPath` in `settings.json` points the Dart extension at
+`.fvm/flutter_sdk`. **This is what makes the launch configs work** — without it
+the extension searches `PATH`, where a fvm-only machine has no Flutter at all.
+
+Two things worth knowing about `deviceId`:
+
+- `flutter run -d` matches a **prefix of the device id or name**, not a platform.
+  `"deviceId": "android"` resolves to nothing. The Android configs therefore pin
+  a serial; run `fvm flutter devices` and substitute yours, or use
+  `fcm_app · pick device`.
+- `"deviceId": "chrome"` works because that is literally the device's id.
+
+The web port is fixed rather than random because Firebase authorised domains and
+CORS allowlists are configured per origin, and a moving port makes that
+unworkable. Note that push on web additionally needs a
+`web/firebase-messaging-sw.js` service worker, which `flutterfire configure`
+does not generate for you.
+
 ## Tooling notes
 
 **fvm.** `.fvmrc` is tracked; `.fvm/` (the SDK cache) is not. To move the whole

@@ -7,8 +7,14 @@
 build/
 *.iml
 .idea/
-.vscode/
 doc/api/
+
+# VS Code: share the debug configs and the fvm SDK path, keep everything else
+# local. A negation cannot reach inside an ignored directory, so this excludes
+# the contents rather than the directory itself.
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
 
 # Pub workspace: one lockfile at the root, none in members.
 apps/*/pubspec.lock
