@@ -8,6 +8,8 @@ import 'push/disabled_push_source.dart';
 import 'push/firebase_push_source.dart';
 import 'push/push_inbox.dart';
 import 'push/push_source.dart';
+import 'sandbox/sandbox_controller.dart';
+import 'sandbox/unavailable_notification_sender.dart';
 import 'ui/fcm_sample_app.dart';
 
 Future<void> main() async {
@@ -26,7 +28,16 @@ Future<void> main() async {
   final inbox = PushInbox(source, setupError: setupError)..listen();
   await inbox.refreshToken();
 
-  runApp(FcmSampleApp(inbox: inbox));
+  // Real sending is wired up in Task 12 (`buildNotificationSender`, which
+  // picks a `CallableNotificationSender` once Firebase has started). Until
+  // then the sandbox still renders, with sending disabled and this reason
+  // shown, matching how the inbox degrades when Firebase never started.
+  final sandbox = SandboxController(
+    sender: const UnavailableNotificationSender('Sending is not wired up yet.'),
+    readToken: () => inbox.token,
+  );
+
+  runApp(FcmSampleApp(inbox: inbox, sandbox: sandbox));
 }
 
 /// Handles pushes that arrive while the app is backgrounded or terminated.

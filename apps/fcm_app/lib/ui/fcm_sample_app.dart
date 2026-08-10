@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../push/push_inbox.dart';
-import 'inbox_screen.dart';
+import '../sandbox/sandbox_controller.dart';
+import 'app_shell.dart';
 
-/// Root widget. Takes the [PushInbox] as a parameter rather than creating one,
-/// so widget tests can supply an inbox wired to a fake source.
+/// Root widget. Takes its state holders as parameters rather than creating
+/// them, so widget tests can supply fakes.
 class FcmSampleApp extends StatelessWidget {
-  const FcmSampleApp({required this.inbox, super.key});
+  const FcmSampleApp({required this.inbox, required this.sandbox, super.key});
 
   final PushInbox inbox;
+  final SandboxController sandbox;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'FCM Sample',
     theme: ThemeData(colorSchemeSeed: Colors.indigo),
-    home: InboxScreen(inbox: inbox),
+    home: AppShell(inbox: inbox, sandbox: sandbox),
   );
 }

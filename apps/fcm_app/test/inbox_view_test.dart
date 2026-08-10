@@ -1,5 +1,5 @@
 import 'package:fcm_app/push/push_inbox.dart';
-import 'package:fcm_app/ui/fcm_sample_app.dart';
+import 'package:fcm_app/ui/inbox_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,7 +18,11 @@ void main() {
   late PushInbox inbox;
 
   Future<void> pumpApp(WidgetTester tester) async {
-    await tester.pumpWidget(FcmSampleApp(inbox: inbox));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: InboxView(inbox: inbox)),
+      ),
+    );
     await tester.pumpAndSettle();
   }
 
