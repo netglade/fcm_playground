@@ -2713,6 +2713,8 @@ git commit -m "feat(app): add the sandbox controller and its notification sender
   - `class InboxView extends StatelessWidget` — `const InboxView({required PushInbox inbox, super.key})`, no `Scaffold` and no `AppBar`.
   - `FcmSampleApp` gains a `sandbox` parameter: `const FcmSampleApp({required PushInbox inbox, required SandboxController sandbox, super.key})`.
 
+**Gap this task originally had, filled during execution:** changing `FcmSampleApp`'s constructor to require `sandbox` breaks `apps/fcm_app/lib/main.dart`, which this task's file list did not mention — Task 12 is where `main()` gets wired properly. The task therefore also needs a one-line stopgap in `main.dart` so the package still compiles and analyzes: construct the controller with `UnavailableNotificationSender`, which Task 12 replaces with `buildNotificationSender(...)`. Leaving `main.dart` broken between tasks would fail the analyzer gate.
+
 **Sequencing note:** `AppShell` renders `SandboxView`, which Task 11 creates. To keep this task independently testable, `AppShell` renders a placeholder for the sandbox destination here and Task 11 replaces that one line. The placeholder is `Center(child: Text('Sandbox goes here'))` — deliberately **not** the word `Sandbox` alone, because the app bar title already carries that and `find.text('Sandbox')` would then match twice. The test below asserts on the drawer's behaviour, not on the sandbox body.
 
 - [ ] **Step 1: Write the failing test**
@@ -3068,6 +3070,8 @@ git commit -m "feat(app): add the drawer shell and turn InboxScreen into InboxVi
 
 **Why so many files:** DCM's `prefer-single-widget-per-file` allows exactly one widget class per file, `avoid-returning-widgets` forbids `Widget _buildFoo()` helpers, and `source-lines-of-code: 50` caps each `build`. The form has to be composed from small widgets; it cannot be one large one.
 
+**`avoid-returning-widgets` applies to test files too.** DCM excludes `test/**` from its *metrics* but not from its *rules*, so a `Widget _view(…)` test helper fails the gate. That is why the helper below is `Future<void> _pumpView(tester, controller)`, which pumps the widget instead of returning it — the same shape Task 10 settled on for `app_shell_test.dart` after hitting this. This section originally prescribed the returning form; it was corrected before Task 11 was dispatched.
+
 - [ ] **Step 1: Write the failing test**
 
 Create `apps/fcm_app/test/sandbox_view_test.dart`:
@@ -3081,8 +3085,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_notification_sender.dart';
 
-Widget _view(SandboxController controller) =>
-    MaterialApp(home: Scaffold(body: SandboxView(controller: controller)));
+Future<void> _pumpView(
+  WidgetTester tester,
+  SandboxController controller,
+) async {
+  await tester.pumpWidget(
+    MaterialApp(home: Scaffold(body: SandboxView(controller: controller))),
+  );
+}
 
 SandboxController _controller(
   FakeNotificationSender sender, {
@@ -3097,7 +3107,7 @@ Finder _field(String label) => find.ancestor(
 void main() {
   group('SandboxView', () {
     testWidgets('shows a chip per gallery scenario', (tester) async {
-      await tester.pumpWidget(_view(_controller(FakeNotificationSender())));
+      await _pumpView(tester, _controller(FakeNotificationSender()));
 
       for (final scenario in notificationGallery) {
         expect(find.text(scenario.label), findsOneWidget);
@@ -3105,7 +3115,7 @@ void main() {
     });
 
     testWidgets('opens prefilled from the first scenario', (tester) async {
-      await tester.pumpWidget(_view(_controller(FakeNotificationSender())));
+      await _pumpView(tester, _controller(FakeNotificationSender()));
 
       expect(
         find.text(notificationGallery.first.draft.title),
@@ -3115,7 +3125,7 @@ void main() {
 
     testWidgets('tapping a scenario replaces the form contents',
         (tester) async {
-      await tester.pumpWidget(_view(_controller(FakeNotificationSender())));
+      await _pumpView(tester, _controller(FakeNotificationSender()));
       final promo = notificationGallery.firstWhere((s) => s.id == 'promo');
 
       await tester.tap(find.text(promo.label));
@@ -3128,7 +3138,7 @@ void main() {
     testWidgets('clearing the title shows the validator\'s message and '
         'disables sending', (tester) async {
       final sender = FakeNotificationSender();
-      await tester.pumpWidget(_view(_controller(sender)));
+      await _pumpView(tester, _controller(sender));
 
       await tester.enterText(_field('Title'), '');
       await tester.pump();
@@ -3142,8 +3152,9 @@ void main() {
 
     testWidgets('says why it cannot send when there is no token',
         (tester) async {
-      await tester.pumpWidget(
-        _view(_controller(FakeNotificationSender(), token: null)),
+      await _pumpView(
+        tester,
+        _controller(FakeNotificationSender(), token: null),
       );
 
       expect(find.text('No registration token yet.'), findsOneWidget);
@@ -3156,7 +3167,7 @@ void main() {
     testWidgets('sending hands the fake sender the edited draft',
         (tester) async {
       final sender = FakeNotificationSender();
-      await tester.pumpWidget(_view(_controller(sender)));
+      await _pumpView(tester, _controller(sender));
 
       await tester.enterText(_field('Title'), 'Hand-written');
       await tester.pump();
@@ -3169,7 +3180,7 @@ void main() {
 
     testWidgets('reports the payload id that will appear in the inbox',
         (tester) async {
-      await tester.pumpWidget(_view(_controller(FakeNotificationSender())));
+      await _pumpView(tester, _controller(FakeNotificationSender()));
 
       await tester.tap(find.byType(FilledButton));
       await tester.pumpAndSettle();
@@ -3181,7 +3192,7 @@ void main() {
         (tester) async {
       final sender = FakeNotificationSender()
         ..failWith = StateError('functions unreachable');
-      await tester.pumpWidget(_view(_controller(sender)));
+      await _pumpView(tester, _controller(sender));
       await tester.enterText(_field('Title'), 'Still here');
       await tester.pump();
 
@@ -3194,7 +3205,7 @@ void main() {
 
     testWidgets('turning off "Show as notification" allows a blank title, '
         'because nothing is displayed', (tester) async {
-      await tester.pumpWidget(_view(_controller(FakeNotificationSender())));
+      await _pumpView(tester, _controller(FakeNotificationSender()));
       await tester.enterText(_field('Title'), '');
       await tester.enterText(_field('Body'), '');
       await tester.pump();
@@ -3211,7 +3222,7 @@ void main() {
 
     testWidgets('adding an extra data key sends it', (tester) async {
       final sender = FakeNotificationSender();
-      await tester.pumpWidget(_view(_controller(sender)));
+      await _pumpView(tester, _controller(sender));
 
       await tester.tap(find.text('Add key/value'));
       await tester.pumpAndSettle();
@@ -3230,7 +3241,7 @@ void main() {
     testWidgets('a reserved extra data key is rejected before sending',
         (tester) async {
       final sender = FakeNotificationSender();
-      await tester.pumpWidget(_view(_controller(sender)));
+      await _pumpView(tester, _controller(sender));
 
       await tester.tap(find.text('Add key/value'));
       await tester.pumpAndSettle();
