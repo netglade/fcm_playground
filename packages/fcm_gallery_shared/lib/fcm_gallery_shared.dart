@@ -11,4 +11,6 @@ export 'src/notification_draft_validator.dart';
 export 'src/notification_event.dart';
 export 'src/notification_priority.dart';
 export 'src/notification_scenario.dart';
+export 'src/send_notification_request.dart';
+export 'src/send_notification_response.dart';
 export 'src/wire_named.dart';
