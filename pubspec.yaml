@@ -10,6 +10,7 @@ environment:
 # package. Members opt in with `resolution: workspace` in their own pubspec.
 workspace:
   - apps/fcm_app
+  - apps/fcm_functions
   - packages/core
   - packages/fcm_gallery_shared
 
