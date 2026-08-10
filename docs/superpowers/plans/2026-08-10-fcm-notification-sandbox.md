@@ -3944,9 +3944,15 @@ Create `apps/fcm_functions/README.md`:
 ```markdown
 # fcm_functions
 
-The backend for the `fcm_app` sandbox: one callable, `sendNotification`, which
-validates a `NotificationDraft` and sends it to a device through the Firebase
-Admin SDK.
+The backend for the `fcm_app` sandbox: one callable, registered in Dart as
+`sendNotification` and **deployed as `send-notification`**, which validates a
+`NotificationDraft` and sends it to a device through the Firebase Admin SDK.
+
+`firebase_functions` runs every registered name through its `toCloudRunId`
+sanitiser, so the kebab-case form is what appears in the generated
+`functions.yaml`, in the deployed Cloud Run service, and in the path the
+container routes on. That is why the app calls `send-notification` — see
+`CallableNotificationSender.functionName`.
 
 Do not run tooling from this directory — the workspace root owns dependency
 resolution and the melos scripts. From the repo root:
@@ -4011,8 +4017,10 @@ In `apps/fcm_app/README.md`, extend the `Structure:` list with the new directori
 
 ## Running against the Functions emulator
 
-The sandbox calls `sendNotification` in `apps/fcm_functions`. To point it at a
-local emulator instead of a deployed function, pass the host at build time:
+The sandbox calls `send-notification` in `apps/fcm_functions` — kebab-case,
+because `firebase_functions` sanitises the `sendNotification` name the Dart
+source registers. To point it at a local emulator instead of a deployed
+function, pass the host at build time:
 
 ```bash
 # From the repo root, in one terminal:
@@ -4065,11 +4073,16 @@ Three edits to `README.md`:
 ## The notification sandbox
 
 The app's Sandbox page composes a push and sends it to the device it is running
-on. The request goes to `sendNotification`, a Dart Cloud Function in
-`apps/fcm_functions`, which validates it, stamps an `id` and `sentAt`, and sends
-it through the Firebase Admin SDK. It comes back through FCM into the same inbox
-as any other push, carrying the `payloadId` the send reported — so the round
-trip is visible rather than inferred.
+on. The request goes to `send-notification`, a Dart Cloud Function in
+`apps/fcm_functions` — registered in Dart as `sendNotification`, deployed under
+the kebab-case name `firebase_functions`' `toCloudRunId` sanitiser produces. It
+validates the draft, stamps an `id` and `sentAt`, and sends the message through
+the Firebase Admin SDK.
+
+The design intent is that the push then comes back through FCM into the same
+inbox as any other, carrying the `payloadId` the send reported, so the round trip
+is visible rather than inferred. **That path has not been exercised yet** — see
+"Not verified" below and `apps/fcm_functions/README.md`.
 
 `packages/fcm_gallery_shared` is the contract in the middle: the event enum, the
 gallery scenarios, the callable DTOs, and one `NotificationDraftValidator` that
