@@ -30,8 +30,10 @@ Push payload parsing lives in `packages/core`, which has no Flutter dependency.
 
 ## Running against the Functions emulator
 
-The sandbox calls `sendNotification` in `apps/fcm_functions`. To point it at a
-local emulator instead of a deployed function, pass the host at build time:
+The sandbox calls `send-notification` in `apps/fcm_functions` — kebab-case,
+because `firebase_functions` sanitises the `sendNotification` name the Dart
+source registers. To point it at a local emulator instead of a deployed
+function, pass the host at build time:
 
 ```bash
 # From the repo root, in one terminal:

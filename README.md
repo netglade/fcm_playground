@@ -172,11 +172,16 @@ silently dropped — see `PushInbox.rejections`.
 ## The notification sandbox
 
 The app's Sandbox page composes a push and sends it to the device it is running
-on. The request goes to `sendNotification`, a Dart Cloud Function in
-`apps/fcm_functions`, which validates it, stamps an `id` and `sentAt`, and sends
-it through the Firebase Admin SDK. It comes back through FCM into the same inbox
-as any other push, carrying the `payloadId` the send reported — so the round
-trip is visible rather than inferred.
+on. The request goes to `send-notification`, a Dart Cloud Function in
+`apps/fcm_functions` — registered in Dart as `sendNotification`, deployed under
+the kebab-case name `firebase_functions`' `toCloudRunId` sanitiser produces. It
+validates the draft, stamps an `id` and `sentAt`, and sends the message through
+the Firebase Admin SDK.
+
+The design intent is that the push then comes back through FCM into the same
+inbox as any other, carrying the `payloadId` the send reported, so the round trip
+is visible rather than inferred. **That path has not been exercised yet** — see
+"Not verified" below and `apps/fcm_functions/README.md`.
 
 `packages/fcm_gallery_shared` is the contract in the middle: the event enum, the
 gallery scenarios, the callable DTOs, and one `NotificationDraftValidator` that

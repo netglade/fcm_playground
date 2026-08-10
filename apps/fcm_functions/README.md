@@ -1,8 +1,14 @@
 # fcm_functions
 
-The backend for the `fcm_app` sandbox: one callable, `sendNotification`, which
-validates a `NotificationDraft` and sends it to a device through the Firebase
-Admin SDK.
+The backend for the `fcm_app` sandbox: one callable, registered in Dart as
+`sendNotification` and **deployed as `send-notification`**, which validates a
+`NotificationDraft` and sends it to a device through the Firebase Admin SDK.
+
+`firebase_functions` runs every registered name through its `toCloudRunId`
+sanitiser, so the kebab-case form is what appears in the generated
+`functions.yaml`, in the deployed Cloud Run service, and in the path the
+container routes on. That is why the app calls `send-notification` — see
+`CallableNotificationSender.functionName`.
 
 Do not run tooling from this directory — the workspace root owns dependency
 resolution and the melos scripts. From the repo root:
