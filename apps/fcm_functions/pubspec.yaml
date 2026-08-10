@@ -15,5 +15,7 @@ dependencies:
 
 dev_dependencies:
   build_runner: ^2.10.5
+  core:
+    path: ../../packages/core
   lints: ^6.0.0
   test: ^1.25.6

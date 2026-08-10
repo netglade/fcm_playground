@@ -140,8 +140,8 @@ void main() {
     });
 
     testWidgets(
-      'turning off "Show as notification" allows a blank title, because '
-      'nothing is displayed',
+      'turning off "Show as notification" still requires a title, because '
+      'the payload carries it either way',
       (tester) async {
         await _pumpView(tester, _controller(FakeNotificationSender()));
         await tester.enterText(_field('Title'), '');
@@ -151,10 +151,10 @@ void main() {
         await tester.tap(find.byType(SwitchListTile));
         await tester.pumpAndSettle();
 
-        expect(find.text('must not be blank'), findsNothing);
+        expect(find.text('must not be blank'), findsWidgets);
         expect(
           tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
-          isNotNull,
+          isNull,
         );
       },
     );

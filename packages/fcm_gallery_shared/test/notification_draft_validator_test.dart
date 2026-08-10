@@ -13,6 +13,14 @@ const _valid = NotificationDraft(
 List<String> _fields(NotificationDraft draft) =>
     _validator.validate(draft).map((problem) => problem.field).toList();
 
+/// Extracted so `test(...)` fits on one line. Inlined, the literal wraps onto
+/// a second line and `dart format` keeps the trailing closure hugging the
+/// call, which `dcm`'s trailing-comma rule then flags — this sidesteps that
+/// clash instead of fighting either tool.
+const _silentStillNeedsTextDescription =
+    'a silent message needs them too, because the payload carries them '
+    'whether or not FCM displays them';
+
 void main() {
   group('NotificationDraftValidator', () {
     test('a well-formed draft has no problems', () {
@@ -29,20 +37,20 @@ void main() {
       }
     });
 
-    test('a visible notification needs a title and a body', () {
+    test('a notification needs a title and a body', () {
       final blank = _valid.copyWith(title: '  ', body: '');
 
       expect(_fields(blank), containsAll(['title', 'body']));
     });
 
-    test('a silent message may have neither, since nothing is shown', () {
+    test(_silentStillNeedsTextDescription, () {
       final silent = _valid.copyWith(
         title: '',
         body: '',
         delivery: const NotificationDelivery(asNotification: false),
       );
 
-      expect(_validator.validate(silent), isEmpty);
+      expect(_fields(silent), containsAll(['title', 'body']));
     });
 
     test('a blank extra data key is a problem', () {
