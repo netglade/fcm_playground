@@ -162,7 +162,15 @@ root                                   Tasks 1, 6, 8, 12
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `enum NotificationEvent` with `final String wireName` and `static NotificationEvent? fromWireName(String wireName)`; values `chatMessage`, `buildFinished`, `promo`, `silentSync`. `enum NotificationPriority` with the same shape; values `high`, `normal`.
+- Produces: `abstract interface class WireNamed` with `String get wireName`, and the top-level `T? wireNamedFrom<T extends WireNamed>(Iterable<T> values, String wireName)`. `enum NotificationEvent implements WireNamed` with `final String wireName` and `static NotificationEvent? fromWireName(String wireName)`; values `chatMessage`, `buildFinished`, `promo`, `silentSync`. `enum NotificationPriority implements WireNamed` with the same shape; values `high`, `normal`.
+
+**Amended after the Task 1 review.** This task originally prescribed a
+copy-pasted linear-scan `fromWireName` body in each enum. The reviewer flagged
+the duplication and the human ruled that the finding governs, so the search
+lives once in `wireNamedFrom` and each enum keeps a one-line static that calls
+it. `WireNamed` is worth having on its own terms: it names the concept the two
+enums share — a value carrying a wire name that is deliberately decoupled from
+its Dart identifier — rather than merely factoring out four lines.
 
 - [ ] **Step 1: Add the package to the workspace and create its pubspec**
 
@@ -303,15 +311,37 @@ enum NotificationEvent {
   ///
   /// Returns `null` instead of throwing because a payload from an older or
   /// newer sender must not be able to break the inbox.
-  static NotificationEvent? fromWireName(String wireName) {
-    for (final event in values) {
-      if (event.wireName == wireName) {
-        return event;
-      }
-    }
+  static NotificationEvent? fromWireName(String wireName) =>
+      wireNamedFrom(values, wireName);
+}
+```
 
-    return null;
+And `packages/fcm_gallery_shared/lib/src/wire_named.dart`, which both enums use:
+
+```dart
+/// A value that travels under a name of its own, independent of its Dart
+/// identifier.
+///
+/// Implemented by every enum in this package that crosses the wire, so renaming
+/// an enum value cannot silently change the payload a deployed sender produces.
+abstract interface class WireNamed {
+  /// The value that goes on the wire.
+  String get wireName;
+}
+
+/// The element of [values] whose [WireNamed.wireName] is [wireName], or `null`
+/// when nothing matches.
+///
+/// Returns `null` rather than throwing: a payload from an older or newer sender
+/// must not be able to break the receiver.
+T? wireNamedFrom<T extends WireNamed>(Iterable<T> values, String wireName) {
+  for (final value in values) {
+    if (value.wireName == wireName) {
+      return value;
+    }
   }
+
+  return null;
 }
 ```
 
@@ -333,15 +363,8 @@ enum NotificationPriority {
   final String wireName;
 
   /// The priority named by [wireName], or `null` when nothing matches.
-  static NotificationPriority? fromWireName(String wireName) {
-    for (final priority in values) {
-      if (priority.wireName == wireName) {
-        return priority;
-      }
-    }
-
-    return null;
-  }
+  static NotificationPriority? fromWireName(String wireName) =>
+      wireNamedFrom(values, wireName);
 }
 ```
 
@@ -356,6 +379,7 @@ library;
 
 export 'src/notification_event.dart';
 export 'src/notification_priority.dart';
+export 'src/wire_named.dart';
 ```
 
 - [ ] **Step 6: Run the tests to verify they pass**
