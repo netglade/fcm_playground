@@ -8,9 +8,12 @@ environment:
   sdk: ^3.12.2
 
 dependencies:
+  cloud_functions: ^6.3.6
   core:
     path: ../../packages/core
   cupertino_icons: ^1.0.8
+  fcm_gallery_shared:
+    path: ../../packages/fcm_gallery_shared
   firebase_core: ^4.13.0
   firebase_messaging: ^16.5.0
   flutter:
