@@ -42,9 +42,13 @@ apps/*/android/local.properties
 apps/*/android/app/google-services.json
 apps/*/ios/Runner/GoogleService-Info.plist
 
-# Scratch for the subagent-driven-development workflow: ledgers, task briefs,
-# implementer reports and review packages. Process notes, not repo content.
+# Superpowers workflow artefacts. Both are notes about how the work was done,
+# not the work itself — the code, its tests and the READMEs are the record.
+#
+# .superpowers/    ledgers, task briefs, implementer reports, review packages
+# docs/superpowers/ brainstormed specs and implementation plans
 .superpowers/
+docs/superpowers/
 
 # OS
 .DS_Store

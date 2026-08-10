@@ -204,9 +204,13 @@ local emulator loop, which does not.
 The callable is unauthenticated: the app has no Firebase Auth, and a caller can
 only ask for a push to the token it supplies itself, so an attacker would need
 someone's registration token before they could bother them with it.
-`maxInstances: 3` and `timeoutSeconds: 30` cap what abuse can cost. Firebase App
-Check is the production answer and is deliberately out of scope — see the design
-document.
+`maxInstances: 3` and `timeoutSeconds: 30` cap what abuse can cost.
+
+Firebase App Check is the production answer and is deliberately out of scope: it
+needs Play Integrity and DeviceCheck registration plus debug providers for the
+emulator and the tests, none of which this sample demonstrates. Anonymous
+Firebase Auth was considered and rejected — anyone can mint an anonymous
+account, so it would add a dependency without adding a barrier.
 
 ## Verified on this machine
 
