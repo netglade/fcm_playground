@@ -14,6 +14,8 @@ const _draft = NotificationDraft(
 
 const _request = SendNotificationRequest(token: 'device-token', draft: _draft);
 
+final _requestJson = _request.toJson();
+
 final _now = DateTime.utc(2026, 8, 10, 9, 30);
 
 /// Extracted so `test(...)` fits on one line. Inlined, the literal wraps onto
@@ -26,9 +28,9 @@ const _payloadMatchesResponseDescription =
 
 Future<SendNotificationResponse> _handle(
   FakeFcmMessageSender sender, {
-  SendNotificationRequest request = _request,
+  Map<String, dynamic>? json,
 }) => handleSendNotification(
-  request,
+  json ?? _requestJson,
   sender: sender,
   newPayloadId: () => 'sandbox-1',
   now: () => _now,
@@ -58,17 +60,17 @@ void main() {
       'rejects a draft the shared validator refuses, naming the field',
       () async {
         final sender = FakeFcmMessageSender();
-        const invalid = SendNotificationRequest(
+        final invalid = const SendNotificationRequest(
           token: 'device-token',
           draft: NotificationDraft(
             event: NotificationEvent.promo,
             title: '',
             body: '',
           ),
-        );
+        ).toJson();
 
         await expectLater(
-          _handle(sender, request: invalid),
+          _handle(sender, json: invalid),
           throwsA(
             isA<InvalidArgumentError>().having(
               (e) => e.message,
@@ -83,10 +85,13 @@ void main() {
 
     test('rejects a blank token', () async {
       final sender = FakeFcmMessageSender();
-      const blank = SendNotificationRequest(token: '   ', draft: _draft);
+      final blank = const SendNotificationRequest(
+        token: '   ',
+        draft: _draft,
+      ).toJson();
 
       await expectLater(
-        _handle(sender, request: blank),
+        _handle(sender, json: blank),
         throwsA(isA<InvalidArgumentError>()),
       );
       expect(sender.sentMessage, isNull);
@@ -129,6 +134,64 @@ void main() {
           ),
         ),
       );
+    });
+
+    // These paths only became reachable once `handleSendNotification` started
+    // parsing the raw request itself — previously `fromJson` ran inside
+    // `firebase_functions`' callable machinery, where a `FormatException`
+    // turned into an opaque `internal` error before any test here could see
+    // it.
+    group('a malformed request', () {
+      test('names an unknown event as invalid, not internal', () async {
+        final sender = FakeFcmMessageSender();
+        final json = <String, dynamic>{
+          'token': 'device-token',
+          'draft': {'event': 'not-a-real-event', 'title': 'x', 'body': 'y'},
+        };
+
+        await expectLater(
+          _handle(sender, json: json),
+          throwsA(
+            isA<InvalidArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('Unknown notification event'),
+            ),
+          ),
+        );
+      });
+
+      test('a missing token is invalid, not internal', () async {
+        final sender = FakeFcmMessageSender();
+        final json = <String, dynamic>{'draft': _draft.toJson()};
+
+        await expectLater(
+          _handle(sender, json: json),
+          throwsA(
+            isA<InvalidArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('has no token'),
+            ),
+          ),
+        );
+      });
+
+      test('a missing draft is invalid, not internal', () async {
+        final sender = FakeFcmMessageSender();
+        final json = <String, dynamic>{'token': 'device-token'};
+
+        await expectLater(
+          _handle(sender, json: json),
+          throwsA(
+            isA<InvalidArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('has no draft'),
+            ),
+          ),
+        );
+      });
     });
   });
 

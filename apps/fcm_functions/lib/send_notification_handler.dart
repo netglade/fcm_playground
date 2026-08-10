@@ -11,24 +11,39 @@ import 'notification_message_builder.dart';
 /// a glance, and microsecond-stamped so two sends in the same second differ.
 String defaultPayloadId() => 'sandbox-${DateTime.now().microsecondsSinceEpoch}';
 
-/// Validates [request], sends it, and reports what was sent.
+/// Parses [json], validates it, sends it, and reports what was sent.
 ///
 /// Takes its collaborators as parameters — the sender, the id generator and the
 /// clock — so the whole thing is testable without a Firebase runtime. The
 /// registration in `register_functions.dart` supplies only the sender and lets
 /// the other two default.
 ///
-/// Throws [InvalidArgumentError] for anything the caller can fix: an invalid
-/// draft, a blank token, or an FCM rejection of the token itself. That is a
-/// native callable error, so the app receives it as
+/// Takes the raw request body rather than an already-parsed
+/// [SendNotificationRequest] so that `SendNotificationRequest.fromJson`'s
+/// [FormatException]s — an unknown event, a missing token, a missing draft —
+/// are caught here and turned into [InvalidArgumentError]. Parsing it one
+/// frame up, inside `firebase_functions`' callable machinery, would let those
+/// exceptions fall through the framework's generic catch-all and reach the
+/// client as an opaque `internal` error with no detail.
+///
+/// Throws [InvalidArgumentError] for anything the caller can fix: a malformed
+/// request, an invalid draft, a blank token, or an FCM rejection of the token
+/// itself. That is a native callable error, so the app receives it as
 /// `FirebaseFunctionsException(code: 'invalid-argument')` rather than an opaque
 /// HTTP failure.
 Future<SendNotificationResponse> handleSendNotification(
-  SendNotificationRequest request, {
+  Map<String, dynamic> json, {
   required FcmMessageSender sender,
   String Function() newPayloadId = defaultPayloadId,
   DateTime Function() now = DateTime.now,
 }) async {
+  final SendNotificationRequest request;
+  try {
+    request = SendNotificationRequest.fromJson(json);
+  } on FormatException catch (error) {
+    throw InvalidArgumentError(error.message);
+  }
+
   final problems = const NotificationDraftValidator().validate(request.draft);
   if (problems.isNotEmpty) {
     throw InvalidArgumentError(problems.join('; '));
