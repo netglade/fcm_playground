@@ -4,8 +4,10 @@
 /// library, so it must not drag in Flutter or the Firebase SDKs.
 library;
 
+export 'src/draft_problem.dart';
 export 'src/notification_delivery.dart';
 export 'src/notification_draft.dart';
+export 'src/notification_draft_validator.dart';
 export 'src/notification_event.dart';
 export 'src/notification_priority.dart';
 export 'src/notification_scenario.dart';
