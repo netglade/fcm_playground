@@ -44,6 +44,28 @@ melos:
       description: Apply automated analyzer fixes in every package.
       exec: fvm dart fix --apply
 
+    functions:build:
+      description: Regenerate apps/fcm_functions/functions.yaml from the Dart sources.
+      exec: fvm dart run build_runner build
+      packageFilters:
+        scope: fcm_functions
+
+    functions:compile:
+      description: Compile the functions entry point to the linux-x64 executable that deploy uploads.
+      exec: fvm dart compile exe bin/server.dart -o bin/server --target-os=linux --target-arch=x64
+      packageFilters:
+        scope: fcm_functions
+
+    functions:serve:
+      description: Run the Functions emulator. Needs GOOGLE_APPLICATION_CREDENTIALS to reach real FCM.
+      # `fvm exec` puts the pinned SDK on PATH, which is how the Firebase CLI
+      # finds a `dart` at all — there is none installed globally.
+      run: fvm exec firebase emulators:start --only functions
+
+    functions:deploy:
+      description: Deploy the Dart functions. Needs the Blaze plan and the dartfunctions experiment.
+      run: fvm exec firebase deploy --only functions
+
     test:core:
       description: Run pure-Dart tests (no Flutter binding required).
       exec: fvm dart test

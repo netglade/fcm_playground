@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "source": "apps/fcm_functions",
+    "codebase": "default",
+    "runtime": "dart3",
+    "ignore": [".dart_tool", "build", "test", "*.local"]
+  },
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "ui": {
+      "enabled": true
+    }
+  }
+}
