@@ -73,22 +73,21 @@ class NotificationDraft {
     String? body,
     Map<String, String>? data,
     NotificationDelivery? delivery,
-  }) =>
-      NotificationDraft(
-        event: event ?? this.event,
-        title: title ?? this.title,
-        body: body ?? this.body,
-        data: data ?? this.data,
-        delivery: delivery ?? this.delivery,
-      );
+  }) => NotificationDraft(
+    event: event ?? this.event,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    data: data ?? this.data,
+    delivery: delivery ?? this.delivery,
+  );
 
   Map<String, dynamic> toJson() => {
-        'event': event.wireName,
-        'title': title,
-        'body': body,
-        'data': data,
-        'delivery': delivery.toJson(),
-      };
+    'event': event.wireName,
+    'title': title,
+    'body': body,
+    'data': data,
+    'delivery': delivery.toJson(),
+  };
 
   @override
   bool operator ==(Object other) =>
@@ -100,8 +99,7 @@ class NotificationDraft {
       _sameData(other.data);
 
   @override
-  int get hashCode =>
-      Object.hash(event, title, body, delivery, data.length);
+  int get hashCode => Object.hash(event, title, body, delivery, data.length);
 
   @override
   String toString() =>

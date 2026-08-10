@@ -15,17 +15,18 @@ void main() {
       expect(NotificationDraft.fromJson(_draft.toJson()), _draft);
     });
 
-    test('defaults to no extra data and a visible high-priority notification',
-        () {
-      const draft = NotificationDraft(
-        event: NotificationEvent.promo,
-        title: 'Sale',
-        body: 'Half price.',
-      );
+    test(
+      'defaults to no extra data and a visible high-priority notification',
+      () {
+        const draft = NotificationDraft(
+          event: NotificationEvent.promo,
+          title: 'Sale',
+          body: 'Half price.',
+        );
 
-      expect(draft.data, isEmpty);
-      expect(draft.delivery, const NotificationDelivery());
-    },
+        expect(draft.data, isEmpty);
+        expect(draft.delivery, const NotificationDelivery());
+      },
     );
 
     test('copyWith replaces only what it is given', () {
@@ -58,12 +59,13 @@ void main() {
       expect(draft.data, {'attempt': '2'});
     });
 
-    test('data is unmodifiable, so a draft cannot be mutated after the fact',
-        () {
-      final draft = NotificationDraft.fromJson(_draft.toJson());
+    test(
+      'data is unmodifiable, so a draft cannot be mutated after the fact',
+      () {
+        final draft = NotificationDraft.fromJson(_draft.toJson());
 
-      expect(() => draft.data['sneaky'] = 'yes', throwsUnsupportedError);
-    },
+        expect(() => draft.data['sneaky'] = 'yes', throwsUnsupportedError);
+      },
     );
   });
 }

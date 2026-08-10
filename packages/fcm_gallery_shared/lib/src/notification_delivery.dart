@@ -42,16 +42,15 @@ class NotificationDelivery {
   NotificationDelivery copyWith({
     bool? asNotification,
     NotificationPriority? priority,
-  }) =>
-      NotificationDelivery(
-        asNotification: asNotification ?? this.asNotification,
-        priority: priority ?? this.priority,
-      );
+  }) => NotificationDelivery(
+    asNotification: asNotification ?? this.asNotification,
+    priority: priority ?? this.priority,
+  );
 
   Map<String, dynamic> toJson() => {
-        'asNotification': asNotification,
-        'priority': priority.wireName,
-      };
+    'asNotification': asNotification,
+    'priority': priority.wireName,
+  };
 
   @override
   bool operator ==(Object other) =>
