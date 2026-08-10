@@ -11,8 +11,11 @@ analysis).
 ├── .fvmrc                      Flutter SDK pin (3.44.8)
 ├── pubspec.yaml                pub workspace root + melos config
 ├── analysis_options.yaml       shared analyzer, linter and DCM rules
+├── firebase.json               Firebase CLI config (functions + emulators)
 ├── apps/fcm_app/               Flutter app (Android, iOS, web)
-└── packages/core/              pure Dart: push payload model + parser
+├── apps/fcm_functions/         Dart Cloud Functions — the sandbox backend
+├── packages/core/              pure Dart: push payload model + parser
+└── packages/fcm_gallery_shared/ pure Dart: the contract app and functions share
 ```
 
 `packages/core` has **no Flutter dependency**. The message model and the payload
@@ -56,6 +59,10 @@ a `dart` on `PATH`) is not required.
 | `melos run test:app` | `flutter test` in Flutter packages |
 | `melos run test` | both suites |
 | `melos run ci` | the full gate, in order |
+| `melos run functions:build` | regenerate `apps/fcm_functions/functions.yaml` |
+| `melos run functions:compile` | compile the linux-x64 binary that deploy uploads |
+| `melos run functions:serve` | run the Functions emulator |
+| `melos run functions:deploy` | deploy the functions (needs Blaze) |
 
 Each script shells out through `fvm`, so the pinned SDK is used no matter what
 is on `PATH`. Note `fvm exec dcm …` rather than `fvm dcm …`: fvm only proxies
@@ -162,8 +169,44 @@ anything else is passed through in `PushMessage.data`.
 A payload that fails validation is counted and surfaced in the UI rather than
 silently dropped — see `PushInbox.rejections`.
 
+## The notification sandbox
+
+The app's Sandbox page composes a push and sends it to the device it is running
+on. The request goes to `sendNotification`, a Dart Cloud Function in
+`apps/fcm_functions`, which validates it, stamps an `id` and `sentAt`, and sends
+it through the Firebase Admin SDK. It comes back through FCM into the same inbox
+as any other push, carrying the `payloadId` the send reported — so the round
+trip is visible rather than inferred.
+
+`packages/fcm_gallery_shared` is the contract in the middle: the event enum, the
+gallery scenarios, the callable DTOs, and one `NotificationDraftValidator` that
+the editor uses for inline errors and the function re-runs on every request. It
+depends on `packages/core` so the reserved payload keys stay defined in exactly
+one place.
+
+### Before it works
+
+```bash
+firebase experiments:enable dartfunctions   # once per machine
+```
+
+Dart Cloud Functions are an experimental Firebase feature and deploy to Cloud
+Run, which needs the **Blaze** plan. See `apps/fcm_functions/README.md` for the
+local emulator loop, which does not.
+
+### Security
+
+The callable is unauthenticated: the app has no Firebase Auth, and a caller can
+only ask for a push to the token it supplies itself, so an attacker would need
+someone's registration token before they could bother them with it.
+`maxInstances: 3` and `timeoutSeconds: 30` cap what abuse can cost. Firebase App
+Check is the production answer and is deliberately out of scope — see the design
+document.
+
 ## Verified on this machine
 
-`melos run ci` passes clean (20 `core` tests, 12 `fcm_app` tests) and
-`fvm flutter build web --release` succeeds. The Android and iOS builds have
-**not** been verified here — there is no Android SDK or Xcode on this machine.
+`melos run ci` passes clean (20 `core` tests, 42 `fcm_gallery_shared` tests, 18
+`fcm_functions` tests, 38 `fcm_app` tests) and `fvm flutter build web --release`
+succeeds. The Android and iOS builds have **not** been verified here — there is
+no Android SDK or Xcode on this machine. `firebase deploy` has not been run
+either — see `apps/fcm_functions/README.md`.
