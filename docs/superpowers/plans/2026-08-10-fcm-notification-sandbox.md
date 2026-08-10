@@ -26,6 +26,7 @@ Every task's requirements implicitly include this section.
     - ../../analysis_options.yaml
   ```
   (`package:flutter_lints/flutter.yaml` instead for Flutter packages — only `fcm_app` is one, and it already has this file.)
+- **Report the test count you measured, not the one this plan predicts.** Two of this plan's predicted counts have already been wrong (Task 9 said 11 where 10 were written). If your run disagrees with the expectation, the run wins — say what you actually saw and flag the discrepancy. A report that echoes the expected number instead of the observed one destroys the only test evidence the review has.
 - **Run `fvm dart format .` from the repo root before every commit**, and confirm with `fvm dart format --output=none --set-exit-if-changed .`. `melos run ci`'s **first** step is that check, so unformatted code fails the gate before the analyzer is even reached. Do not hand-patch code to satisfy a formatting lint — `require_trailing_commas` and the formatter disagree about layout, and the formatter wins. This was added after Task 2 was committed with three unformatted files.
 - **Lints that will fail the build if ignored** (`--fatal-infos --fatal-warnings`): `prefer_single_quotes`, `require_trailing_commas`, `sort_pub_dependencies` (alphabetical), `prefer_final_locals`, `always_declare_return_types`, `unawaited_futures`, `avoid_print` (use `debugPrint` in Flutter code, `firebase_functions`' `logger` in functions).
 - **DCM metrics that will fail the build** (`--fatal-style --fatal-warnings`): `source-lines-of-code: 50` per function, `number-of-parameters: 5` (**counts named parameters and `super.key`**), `maximum-nesting-level: 5`, `cyclomatic-complexity: 15`. Excluded under `test/**`.
@@ -2670,7 +2671,9 @@ class SandboxController extends ChangeNotifier {
 - [ ] **Step 6: Run the tests to verify they pass**
 
 Run: `fvm flutter test test/sandbox_controller_test.dart` from `apps/fcm_app`
-Expected: PASS, 11 tests.
+Expected: PASS, **10** tests — count them in Step 1 above; this step originally
+said 11, which was an arithmetic error in this plan. The whole `apps/fcm_app`
+suite goes from 13 to **23**.
 
 Note the first test asserts `problems` is empty at construction. `_problems` starts as `const []` and the first gallery scenario validates clean (Task 4 asserts that for every scenario), so no validation call is needed in the constructor.
 
