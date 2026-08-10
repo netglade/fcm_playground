@@ -11,6 +11,11 @@ class SendNotificationResponse {
   }) : sentAt = sentAt.toUtc();
 
   /// Reads a response written by [toJson].
+  ///
+  /// Every field is required and validated. Interpolating a missing key would
+  /// yield the four-character string `"null"`, so the sandbox would report
+  /// `Sent · id null` instead of failing — which is exactly the wire-format
+  /// drift this boundary exists to catch.
   factory SendNotificationResponse.fromJson(Map<String, dynamic> json) {
     final sentAt = DateTime.tryParse('${json['sentAt']}');
     if (sentAt == null) {
@@ -18,8 +23,8 @@ class SendNotificationResponse {
     }
 
     return SendNotificationResponse(
-      messageId: '${json['messageId']}',
-      payloadId: '${json['payloadId']}',
+      messageId: _requireString(json, 'messageId'),
+      payloadId: _requireString(json, 'payloadId'),
       sentAt: sentAt,
     );
   }
@@ -52,4 +57,17 @@ class SendNotificationResponse {
   @override
   String toString() =>
       'SendNotificationResponse(payloadId: $payloadId, sentAt: $sentAt)';
+}
+
+/// Reads a required `String` field, or throws [FormatException].
+String _requireString(Map<String, dynamic> json, String field) {
+  final value = json[field];
+  if (value is! String) {
+    throw FormatException(
+      'sendNotification response field "$field" must be a String, '
+      'got ${value.runtimeType}',
+    );
+  }
+
+  return value;
 }

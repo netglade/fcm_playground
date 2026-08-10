@@ -69,5 +69,23 @@ void main() {
         throwsFormatException,
       );
     });
+
+    test('a missing messageId is a format error, not the string "null"', () {
+      final json = _response.toJson()..remove('messageId');
+
+      expect(
+        () => SendNotificationResponse.fromJson(json),
+        throwsFormatException,
+      );
+    });
+
+    test('a missing payloadId is a format error, not the string "null"', () {
+      final json = _response.toJson()..remove('payloadId');
+
+      expect(
+        () => SendNotificationResponse.fromJson(json),
+        throwsFormatException,
+      );
+    });
   });
 }
