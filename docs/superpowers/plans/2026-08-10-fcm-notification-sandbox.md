@@ -79,6 +79,16 @@ allowed as the fallback.
 **4. `build_runner 2.15.1` removed `--delete-conflicting-outputs`.** It warns and
 ignores the flag. Every command and melos script here omits it.
 
+**5. The deployed function is called `send-notification`, not `sendNotification`.**
+Measured from the manifest Task 8 generated. `firebase_functions` runs every
+registered name through `toCloudRunId`, so the camelCase name in
+`register_functions.dart` is kebab-cased in three places at once: the
+`functions.yaml` endpoint key, its `entryPoint`, and the path
+`Firebase.registerFunction` routes on. The app must therefore call
+`httpsCallable('send-notification')` — Task 9 is written that way. My earlier
+probe missed this because its throwaway function was named `probe`, a single
+lowercase word that the sanitiser leaves unchanged.
+
 ### The Task 8 gate already passed once
 
 The probe proved the toolchain, so the risk the spec flagged is retired:
@@ -2492,9 +2502,19 @@ import 'notification_sender.dart';
 class CallableNotificationSender implements NotificationSender {
   const CallableNotificationSender(this._functions);
 
-  /// The name registered in `register_functions.dart`. Changing one without the
-  /// other breaks the call at runtime, not at compile time.
-  static const functionName = 'sendNotification';
+  /// The deployed function's id, which is **not** the string passed to
+  /// `onCallWithData`.
+  ///
+  /// `firebase_functions` runs every registered name through its
+  /// `toCloudRunId` sanitiser, so `sendNotification` in
+  /// `register_functions.dart` becomes `send-notification` in the generated
+  /// `functions.yaml`, in the deployed Cloud Run service, and in the path the
+  /// container routes on. Calling `sendNotification` here would target a
+  /// function that does not exist.
+  ///
+  /// Changing either side without the other breaks the call at runtime, not at
+  /// compile time. Task 13's end-to-end step is what catches that.
+  static const functionName = 'send-notification';
 
   final FirebaseFunctions _functions;
 
