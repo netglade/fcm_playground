@@ -215,3 +215,31 @@ document.
 succeeds. The Android and iOS builds have **not** been verified here — there is
 no Android SDK or Xcode on this machine. `firebase deploy` has not been run
 either — see `apps/fcm_functions/README.md`.
+
+### The sandbox
+
+The Functions emulator starts and serves the callable: the log shows
+`send-notification` initialized at `127.0.0.1:5001`, matching the port in the
+root `firebase.json`. That one boot proves the generated manifest is
+well-formed, the compiled Dart entry point actually runs, and request routing
+resolves to the right endpoint — the largest piece of the sandbox path that
+this machine can exercise.
+
+It came up with **no credentials present at all**, and logged nothing about
+them. That is worth calling out: a missing service account key does not stop
+the emulator from starting. It will only surface once a call actually tries to
+send, which is a less obvious failure mode than "the emulator won't boot" for
+whoever sets this up next.
+
+No push has ever been sent, on this machine or otherwise. There is no Android
+device or emulator here — `fvm flutter devices` sees only `Linux (desktop)`
+and `Chrome (web)` — and no service account key, so the send path, a
+notification actually appearing on a device, and the message landing in the
+Inbox with the `payloadId` the app reports are all untested. Web is not a
+substitute for that: web push additionally needs a
+`web/firebase-messaging-sw.js`, which `flutterfire configure` does not
+generate.
+
+`firebase deploy` remains unrun for the same reason noted above — the Cloud
+Functions API is disabled on `fcm-sandbox-770fa` and Dart functions deploy to
+Cloud Run, which needs the Blaze plan.
