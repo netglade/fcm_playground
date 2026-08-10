@@ -1,0 +1,16 @@
+name: fcm_gallery_shared
+description: The contract shared by the FCM sample app and its Cloud Functions — notification events, gallery scenarios, callable DTOs and one validator used by both sides. Pure Dart, so it can be tested with plain `dart test`.
+version: 1.0.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  core:
+    path: ../core
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
