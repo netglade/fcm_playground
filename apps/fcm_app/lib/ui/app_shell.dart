@@ -5,6 +5,7 @@ import '../sandbox/sandbox_controller.dart';
 import 'app_destination.dart';
 import 'app_drawer.dart';
 import 'inbox_view.dart';
+import 'sandbox_view.dart';
 
 /// The one `Scaffold` in the app.
 ///
@@ -30,8 +31,7 @@ class _AppShellState extends State<AppShell> {
     drawer: AppDrawer(selected: _destination, onSelected: _select),
     body: switch (_destination) {
       AppDestination.inbox => InboxView(inbox: widget.inbox),
-      // Replaced by SandboxView in Task 11.
-      AppDestination.sandbox => const Center(child: Text('Sandbox goes here')),
+      AppDestination.sandbox => SandboxView(controller: widget.sandbox),
     },
   );
 
