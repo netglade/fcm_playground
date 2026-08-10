@@ -18,7 +18,7 @@ bite on.
 | Dependency resolution | Dart pub workspaces | Melos 8's native mode. One lockfile, one `.dart_tool`, one resolve. |
 | Flutter version | 3.44.8 (stable) | Latest stable, already in the fvm cache. Dart 3.12.2 supports pub workspaces and multi-value analyzer `include:`. |
 | Platforms | Android, iOS, web | Mobile is where push matters; web included on request. Desktop runners omitted as noise. |
-| Firebase | `firebase_core` + `firebase_messaging`, real wiring | Requested. Config values are placeholders — see "Unconfigured Firebase" below. |
+| Firebase | `firebase_core` + `firebase_messaging`, real wiring | Requested. Project id is `fcm-sandbox-770fa`; the remaining credentials are placeholders — see "Partially configured Firebase" below. |
 | melos config location | `melos:` key in root `pubspec.yaml` | Melos 8 does not read `melos.yaml` when the root is a pub workspace. Discovered during implementation; the initial `melos.yaml` failed with `NoScriptException`. |
 
 ## Architecture
@@ -62,17 +62,28 @@ Three failure modes, each visible rather than swallowed:
 3. **Token unavailable** — `PushInbox.refreshToken` logs and leaves `token` null;
    the UI simply omits the token row.
 
-## Unconfigured Firebase
+## Partially configured Firebase
 
-`firebase_options.dart` ships with placeholder values that mirror the shape of
-real `flutterfire configure` output, so regenerating it is a straight overwrite.
-The sentinel constant and the user-facing instructions live in a separate
-`firebase_setup.dart`, so regeneration does not delete the check.
+`firebase_options.dart` mirrors the shape of real `flutterfire configure` output,
+so regenerating it is a straight overwrite. The sentinel constant and the
+user-facing instructions live in a separate `firebase_setup.dart`, so regeneration
+does not delete the check.
 
-`main()` compares `options.projectId` against the sentinel and throws
-`StateError` before calling `Firebase.initializeApp`. This makes the
-unconfigured state deterministic and self-explanatory instead of surfacing as
-whatever opaque error a fake API key happens to produce.
+The project id is real (`fcm-sandbox-770fa`, also in `.firebaserc`). `apiKey`,
+`appId` and `messagingSenderId` are per-app credentials issued by Firebase and
+cannot be derived from a project id, so they remain placeholders until someone
+runs `flutterfire configure --project=fcm-sandbox-770fa`.
+
+`main()` compares `options.apiKey` against the sentinel and throws `StateError`
+before calling `Firebase.initializeApp`. This makes the unconfigured state
+deterministic and self-explanatory instead of surfacing as whatever opaque error a
+fake API key happens to produce.
+
+**The check keys off `apiKey`, not `projectId`.** It originally used `projectId`,
+which worked only while *every* value was fake. Setting a real project id would
+have silently satisfied that check and let initialisation proceed with a bogus key
+— trading a clear message for an opaque failure. The sentinel has to sit on a
+value that is still missing.
 
 ## Tooling configuration
 

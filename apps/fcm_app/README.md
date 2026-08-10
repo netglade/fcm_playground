@@ -17,7 +17,8 @@ Structure:
 - `lib/push/` — `PushSource` interface plus its Firebase and disabled
   implementations, and `PushInbox`, the `ChangeNotifier` the UI listens to
 - `lib/ui/` — one widget per file
-- `lib/firebase_options.dart` — **placeholder values**; see the root README for
-  how to point this at a real Firebase project
+- `lib/firebase_options.dart` — project id is real (`fcm-sandbox-770fa`), but
+  `apiKey`, `appId` and `messagingSenderId` are **still placeholders**; see the
+  root README for how to fetch them
 
 Push payload parsing lives in `packages/core`, which has no Flutter dependency.

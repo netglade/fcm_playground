@@ -111,26 +111,38 @@ workspace.
 supports a list of includes, so each package combines the shared config with its
 own lint preset — `flutter_lints` for the app, `lints` for `core`.
 
-## Connecting a real Firebase project
+## Firebase project
 
-`apps/fcm_app/lib/firebase_options.dart` ships with **placeholder values**, and
-`apps/fcm_app/lib/firebase_setup.dart` holds the sentinel that detects them. The
-app therefore starts in a degraded mode: `main()` catches the failure, falls back
-to `DisabledPushSource`, and the UI shows a banner explaining what to do instead
-of crashing.
+The project is **`fcm-sandbox-770fa`**, recorded in two places:
 
-To wire up a real project:
+- `.firebaserc` — read by the `firebase` CLI, so its commands default to this project
+- `firebaseProjectId` in `apps/fcm_app/lib/firebase_setup.dart` — used by
+  `firebase_options.dart` for all three platforms
+
+### Still needed before push works
+
+`apiKey`, `appId` and `messagingSenderId` in
+`apps/fcm_app/lib/firebase_options.dart` are **still placeholders**. They are
+per-app credentials issued by Firebase and cannot be derived from the project id,
+so they have to be fetched:
 
 ```bash
+npm install -g firebase-tools && firebase login   # the CLI is not installed yet
 fvm dart pub global activate flutterfire_cli
 cd apps/fcm_app
-fvm exec flutterfire configure
+fvm exec flutterfire configure --project=fcm-sandbox-770fa
 ```
 
-That overwrites `firebase_options.dart` with real values (the placeholder file
-deliberately mirrors the generated shape, so it is a straight overwrite) and
+That overwrites `firebase_options.dart` with real values — the placeholder file
+deliberately mirrors the generated shape, so it is a straight overwrite — and
 handles the Android Gradle and iOS wiring. `google-services.json` and
-`GoogleService-Info.plist` are gitignored — they are per-project, not per-repo.
+`GoogleService-Info.plist` are gitignored; they are per-developer, not per-repo.
+
+Until then the app still runs. `main()` compares `apiKey` against the sentinel in
+`firebase_setup.dart`, throws before `Firebase.initializeApp`, falls back to
+`DisabledPushSource`, and the UI shows a banner with the commands above. The check
+keys off `apiKey` rather than `projectId` precisely because the project id is now
+real — a real key is the thing that is still missing.
 
 ## Message format
 

@@ -42,11 +42,12 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
 
 /// Starts Firebase and returns a live [PushSource].
 ///
-/// Throws [StateError] while `firebase_options.dart` still holds the placeholder
-/// values that ship with this repo.
+/// Throws [StateError] while `firebase_options.dart` still holds placeholder
+/// credentials. The project id is real, so the API key is what gets checked —
+/// initialising with a fake key fails later with a far less useful message.
 Future<PushSource> _startPushSource() async {
   final options = DefaultFirebaseOptions.currentPlatform;
-  if (options.projectId == unconfiguredProjectId) {
+  if (options.apiKey == unconfiguredApiKey) {
     throw StateError(firebaseSetupInstructions);
   }
 
