@@ -3089,6 +3089,15 @@ Future<void> _pumpView(
   WidgetTester tester,
   SandboxController controller,
 ) async {
+  // The form is taller than the default 800x600 test surface, and both
+  // `find.byType` and `tester.tap` skip offstage widgets, so the send button
+  // would be unreachable. Growing the surface is cheaper and less brittle than
+  // scrolling to each target. Found during execution; the plan originally
+  // pumped at the default size.
+  tester.view.physicalSize = const Size(1200, 2400);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(
     MaterialApp(home: Scaffold(body: SandboxView(controller: controller))),
   );
@@ -3757,7 +3766,26 @@ class SandboxView extends StatelessWidget {
 }
 ```
 
-**Two `ValueKey(controller.scenarioGeneration)` instances on sibling widgets is fine** — keys only have to be unique among siblings of the same type, and these are different types.
+**The two keyed children must NOT share a key value.** This section originally
+claimed that `ValueKey(controller.scenarioGeneration)` on both was fine because
+"keys only have to be unique among siblings of the same type". That is wrong
+here, and it was found during execution. `ListView(children: […])` builds a
+`SliverChildListDelegate`, which caches `final Map<Key?, int>? _keyToIndex` —
+raw `Key` to index, with no widget type in the key (`scroll_delegate.dart:725`).
+`ValueKey(3) == ValueKey(3)` regardless of what widget carries it, so two
+children sharing the value collide in that cache and the delegate resolves one
+of them to the wrong index. The observed symptom was newly-added extra-data rows
+being silently discarded on every edit.
+
+Salt the keys instead:
+
+```dart
+      final seed = controller.scenarioGeneration;
+      …
+          DraftFormFields(key: ValueKey('draft-$seed'), …),
+          …
+          ExtraDataEditor(key: ValueKey('extra-$seed'), …),
+```
 
 - [ ] **Step 9: Replace the placeholder in the shell**
 
