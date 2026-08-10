@@ -14,10 +14,15 @@ class MessageTile extends StatelessWidget {
     return ListTile(
       leading: const Icon(Icons.notifications_outlined),
       title: Text(message.title),
+      // `message.id` is the payload id the sandbox reports as `Sent · id
+      // sandbox-…`; showing it here is what lets that report be matched
+      // against what actually arrived.
       subtitle: Text(
-        extras.isEmpty ? message.body : '${message.body}\ndata: $extras',
+        extras.isEmpty
+            ? '${message.body}\nid: ${message.id}'
+            : '${message.body}\nid: ${message.id}\ndata: $extras',
       ),
-      isThreeLine: extras.isNotEmpty,
+      isThreeLine: true,
       trailing: Text(_formatClockTime(message.sentAt)),
     );
   }

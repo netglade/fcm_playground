@@ -52,6 +52,9 @@ void main() {
 
     expect(find.text('Build finished'), findsOne);
     expect(find.textContaining('deepLink'), findsOne);
+    // The id is what lets the sandbox's "Sent · id sandbox-…" report be
+    // matched against the message that actually arrived.
+    expect(find.textContaining('msg-1'), findsOne);
     expect(find.text('09:30'), findsOne);
     expect(find.text('No pushes received yet.'), findsNothing);
   });
