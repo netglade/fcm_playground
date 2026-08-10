@@ -6,7 +6,7 @@
 
 **Architecture:** `packages/fcm_gallery_shared` (pure Dart, depends on `packages/core`) defines the contract. `apps/fcm_functions` registers one `onCallWithData` callable that validates the request, builds a `TokenMessage` and sends it through the Firebase Admin SDK. `apps/fcm_app` gains an `AppShell` with a drawer over two views, and a `SandboxController` that talks to the callable through a `NotificationSender` interface so widget tests never construct `cloud_functions`.
 
-**Tech Stack:** Dart 3.12.2 (fvm-pinned), Flutter 3.44.8, `firebase_functions ^0.7.0`, `firebase_admin_sdk ^0.5.4`, `cloud_functions ^6.3.6`, `build_runner ^2.10.5`, melos 8, DCM.
+**Tech Stack:** Dart 3.12.2 (fvm-pinned), Flutter 3.44.8, `firebase_functions ^0.6.0`, `firebase_admin_sdk ^0.5.4`, `cloud_functions ^6.3.6`, `build_runner ^2.10.5`, melos 8, DCM.
 
 **Spec:** `docs/superpowers/specs/2026-08-10-fcm-notification-sandbox-design.md`
 
@@ -40,6 +40,60 @@ Both are forced by the constraints above and are deliberate deviations from the 
 
 1. **`NotificationDraft` does not hold `asNotification` and `priority` directly.** The spec's six-field draft would give its constructor six parameters, over DCM's `number-of-parameters: 5`. They move into a `NotificationDelivery` value object (`asNotification`, `priority`), which is a real boundary anyway — "how it is delivered" versus "what it says" — and maps onto one UI group. Draft fields become `event`, `title`, `body`, `data`, `delivery`.
 2. **The functions-side sender interface is `FcmMessageSender`, not `NotificationSender`.** The spec named both the app-side and functions-side seams `NotificationSender`. They send different things (a `SendNotificationRequest` versus a built `TokenMessage`), so the functions one is renamed to keep the repo readable. The app side keeps `NotificationSender`.
+
+## Pre-flight findings — measured, not assumed
+
+A throwaway probe ran before Task 1 and was reverted. Four facts came out of it,
+and they override the spec where they collide with it.
+
+**1. `firebase_functions ^0.7.0` cannot resolve here, so this plan uses `^0.6.0`.**
+
+```
+firebase_functions 0.7.0 → google_cloud_shelf ^0.6.0 → meta ^1.18.2
+fcm_app → flutter (SDK 3.44.8) → meta 1.18.0        ← SDK pin, not overridable
+```
+
+Every published `google_cloud_shelf` requires `meta ^1.18.2`, so no version of it
+helps. The only Flutter that pins `meta ≥ 1.18.2` is the current beta
+(3.47.0-0.4.pre, Dart 3.13.0); the newest stable, 3.44.9, still pins `1.18.0`.
+Staying on stable was the explicit decision, so the pin is `^0.6.0` — which is
+also the version `firebase init functions` generates. `onCallWithData`,
+`CallableOptions`, `Instances`, `TimeoutSeconds`, `firebase.adminApp`,
+`runFunctions` and the builder are byte-for-byte the same API in 0.6.0.
+
+**2. Errors use `InvalidArgumentError`, not `HttpResponseException`.** 0.6.0 has no
+`HttpResponseException`; it has a sealed `HttpsError` hierarchy, and
+`InvalidArgumentError(message)` is the invalid-argument member. This is better
+for us than the 0.7.0 form: it is a native callable error, so the
+`cloud_functions` plugin surfaces it as
+`FirebaseFunctionsException(code: 'invalid-argument')` rather than an opaque 400.
+`_handleCallable` catches `HttpsError` and converts it, so throwing from the
+handler works.
+
+**3. There is no `lib/testing.dart` in 0.6.0.** `runFunctionsTest` does not exist
+at all, so the spec's optional in-process callable test is not merely skipped —
+it is unavailable. Task 7 tests the handler directly, which is what the spec
+allowed as the fallback.
+
+**4. `build_runner 2.15.1` removed `--delete-conflicting-outputs`.** It warns and
+ignores the flag. Every command and melos script here omits it.
+
+### The Task 8 gate already passed once
+
+The probe proved the toolchain, so the risk the spec flagged is retired:
+
+- `dart pub get` resolved the workspace with `firebase_functions 0.6.0`,
+  `firebase_admin_sdk 0.5.4`, `build_runner 2.15.1`.
+- `dart run build_runner build` wrote `apps/fcm_functions/functions.yaml` — in the
+  package directory, which is exactly where the Firebase CLI reads it — with the
+  endpoint discovered correctly: `maxInstances: 3`, `timeoutSeconds: 30`,
+  `callableTrigger: {}`, `command: ./bin/server`.
+- `dart compile exe … --target-os=linux --target-arch=x64` produced a 9.7 MB ELF
+  x86-64 binary.
+
+Task 8's gate steps stay in the plan as verification. But a failure there now
+points at the code written in Tasks 6-8, **not** at the toolchain — do not go
+looking for a workspace problem that has already been ruled out.
 
 ## Ordering note
 
@@ -1411,7 +1465,7 @@ dependencies:
   fcm_gallery_shared:
     path: ../../packages/fcm_gallery_shared
   firebase_admin_sdk: ^0.5.4
-  firebase_functions: ^0.7.0
+  firebase_functions: ^0.6.0
 
 dev_dependencies:
   build_runner: ^2.10.5
@@ -1430,7 +1484,7 @@ include:
 - [ ] **Step 2: Resolve the workspace — the first real toolchain signal**
 
 Run: `fvm dart pub get`
-Expected: succeeds and reports `fcm_functions`. `firebase_functions` pulls in `analyzer >=13.0.0 <15.0.0`; `build_runner` and DCM also want an analyzer. **If resolution fails on a version conflict, stop and report it** — that is a design-level problem, not something to paper over by loosening constraints.
+Expected: succeeds and reports `fcm_functions`, resolving `firebase_functions 0.6.0`, `firebase_admin_sdk 0.5.4` and `build_runner 2.15.1`. A pre-flight probe already confirmed this exact resolution, so **if it fails on a version conflict, stop and report it** — do not "fix" it by loosening a constraint or bumping `firebase_functions` to `^0.7.0`, which is known not to resolve against Flutter 3.44.8's `meta 1.18.0` pin.
 
 - [ ] **Step 3: Ignore the artifacts this package will generate**
 
@@ -1668,6 +1722,8 @@ git commit -m "feat(functions): add fcm_functions with the FCM message builder"
   - `String defaultPayloadId()` — returns `'sandbox-<microsecondsSinceEpoch>'`.
   - `Future<SendNotificationResponse> handleSendNotification(SendNotificationRequest request, {required FcmMessageSender sender, String Function() newPayloadId = defaultPayloadId, DateTime Function() now = DateTime.now})`.
 
+**Error type:** rejections throw `InvalidArgumentError` from `package:firebase_functions/firebase_functions.dart` — the invalid-argument member of 0.6.0's sealed `HttpsError` hierarchy. Its constructor is positional: `InvalidArgumentError('message')`. There is no `HttpResponseException` in this version.
+
 - [ ] **Step 1: Write the failing test**
 
 Create `apps/fcm_functions/test/send_notification_handler_test.dart`:
@@ -1751,8 +1807,8 @@ void main() {
       await expectLater(
         _handle(sender, request: invalid),
         throwsA(
-          isA<HttpResponseException>().having(
-            (e) => '$e',
+          isA<InvalidArgumentError>().having(
+            (e) => e.message,
             'message',
             allOf(contains('title'), contains('body')),
           ),
@@ -1767,7 +1823,7 @@ void main() {
 
       await expectLater(
         _handle(sender, request: blank),
-        throwsA(isA<HttpResponseException>()),
+        throwsA(isA<InvalidArgumentError>()),
       );
       expect(sender.sentMessage, isNull);
     });
@@ -1782,8 +1838,8 @@ void main() {
       await expectLater(
         _handle(sender),
         throwsA(
-          isA<HttpResponseException>().having(
-            (e) => '$e',
+          isA<InvalidArgumentError>().having(
+            (e) => e.message,
             'message',
             contains('no longer registered'),
           ),
@@ -1800,8 +1856,8 @@ void main() {
       await expectLater(
         _handle(sender),
         throwsA(
-          isA<HttpResponseException>().having(
-            (e) => '$e',
+          isA<InvalidArgumentError>().having(
+            (e) => e.message,
             'message',
             contains('server-unavailable'),
           ),
@@ -1891,8 +1947,11 @@ String defaultPayloadId() =>
 /// registration in `register_functions.dart` supplies only the sender and lets
 /// the other two default.
 ///
-/// Throws [HttpResponseException] with a 400 for anything the caller can fix:
-/// an invalid draft, a blank token, or an FCM rejection of the token itself.
+/// Throws [InvalidArgumentError] for anything the caller can fix: an invalid
+/// draft, a blank token, or an FCM rejection of the token itself. That is a
+/// native callable error, so the app receives it as
+/// `FirebaseFunctionsException(code: 'invalid-argument')` rather than an opaque
+/// HTTP failure.
 Future<SendNotificationResponse> handleSendNotification(
   SendNotificationRequest request, {
   required FcmMessageSender sender,
@@ -1901,12 +1960,10 @@ Future<SendNotificationResponse> handleSendNotification(
 }) async {
   final problems = const NotificationDraftValidator().validate(request.draft);
   if (problems.isNotEmpty) {
-    throw HttpResponseException.badRequest(
-      message: problems.join('; '),
-    );
+    throw InvalidArgumentError(problems.join('; '));
   }
   if (request.token.trim().isEmpty) {
-    throw HttpResponseException.badRequest(message: 'token must not be blank');
+    throw InvalidArgumentError('token must not be blank');
   }
 
   final payloadId = newPayloadId();
@@ -1927,7 +1984,7 @@ Future<SendNotificationResponse> handleSendNotification(
       sentAt: sentAt,
     );
   } on FirebaseMessagingAdminException catch (error) {
-    throw HttpResponseException.badRequest(message: _explain(error));
+    throw InvalidArgumentError(_explain(error));
   }
 }
 
@@ -1947,7 +2004,9 @@ String _explain(FirebaseMessagingAdminException error) =>
     };
 ```
 
-**Note on the import:** `FirebaseMessagingAdminException` and `MessagingClientErrorCode` reach this file through `package:firebase_functions/firebase_functions.dart` only if it re-exports them. If the analyzer reports them as undefined, add `import 'package:firebase_admin_sdk/messaging.dart';` and keep both imports.
+**Note on the imports:** `InvalidArgumentError` comes from `package:firebase_functions/firebase_functions.dart`. `FirebaseMessagingAdminException` and `MessagingClientErrorCode` reach this file through that same library only if it re-exports them; if the analyzer reports them as undefined, add `import 'package:firebase_admin_sdk/messaging.dart';` and keep both imports. The test file already imports both packages for exactly this reason.
+
+**`InvalidArgumentError.message` is `String?`**, inherited from `HttpsError`. The tests match on it directly rather than on `toString()`, which would also carry the code prefix.
 
 - [ ] **Step 5: Run the test to verify it passes**
 
@@ -2048,7 +2107,7 @@ Future<void> main() async {
 
 - [ ] **Step 4: Generate the manifest — gate part one**
 
-Run: `cd apps/fcm_functions && fvm dart run build_runner build --delete-conflicting-outputs; cd -`
+Run: `cd apps/fcm_functions && fvm dart run build_runner build; cd -`
 Expected: succeeds, writes `apps/fcm_functions/functions.yaml`.
 
 Then: `cat apps/fcm_functions/functions.yaml`
@@ -2096,7 +2155,7 @@ Add to the `melos: scripts:` map in the root `pubspec.yaml`, after `fix:`:
 ```yaml
     functions:build:
       description: Regenerate apps/fcm_functions/functions.yaml from the Dart sources.
-      exec: fvm dart run build_runner build --delete-conflicting-outputs
+      exec: fvm dart run build_runner build
       packageFilters:
         scope: fcm_functions
 
@@ -4029,12 +4088,12 @@ documentation (12), end-to-end verification (13). The spec's five error-handling
 paths are covered by tests in Tasks 4, 7, 9 and 11 plus manual steps 6 and 7 of
 Task 13.
 
-**Two things the spec asks for that this plan deliberately does not do.**
-`runFunctionsTest` from `firebase_functions/testing.dart` is **not** used: it
-requires an initialised admin `FirebaseApp`, and Task 7 tests the handler
-directly instead, which needs no credentials. The spec allowed exactly this
-fallback. And `CallableNotificationSender` has **no test** — it is a thin wrapper
-over `cloud_functions` with no logic worth asserting, and testing it would mean
+**Two things the spec asks for that this plan does not do.**
+`runFunctionsTest` is **not** used, and on `firebase_functions 0.6.0` it cannot
+be: there is no `lib/testing.dart` in that version at all. Task 7 tests the
+handler directly, which is the fallback the spec allowed. And
+`CallableNotificationSender` has **no test** — it is a thin wrapper over
+`cloud_functions` with no logic worth asserting, and testing it would mean
 mocking the plugin. Both are noted here so neither reads as an oversight.
 
 **Type consistency.** `NotificationDraft` carries `delivery`, not `asNotification`

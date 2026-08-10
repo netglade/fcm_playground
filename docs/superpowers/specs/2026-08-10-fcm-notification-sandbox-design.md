@@ -3,6 +3,29 @@
 **Date:** 2026-08-10
 **Status:** designed, not implemented
 
+> **Amendment, 2026-08-10 — measured during pre-flight.** This document names
+> `firebase_functions` 0.7.0. That version **cannot resolve** against Flutter
+> 3.44.8: it pulls `google_cloud_shelf`, which requires `meta ^1.18.2`, while the
+> Flutter SDK pins `meta 1.18.0` and an SDK pin cannot be overridden. The only
+> Flutter that pins `meta ≥ 1.18.2` is the current beta (3.47.0-0.4.pre); the
+> newest stable, 3.44.9, does not. Staying on stable was the decision, so the
+> implementation uses **`firebase_functions ^0.6.0`** — the version
+> `firebase init functions` itself generates. Three consequences: rejections
+> throw `InvalidArgumentError` rather than `HttpResponseException` (a *native*
+> callable error, so the app sees
+> `FirebaseFunctionsException(code: 'invalid-argument')`); `runFunctionsTest` is
+> unavailable because 0.6.0 ships no `lib/testing.dart`, so the handler is tested
+> directly as this document already permitted; and `--delete-conflicting-outputs`
+> is gone from `build_runner`. The `onCallWithData`, `CallableOptions`,
+> `Instances`, `TimeoutSeconds`, `adminApp` and builder APIs are unchanged.
+>
+> The pre-flight probe also **retired the risk this document flags below**:
+> `build_runner` works inside the pub workspace and writes
+> `apps/fcm_functions/functions.yaml` where the Firebase CLI reads it, and
+> `dart compile exe --target-os=linux --target-arch=x64` produces a working
+> binary. See "Pre-flight findings" in
+> `docs/superpowers/plans/2026-08-10-fcm-notification-sandbox.md`.
+
 ## Goal
 
 A **Sandbox** page in `fcm_app` where you compose a push notification and send it
