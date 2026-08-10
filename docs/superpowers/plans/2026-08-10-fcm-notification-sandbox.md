@@ -1036,20 +1036,21 @@ void main() {
       }
     });
 
-    test('a visible notification needs a title and a body', () {
+    test('a notification needs a title and a body', () {
       final blank = _valid.copyWith(title: '  ', body: '');
 
       expect(_fields(blank), containsAll(['title', 'body']));
     });
 
-    test('a silent message may have neither, since nothing is shown', () {
+    test('a silent message needs them too, because the payload carries them '
+        'whether or not FCM displays them', () {
       final silent = _valid.copyWith(
         title: '',
         body: '',
         delivery: const NotificationDelivery(asNotification: false),
       );
 
-      expect(_validator.validate(silent), isEmpty);
+      expect(_fields(silent), containsAll(['title', 'body']));
     });
 
     test('a blank extra data key is a problem', () {
@@ -1152,13 +1153,20 @@ class NotificationDraftValidator {
 
   /// Every problem with [draft], in a stable order. Empty means sendable.
   List<DraftProblem> validate(NotificationDraft draft) => [
-    if (draft.delivery.asNotification) ..._visibleTextProblems(draft),
+    ..._textProblems(draft),
     ..._dataProblems(draft),
   ];
 
-  /// A silent push shows nothing, so blank text is only a problem when FCM is
-  /// being asked to display it.
-  List<DraftProblem> _visibleTextProblems(NotificationDraft draft) => [
+  /// Title and body are required whether or not FCM displays them.
+  ///
+  /// `NotificationMessageBuilder` writes both into the data payload
+  /// unconditionally, because `PushMessageParser` requires all four keys. An
+  /// earlier version of this validator exempted silent messages, which let a
+  /// blank title through and produced a payload the device then rejected — the
+  /// send reported success while the message landed in `PushInbox.rejections`.
+  /// `asNotification` decides whether a notification block is rendered, not
+  /// whether the payload carries text.
+  List<DraftProblem> _textProblems(NotificationDraft draft) => [
     if (draft.title.trim().isEmpty)
       const DraftProblem('title', 'must not be blank'),
     if (draft.body.trim().isEmpty)

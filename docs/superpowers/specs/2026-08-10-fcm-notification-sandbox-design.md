@@ -182,6 +182,16 @@ where a `DraftProblem` names the offending field and says what is wrong. The app
 renders them inline and disables Send; the function runs the same validator and
 returns 400 if it finds anything, so the app is not the only line of defence.
 
+> **Corrected after the final review.** The rule below originally exempted
+> silent messages. That broke the payload contract:
+> `NotificationMessageBuilder` writes `title` and `body` into the FCM `data` map
+> unconditionally, because `PushMessageParser` requires all four keys, so a
+> silent draft with blank text produced `title: ''` — which the parser rejects.
+> Reachable in three taps, and the send reported success while the message went
+> to `PushInbox.rejections`. `asNotification` governs whether a notification
+> block is rendered, not whether the payload carries text, so **title and body
+> are required unconditionally.**
+
 Rules: `title` and `body` must not be blank when `asNotification` is true; extra
 data keys must not be blank; and **extra data keys must not collide with
 `PushMessageParser.reservedKeys`**. That last rule is the concrete reason the
