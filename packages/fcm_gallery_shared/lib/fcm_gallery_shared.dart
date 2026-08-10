@@ -6,3 +6,4 @@ library;
 
 export 'src/notification_event.dart';
 export 'src/notification_priority.dart';
+export 'src/wire_named.dart';
