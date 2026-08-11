@@ -126,6 +126,7 @@ environment:
   sdk: ^3.12.2
 
 dependencies:
+  collection: ^1.19.1
   core:
     path: ../core
 
@@ -377,6 +378,8 @@ Note: `readOptionalText` is reused for the map's values, so a `null` value becom
 `packages/fcm_gallery_shared/lib/src/notification_draft.dart`:
 
 ```dart
+import 'package:collection/collection.dart';
+
 import 'json_field.dart';
 
 /// The editable body of a push: what the Sandbox form holds, and what
@@ -433,29 +436,21 @@ class NotificationDraft {
 
     return title == other.title &&
         body == other.body &&
-        _mapEquals(data, other.data);
+        _dataEquality.equals(data, other.data);
   }
 
   @override
-  int get hashCode => Object.hash(title, body, data.length);
+  int get hashCode =>
+      Object.hash(title, body, _dataEquality.hash(data));
 
   @override
   String toString() => 'NotificationDraft(title: $title, data: ${data.keys})';
 }
 
-bool _mapEquals(Map<String, String> a, Map<String, String> b) {
-  if (a.length != b.length) {
-    return false;
-  }
-
-  for (final entry in a.entries) {
-    if (b[entry.key] != entry.value) {
-      return false;
-    }
-  }
-
-  return true;
-}
+/// `core` compares its own maps with a hand-rolled helper; this package uses
+/// `package:collection` instead of copying it, so there is one implementation
+/// here rather than a second copy of the same loop.
+const _dataEquality = MapEquality<String, String>();
 ```
 
 `packages/fcm_gallery_shared/lib/fcm_gallery_shared.dart`:
