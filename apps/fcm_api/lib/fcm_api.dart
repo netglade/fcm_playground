@@ -5,4 +5,8 @@
 /// status codes are unit-testable directly.
 library;
 
+export 'src/fcm_send_exception.dart';
+export 'src/fcm_sender.dart';
 export 'src/notification_message.dart';
+export 'src/send_notification.dart';
+export 'src/send_outcome.dart';
