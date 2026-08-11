@@ -87,6 +87,27 @@ abstract interface class PushPayloadStore {
 objects under two keys, `push_inbox` and `push_pending`. `takePending` reads then
 removes, so a payload cannot be drained twice.
 
+**It must use `SharedPreferencesAsync`, not the legacy `SharedPreferences`.** This
+is not a style preference. The legacy API keeps an in-memory cache per isolate,
+and the package's own README names this exact situation as one where that cache
+goes stale:
+
+> - If you are using `shared_preferences` in multiple engine instances (including
+>   those created by plugins that create background contexts on mobile devices,
+>   such as `firebase_messaging`).
+
+The background handler runs in exactly such an engine instance. With the legacy
+API, the UI isolate's cached snapshot would not see what the background isolate
+wrote, so `takePending` would return nothing and every untapped background push
+would be silently lost — the precise failure this whole design exists to fix.
+`SharedPreferencesAsync` holds no cache and reads through to platform storage on
+every call, which is what makes the two-key hand-off work across isolates.
+
+The API is `SharedPreferencesAsync()` with `getStringList`, `setStringList` and
+`remove`. Its test double is `InMemorySharedPreferencesAsync.empty()` from
+`shared_preferences_platform_interface`, assigned to
+`SharedPreferencesAsyncPlatform.instance`.
+
 `FakePushPayloadStore` is an in-memory implementation used by every test, so no
 test touches platform channels.
 
