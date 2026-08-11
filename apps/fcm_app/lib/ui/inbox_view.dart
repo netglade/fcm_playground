@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../push/push_inbox.dart';
+import 'message_detail_page.dart';
 import 'message_tile.dart';
 import 'setup_error_banner.dart';
 
@@ -32,8 +33,15 @@ class InboxView extends StatelessWidget {
               ? const Center(child: Text('No pushes received yet.'))
               : ListView.builder(
                   itemCount: inbox.messages.length,
-                  itemBuilder: (context, index) =>
-                      MessageTile(inbox.messages[index]),
+                  itemBuilder: (context, index) => MessageTile(
+                    inbox.messages[index],
+                    onTap: (message) => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => MessageDetailPage(message),
+                      ),
+                    ),
+                  ),
                 ),
         ),
         if (inbox.rejections.isNotEmpty)

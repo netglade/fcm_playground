@@ -1,6 +1,7 @@
 import 'package:fcm_app/push/push_inbox.dart';
 import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
+import 'package:fcm_app/ui/message_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -91,5 +92,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('1 malformed payload(s) dropped'), findsOne);
+  });
+
+  testWidgets('opens the detail page when a row is tapped', (tester) async {
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    await pumpApp(tester);
+    source.emit(payload());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Build finished'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MessageDetailPage), findsOne);
+    expect(find.text('/builds/42'), findsOne);
+  });
+
+  testWidgets('comes back to the inbox from the detail page', (tester) async {
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    await pumpApp(tester);
+    source.emit(payload());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Build finished'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MessageDetailPage), findsNothing);
+    expect(find.widgetWithText(AppBar, 'Push inbox'), findsOne);
   });
 }
