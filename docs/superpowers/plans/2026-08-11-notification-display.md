@@ -1714,8 +1714,13 @@ class FirebasePushSource implements PushSource {
   Future<void> dispose() async {
     await _subscription?.cancel();
     await _openedSubscription?.cancel();
-    await _controller.close();
-    await _taps.close();
+
+    // Not awaited: a single-subscription controller's close() future only
+    // completes once a listener has received the done event, so awaiting it
+    // hangs forever when nothing ever subscribed — which is the normal case for
+    // `taps`. Closing still stops further adds either way.
+    unawaited(_controller.close());
+    unawaited(_taps.close());
   }
 
   void _emit(RemoteMessage message) =>
@@ -1761,15 +1766,24 @@ contract the test asserts:
   void emitTap(String id) => _taps.add(id);
 ```
 
-and close both in `dispose`:
+and close both in `dispose`, unawaited for the same reason as above:
 
 ```dart
   @override
   Future<void> dispose() async {
-    await _controller.close();
-    await _taps.close();
+    unawaited(_controller.close());
+    unawaited(_taps.close());
   }
 ```
+
+**One consequence to expect.** `push_inbox_test.dart`'s `setUp` already builds an
+inbox that calls `listen()` on the shared `source`, so any test that builds a
+*second* inbox against it will now fail with "Stream has already been listened
+to". Give those tests a fresh `source = FakePushSource();` as their first line,
+with a comment saying why. Seven tests need it: the two in
+`PushInbox.drainPending` and `persistence of live messages`, the two cap tests,
+and three of the notification tests. Do not revert the controller change to avoid
+this — the buffering behaviour is the point.
 
 - [ ] **Step 7: Run the tests to verify they pass**
 
