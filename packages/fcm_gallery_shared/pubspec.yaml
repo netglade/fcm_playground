@@ -1,0 +1,17 @@
+name: fcm_gallery_shared
+description: The notification contract shared by the Sandbox page and the send API — drafts, gallery presets, request and response DTOs, and the one validator both sides run.
+version: 1.0.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  collection: ^1.19.1
+  core:
+    path: ../core
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
