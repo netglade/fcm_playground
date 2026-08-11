@@ -28,8 +28,5 @@ class ApiError {
 
   /// Serialises to the wire shape `{error, field?}`, omitting the field key
   /// when null.
-  Map<String, dynamic> toJson() => {
-    'error': message,
-    'field': ?field,
-  };
+  Map<String, dynamic> toJson() => {'error': message, 'field': ?field};
 }

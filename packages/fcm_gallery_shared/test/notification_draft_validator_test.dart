@@ -56,15 +56,18 @@ void main() {
       ]);
     });
 
-    test('rejects every reserved key, so the rule cannot rot as core changes', () {
-      for (final reserved in PushMessageParser.reservedKeys) {
-        expect(
-          validator.validate(draft(data: {reserved: 'x'})),
-          hasLength(1),
-          reason: '$reserved should be rejected',
-        );
-      }
-    });
+    test(
+      'rejects every reserved key, so the rule cannot rot as core changes',
+      () {
+        for (final reserved in PushMessageParser.reservedKeys) {
+          expect(
+            validator.validate(draft(data: {reserved: 'x'})),
+            hasLength(1),
+            reason: '$reserved should be rejected',
+          );
+        }
+      },
+    );
 
     test('returns an unmodifiable list', () {
       expect(
