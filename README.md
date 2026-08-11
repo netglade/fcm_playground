@@ -12,7 +12,9 @@ analysis).
 ├── pubspec.yaml                pub workspace root + melos config
 ├── analysis_options.yaml       shared analyzer, linter and DCM rules
 ├── apps/fcm_app/               Flutter app (Android, iOS, web)
-└── packages/core/              pure Dart: push payload model + parser
+├── apps/fcm_api/               local HTTP server that sends pushes through FCM
+├── packages/core/              pure Dart: push payload model + parser
+└── packages/fcm_gallery_shared/ pure Dart: the contract the app and API share
 ```
 
 `packages/core` has **no Flutter dependency**. The message model and the payload
@@ -21,6 +23,17 @@ no Flutter binding and no Firebase project. Everything plugin-shaped lives in
 the app behind `PushSource`, an interface with two implementations
 (`FirebasePushSource`, `DisabledPushSource`) plus a fake in the tests — which is
 why the widget tests never touch Firebase.
+
+`packages/fcm_gallery_shared` holds what the two sides must agree on: the
+editable draft, the gallery presets, the request and response DTOs, and the one
+validator both of them run. It depends on `core` for
+`PushMessageParser.reservedKeys`, so the payload keys the app requires are
+defined once and a data key that would collide with them fails to compile past
+the validator rather than at delivery time.
+
+`apps/fcm_api` is a plain `shelf` server, not a Cloud Function: `dart run` and
+`curl` are the whole story, and the interesting logic — the FCM v1 payload and
+the status mapping — is pure and unit-tested without a credential.
 
 ## Prerequisites
 
@@ -52,6 +65,7 @@ a `dart` on `PATH`) is not required.
 | `melos run format` | format all Dart sources in place |
 | `melos run format:check` | fail if anything is unformatted |
 | `melos run fix` | apply automated analyzer fixes |
+| `melos run api:serve` | run the send API on `127.0.0.1:8080` |
 | `melos run test:core` | `dart test` in pure-Dart packages |
 | `melos run test:app` | `flutter test` in Flutter packages |
 | `melos run test` | both suites |
@@ -162,8 +176,67 @@ anything else is passed through in `PushMessage.data`.
 A payload that fails validation is counted and surfaced in the UI rather than
 silently dropped — see `PushInbox.rejections`.
 
+## Sending a test push
+
+The Sandbox page (drawer → Sandbox) composes a payload and sends it to the
+device the app is running on, through `apps/fcm_api`.
+
+**One-time:** download a service account key from the
+[Firebase console](https://console.firebase.google.com/project/fcm-sandbox-770fa/settings/serviceaccounts/adminsdk)
+(**Generate new private key**) and save it outside the repo, e.g.
+`~/.config/fcm-sandbox-service-account.json`. It grants send rights on the whole
+project, so it is not committed — `*service-account*.json` is gitignored as a
+second line of defence.
+
+Run the API:
+
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=~/.config/fcm-sandbox-service-account.json \
+  fvm dart run melos run api:serve
+```
+
+It listens on `127.0.0.1:8080` and takes `FCM_PROJECT_ID` and `PORT` as optional
+overrides. Check it with `curl -s http://127.0.0.1:8080/health`.
+
+The app defaults to `http://localhost:8080`, which needs one of:
+
+| Target | What makes `localhost` resolve |
+| --- | --- |
+| Physical Android device | `adb reverse tcp:8080 tcp:8080` |
+| Android emulator | `--dart-define=FCM_API_BASE_URL=http://10.0.2.2:8080` |
+| Anything else | `--dart-define=FCM_API_BASE_URL=http://<host>:8080` |
+
+Sending by hand instead:
+
+```bash
+curl -X POST http://127.0.0.1:8080/send \
+  -H 'content-type: application/json' \
+  -d '{"token":"<registration token from the Inbox page>",
+       "title":"Build finished",
+       "body":"Release 1.0.0 is ready.",
+       "data":{"deepLink":"/builds/42"}}'
+```
+
+The response's `id` is the payload's `id`, so it is the value that then appears
+in the inbox — that is how a send is matched to an arrival. `id` and `sentAt` are
+stamped by the server, and a data key colliding with one of the four reserved
+keys is rejected with a 400.
+
+**The API is a development tool.** It has no authentication and binds loopback,
+so only the machine running it can reach it. Do not deploy it as is — bound to
+`0.0.0.0` it is an open relay to any token an attacker already holds.
+
 ## Verified on this machine
 
-`melos run ci` passes clean (20 `core` tests, 12 `fcm_app` tests) and
-`fvm flutter build web --release` succeeds. The Android and iOS builds have
-**not** been verified here — there is no Android SDK or Xcode on this machine.
+`melos run ci` passes clean — 20 `core` tests, 41 `fcm_gallery_shared` tests, 44
+`fcm_api` tests and 49 `fcm_app` tests — and `fvm flutter build web --release`
+succeeds (a compile check only: web cannot receive FCM pushes without a VAPID
+key). The Android and iOS builds have **not** been verified here — there is no
+Android SDK or Xcode on this machine.
+
+The end-to-end path above — generating a service account key, running
+`apps/fcm_api` against it, and a Sandbox send arriving in the Inbox on a real
+device with the matching `id` — is **not yet verified**. No service account key
+has been generated for this project, and no Android device has been attached on
+this machine, so neither the API nor the on-device round trip has actually been
+run.
