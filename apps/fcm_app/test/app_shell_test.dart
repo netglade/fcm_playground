@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_notification_sender.dart';
+import 'fake_push_payload_store.dart';
 import 'fake_push_source.dart';
 
 void main() {
@@ -27,7 +28,7 @@ void main() {
 
   setUp(() {
     source = FakePushSource();
-    inbox = PushInbox(source)..listen();
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
     sandbox = SandboxController(
       sender: FakeNotificationSender(),
       token: () => inbox.token,

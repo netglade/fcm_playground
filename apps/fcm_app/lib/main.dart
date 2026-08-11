@@ -8,7 +8,9 @@ import 'firebase_setup.dart';
 import 'push/disabled_push_source.dart';
 import 'push/firebase_push_source.dart';
 import 'push/push_inbox.dart';
+import 'push/push_payload_store.dart';
 import 'push/push_source.dart';
+import 'push/shared_preferences_push_payload_store.dart';
 import 'sandbox/http_notification_sender.dart';
 import 'sandbox/notification_sender.dart';
 import 'sandbox/sandbox_controller.dart';
@@ -28,7 +30,10 @@ Future<void> main() async {
     setupError = '$error';
   }
 
-  final inbox = PushInbox(source, setupError: setupError)..listen();
+  final PushPayloadStore store = SharedPreferencesPushPayloadStore();
+  final inbox = PushInbox(source, store: store, setupError: setupError)
+    ..listen();
+  await inbox.restore();
   await inbox.refreshToken();
 
   // Sending needs the same registration token the inbox listens with, so
