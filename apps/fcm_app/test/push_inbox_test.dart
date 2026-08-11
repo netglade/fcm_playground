@@ -185,6 +185,9 @@ void main() {
 
   group('PushInbox.drainPending', () {
     test('merges a payload that arrived while backgrounded', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
       final store = FakePushPayloadStore();
       inbox = PushInbox(source, store: store)..listen();
       await inbox.restore();
@@ -217,6 +220,9 @@ void main() {
 
   group('PushInbox persistence of live messages', () {
     test('persists a payload that arrives on the stream', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
       final store = FakePushPayloadStore();
       inbox = PushInbox(source, store: store)..listen();
 
@@ -231,6 +237,9 @@ void main() {
     test(
       'keeps only the newest maxStoredMessages and drops the oldest',
       () async {
+        // A fresh source: `source` from setUp is already listened to by the
+        // inbox built there, and payloads is single-subscription.
+        source = FakePushSource();
         final store = FakePushPayloadStore();
         inbox = PushInbox(source, store: store)..listen();
 
@@ -249,6 +258,9 @@ void main() {
     );
 
     test('persists the capped list, not the full history', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
       final store = FakePushPayloadStore();
       inbox = PushInbox(source, store: store)..listen();
 
@@ -273,6 +285,9 @@ void main() {
     });
 
     test('shows a banner for a payload arriving on the stream', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
       inbox = PushInbox(
         source,
         store: FakePushPayloadStore(),
@@ -318,6 +333,9 @@ void main() {
     );
 
     test('shows nothing for a payload that fails validation', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
       inbox = PushInbox(
         source,
         store: FakePushPayloadStore(),
@@ -331,6 +349,9 @@ void main() {
     });
 
     test('shows a repeated id once, matching the inbox', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
       inbox = PushInbox(
         source,
         store: FakePushPayloadStore(),
