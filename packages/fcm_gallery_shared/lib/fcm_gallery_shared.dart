@@ -4,4 +4,6 @@
 /// every rule in it is exercised by plain `dart test`.
 library;
 
+export 'src/draft_problem.dart';
 export 'src/notification_draft.dart';
+export 'src/notification_draft_validator.dart';
