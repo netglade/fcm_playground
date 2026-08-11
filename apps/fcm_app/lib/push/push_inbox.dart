@@ -40,6 +40,7 @@ class PushInbox extends ChangeNotifier {
   StreamSubscription<Map<String, Object?>>? _subscription;
   String? _setupError;
   String? _token;
+  String? _pendingOpenId;
 
   /// Why push is unavailable, or `null` when everything started cleanly.
   ///
@@ -58,6 +59,41 @@ class PushInbox extends ChangeNotifier {
 
   /// The device's registration token once [refreshToken] has resolved.
   String? get token => _token;
+
+  /// Whether a notification tap is waiting to be acted on.
+  bool get hasPendingOpen => _pendingOpenId != null;
+
+  /// The message a tap asked to open, or null when there is no tap outstanding
+  /// or its message is not held.
+  ///
+  /// Resolved on every read rather than when the tap arrived: the tap and the
+  /// payload come from two different streams, so the message may land after the
+  /// request. A `notifyListeners` from either brings the shell back to check.
+  PushMessage? get pendingOpen {
+    final id = _pendingOpenId;
+    if (id == null) {
+      return null;
+    }
+
+    for (final push in _accepted) {
+      if (push.message.id == id) {
+        return push.message;
+      }
+    }
+
+    return null;
+  }
+
+  /// Asks the shell to open the message with [id].
+  void requestOpen(String id) {
+    _pendingOpenId = id;
+    notifyListeners();
+  }
+
+  /// Called by the shell once it has navigated, so it does not navigate twice.
+  void clearPendingOpen() {
+    _pendingOpenId = null;
+  }
 
   /// Begins consuming [PushSource.payloads].
   void listen() {

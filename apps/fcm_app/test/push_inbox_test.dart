@@ -365,4 +365,69 @@ void main() {
       expect(presenter.shown, hasLength(1));
     });
   });
+
+  group('PushInbox.requestOpen', () {
+    test('resolves an id the inbox holds', () async {
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(inbox: [payload(id: 'msg-1')]),
+      );
+      await inbox.restore();
+
+      inbox.requestOpen('msg-1');
+
+      expect(inbox.hasPendingOpen, isTrue);
+      expect(inbox.pendingOpen?.id, 'msg-1');
+    });
+
+    test('stays outstanding but unresolved for an unknown id', () {
+      inbox = PushInbox(source, store: FakePushPayloadStore());
+
+      inbox.requestOpen('never-seen');
+
+      expect(inbox.hasPendingOpen, isTrue);
+      expect(inbox.pendingOpen, isNull);
+    });
+
+    test(
+      'resolves once the message arrives, whatever the stream order',
+      () async {
+        // A fresh source: `source` from setUp is already listened to by the
+        // inbox built there, and payloads is single-subscription.
+        source = FakePushSource();
+        inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+
+        inbox.requestOpen('late');
+        expect(inbox.pendingOpen, isNull);
+        source.emit(payload(id: 'late'));
+        await pumpEventQueue();
+
+        expect(inbox.pendingOpen?.id, 'late');
+      },
+    );
+
+    test('notifies listeners so the shell can react', () {
+      inbox = PushInbox(source, store: FakePushPayloadStore());
+      var notifications = 0;
+      inbox.addListener(() => notifications++);
+
+      inbox.requestOpen('msg-1');
+
+      expect(notifications, 1);
+    });
+
+    test('clears, so the shell does not navigate twice', () async {
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(inbox: [payload(id: 'msg-1')]),
+      );
+      await inbox.restore();
+      inbox.requestOpen('msg-1');
+
+      inbox.clearPendingOpen();
+
+      expect(inbox.hasPendingOpen, isFalse);
+      expect(inbox.pendingOpen, isNull);
+    });
+  });
 }
