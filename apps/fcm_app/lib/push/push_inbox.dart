@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:core/core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../notifications/notification_presenter.dart';
+import '../notifications/silent_notification_presenter.dart';
 import 'push_payload_store.dart';
 import 'push_source.dart';
 
@@ -11,7 +13,17 @@ import 'push_source.dart';
 /// Parsing lives in `core`; this class owns the subscription, the ordering, the
 /// de-duplication and the persistence that the widget tree cares about.
 class PushInbox extends ChangeNotifier {
-  PushInbox(this._source, {required this._store, this._setupError});
+  // Initializing formals rather than an initializer list: Dart strips the
+  // leading underscore from a private field's initializing-formal parameter
+  // name at call sites, so `this._presenter` and `this._setupError` still
+  // expose the public `presenter` and `setupError` names the rest of the app
+  // and the tests call this constructor with.
+  PushInbox(
+    this._source, {
+    required this._store,
+    this._presenter = const SilentNotificationPresenter(),
+    this._setupError,
+  });
 
   /// How many messages are kept, newest first. A bound exists so a long-lived
   /// install cannot grow the stored list without limit; 100 is far more than the
@@ -20,6 +32,7 @@ class PushInbox extends ChangeNotifier {
 
   final PushSource _source;
   final PushPayloadStore _store;
+  final NotificationPresenter _presenter;
   final _parser = const PushMessageParser();
   final _accepted = <_AcceptedPush>[];
   final _rejections = <String>[];
@@ -63,10 +76,10 @@ class PushInbox extends ChangeNotifier {
       // Stored payloads are newest first and each ingest inserts at the front,
       // so they go in reversed. Pending payloads were appended oldest first.
       for (final payload in stored.reversed) {
-        _ingest(payload);
+        _ingest(payload, notify: false);
       }
       for (final payload in pending) {
-        _ingest(payload);
+        _ingest(payload, notify: false);
       }
       await _save();
     } catch (error) {
@@ -86,7 +99,7 @@ class PushInbox extends ChangeNotifier {
     }
 
     for (final payload in pending) {
-      _ingest(payload);
+      _ingest(payload, notify: false);
     }
     await _save();
   }
@@ -110,13 +123,13 @@ class PushInbox extends ChangeNotifier {
   }
 
   void _onLivePayload(Map<String, Object?> payload) {
-    _ingest(payload);
+    _ingest(payload, notify: true);
     // Fire and forget: the stream handler is synchronous, and a failed write
     // must not break delivery to the UI.
     unawaited(_save());
   }
 
-  void _ingest(Map<String, Object?> payload) {
+  void _ingest(Map<String, Object?> payload, {required bool notify}) {
     try {
       final message = _parser.parse(payload);
       if (_seenIds.add(message.id)) {
@@ -126,6 +139,9 @@ class PushInbox extends ChangeNotifier {
           // it mid-session. A restart rebuilds the set from what was kept, which
           // is the only way an evicted message can reappear.
           _accepted.removeLast();
+        }
+        if (notify) {
+          unawaited(_presenter.show(message));
         }
       }
     } on PushMessageFormatException catch (error) {

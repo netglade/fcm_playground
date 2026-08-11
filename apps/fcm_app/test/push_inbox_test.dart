@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_push_payload_store.dart';
 import 'fake_push_source.dart';
+import 'recording_notification_presenter.dart';
 
 Map<String, Object?> payload({String id = 'msg-1', String title = 'Hello'}) => {
   'id': id,
@@ -257,6 +258,90 @@ void main() {
       await pumpEventQueue();
 
       expect(store.inbox, hasLength(PushInbox.maxStoredMessages));
+    });
+  });
+
+  group('PushInbox notifications', () {
+    late RecordingNotificationPresenter presenter;
+
+    setUp(() {
+      presenter = RecordingNotificationPresenter();
+    });
+
+    tearDown(() async {
+      await presenter.dispose();
+    });
+
+    test('shows a banner for a payload arriving on the stream', () async {
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(),
+        presenter: presenter,
+      )..listen();
+
+      source.emit(payload(id: 'live'));
+      await pumpEventQueue();
+
+      expect(presenter.shown.single.id, 'live');
+    });
+
+    test(
+      'shows nothing for a restored payload, which FCM already showed',
+      () async {
+        inbox = PushInbox(
+          source,
+          store: FakePushPayloadStore(inbox: [payload(id: 'old')]),
+          presenter: presenter,
+        );
+
+        await inbox.restore();
+
+        expect(inbox.messages, hasLength(1));
+        expect(presenter.shown, isEmpty);
+      },
+    );
+
+    test(
+      'shows nothing for a drained payload, which FCM already showed',
+      () async {
+        inbox = PushInbox(
+          source,
+          store: FakePushPayloadStore(pending: [payload(id: 'background')]),
+          presenter: presenter,
+        );
+
+        await inbox.drainPending();
+
+        expect(inbox.messages, hasLength(1));
+        expect(presenter.shown, isEmpty);
+      },
+    );
+
+    test('shows nothing for a payload that fails validation', () async {
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(),
+        presenter: presenter,
+      )..listen();
+
+      source.emit({'id': 'broken'});
+      await pumpEventQueue();
+
+      expect(presenter.shown, isEmpty);
+    });
+
+    test('shows a repeated id once, matching the inbox', () async {
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(),
+        presenter: presenter,
+      )..listen();
+
+      source.emit(payload(id: 'twice'));
+      source.emit(payload(id: 'twice'));
+      await pumpEventQueue();
+
+      expect(presenter.shown, hasLength(1));
     });
   });
 }
