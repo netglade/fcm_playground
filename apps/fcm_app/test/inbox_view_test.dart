@@ -1,8 +1,10 @@
 import 'package:fcm_app/push/push_inbox.dart';
+import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fake_notification_sender.dart';
 import 'fake_push_source.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
@@ -16,9 +18,14 @@ Map<String, Object?> payload({String id = 'msg-1'}) => {
 void main() {
   late FakePushSource source;
   late PushInbox inbox;
+  late SandboxController sandbox;
 
   Future<void> pumpApp(WidgetTester tester) async {
-    await tester.pumpWidget(FcmSampleApp(inbox: inbox));
+    sandbox = SandboxController(
+      sender: FakeNotificationSender(),
+      token: () => inbox.token,
+    );
+    await tester.pumpWidget(FcmSampleApp(inbox: inbox, sandbox: sandbox));
     await tester.pumpAndSettle();
   }
 
@@ -27,6 +34,7 @@ void main() {
   });
 
   tearDown(() async {
+    sandbox.dispose();
     inbox.dispose();
     await source.dispose();
   });
