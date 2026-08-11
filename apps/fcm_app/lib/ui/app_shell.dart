@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../push/push_inbox.dart';
 import '../sandbox/sandbox_controller.dart';
 import 'inbox_view.dart';
+import 'message_detail_page.dart';
 import 'sandbox_view.dart';
 
 /// Owns the app's chrome: one `AppBar` whose title follows the drawer's
@@ -26,8 +29,27 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   static const _titles = ['Push inbox', 'Sandbox'];
+  static const _inboxDestination = 0;
 
-  int _destination = 0;
+  late final AppLifecycleListener _lifecycle;
+
+  int _destination = _inboxDestination;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.inbox.addListener(_onInboxChanged);
+    // A push that arrived while the app was merely backgrounded sits in the
+    // pending key until something drains it, and resuming is that something.
+    _lifecycle = AppLifecycleListener(onResume: _onResume);
+  }
+
+  @override
+  void dispose() {
+    widget.inbox.removeListener(_onInboxChanged);
+    _lifecycle.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -64,5 +86,35 @@ class _AppShellState extends State<AppShell> {
   void _select(int index) {
     setState(() => _destination = index);
     Navigator.pop(context);
+  }
+
+  void _onResume() => unawaited(widget.inbox.drainPending());
+
+  /// Acts on a notification tap once its message is known.
+  ///
+  /// Selecting the inbox happens as soon as a tap is outstanding: it is the
+  /// fallback for an id that will never resolve — evicted by the cap, or rejected
+  /// as malformed — and the right backdrop for the page about to be pushed.
+  void _onInboxChanged() {
+    if (!widget.inbox.hasPendingOpen) {
+      return;
+    }
+
+    if (_destination != _inboxDestination) {
+      setState(() => _destination = _inboxDestination);
+    }
+
+    final message = widget.inbox.pendingOpen;
+    if (message == null) {
+      return;
+    }
+
+    // Cleared before navigating, so a later notifyListeners cannot push twice.
+    widget.inbox.clearPendingOpen();
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => MessageDetailPage(message)),
+      ),
+    );
   }
 }
