@@ -1,3 +1,5 @@
+import 'dart:ui' show DartPluginRegistrant;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -5,11 +7,15 @@ import 'package:http/http.dart' as http;
 
 import 'firebase_options.dart';
 import 'firebase_setup.dart';
+import 'notifications/local_notification_presenter.dart';
+import 'notifications/notification_presenter.dart';
+import 'notifications/silent_notification_presenter.dart';
 import 'push/disabled_push_source.dart';
 import 'push/firebase_push_source.dart';
 import 'push/push_inbox.dart';
 import 'push/push_payload_store.dart';
 import 'push/push_source.dart';
+import 'push/remote_message_payload.dart';
 import 'push/shared_preferences_push_payload_store.dart';
 import 'sandbox/http_notification_sender.dart';
 import 'sandbox/notification_sender.dart';
@@ -31,10 +37,21 @@ Future<void> main() async {
   }
 
   final PushPayloadStore store = SharedPreferencesPushPayloadStore();
-  final inbox = PushInbox(source, store: store, setupError: setupError)
-    ..listen();
+  final presenter = await _startPresenter();
+  final inbox = PushInbox(
+    source,
+    store: store,
+    presenter: presenter,
+    setupError: setupError,
+  )..listen();
   await inbox.restore();
   await inbox.refreshToken();
+
+  // Both channels mean the same thing to the inbox: FCM reports taps on the tray
+  // entries it drew itself, and the presenter reports taps on the banners the app
+  // posted while it was in the foreground.
+  source.taps.listen(inbox.requestOpen);
+  presenter.taps.listen(inbox.requestOpen);
 
   // Sending needs the same registration token the inbox listens with, so
   // there is no separate "is sending available" question to answer here.
@@ -49,15 +66,43 @@ Future<void> main() async {
   runApp(FcmSampleApp(inbox: inbox, sandbox: sandbox));
 }
 
+/// Starts local notifications, degrading to silence rather than failing.
+///
+/// A broken notification plugin should cost the banners, not the app — the same
+/// principle `DisabledPushSource` applies when Firebase will not start.
+Future<NotificationPresenter> _startPresenter() async {
+  final presenter = LocalNotificationPresenter();
+  try {
+    await presenter.initialize();
+
+    return presenter;
+  } catch (error) {
+    debugPrint('Local notifications are unavailable: $error');
+    await presenter.dispose();
+
+    return const SilentNotificationPresenter();
+  }
+}
+
 /// Handles pushes that arrive while the app is backgrounded or terminated.
 ///
 /// Must be a top-level function, and annotated so AOT compilation keeps it
 /// reachable from the background isolate.
+///
+/// It only persists. FCM has already drawn the tray entry for this message, so
+/// posting a notification here would show it twice. The UI isolate picks the
+/// payload up in `PushInbox.restore` at next launch, or in `drainPending` when
+/// the app resumes.
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
-  // A production app would persist the payload here. The sample only needs to
-  // demonstrate that the entry point is registered.
-  debugPrint('Background push: ${message.messageId}');
+  // This isolate has its own memory and its own plugin registry, so both need
+  // setting up before shared_preferences can be reached.
+  DartPluginRegistrant.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await SharedPreferencesPushPayloadStore().appendPending(
+    remoteMessageToPayload(message),
+  );
 }
 
 /// Starts Firebase and returns a live [PushSource].

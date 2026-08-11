@@ -226,10 +226,40 @@ keys is rejected with a 400.
 so only the machine running it can reach it. Do not deploy it as is — bound to
 `0.0.0.0` it is an open relay to any token an attacker already holds.
 
+## Notifications
+
+A received push is shown as a notification as well as landing in the inbox, and
+tapping either the notification or an inbox row opens a detail page for it.
+
+| When the push arrives | What draws the notification |
+| --- | --- |
+| App backgrounded or terminated | FCM's own SDK, from the `notification` block `apps/fcm_api` sends. No app code involved. |
+| App in the foreground | `LocalNotificationPresenter`, because Android shows nothing itself in this case. On iOS a single `setForegroundNotificationPresentationOptions` call is enough. |
+
+Both use one high-importance Android channel, `fcm_sample_high`. The app creates
+it, and `AndroidManifest.xml` points FCM at the same id with
+`default_notification_channel_id` — without that, only the foreground banners
+would be heads-up.
+
+The inbox is durable: the newest 100 payloads are kept in `shared_preferences`
+and reloaded at launch, so a push that arrived while the app was away is there
+whether or not it was ever tapped. The background handler writes to a separate
+key that only it appends to, and the UI drains that key at launch and on every
+resume — two keys rather than one, so neither isolate read-modify-writes the
+other's data.
+
+**A push is never notified twice.** Only messages arriving on the live foreground
+stream produce a banner; anything restored from storage was already shown by FCM
+while the app was away, so replaying it on launch is exactly what the code avoids.
+
+Notification permission is requested at startup by `firebase_messaging`, which
+covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
+and nothing else — the inbox still fills.
+
 ## Verified on this machine
 
 `melos run ci` passes clean — 20 `core` tests, 41 `fcm_gallery_shared` tests, 44
-`fcm_api` tests and 49 `fcm_app` tests — and `fvm flutter build web --release`
+`fcm_api` tests and 108 `fcm_app` tests — and `fvm flutter build web --release`
 succeeds (a compile check only: web cannot receive FCM pushes without a VAPID
 key). The Android and iOS builds have **not** been verified here — there is no
 Android SDK or Xcode on this machine.
@@ -240,3 +270,9 @@ device with the matching `id` — is **not yet verified**. No service account ke
 has been generated for this project, and no Android device has been attached on
 this machine, so neither the API nor the on-device round trip has actually been
 run.
+
+The notification behaviour described above — foreground banners, heads-up tray
+entries while backgrounded, tapping a notification into the detail page, and a
+background push reaching the inbox — is likewise **not yet verified**, for the
+same reason: no Android device has been attached and no service-account key has
+been generated on this machine.
