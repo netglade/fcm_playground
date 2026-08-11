@@ -9,6 +9,7 @@ environment:
 # repo root, so `melos bootstrap` is a single `pub get` instead of one per
 # package. Members opt in with `resolution: workspace` in their own pubspec.
 workspace:
+  - apps/fcm_api
   - apps/fcm_app
   - packages/core
   - packages/fcm_gallery_shared
