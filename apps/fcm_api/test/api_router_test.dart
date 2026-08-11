@@ -1,0 +1,151 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:fcm_api/fcm_api.dart';
+import 'package:shelf/shelf.dart';
+import 'package:test/test.dart';
+
+import 'fake_fcm_sender.dart';
+
+void main() {
+  final sentAt = DateTime.utc(2026, 8, 11, 9, 12, 3);
+
+  Handler handlerWith(FakeFcmSender sender) => ApiRouter(
+    sender: sender,
+    newPayloadId: () => 'api-1754812345678901',
+    now: () => sentAt,
+  ).handler;
+
+  FutureOr<Response> post(Object? body, {FakeFcmSender? sender}) =>
+      handlerWith(sender ?? FakeFcmSender())(
+        Request(
+          'POST',
+          Uri.parse('http://localhost:8080/send'),
+          body: body is String ? body : jsonEncode(body),
+          headers: const {'content-type': 'application/json'},
+        ),
+      );
+
+  Future<Map<String, dynamic>> bodyOf(Response response) async =>
+      jsonDecode(await response.readAsString()) as Map<String, dynamic>;
+
+  Map<String, Object?> validBody({
+    String token = 'device-token',
+    String title = 'Build finished',
+  }) => {'token': token, 'title': title, 'body': 'main #128 passed'};
+
+  group('GET /health', () {
+    test('answers 200 so the server can be checked without sending', () async {
+      final response = await handlerWith(FakeFcmSender())(
+        Request('GET', Uri.parse('http://localhost:8080/health')),
+      );
+
+      expect(response.statusCode, 200);
+      expect(await bodyOf(response), {'status': 'ok'});
+    });
+  });
+
+  group('POST /send', () {
+    test('answers 200 with the stamped id and timestamp', () async {
+      final response = await post(validBody());
+
+      expect(response.statusCode, 200);
+      expect(await bodyOf(response), {
+        'messageId': 'projects/p/messages/0:17',
+        'id': 'api-1754812345678901',
+        'sentAt': '2026-08-11T09:12:03.000Z',
+      });
+    });
+
+    test('answers JSON', () async {
+      final response = await post(validBody());
+
+      expect(response.headers['content-type'], startsWith('application/json'));
+    });
+
+    test('answers 400 when the body is not JSON at all', () async {
+      final response = await post('not json');
+
+      expect(response.statusCode, 400);
+      expect(await bodyOf(response), contains('error'));
+    });
+
+    test('answers 400 when the body is a JSON array', () async {
+      final response = await post([1, 2, 3]);
+
+      expect(response.statusCode, 400);
+      expect((await bodyOf(response))['error'], contains('object'));
+    });
+
+    test(
+      'answers 400 with the field when a data value is not a string',
+      () async {
+        final response = await post({
+          ...validBody(),
+          'data': {'retries': 3},
+        });
+
+        expect(response.statusCode, 400);
+        expect((await bodyOf(response))['error'], contains('retries'));
+      },
+    );
+
+    test('answers 400 and names the field for an invalid draft', () async {
+      final response = await post(validBody(title: ''));
+
+      expect(response.statusCode, 400);
+      expect(await bodyOf(response), {
+        'error': 'title must not be blank',
+        'field': 'title',
+      });
+    });
+
+    test('answers 404 for an unregistered token', () async {
+      final response = await post(
+        validBody(),
+        sender: FakeFcmSender(
+          failure: const FcmSendException(
+            status: 'UNREGISTERED',
+            message: 'Requested entity was not found.',
+          ),
+        ),
+      );
+
+      expect(response.statusCode, 404);
+      expect((await bodyOf(response))['error'], contains('no longer valid'));
+    });
+
+    test('answers 502 when FCM fails for any other reason', () async {
+      final response = await post(
+        validBody(),
+        sender: FakeFcmSender(
+          failure: const FcmSendException(
+            status: 'INTERNAL',
+            message: 'Backend error.',
+          ),
+        ),
+      );
+
+      expect(response.statusCode, 502);
+    });
+  });
+
+  group('unknown routes', () {
+    test('answer 404 with the same error shape as everything else', () async {
+      final response = await handlerWith(FakeFcmSender())(
+        Request('GET', Uri.parse('http://localhost:8080/nope')),
+      );
+
+      expect(response.statusCode, 404);
+      expect(await bodyOf(response), contains('error'));
+    });
+
+    test('answer 404 for GET /send, which only accepts POST', () async {
+      final response = await handlerWith(FakeFcmSender())(
+        Request('GET', Uri.parse('http://localhost:8080/send')),
+      );
+
+      expect(response.statusCode, 404);
+    });
+  });
+}
