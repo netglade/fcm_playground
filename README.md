@@ -261,8 +261,18 @@ and nothing else — the inbox still fills.
 `melos run ci` passes clean — 20 `core` tests, 41 `fcm_gallery_shared` tests, 44
 `fcm_api` tests and 108 `fcm_app` tests — and `fvm flutter build web --release`
 succeeds (a compile check only: web cannot receive FCM pushes without a VAPID
-key). The Android and iOS builds have **not** been verified here — there is no
-Android SDK or Xcode on this machine.
+key). `fvm flutter build apk --debug` also succeeds. The iOS build has **not**
+been verified — there is no Xcode on this machine.
+
+The Android build needs one thing that is easy to miss:
+`flutter_local_notifications` requires **core library desugaring**, and without
+it `:app:checkDebugAarMetadata` fails with
+`Dependency ':flutter_local_notifications' requires core library desugaring to be
+enabled for :app`. `android/app/build.gradle.kts` therefore sets
+`isCoreLibraryDesugaringEnabled = true` and adds
+`coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")`. This is
+needed even though the app only ever shows notifications immediately and never
+schedules one.
 
 The end-to-end path above — generating a service account key, running
 `apps/fcm_api` against it, and a Sandbox send arriving in the Inbox on a real
