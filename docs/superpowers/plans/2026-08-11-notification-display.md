@@ -1437,8 +1437,10 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   @override
   Future<void> initialize() async {
+    // Both `initialize` and `show` take named parameters in 22.x — verified
+    // against the installed plugin source, not assumed.
     await _plugin.initialize(
-      const InitializationSettings(
+      settings: const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(),
       ),
@@ -1461,10 +1463,10 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   @override
   Future<void> show(PushMessage message) => _plugin.show(
-    notificationIdFor(message.id),
-    message.title,
-    message.body,
-    const NotificationDetails(
+    id: notificationIdFor(message.id),
+    title: message.title,
+    body: message.body,
+    notificationDetails: const NotificationDetails(
       android: AndroidNotificationDetails(
         notificationChannelId,
         notificationChannelName,
