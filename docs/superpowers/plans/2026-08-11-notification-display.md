@@ -1210,16 +1210,17 @@ import '../notifications/silent_notification_presenter.dart';
   PushInbox(
     this._source, {
     required this._store,
-    NotificationPresenter presenter = const SilentNotificationPresenter(),
-    String? setupError,
-  }) : _presenter = presenter,
-       _setupError = setupError;
+    this._presenter = const SilentNotificationPresenter(),
+    this._setupError,
+  });
 ```
 
-An initializer list is correct here rather than an initializing formal, because
-neither value is a plain copy of a parameter of the same name — `presenter` has a
-default and `setupError` is renamed. `prefer_initializing_formals` does not fire
-on either.
+**Measured, not assumed:** `prefer_initializing_formals` fires even when the
+parameter carries a default value — a default does not stop the assignment being a
+plain copy — so an initializer list is *not* usable here. A private initializing
+formal takes the default directly, and Dart strips the underscore for the public
+parameter name, so every existing call site still reads
+`PushInbox(source, store: …, setupError: …)` unchanged.
 
 3. Add the field beside `_store`:
 
