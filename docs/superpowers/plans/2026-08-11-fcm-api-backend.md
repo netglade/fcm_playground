@@ -3409,7 +3409,14 @@ void main() {
       controller.applyScenario(promo);
 
       expect(controller.title, promo.draft.title);
-      expect(controller.entries, promo.draft.data.entries.toList());
+      // MapEntry has no value equality in Dart, so compare the entries as
+      // records rather than the MapEntry objects themselves. (Two `const`
+      // MapEntry literals do compare equal, because canonicalisation makes them
+      // identical — but `data.entries` yields runtime instances, which do not.)
+      expect(
+        controller.entries.map((entry) => (entry.key, entry.value)),
+        promo.draft.data.entries.map((entry) => (entry.key, entry.value)),
+      );
     });
 
     test('bumps the revision on a scenario, so the fields are rebuilt', () {
