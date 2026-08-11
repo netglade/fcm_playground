@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'push_source.dart';
+import 'remote_message_payload.dart';
 
 /// A [PushSource] backed by `firebase_messaging`.
 class FirebasePushSource implements PushSource {
@@ -42,17 +43,6 @@ class FirebasePushSource implements PushSource {
     await _controller.close();
   }
 
-  void _emit(RemoteMessage message) => _controller.add(_toPayload(message));
-
-  /// Flattens a [RemoteMessage] into the flat map `PushMessageParser` expects.
-  ///
-  /// The notification block supplies defaults; anything in `data` wins, since a
-  /// data-only push is the case worth supporting well.
-  Map<String, Object?> _toPayload(RemoteMessage message) => {
-    'id': message.messageId ?? '',
-    'title': message.notification?.title ?? '',
-    'body': message.notification?.body ?? '',
-    'sentAt': (message.sentTime ?? DateTime.now()).toUtc().toIso8601String(),
-    ...message.data,
-  };
+  void _emit(RemoteMessage message) =>
+      _controller.add(remoteMessageToPayload(message));
 }
