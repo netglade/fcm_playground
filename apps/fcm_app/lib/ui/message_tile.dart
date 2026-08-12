@@ -10,10 +10,19 @@ class MessageTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final extras = message.data.keys.join(', ');
+    final headline = message.title.isEmpty ? '(no title)' : message.title;
 
     return ListTile(
       leading: const Icon(Icons.notifications_outlined),
-      title: Text(message.title),
+      title: Text(
+        headline,
+        style: message.title.isEmpty
+            ? TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Theme.of(context).colorScheme.outline,
+              )
+            : null,
+      ),
       subtitle: Text(
         extras.isEmpty ? message.body : '${message.body}\ndata: $extras',
       ),

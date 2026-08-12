@@ -64,7 +64,7 @@ void main() {
     await pumpEventQueue();
 
     expect(inbox.messages, isEmpty);
-    expect(inbox.rejections.single, contains('body'));
+    expect(inbox.rejections.single, contains('sentAt'));
   });
 
   test('refreshToken exposes the token', () async {

@@ -13,6 +13,14 @@ class PushMessageParser {
   /// [PushMessage.data].
   static const reservedKeys = {'id', 'title', 'body', 'sentAt'};
 
+  /// Payload keys that must be present and non-blank.
+  ///
+  /// A subset of [reservedKeys]: `id` de-duplicates repeat deliveries and
+  /// `sentAt` orders the inbox, so neither can be inferred. `title` and `body`
+  /// are absent from a data-only push, which is a payload worth being able to
+  /// send, so they are read as optional.
+  static const requiredKeys = {'id', 'sentAt'};
+
   /// Parses [payload], or throws [PushMessageFormatException] if a required
   /// field is missing, empty, or the wrong shape.
   PushMessage parse(Map<String, Object?> payload) {
@@ -25,8 +33,8 @@ class PushMessageParser {
 
     return PushMessage(
       id: _requireText(payload, 'id'),
-      title: _requireText(payload, 'title'),
-      body: _requireText(payload, 'body'),
+      title: _optionalText(payload, 'title'),
+      body: _optionalText(payload, 'body'),
       sentAt: _requireTimestamp(payload, 'sentAt'),
       data: Map.unmodifiable(data),
     );
@@ -45,6 +53,26 @@ class PushMessageParser {
     }
     if (value.trim().isEmpty) {
       throw PushMessageFormatException(field, 'must not be blank');
+    }
+
+    return value;
+  }
+
+  /// Reads a field that may be absent or blank.
+  ///
+  /// A data-only push carries no title and no body, and sending exactly those is
+  /// the point of the playground — so an empty headline is a value, not a fault.
+  /// A *wrong-typed* value is still a fault.
+  String _optionalText(Map<String, Object?> payload, String field) {
+    final value = payload[field];
+    if (value == null) {
+      return '';
+    }
+    if (value is! String) {
+      throw PushMessageFormatException(
+        field,
+        'expected a String, got ${value.runtimeType}',
+      );
     }
 
     return value;

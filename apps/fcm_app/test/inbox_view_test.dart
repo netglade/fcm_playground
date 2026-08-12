@@ -87,4 +87,20 @@ void main() {
 
     expect(find.text('1 malformed payload(s) dropped'), findsOne);
   });
+
+  testWidgets('shows a placeholder for a push with no title', (tester) async {
+    inbox = PushInbox(source)..listen();
+    await pumpApp(tester);
+
+    source.emit({
+      'id': 'silent-1',
+      'sentAt': '2026-08-06T09:30:00Z',
+      'event': 'sync',
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('(no title)'), findsOne);
+    expect(find.textContaining('event'), findsOne);
+    expect(find.text('1 malformed payload(s) dropped'), findsNothing);
+  });
 }

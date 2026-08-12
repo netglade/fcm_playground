@@ -50,7 +50,7 @@ void main() {
       expect(() => message.data['injected'] = 'nope', throwsUnsupportedError);
     });
 
-    for (final field in PushMessageParser.reservedKeys) {
+    for (final field in PushMessageParser.requiredKeys) {
       test('throws when $field is missing', () {
         final payload = validPayload()..remove(field);
 
@@ -122,5 +122,52 @@ void main() {
     test('toString names the message without dumping the body', () {
       expect(parser.parse(validPayload()).toString(), contains('msg-1'));
     });
+  });
+
+  group('optional headline fields', () {
+    test(
+      'accepts a payload with no title or body, as a data-only push has',
+      () {
+        final message = parser.parse({
+          'id': 'msg-1',
+          'sentAt': '2026-08-06T09:30:00Z',
+          'event': 'sync',
+        });
+
+        expect(message.title, isEmpty);
+        expect(message.body, isEmpty);
+        expect(message.data, {'event': 'sync'});
+      },
+    );
+
+    test('accepts a blank title, rather than calling it malformed', () {
+      final message = parser.parse(validPayload(overrides: {'title': ''}));
+
+      expect(message.title, isEmpty);
+    });
+
+    test('still rejects a title of the wrong type', () {
+      expect(
+        () => parser.parse(validPayload(overrides: {'title': 7})),
+        throwsA(isA<PushMessageFormatException>()),
+      );
+    });
+
+    test('still requires an id, which is what de-duplicates deliveries', () {
+      expect(
+        () => parser.parse(validPayload(overrides: {'id': ''})),
+        throwsA(isA<PushMessageFormatException>()),
+      );
+    });
+
+    test(
+      'still requires a parseable sentAt, which is what orders the inbox',
+      () {
+        expect(
+          () => parser.parse(validPayload(overrides: {'sentAt': 'yesterday'})),
+          throwsA(isA<PushMessageFormatException>()),
+        );
+      },
+    );
   });
 }
