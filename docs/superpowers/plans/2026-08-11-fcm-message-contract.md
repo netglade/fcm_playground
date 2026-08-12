@@ -243,40 +243,13 @@ void main() {
     });
   });
 
-  group('enums', () {
-    test('maps a known wire name', () {
-      final reader = readerOf({'priority': 'HIGH'});
-
-      expect(
-        reader.enumValue(
-          'priority',
-          AndroidMessagePriority.values,
-          (value) => value.wireName,
-        ),
-        AndroidMessagePriority.high,
-      );
-    });
-
-    test('rejects an unrecognised value, since it is indistinguishable from a typo', () {
-      final reader = readerOf({'priority': 'URGENT'});
-
-      expect(
-        () => reader.enumValue(
-          'priority',
-          AndroidMessagePriority.values,
-          (value) => value.wireName,
-        ),
-        throwsFormatMentioning('message.priority: unknown value "URGENT"'),
-      );
-    });
-  });
 }
 ```
 
-This test uses `AndroidMessagePriority`, which Task 2 creates. Write the enum
-group last and expect it to fail to compile until Task 2 lands — or, if you prefer
-a green intermediate state, comment out only the `enums` group with a `TODO`-free
-note and restore it in Task 2's step 1. State which you did in your report.
+**`enumValue` is deliberately not tested here.** Testing it needs a real enum, and
+the enums arrive in Task 2 — a test referencing one now would not compile, which
+would make this task's own gate red. Task 2's test file covers `enumValue` against
+`AndroidMessagePriority`, which is where it belongs anyway.
 
 - [ ] **Step 3: Run the test to verify it fails**
 
@@ -472,7 +445,7 @@ export 'src/message/json_object_reader.dart';
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run from `packages/fcm_gallery_shared`: `fvm dart test test/message/json_object_reader_test.dart`
-Expected: PASS, 17 tests (or 15 with the enum group deferred to Task 2).
+Expected: PASS, 15 tests.
 
 - [ ] **Step 6: Run the gate and commit**
 
@@ -568,6 +541,45 @@ These read as tautological but are not: the literals are FCM's spelling, and a
 rename or a reordering that broke the wire contract would otherwise only surface
 as an FCM 400 from a device.
 
+Add one more group, which is `JsonObjectReader.enumValue`'s only coverage — Task 1
+could not test it without an enum to test against:
+
+```dart
+  group('JsonObjectReader.enumValue', () {
+    test('maps a known wire name', () {
+      final reader = JsonObjectReader({'priority': 'HIGH'}, path: 'message');
+
+      expect(
+        reader.enumValue(
+          'priority',
+          AndroidMessagePriority.values,
+          (value) => value.wireName,
+        ),
+        AndroidMessagePriority.high,
+      );
+    });
+
+    test('rejects an unrecognised value, indistinguishable from a typo', () {
+      final reader = JsonObjectReader({'priority': 'URGENT'}, path: 'message');
+
+      expect(
+        () => reader.enumValue(
+          'priority',
+          AndroidMessagePriority.values,
+          (value) => value.wireName,
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('message.priority: unknown value "URGENT"'),
+          ),
+        ),
+      );
+    });
+  });
+```
+
 - [ ] **Step 2: Run the test to verify it fails**
 
 Run from `packages/fcm_gallery_shared`: `fvm dart test test/message/message_enums_test.dart`
@@ -609,12 +621,7 @@ test above passes.
 
 Add all four exports to the barrel, alphabetically.
 
-- [ ] **Step 4: Restore the reader's enum tests**
-
-If Task 1 deferred the `enums` group in `json_object_reader_test.dart`, restore it
-now and confirm it passes.
-
-- [ ] **Step 5: Run the tests and the gate, then commit**
+- [ ] **Step 4: Run the tests and the gate, then commit**
 
 Run from `packages/fcm_gallery_shared`: `fvm dart test test/message/`
 Expected: PASS, 22 tests.
@@ -2421,6 +2428,14 @@ git commit -m "feat(api): forward an FCM message instead of building one"
 - Modify: `apps/fcm_app/test/fake_notification_sender.dart`
 - Modify: `apps/fcm_app/test/http_notification_sender_test.dart`
 - Modify: `apps/fcm_app/test/sandbox_controller_test.dart`
+- **Delete: `apps/fcm_app/test/sandbox_view_test.dart`**
+
+**Why that test file is deleted rather than adapted.** It drives the old
+title/body/data form, which Task 13 replaces wholesale — and it references the
+controller API this task changes, so leaving it in place would not compile and this
+task's gate could not go green. Task 13 writes a new one from scratch. Delete it
+with `git rm` in step 1 so the deletion is visible in the diff rather than looking
+like lost coverage.
 
 **Interfaces:**
 - Consumes: `SendMessageRequest`, `SendMessageResponse`, `Scenario`, `scenarioGallery`, `FcmMessage` (Tasks 7–9).
@@ -2437,7 +2452,16 @@ as indented JSON (`JsonEncoder.withIndent('  ')`) and bumps `scenarioRevision`, 
 the view can rebuild its `TextEditingController` — the mechanism already used for
 the old form.
 
-- [ ] **Step 1: Write the failing controller tests**
+- [ ] **Step 1: Remove the widget test Task 13 replaces**
+
+```bash
+git rm apps/fcm_app/test/sandbox_view_test.dart
+```
+
+Task 13 writes a new one covering the grouped gallery and the editor. Removing it
+here is what lets this task's gate be green.
+
+- [ ] **Step 2: Write the failing controller tests**
 
 Replace `apps/fcm_app/test/sandbox_controller_test.dart`. The shape carries over;
 the subject changes:
@@ -2613,7 +2637,7 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail, then implement**
+- [ ] **Step 3: Run the tests to verify they fail, then implement**
 
 Run from `apps/fcm_app`: `fvm flutter test test/sandbox_controller_test.dart`
 Expected: FAIL — `editPayload` is undefined.
@@ -2630,15 +2654,13 @@ message, is unchanged.
 becomes `{token, validate_only, message}` and the 200 body becomes
 `{messageId, sentAt}`. Keep every error-path test.
 
-- [ ] **Step 3: Run the tests and the gate, then commit**
+- [ ] **Step 4: Run the tests and the gate, then commit**
 
 Run from `apps/fcm_app`: `fvm flutter test test/sandbox_controller_test.dart test/http_notification_sender_test.dart`
 Expected: PASS — 15 controller tests and 7 sender tests.
 
 Run from the repo root: `fvm dart run melos run ci`
-Expected: exit 0. `sandbox_view_test.dart` will fail to compile if it references the
-old controller API — if so, that is Task 13's job; comment the file out with a note
-and restore it in Task 13, and say so in your report.
+Expected: exit 0.
 
 ```bash
 git add apps/fcm_app
