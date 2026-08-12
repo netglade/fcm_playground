@@ -104,9 +104,17 @@ A row is a path and a scalar. `aps.alert.title` → `Build finished`,
   everything else stays a string. That is what makes `badge: 1` reachable.
 - On the way **in**, a nested map flattens back into paths, so a scenario's
   `apns.payload` becomes editable rows and round-trips unchanged.
+- **A numeric segment means a list index.** `aps.alert.loc-args.0` and
+  `…loc-args.1` build `{'aps': {'alert': {'loc-args': ['…', '…']}}}`. This is not
+  decoration: `aps.alert.loc-args` and `title-loc-args` are string **arrays** in
+  Apple's schema, and without index segments they would flatten to the text
+  `[a, b]` and expand back as a string — corrupting the payload rather than merely
+  failing to edit it.
 - A path segment containing a literal `.` is not expressible. FCM and Apple use no
   such keys, and the alternative — an escaping syntax — would be worse than the
   limitation. Documented, not solved.
+- An empty nested object (`{'aps': {}}`) has no rows to represent it, so it is
+  lost on a round trip. It also carries no meaning to APNs, so this is accepted.
 
 ### Validation
 
