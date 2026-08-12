@@ -153,6 +153,13 @@ void main() {
       );
     });
 
+    test('still rejects a body of the wrong type', () {
+      expect(
+        () => parser.parse(validPayload(overrides: {'body': 7})),
+        throwsA(isA<PushMessageFormatException>()),
+      );
+    });
+
     test('still requires an id, which is what de-duplicates deliveries', () {
       expect(
         () => parser.parse(validPayload(overrides: {'id': ''})),
