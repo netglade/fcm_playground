@@ -7,6 +7,7 @@ library;
 export 'src/api_error.dart';
 export 'src/draft_problem.dart';
 export 'src/message/android_message_priority.dart';
+export 'src/message/android_notification.dart';
 export 'src/message/android_notification_priority.dart';
 export 'src/message/apns_fcm_options.dart';
 export 'src/message/fcm_notification.dart';
