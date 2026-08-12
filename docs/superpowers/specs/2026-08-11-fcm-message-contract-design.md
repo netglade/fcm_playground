@@ -286,8 +286,29 @@ store is exactly when you want to know, but the README must stop describing it a
 an expected outcome.
 
 `PushMessage.title` and `.body` therefore stop being guaranteed non-empty. Their
-doc comments say so, and `MessageTile` and `MessageDetailPage` show a muted
-placeholder rather than an empty row.
+doc comments say so, and `MessageTile` shows a muted placeholder rather than a
+blank row.
+
+## Branch relationship
+
+This is implemented on `feature/fcm-message-contract`, branched from **`main`** at
+`03dad2f` — deliberately *not* from `feature/notification-display`, whose work is
+complete but unmerged. So `MessageDetailPage`, `PushPayloadStore`,
+`NotificationPresenter` and `remoteMessageToPayload` do not exist here, and this
+spec must not assume them. The app baseline is 49 tests, not 108.
+
+Three files are edited by both branches and will conflict on merge. All three are
+textual rather than structural:
+
+| File | This branch | `feature/notification-display` |
+| --- | --- | --- |
+| `apps/fcm_app/lib/main.dart` | new sender and controller wiring | store, presenter and tap-stream wiring |
+| `apps/fcm_app/lib/ui/message_tile.dart` | placeholder for a blank title | an `onTap` callback |
+| `README.md` | payload and scenario sections | a Notifications section |
+
+Whichever merges second resolves them. Worth knowing now so neither branch is
+surprised, and worth re-checking before merging rather than assuming this list is
+still complete.
 
 ## The Sandbox
 
