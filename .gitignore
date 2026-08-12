@@ -32,5 +32,8 @@ apps/*/android/local.properties
 apps/*/android/app/google-services.json
 apps/*/ios/Runner/GoogleService-Info.plist
 
+# Firebase service account keys. These grant send rights on the whole project.
+*service-account*.json
+
 # OS
 .DS_Store

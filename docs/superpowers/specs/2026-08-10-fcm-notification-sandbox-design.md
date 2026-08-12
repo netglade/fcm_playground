@@ -1,7 +1,12 @@
 # FCM notification sandbox — design
 
 **Date:** 2026-08-10
-**Status:** designed, not implemented
+**Status:** superseded, never implemented
+**Superseded by:** `2026-08-11-fcm-api-backend-design.md` — the Cloud Function is
+replaced by a standalone Dart `shelf` server, which needs no `build_runner`
+spike, no `dartfunctions` CLI experiment and no Blaze plan to run end to end.
+The shared-package idea survives; the event enum, silent pushes and priority
+control do not.
 
 ## Goal
 

@@ -1,5 +1,11 @@
 # FCM Notification Sandbox Implementation Plan
 
+> **SUPERSEDED — do not execute this plan.** Its spec was replaced by
+> `../specs/2026-08-11-fcm-api-backend-design.md`, which uses a standalone Dart
+> `shelf` server instead of a Cloud Function. The "Global Constraints" section
+> below still describes this repo accurately and is worth reading; everything
+> task-by-task is obsolete.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a drawer-navigated Sandbox page to `fcm_app` that composes a push notification from a scenario gallery plus a full editor and sends it to the device via a Dart Cloud Function, with `packages/fcm_gallery_shared` holding the event enum, scenario models, DTOs and validation used by both sides.

@@ -1,0 +1,20 @@
+name: fcm_api
+description: A local HTTP server with one endpoint that sends a push through Firebase Cloud Messaging. A development tool — unauthenticated, and bound to loopback.
+version: 1.0.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  fcm_gallery_shared:
+    path: ../../packages/fcm_gallery_shared
+  googleapis_auth: ^2.3.3
+  http: ^1.6.0
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

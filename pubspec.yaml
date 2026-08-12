@@ -9,8 +9,10 @@ environment:
 # repo root, so `melos bootstrap` is a single `pub get` instead of one per
 # package. Members opt in with `resolution: workspace` in their own pubspec.
 workspace:
+  - apps/fcm_api
   - apps/fcm_app
   - packages/core
+  - packages/fcm_gallery_shared
 
 dev_dependencies:
   melos: ^8.2.2
@@ -41,6 +43,12 @@ melos:
     fix:
       description: Apply automated analyzer fixes in every package.
       exec: fvm dart fix --apply
+
+    api:serve:
+      description: >-
+        Run the send API on 127.0.0.1:8080. Needs GOOGLE_APPLICATION_CREDENTIALS
+        pointing at a Firebase service account key — see apps/fcm_api/README.md.
+      run: fvm dart run apps/fcm_api/bin/server.dart
 
     test:core:
       description: Run pure-Dart tests (no Flutter binding required).
