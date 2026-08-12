@@ -26,5 +26,7 @@ export 'src/notification_draft.dart';
 export 'src/notification_draft_validator.dart';
 export 'src/notification_scenario.dart';
 export 'src/scenario.dart';
+export 'src/send_message_request.dart';
+export 'src/send_message_response.dart';
 export 'src/send_notification_request.dart';
 export 'src/send_notification_response.dart';
