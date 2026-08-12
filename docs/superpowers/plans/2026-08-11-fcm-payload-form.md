@@ -1490,9 +1490,19 @@ git commit -m "feat(app): add the APNs and WebPush forms"
 | `webpush` | nested `WebpushConfigForm` |
 | `fcmOptions` | nested `FcmOptionsForm` |
 
-`isValid` is the conjunction across `allModels`. Because a `GladeModel` is a
-`ChangeNotifier`, the page listens to all of them and rebuilds on any change —
-which is what makes a nested field's validity reach the root's Send button.
+`isValid` is the conjunction across `allModels`.
+
+**The notification chain is the thing to get right here, and Task 4 showed why.**
+A `GladeModel` is a `ChangeNotifier`, but a nested model's notification does **not**
+propagate to its parent — and the controls are `StatelessWidget`s that read
+`input.value` without listening to anything. Task 4 found this the honest way: its
+tristate-cycling test only advanced past the first state once the widget was
+rebuilt between taps, because nothing was telling it to.
+
+So `allModels` must return **every model in the tree, flattened** — the root, its
+children, and their children — and whoever renders the form listens to all of them.
+Listening to the root alone would leave a change three levels down invisible: the
+value would be in the model and not on the screen, which is worse than either.
 
 **The gallery invariant lands here**, and it is this plan's counterpart to the
 contract plan's round-trip test:
@@ -1578,8 +1588,13 @@ found this the hard way in a test `setUpAll`; the app needs it too, so add it to
 
 `applyScenario` becomes `form.readFrom(FcmMessage.fromJson(scenario.payloadTemplate))`.
 `send()` uses `form.toModel()`. `canSend` requires a token, `form.isValid`, and no
-send in flight. The controller listens to `form` and re-notifies, so the page needs
-only one listenable.
+send in flight.
+
+**The controller listens to every model in `form.allModels`** and re-notifies, so
+the page still needs only one listenable while a change at any depth reaches it.
+Listening to `form` alone is not enough, for the reason Task 11 records. Add each
+listener in the constructor and remove every one in `dispose` — `always-remove-listener`
+is fatal, and ten un-removed listeners on a long-lived model would be a real leak.
 
 Tests carry over in shape: opens on the first scenario and is sendable; applying
 another replaces the fields; an invalid field blocks Send with a reason; Send posts
@@ -1695,5 +1710,9 @@ Neither can run here. Report each as verified or unverified; never assume.
   nobody set, and nothing on screen would explain the changed behaviour.
 - **The gallery invariant in Task 11 is the completeness check.** A missing form
   field shows up there and nowhere else.
+- **The controls do not rebuild themselves.** They are stateless and read
+  `input.value`, so something above them must listen to the model that owns the
+  input. That is why the controller listens to every model in the tree rather than
+  just the root.
 - **Do not add a JSON escape hatch back.** Removing it was explicit; the
   consequence is recorded in the spec and the README.
