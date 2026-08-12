@@ -65,7 +65,7 @@ Every task's requirements implicitly include this section.
 | `path_rows_field.dart` | `PathRowsField` — dotted-path rows |
 | `string_list_rows.dart` | `StringListRows` — ordered string rows |
 
-**New — the section widgets**, one per model, in `apps/fcm_app/lib/ui/form/sections/`: `message_section.dart`, `notification_section.dart`, `android_section.dart`, `android_notification_section.dart`, `light_settings_section.dart`, `apns_section.dart`, `webpush_section.dart`, `fcm_options_section.dart`. Each is one widget rendering one model's inputs inside a `FormSection`.
+**New — the section widgets**, one per model, in `apps/fcm_app/lib/ui/form/sections/`: `message_section.dart`, `notification_section.dart`, `android_section.dart`, `android_notification_section.dart`, `light_settings_section.dart`, `apns_section.dart`, `webpush_section.dart`, `fcm_options_section.dart`, `apns_fcm_options_section.dart`, `webpush_fcm_options_section.dart` — ten files, because the three `fcm_options` variants carry different fields and one widget per file is mandatory. Each renders one model's inputs inside a `FormSection`.
 
 **Modified:** `apps/fcm_app/lib/sandbox/sandbox_controller.dart`, `apps/fcm_app/lib/ui/sandbox_view.dart`, `apps/fcm_app/pubspec.yaml`, `analysis_options.yaml`, `README.md`.
 
@@ -201,7 +201,14 @@ void main() {
 Run from `apps/fcm_app`: `fvm flutter test test/glade_forms_smoke_test.dart`
 Expected: PASS, 7 tests.
 
-**Any failure here is a finding, not an obstacle.** Report exactly which assumption broke and what the API does instead — the design depends on all seven, and the remaining tasks would need reshaping. Do not work around a failure by changing the design yourself.
+**One likely wrinkle before you conclude the API is broken.** `glade_forms` reads a
+value out of its `TextEditingController` by listening to it, and a listener may fire
+in a microtask rather than synchronously. If `count.value` is still null immediately
+after setting `controller.text`, add `await Future<void>.delayed(Duration.zero)`
+before the assertion and make the test `async` — that is a test-harness detail, not
+a broken package. Say in your report whether it was needed.
+
+**Any other failure here is a finding, not an obstacle.** Report exactly which assumption broke and what the API does instead — the design depends on all seven, and the remaining tasks would need reshaping. Do not work around a failure by changing the design yourself.
 
 - [ ] **Step 4: Run the gate and commit**
 
@@ -1267,12 +1274,16 @@ Every `inputKey` is prefixed `android.notification.`.
 | `visibility` | `GladeInput<NotificationVisibility?>.optional` |
 | `proxy` | `GladeInput<NotificationProxy?>.optional` |
 | `notificationCount` | `GladeIntInputNullable(useTextEditingController: true)` |
-| `bodyLocArgs`, `titleLocArgs`, `vibrateTimings` | **not** inputs — held as `List<String>` fields on the form, edited by `StringListRows` through a setter that calls `notifyListeners()` |
+| `bodyLocArgs`, `titleLocArgs`, `vibrateTimings` | `GladeInput<List<String>?>.optional` — the row editor hands back a whole list and `updateValue` takes it |
 | `lightSettings` | the nested `LightSettingsForm` |
 
-**Why the three list fields are not `GladeInput`s.** Their length is not fixed, so
-there is no single input to bind; `StringListRows` owns the editing and hands back a
-whole list. They still take part in `toModel()` and in "is anything set?".
+**The collections are real `GladeInput`s**, typed over the collection itself
+(`GladeInput<List<String>?>.optional`). An earlier draft of this plan held them as
+plain fields with a hand-rolled setter, which would have left them outside
+`inputs` — so glade's validity and dirty/pure tracking would have ignored them, and
+`toModel()` would have been the only thing that knew they existed. Typing the input
+over the whole collection avoids a second, parallel state mechanism: the row editor
+hands back a list and `updateValue` takes it like any other value.
 
 **Validators**, the only ones FCM justifies here: `color` must match `#rrggbb`, and
 each entry of `vibrateTimings` must be a duration like `0.5s`.
@@ -1369,7 +1380,7 @@ git commit -m "feat(app): add the Android notification form"
 | `collapseKey`, `restrictedPackageName`, `ttl` | `GladeStringInput(isRequired: false)`; `ttl` validated as a duration |
 | `priority` | `GladeInput<AndroidMessagePriority?>.optional` |
 | `directBootOk` | `GladeInput<bool?>.optional` |
-| `data` | a `Map<String, String>` field edited by `StringMapRows` |
+| `data` | `GladeInput<Map<String, String>?>.optional`, edited by `StringMapRows` |
 | `notification` | nested `AndroidNotificationForm` |
 | `fcmOptions` | nested `FcmOptionsForm` |
 
@@ -1399,18 +1410,18 @@ The two dominated by row editors rather than fields, which is why they pair.
 
 | `ApnsConfigForm` | Control |
 | --- | --- |
-| `headers` | `Map<String, String>` field, `StringMapRows` |
-| `payload` | `Map<String, Object?>` field, **`PathRowsField`** |
+| `headers` | `GladeInput<Map<String, String>?>.optional`, `StringMapRows` |
+| `payload` | `GladeInput<Map<String, Object?>?>.optional`, **`PathRowsField`** |
 | `fcmOptions` | nested `ApnsFcmOptionsForm` |
 
 | `WebpushConfigForm` | Control |
 | --- | --- |
-| `headers`, `data` | `Map<String, String>` fields, `StringMapRows` |
-| `notification` | `Map<String, Object?>` field, **`PathRowsField`** |
+| `headers`, `data` | `GladeInput<Map<String, String>?>.optional`, `StringMapRows` |
+| `notification` | `GladeInput<Map<String, Object?>?>.optional`, **`PathRowsField`** |
 | `fcmOptions` | nested `WebpushFcmOptionsForm` |
 
-Neither has a single `GladeInput` of its own — every field is a collection or a
-subform. `isValid` is therefore just the conjunction of the subforms', and
+Every field here is a collection input or a subform, so `isValid` is effectively
+the conjunction of the subforms', and
 `toModel()` returns null when every collection is empty and the subform is null.
 
 **The test that matters most** is the `apns_alert` scenario's payload surviving a
@@ -1447,7 +1458,7 @@ git commit -m "feat(app): add the APNs and WebPush forms"
 
 | Field | Control |
 | --- | --- |
-| `data` | `Map<String, String>` field, `StringMapRows` |
+| `data` | `GladeInput<Map<String, String>?>.optional`, `StringMapRows` |
 | `notification` | nested `FcmNotificationForm` |
 | `android` | nested `AndroidConfigForm` |
 | `apns` | nested `ApnsConfigForm` |
@@ -1488,17 +1499,20 @@ git commit -m "feat(app): add the root message form"
 ### Task 12: The section widgets
 
 **Files:**
-- Create eight files under `apps/fcm_app/lib/ui/form/sections/`: `message_section.dart`, `notification_section.dart`, `android_section.dart`, `android_notification_section.dart`, `light_settings_section.dart`, `apns_section.dart`, `webpush_section.dart`, `fcm_options_section.dart`
+- Create ten files under `apps/fcm_app/lib/ui/form/sections/`: `message_section.dart`, `notification_section.dart`, `android_section.dart`, `android_notification_section.dart`, `light_settings_section.dart`, `apns_section.dart`, `webpush_section.dart`, `fcm_options_section.dart`, `apns_fcm_options_section.dart`, `webpush_fcm_options_section.dart`
 - Test: `apps/fcm_app/test/ui/form/sections_test.dart`
 
 **Interfaces:**
 - Consumes: the ten forms, the six controls.
 - Produces one widget per file, each `const X({required <its form> form, super.key})`, rendering that form's inputs inside a `FormSection` and nesting its children's sections.
 
-`FcmOptionsSection` is parameterised over which options form it renders, since the
-three variants differ only in their fields — but **`prefer-single-widget-per-file`
-means one widget per file**, so if that needs three widgets they go in three files.
-Decide when you see it, and say which you chose.
+**Three separate options sections, not one parameterised widget.** The three
+`fcm_options` variants carry different fields — the generic one only
+`analytics_label`, APNs adds `image`, WebPush adds `link` — and
+`prefer-single-widget-per-file` forbids putting three widgets in one file anyway. So
+`fcm_options_section.dart` holds `FcmOptionsSection`, and
+`apns_fcm_options_section.dart` and `webpush_fcm_options_section.dart` hold theirs:
+ten section files, not eight.
 
 Rules that bite here: **no `Widget _buildFoo()`** (build inline with
 collection-`for`), one widget per file, and every text field binds
