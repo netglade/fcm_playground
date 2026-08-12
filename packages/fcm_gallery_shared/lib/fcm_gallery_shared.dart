@@ -12,6 +12,7 @@ export 'src/message/android_notification.dart';
 export 'src/message/android_notification_priority.dart';
 export 'src/message/apns_config.dart';
 export 'src/message/apns_fcm_options.dart';
+export 'src/message/fcm_message.dart';
 export 'src/message/fcm_notification.dart';
 export 'src/message/fcm_options.dart';
 export 'src/message/json_object_reader.dart';
