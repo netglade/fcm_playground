@@ -40,6 +40,12 @@ dart_code_metrics:
     source-lines-of-code: 50
   metrics-exclude:
     - test/**
+    # Data classes mirroring Google's FCM v1 Message API. AndroidNotification has
+    # 27 fields and Scenario has 9, so number-of-parameters cannot apply: the
+    # count is the shape of the API being mirrored, not a design smell. Every
+    # metric still binds everywhere logic lives.
+    - packages/fcm_gallery_shared/lib/src/message/**
+    - packages/fcm_gallery_shared/lib/src/scenario.dart
   rules:
     # Dart
     - avoid-collection-methods-with-unrelated-types
