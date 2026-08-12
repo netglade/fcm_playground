@@ -1577,9 +1577,18 @@ git commit -m "feat(app): add the payload form sections"
 - Produces, on `SandboxController`: `FcmMessageForm get form`, `Scenario? get selectedScenario`, `void applyScenario(Scenario)`, `bool get validateOnly`, `void setValidateOnly(bool)`, `String? get sendBlockedReason`, `bool get canSend`, `SandboxSendState get state`, `Future<void> send()`.
 
 **Removed:** `payloadText`, `editPayload`, `parseError`, `parsedMessage`,
-`scenarioRevision`. The revision existed to rebuild a text field from new text;
-with forms, `readFrom` updates the inputs in place and the widgets follow, so there
-is nothing to key on.
+`scenarioRevision`.
+
+An earlier draft of this plan justified dropping the revision by claiming that
+"`readFrom` updates the inputs in place and the widgets follow". **That was wrong,
+and Task 5 found it.** The text-bound controls do follow, because they read through
+a `GladeInput`'s controller — but the row editors own their rows in `State` and
+would have ignored a new value entirely, so applying a scenario would have
+populated the model while the rows on screen still showed the previous scenario.
+Task 5 fixes that inside the row editors with a `didUpdateWidget` that reloads only
+when the incoming value differs from what the rows currently collapse to. That is
+self-correcting — a user's own keystroke round-trips to an equal value and changes
+nothing — which is why no revision counter is needed after all.
 
 **`GladeForms.initialize()` must be called once before any model is built.** Task 1
 found this the hard way in a test `setUpAll`; the app needs it too, so add it to
