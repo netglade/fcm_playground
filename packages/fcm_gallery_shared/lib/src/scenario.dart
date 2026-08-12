@@ -1,11 +1,10 @@
 /// A payload template the Sandbox can send as-is, to demonstrate one facet
 /// of FCM's `Message` model.
 ///
-/// Unlike [NotificationScenario], a `Scenario` template stays a raw map all
-/// the way to send time: it is the *authoring* format, so it can be pasted
-/// straight out of Google's REST reference without translation, and
-/// `FcmMessage.fromJson` is what proves it maps onto the typed model built in
-/// Tasks 1–7.
+/// A `Scenario` template stays a raw map all the way to send time: it is the
+/// *authoring* format, so it can be pasted straight out of Google's REST
+/// reference without translation, and `FcmMessage.fromJson` is what proves it
+/// maps onto the typed model built in Tasks 1–7.
 class Scenario {
   /// Creates a scenario. [payloadTemplate] is the sender's `message` object,
   /// without a delivery target — the server assigns that at send time.

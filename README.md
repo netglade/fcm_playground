@@ -24,12 +24,13 @@ the app behind `PushSource`, an interface with two implementations
 (`FirebasePushSource`, `DisabledPushSource`) plus a fake in the tests — which is
 why the widget tests never touch Firebase.
 
-`packages/fcm_gallery_shared` holds what the two sides must agree on: the
-editable draft, the gallery presets, the request and response DTOs, and the one
-validator both of them run. It depends on `core` for
-`PushMessageParser.reservedKeys`, so the payload keys the app requires are
-defined once and a data key that would collide with them fails to compile past
-the validator rather than at delivery time.
+`packages/fcm_gallery_shared` holds what the two sides must agree on: FCM's own
+`Message` model, typed as `FcmMessage` and its nested blocks
+(`AndroidConfig`, `ApnsConfig`, `WebpushConfig`, `FcmNotification`, …), the
+scenario gallery's raw payload templates, and the `/send` request and response
+DTOs. It no longer depends on `core` for anything — the inbox's four reserved
+`data` keys are `core`'s concern alone, and this package only knows the shape
+FCM itself defines.
 
 `apps/fcm_api` is a plain `shelf` server, not a Cloud Function: `dart run` and
 `curl` are the whole story, and the interesting logic — the FCM v1 payload and
@@ -160,21 +161,53 @@ real — a real key is the thing that is still missing.
 
 ## Message format
 
-`PushMessageParser` expects a flat FCM `data` payload with four required keys;
-anything else is passed through in `PushMessage.data`.
+What the Sandbox sends is FCM's own v1 `Message` object — typed in
+`packages/fcm_gallery_shared` as `FcmMessage`, with nested blocks for
+`notification`, `android`, `webpush`, `apns` and `fcm_options`. A `Scenario`
+holds a raw JSON template of that object, so it can be pasted straight out of
+[Google's REST reference](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages)
+without translation; the Sandbox's payload editor lets you change the template
+before sending.
+
+`apps/fcm_api`'s `POST /send` is a passthrough. It takes
 
 ```json
-{
-  "id": "msg-1",
-  "title": "Build finished",
-  "body": "Release 1.0.0 is ready.",
-  "sentAt": "2026-08-06T09:30:00Z",
-  "deepLink": "/builds/42"
-}
+{"token": "<registration token>", "validate_only": false, "message": {"…": "…"}}
 ```
 
-A payload that fails validation is counted and surfaced in the UI rather than
-silently dropped — see `PushInbox.rejections`.
+parses `message` with `FcmMessage.fromJson`, injects `token` as the delivery
+target — a template must not set its own `token`, `topic` or `condition`, and
+is rejected if it does — forwards the result to FCM verbatim, and on success
+answers
+
+```json
+{"messageId": "projects/p/messages/0:1234…", "sentAt": "2026-08-12T09:30:00Z"}
+```
+
+The parser is strict: an unknown key anywhere inside `message`, at any depth,
+is rejected with the JSON path that named it, for example
+`{"error": "message.android.notification: unknown field \"titel\""}`, rather
+than being silently dropped or sent as something else. `apns.payload`,
+`webpush.notification` and every `data` map are the exception — FCM defines
+those as free-form, so whatever is inside them passes through unexamined,
+`aps` dictionary included. The model reads and writes the same snake_case keys
+FCM's REST API does (`fcm_options`, `validate_only`, …), so a payload copied
+from Google's docs round-trips through `FcmMessage.fromJson`/`.toJson()`
+unchanged.
+
+On arrival, `core`'s parser treats `title` and `body` as optional: a data-only
+push, with no `notification` block at all, still reaches the inbox, showing a
+`(no title)` placeholder in place of the missing headline. As a result,
+`PushInbox.rejections` is now a **rare** signal rather than an expected one —
+only a blank `id` or an unparseable `sentAt` still trips it, and the server
+always supplies both correctly for anything sent through the Sandbox, so it
+only fires on a hand-edited payload that breaks one of those two fields.
+
+**A real loss of observability:** the send response no longer carries a
+payload id — only FCM's own `messageId`, which has no relationship to
+anything the inbox stores. Matching a send to its arrival therefore needs an
+`id` you put in the message's `data` map yourself; there is no longer any
+other way to tell which arriving push came from which send.
 
 ## Sending a test push
 
@@ -212,15 +245,18 @@ Sending by hand instead:
 curl -X POST http://127.0.0.1:8080/send \
   -H 'content-type: application/json' \
   -d '{"token":"<registration token from the Inbox page>",
-       "title":"Build finished",
-       "body":"Release 1.0.0 is ready.",
-       "data":{"deepLink":"/builds/42"}}'
+       "validate_only":false,
+       "message":{
+         "notification":{"title":"Build finished","body":"Release 1.0.0 is ready."},
+         "data":{"id":"msg-1","sentAt":"2026-08-12T09:30:00Z","deepLink":"/builds/42"}
+       }}'
 ```
 
-The response's `id` is the payload's `id`, so it is the value that then appears
-in the inbox — that is how a send is matched to an arrival. `id` and `sentAt` are
-stamped by the server, and a data key colliding with one of the four reserved
-keys is rejected with a 400.
+The `id` and `sentAt` above are read by `core`'s parser once the push arrives —
+they are plain `data` keys as far as FCM and this API are concerned, not
+something the server stamps. See [Message format](#message-format) above for
+why: the response no longer echoes an id, so the `id` in `data` is the only
+thing that ties a send to the row it produces in the inbox.
 
 **The API is a development tool.** It has no authentication and binds loopback,
 so only the machine running it can reach it. Do not deploy it as is — bound to
@@ -228,15 +264,25 @@ so only the machine running it can reach it. Do not deploy it as is — bound to
 
 ## Verified on this machine
 
-`melos run ci` passes clean — 20 `core` tests, 41 `fcm_gallery_shared` tests, 44
-`fcm_api` tests and 49 `fcm_app` tests — and `fvm flutter build web --release`
-succeeds (a compile check only: web cannot receive FCM pushes without a VAPID
-key). The Android and iOS builds have **not** been verified here — there is no
-Android SDK or Xcode on this machine.
+`melos run ci` passes clean — 20 `core` tests, 91 `fcm_gallery_shared` tests, 36
+`fcm_api` tests and 53 `fcm_app` tests. `fvm flutter build apk --debug` and
+`fvm flutter build web --release` both succeed (compile checks only: the web
+build cannot receive FCM pushes without a VAPID key, and an apk build is not
+the same as running on a device). The iOS build has **not** been verified here
+— there is no Xcode on this machine.
 
-The end-to-end path above — generating a service account key, running
-`apps/fcm_api` against it, and a Sandbox send arriving in the Inbox on a real
-device with the matching `id` — is **not yet verified**. No service account key
-has been generated for this project, and no Android device has been attached on
-this machine, so neither the API nor the on-device round trip has actually been
-run.
+Two things remain explicitly **not verified** on this machine:
+
+- **The `validate_only` sweep** — sending each of the nine gallery scenarios'
+  templates to FCM with `validate_only: true` and confirming a 200. This needs
+  a service account key downloaded from the Firebase console and the API
+  running against it, which this machine cannot do unattended.
+- **The on-device checks** — that `big_picture_remote` renders its image, that
+  `data_only` reaches the inbox with no notification drawn, that
+  `custom_channel` pops as a heads-up banner, and that an edited payload with a
+  typo disables Send with the field path shown. This needs a physical Android
+  device.
+
+No service account key has been generated for this project and no Android
+device has been attached on this machine, so neither of the above has actually
+been run.

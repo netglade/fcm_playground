@@ -5,7 +5,6 @@
 library;
 
 export 'src/api_error.dart';
-export 'src/draft_problem.dart';
 export 'src/message/android_config.dart';
 export 'src/message/android_message_priority.dart';
 export 'src/message/android_notification.dart';
@@ -22,11 +21,6 @@ export 'src/message/notification_proxy.dart';
 export 'src/message/notification_visibility.dart';
 export 'src/message/webpush_config.dart';
 export 'src/message/webpush_fcm_options.dart';
-export 'src/notification_draft.dart';
-export 'src/notification_draft_validator.dart';
-export 'src/notification_scenario.dart';
 export 'src/scenario.dart';
 export 'src/send_message_request.dart';
 export 'src/send_message_response.dart';
-export 'src/send_notification_request.dart';
-export 'src/send_notification_response.dart';
