@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Edits a `Map<String, String>` as one key/value row per entry.
@@ -18,9 +19,10 @@ class StringMapRows extends StatefulWidget {
   /// The heading shown above the rows.
   final String label;
 
-  /// The entries this widget starts with. Read once, in [State.initState] —
-  /// later changes flow out through [onChanged], not back in, so typing never
-  /// fights a value pushed from elsewhere.
+  /// The entries this widget displays. Changes are reloaded into the rows when
+  /// the value differs from what the rows would collapse to, enabling the rows
+  /// to update from external changes while preventing rewinding during a user's
+  /// own edits.
   final Map<String, String> value;
 
   /// Called with the current map whenever a row is added, edited, or removed.
@@ -31,14 +33,24 @@ class StringMapRows extends StatefulWidget {
 }
 
 class _StringMapRowsState extends State<StringMapRows> {
-  late final List<_MapRowControllers> _rows;
+  late List<_MapRowControllers> _rows;
 
   @override
   void initState() {
     super.initState();
-    _rows = [
-      for (final entry in widget.value.entries) _MapRowControllers.of(entry),
-    ];
+    _rows = [];
+    _reload();
+  }
+
+  @override
+  void didUpdateWidget(StringMapRows oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload only when the value arrived from outside — after the user's own
+    // keystroke the parent rebuilds us with exactly what we just reported, so
+    // comparing against our own output is what stops the cursor jumping.
+    if (!mapEquals(widget.value, _collapsed())) {
+      _reload();
+    }
   }
 
   @override
@@ -100,12 +112,25 @@ class _StringMapRowsState extends State<StringMapRows> {
     _push();
   }
 
-  /// Reports the rows as a map, dropping any row whose key is blank so a
-  /// half-typed row never produces an empty key.
-  void _push() => widget.onChanged({
+  /// Rebuilds the rows from [widget.value], disposing the existing controllers.
+  void _reload() {
+    for (final row in _rows) {
+      row.dispose();
+    }
+    _rows = [
+      for (final entry in widget.value.entries) _MapRowControllers.of(entry),
+    ];
+  }
+
+  /// Returns the map that the current rows collapse to, dropping any row whose
+  /// key is blank so a half-typed row never produces an empty key.
+  Map<String, String> _collapsed() => {
     for (final row in _rows)
       if (row.key.text.trim().isNotEmpty) row.key.text: row.value.text,
-  });
+  };
+
+  /// Reports the rows as a map through [onChanged].
+  void _push() => widget.onChanged(_collapsed());
 }
 
 /// The two controllers behind one key/value row.

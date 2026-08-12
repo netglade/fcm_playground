@@ -9,8 +9,6 @@ void main() {
     Map<String, String>? lastValue;
 
     Future<void> pumpMap(WidgetTester tester, Map<String, String> value) {
-      lastValue = null;
-
       return tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -66,14 +64,36 @@ void main() {
 
       expect(lastValue, isEmpty);
     });
+
+    testWidgets('reloads its rows when the value arrives from outside', (
+      tester,
+    ) async {
+      await pumpMap(tester, const {'old': '1'});
+
+      await pumpMap(tester, const {'new': '2'});
+
+      expect(find.widgetWithText(TextField, 'new'), findsOne);
+      expect(find.widgetWithText(TextField, 'old'), findsNothing);
+    });
+
+    testWidgets('does not reset the rows while the user is typing', (
+      tester,
+    ) async {
+      await pumpMap(tester, const {});
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'partial');
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextField, 'partial'), findsOne);
+    });
   });
 
   group('StringListRows', () {
     List<String>? lastList;
 
     Future<void> pumpList(WidgetTester tester, List<String> value) {
-      lastList = null;
-
       return tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -125,6 +145,30 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(lastList, isEmpty);
+    });
+
+    testWidgets('reloads its rows when the value arrives from outside', (
+      tester,
+    ) async {
+      await pumpList(tester, const ['old']);
+
+      await pumpList(tester, const ['new']);
+
+      expect(find.widgetWithText(TextField, 'new'), findsOne);
+      expect(find.widgetWithText(TextField, 'old'), findsNothing);
+    });
+
+    testWidgets('does not reset the rows while the user is typing', (
+      tester,
+    ) async {
+      await pumpList(tester, const []);
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'partial');
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextField, 'partial'), findsOne);
     });
   });
 
