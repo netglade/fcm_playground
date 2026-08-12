@@ -51,21 +51,40 @@ void main() {
     expect(model.count.value, 42);
   });
 
-  test('clearing the int controller does NOT return it to null', () async {
-    // FINDING (not the documented microtask wrinkle — confirmed present
-    // even after an extra event-loop turn below): GladeTypeConverters
-    // .intConverterNullable treats '' as an unparseable value, not as "no
-    // value" (it calls cantConvert(), which throws ConvertError). The
-    // controller-change listener swallows that error without calling
-    // _setValue, so the model silently keeps the last good value instead
-    // of resetting to null. Asserted here as the actual, verified
-    // behaviour of glade_forms 6.0.0 — see task-1-report.md.
-    model.count.controller!.text = '42';
-    model.count.controller!.text = '';
+  test(
+    'the default int converter keeps the old value when cleared (documented defect)',
+    () async {
+      // FINDING (not the documented microtask wrinkle — confirmed present
+      // even after an extra event-loop turn below): GladeTypeConverters
+      // .intConverterNullable treats '' as an unparseable value, not as "no
+      // value" (it calls cantConvert(), which throws ConvertError). The
+      // controller-change listener swallows that error without calling
+      // _setValue, so the model silently keeps the last good value instead
+      // of resetting to null. Asserted here as the actual, verified
+      // behaviour of glade_forms 6.0.0 — see task-1-report.md. This is the
+      // default we do NOT want; see the converter-backed test below for the
+      // behaviour Task 8 actually depends on.
+      model.count.controller!.text = '42';
+      model.count.controller!.text = '';
 
+      await Future<void>.delayed(Duration.zero);
+
+      expect(model.count.value, 42);
+    },
+  );
+
+  test('with a converter, clearing the int field means absent', () async {
+    // Task 8's notification_count depends on this: without the converter,
+    // clearing the field silently keeps the old number and sends it.
+    model.convertedCount.controller!.text = '42';
+    await Future<void>.delayed(Duration.zero);
+    expect(model.convertedCount.value, 42);
+
+    model.convertedCount.controller!.text = '';
     await Future<void>.delayed(Duration.zero);
 
-    expect(model.count.value, 42);
+    expect(model.convertedCount.value, isNull);
+    expect(model.isValid, isTrue);
   });
 
   test('a string input exposes a controller by default', () {
