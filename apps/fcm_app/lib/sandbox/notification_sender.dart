@@ -8,5 +8,5 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 abstract interface class NotificationSender {
   /// Sends [request], or throws `NotificationSendException` with a message that
   /// is safe to show to the user.
-  Future<SendNotificationResponse> send(SendNotificationRequest request);
+  Future<SendMessageResponse> send(SendMessageRequest request);
 }

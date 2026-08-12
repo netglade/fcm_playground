@@ -10,17 +10,16 @@ class FakeNotificationSender implements NotificationSender {
   final NotificationSendException? failure;
 
   /// Every request handed to [send], so the payload can be asserted.
-  final sent = <SendNotificationRequest>[];
+  final sent = <SendMessageRequest>[];
 
   /// Returned by [send] on success.
-  static final response = SendNotificationResponse(
+  static final response = SendMessageResponse(
     messageId: 'projects/p/messages/0:17',
-    payloadId: 'api-1754812345678901',
     sentAt: DateTime.utc(2026, 8, 11, 9, 12, 3),
   );
 
   @override
-  Future<SendNotificationResponse> send(SendNotificationRequest request) async {
+  Future<SendMessageResponse> send(SendMessageRequest request) async {
     sent.add(request);
     if (failure case final failure?) {
       throw failure;

@@ -22,14 +22,18 @@ void main() {
         baseUrl: Uri.parse('http://localhost:8080'),
       );
 
-  const request = SendNotificationRequest(
+  const request = SendMessageRequest(
     token: 'device-token',
-    draft: NotificationDraft(title: 'Build finished', body: 'main #128 passed'),
+    message: FcmMessage(
+      notification: FcmNotification(
+        title: 'Build finished',
+        body: 'main #128 passed',
+      ),
+    ),
   );
 
   final successBody = {
     'messageId': 'projects/p/messages/0:17',
-    'id': 'api-1754812345678901',
     'sentAt': '2026-08-11T09:12:03.000Z',
   };
 
@@ -38,23 +42,27 @@ void main() {
   });
 
   group('HttpNotificationSender.send', () {
-    test('posts the flat request body to /send', () async {
+    test('posts the token, validate_only flag and message to /send', () async {
       await senderAnswering(200, successBody).send(request);
 
       expect(requests.single.url.path, '/send');
       expect(requests.single.method, 'POST');
       expect(jsonDecode(requests.single.body), {
         'token': 'device-token',
-        'title': 'Build finished',
-        'body': 'main #128 passed',
-        'data': <String, String>{},
+        'validate_only': false,
+        'message': {
+          'notification': {
+            'title': 'Build finished',
+            'body': 'main #128 passed',
+          },
+        },
       });
     });
 
     test('returns the parsed response', () async {
       final response = await senderAnswering(200, successBody).send(request);
 
-      expect(response.payloadId, 'api-1754812345678901');
+      expect(response.messageId, 'projects/p/messages/0:17');
       expect(response.sentAt, DateTime.utc(2026, 8, 11, 9, 12, 3));
     });
 

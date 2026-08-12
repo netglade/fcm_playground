@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 
@@ -5,57 +7,61 @@ import 'notification_send_exception.dart';
 import 'notification_sender.dart';
 import 'sandbox_send_state.dart';
 
-/// Holds what the Sandbox form contains and what became of the last send.
+/// Holds the Sandbox's raw payload editor and what became of the last send.
 ///
-/// It asks for a token through a callback rather than holding a `PushInbox`, so
-/// the Sandbox knows nothing about the receiving side, and it holds no
-/// `TextEditingController` — that is view state, and keeping it out is what lets
-/// these rules be tested without pumping a widget.
+/// It holds the editor's *text*, not a parsed model, because the whole point
+/// of the Sandbox is that what is typed is exactly what gets sent: every edit
+/// re-parses immediately, so [parseError] and [parsedMessage] are always in
+/// sync with [payloadText]. It asks for a token through a callback rather than
+/// holding a `PushInbox`, so the Sandbox knows nothing about the receiving
+/// side, and it holds no `TextEditingController` — that is view state, and
+/// keeping it out is what lets these rules be tested without pumping a widget.
 class SandboxController extends ChangeNotifier {
+  /// Creates a controller wired to a sender and a way to read the current
+  /// registration token.
   SandboxController({required this._sender, required this._token}) {
     // Opening on a preset means the page is sendable on arrival, and it makes
     // the gallery's purpose obvious without a tap.
-    _load(notificationGallery.first.draft);
+    applyScenario(scenarioGallery.first);
   }
 
-  static const _validator = NotificationDraftValidator();
+  /// Renders a template the same way every time, so the same scenario always
+  /// produces byte-identical editor text.
+  static const _encoder = JsonEncoder.withIndent('  ');
 
   final NotificationSender _sender;
   final String? Function() _token;
 
-  String _title = '';
-  String _body = '';
-  List<MapEntry<String, String>> _entries = const [];
-  List<DraftProblem> _problems = const [];
+  String _payloadText = '';
+  FcmMessage? _parsedMessage;
+  String? _parseError;
+  bool _validateOnly = false;
+  Scenario? _selectedScenario;
   SandboxSendState _state = const SandboxIdle();
   int _scenarioRevision = 0;
 
-  /// The notification title as currently typed.
-  String get title => _title;
+  /// The JSON currently in the editor, exactly as typed.
+  String get payloadText => _payloadText;
 
-  /// The notification body as currently typed.
-  String get body => _body;
+  /// Why [payloadText] does not parse into a message, or null when it does.
+  String? get parseError => _parseError;
 
-  /// The data rows, still a list so a key typed twice is visible.
-  List<MapEntry<String, String>> get entries => List.unmodifiable(_entries);
+  /// The message [payloadText] currently parses to, or null while it does not.
+  FcmMessage? get parsedMessage => _parsedMessage;
 
-  /// What is wrong with the form right now. Empty when it can be sent.
-  List<DraftProblem> get problems => _problems;
+  /// Whether a send should only validate the request rather than deliver it.
+  bool get validateOnly => _validateOnly;
+
+  /// The scenario last applied to the editor, so the gallery can show which
+  /// preset the current text started from.
+  Scenario? get selectedScenario => _selectedScenario;
+
+  /// Bumped every time a scenario is loaded, so the view can rebuild its text
+  /// field from the new value without fighting the user's cursor.
+  int get scenarioRevision => _scenarioRevision;
 
   /// Where the last send got to.
   SandboxSendState get state => _state;
-
-  /// Bumped every time a scenario is loaded, so the view can rebuild its text
-  /// fields from the new values without fighting the user's cursor.
-  int get scenarioRevision => _scenarioRevision;
-
-  /// The form as a draft, with duplicate keys collapsed — only ever read once
-  /// [problems] is empty, which is where duplicates are caught.
-  NotificationDraft get draft => NotificationDraft(
-    title: _title,
-    body: _body,
-    data: Map.fromEntries(_entries),
-  );
 
   /// Why Send cannot be pressed, or null when it can.
   String? get sendBlockedReason {
@@ -65,8 +71,11 @@ class SandboxController extends ChangeNotifier {
     if (_state is SandboxSending) {
       return 'Sending…';
     }
-    if (_problems.isNotEmpty) {
-      return 'Fix the problems above first.';
+    if (_parseError != null) {
+      return _parseError;
+    }
+    if (_parsedMessage == null) {
+      return 'Fix the payload before sending.';
     }
 
     return null;
@@ -75,44 +84,31 @@ class SandboxController extends ChangeNotifier {
   /// Whether Send can be pressed right now.
   bool get canSend => sendBlockedReason == null;
 
-  /// Replaces the whole form with a preset.
-  void applyScenario(NotificationScenario scenario) {
-    _scenarioRevision++;
-    _load(scenario.draft);
-  }
-
-  /// Applies an edit from the form. Anything omitted is left alone.
-  void edit({
-    String? title,
-    String? body,
-    List<MapEntry<String, String>>? entries,
-  }) {
-    _title = title ?? _title;
-    _body = body ?? _body;
-    _entries = entries ?? _entries;
-    // An edit invalidates the previous result: a stale "✓ Sent" next to changed
-    // fields would claim something untrue.
-    _state = const SandboxIdle();
-    _revalidate();
+  /// Sets whether a send should only validate the request.
+  void setValidateOnly(bool value) {
+    _validateOnly = value;
     notifyListeners();
   }
 
-  /// Sends the current draft to this device.
+  /// Replaces the editor with [scenario]'s template, rendered as indented
+  /// JSON so it reads the way it would if typed by hand.
+  void applyScenario(Scenario scenario) {
+    _selectedScenario = scenario;
+    _scenarioRevision++;
+    _setText(_encoder.convert(scenario.payloadTemplate));
+  }
+
+  /// Applies an edit typed into the editor, re-parsing it immediately.
+  void editPayload(String text) {
+    _setText(text);
+  }
+
+  /// Sends the parsed message to this device, using the current
+  /// [validateOnly] flag.
   Future<void> send() async {
     final token = _token();
-    if (token == null) {
-      _state = const SandboxFailed(
-        'No registration token yet — push is unavailable on this device.',
-      );
-      notifyListeners();
-
-      return;
-    }
-
-    _revalidate();
-    if (_problems.isNotEmpty) {
-      notifyListeners();
-
+    final message = _parsedMessage;
+    if (token == null || message == null) {
       return;
     }
 
@@ -121,7 +117,11 @@ class SandboxController extends ChangeNotifier {
 
     try {
       final response = await _sender.send(
-        SendNotificationRequest(token: token, draft: draft),
+        SendMessageRequest(
+          token: token,
+          message: message,
+          validateOnly: _validateOnly,
+        ),
       );
       _state = SandboxSent(response);
     } on NotificationSendException catch (error) {
@@ -130,20 +130,36 @@ class SandboxController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _load(NotificationDraft draft) {
-    _title = draft.title;
-    _body = draft.body;
-    _entries = draft.data.entries.toList();
+  void _setText(String text) {
+    _payloadText = text;
+    // An edit invalidates the previous result: a stale "✓ Sent" next to
+    // changed text would claim something untrue.
     _state = const SandboxIdle();
-    _revalidate();
+    _parse();
     notifyListeners();
   }
 
-  void _revalidate() {
-    _problems = _validator.validateEntries(
-      title: _title,
-      body: _body,
-      data: _entries,
+  void _parse() {
+    try {
+      final decoded = jsonDecode(_payloadText);
+      _parsedMessage = FcmMessage.fromJson(_asMessageJson(decoded));
+      _parseError = null;
+    } on FormatException catch (error) {
+      _parsedMessage = null;
+      _parseError = error.message;
+    }
+  }
+
+  /// Checks that a decoded payload is an object before it reaches
+  /// [FcmMessage.fromJson] — text that decodes to a list or a number must
+  /// produce a readable parse error rather than a cast failure.
+  Map<String, Object?> _asMessageJson(Object? decoded) {
+    if (decoded is Map<String, Object?>) {
+      return decoded;
+    }
+
+    throw FormatException(
+      'message: expected an object, got ${decoded.runtimeType}',
     );
   }
 }

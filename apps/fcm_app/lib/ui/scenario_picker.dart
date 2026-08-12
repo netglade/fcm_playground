@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../sandbox/sandbox_controller.dart';
 
-/// The gallery: one chip per preset.
+/// The gallery: one chip per scenario template.
 ///
-/// A preset is a starting point, not a fixed payload — tapping one replaces the
-/// form's contents and everything stays editable, which is why these are action
-/// chips rather than a selection.
+/// A scenario is a starting point, not a fixed payload — tapping one replaces
+/// the editor's contents and everything stays editable, which is why these
+/// are action chips rather than a selection.
 class ScenarioPicker extends StatelessWidget {
   const ScenarioPicker({required this.controller, super.key});
 
@@ -19,10 +19,10 @@ class ScenarioPicker extends StatelessWidget {
     spacing: 8,
     runSpacing: 8,
     children: [
-      for (final scenario in notificationGallery)
+      for (final scenario in scenarioGallery)
         ActionChip(
           key: ValueKey(scenario.id),
-          label: Text(scenario.label),
+          label: Text(scenario.title),
           tooltip: scenario.description,
           onPressed: () => controller.applyScenario(scenario),
         ),

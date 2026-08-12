@@ -25,8 +25,8 @@ class SendResultCard extends StatelessWidget {
       SandboxSent(:final response) => Padding(
         padding: const EdgeInsets.only(top: 16),
         child: Text(
-          '✓ Sent · id ${response.payloadId} · it should appear in the Inbox '
-          'shortly',
+          '✓ Sent · message ${response.messageId} · it should appear in the '
+          'Inbox shortly',
           style: TextStyle(color: colors.primary),
         ),
       ),

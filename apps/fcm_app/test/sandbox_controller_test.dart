@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fcm_app/sandbox/notification_send_exception.dart';
 import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/sandbox/sandbox_send_state.dart';
@@ -19,36 +21,42 @@ void main() {
   }
 
   group('SandboxController', () {
-    test('opens on the first preset, so the page is sendable immediately', () {
+    test('opens on the first scenario, so the page is sendable at once', () {
       final controller = controllerWith();
 
-      expect(controller.title, notificationGallery.first.draft.title);
-      expect(controller.problems, isEmpty);
+      expect(controller.selectedScenario?.id, scenarioGallery.first.id);
+      expect(controller.parseError, isNull);
+      expect(controller.parsedMessage, isNotNull);
       expect(controller.canSend, isTrue);
     });
 
-    test('replaces the form when a scenario is applied', () {
+    test('writes the template into the editor as indented JSON', () {
       final controller = controllerWith();
-      final promo = notificationGallery.firstWhere(
-        (scenario) => scenario.id == 'promo',
-      );
 
-      controller.applyScenario(promo);
-
-      expect(controller.title, promo.draft.title);
-      // MapEntry has no value equality in Dart, so compare the entries as
-      // records rather than the MapEntry objects themselves.
+      expect(controller.payloadText, contains('\n'));
       expect(
-        controller.entries.map((entry) => (entry.key, entry.value)),
-        promo.draft.data.entries.map((entry) => (entry.key, entry.value)),
+        jsonDecode(controller.payloadText),
+        scenarioGallery.first.payloadTemplate,
       );
     });
 
-    test('bumps the revision on a scenario, so the fields are rebuilt', () {
+    test('replaces the editor when another scenario is applied', () {
+      final controller = controllerWith();
+      final dataOnly = scenarioGallery.firstWhere(
+        (scenario) => scenario.id == 'data_only',
+      );
+
+      controller.applyScenario(dataOnly);
+
+      expect(controller.selectedScenario?.id, 'data_only');
+      expect(jsonDecode(controller.payloadText), dataOnly.payloadTemplate);
+    });
+
+    test('bumps the revision on a scenario so the field can be rebuilt', () {
       final controller = controllerWith();
       final before = controller.scenarioRevision;
 
-      controller.applyScenario(notificationGallery.last);
+      controller.applyScenario(scenarioGallery.last);
 
       expect(controller.scenarioRevision, greaterThan(before));
     });
@@ -57,132 +65,110 @@ void main() {
       final controller = controllerWith();
       final before = controller.scenarioRevision;
 
-      controller.edit(title: 'Typed by hand');
+      controller.editPayload('{"data": {"a": "b"}}');
 
       expect(controller.scenarioRevision, before);
     });
 
-    test('reports a blank title and blocks Send', () {
+    test('reports text that is not JSON and blocks Send', () {
       final controller = controllerWith();
 
-      controller.edit(title: '  ');
+      controller.editPayload('{not json');
 
-      expect(controller.problems, contains(isA<DraftProblem>()));
-      expect(controller.problems.first.field, 'title');
+      expect(controller.parseError, isNotNull);
+      expect(controller.parsedMessage, isNull);
       expect(controller.canSend, isFalse);
-      expect(controller.sendBlockedReason, isNotNull);
     });
 
-    test('reports a duplicated data key, which the draft alone could not', () {
+    test('reports an unknown field with its path', () {
       final controller = controllerWith();
 
-      controller.edit(
-        entries: const [MapEntry('event', 'a'), MapEntry('event', 'b')],
+      controller.editPayload('{"notification": {"titel": "typo"}}');
+
+      expect(controller.parseError, contains('unknown field "titel"'));
+    });
+
+    test('reports a template that sets its own target', () {
+      final controller = controllerWith();
+
+      controller.editPayload('{"token": "mine"}');
+
+      expect(
+        controller.parseError,
+        contains('the server sets the delivery target'),
       );
-
-      expect(controller.problems, [
-        const DraftProblem('data.event', 'is duplicated'),
-      ]);
     });
 
-    test('reports a data key that collides with a reserved payload key', () {
-      final controller = controllerWith();
+    test('accepts a payload that is valid again after being broken', () {
+      final controller = controllerWith()..editPayload('{oops');
 
-      controller.edit(entries: const [MapEntry('sentAt', 'now')]);
+      controller.editPayload('{"data": {"a": "b"}}');
 
-      expect(controller.problems.single.field, 'data.sentAt');
+      expect(controller.parseError, isNull);
+      expect(controller.parsedMessage?.data, {'a': 'b'});
     });
 
-    test('blocks Send with a reason when there is no token yet', () {
+    test('blocks Send with a reason when there is no token', () {
       final controller = controllerWith(token: null);
 
       expect(controller.canSend, isFalse);
       expect(controller.sendBlockedReason, contains('token'));
     });
 
-    test('does not call the sender when there is no token', () async {
-      final controller = controllerWith(token: null);
+    test('sends the parsed message with the device token', () async {
+      final controller = controllerWith()
+        ..editPayload('{"data": {"event": "manual"}}');
 
       await controller.send();
 
-      expect(sender.sent, isEmpty);
-      expect(controller.state, isA<SandboxFailed>());
-    });
-
-    test('sends the current draft with the device token', () async {
-      final controller = controllerWith();
-
-      controller.edit(
-        title: 'Hand written',
-        body: 'From the sandbox',
-        entries: const [MapEntry('event', 'manual')],
-      );
-      await controller.send();
-
-      expect(sender.sent, hasLength(1));
       expect(sender.sent.single.token, 'device-token');
-      expect(
-        sender.sent.single.draft,
-        const NotificationDraft(
-          title: 'Hand written',
-          body: 'From the sandbox',
-          data: {'event': 'manual'},
-        ),
-      );
+      expect(sender.sent.single.message.data, {'event': 'manual'});
+      expect(sender.sent.single.validateOnly, isFalse);
     });
 
-    test('lands on Sent with the response, so the id can be shown', () async {
+    test('sends validate_only when the flag is set', () async {
+      final controller = controllerWith()..setValidateOnly(true);
+
+      await controller.send();
+
+      expect(sender.sent.single.validateOnly, isTrue);
+      expect(controller.validateOnly, isTrue);
+    });
+
+    test('lands on Sent with the response', () async {
       final controller = controllerWith();
 
       await controller.send();
 
       expect(controller.state, isA<SandboxSent>());
       expect(
-        (controller.state as SandboxSent).response.payloadId,
-        'api-1754812345678901',
+        (controller.state as SandboxSent).response.messageId,
+        FakeNotificationSender.response.messageId,
       );
     });
 
     test(
-      'refuses to send an invalid draft, without calling the sender',
+      'refuses to send unparseable text, without calling the sender',
       () async {
-        final controller = controllerWith();
+        final controller = controllerWith()..editPayload('{oops');
 
-        controller.edit(body: '');
         await controller.send();
 
         expect(sender.sent, isEmpty);
-        expect(controller.state, isA<SandboxIdle>());
       },
     );
 
-    test('lands on Failed and keeps the form when the send fails', () async {
+    test('lands on Failed and keeps the text when the send fails', () async {
       final controller = controllerWith(
         withSender: FakeNotificationSender(
           failure: const NotificationSendException('The API is unreachable'),
         ),
-      );
+      )..editPayload('{"data": {"kept": "yes"}}');
 
-      controller.edit(title: 'Kept');
       await controller.send();
 
       expect(controller.state, isA<SandboxFailed>());
-      expect(
-        (controller.state as SandboxFailed).message,
-        'The API is unreachable',
-      );
-      expect(controller.title, 'Kept');
-    });
-
-    test('notifies listeners as it goes', () async {
-      final controller = controllerWith();
-      var notifications = 0;
-      controller.addListener(() => notifications++);
-
-      controller.edit(title: 'Typed');
-      await controller.send();
-
-      expect(notifications, greaterThanOrEqualTo(3));
+      expect(controller.payloadText, contains('kept'));
     });
   });
 }
