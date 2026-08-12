@@ -6,7 +6,11 @@ library;
 
 export 'src/api_error.dart';
 export 'src/draft_problem.dart';
+export 'src/message/android_message_priority.dart';
+export 'src/message/android_notification_priority.dart';
 export 'src/message/json_object_reader.dart';
+export 'src/message/notification_proxy.dart';
+export 'src/message/notification_visibility.dart';
 export 'src/notification_draft.dart';
 export 'src/notification_draft_validator.dart';
 export 'src/notification_scenario.dart';
