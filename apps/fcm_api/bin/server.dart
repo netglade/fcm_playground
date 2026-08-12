@@ -39,9 +39,6 @@ Future<void> _serve(ServerConfig config) async {
 
   final router = ApiRouter(
     sender: HttpV1FcmSender(client: client, projectId: config.projectId),
-    // Microseconds, so two sends in the same millisecond still differ — the id
-    // is what de-duplicates deliveries in the inbox.
-    newPayloadId: () => 'api-${DateTime.now().microsecondsSinceEpoch}',
     now: () => DateTime.now().toUtc(),
   );
 

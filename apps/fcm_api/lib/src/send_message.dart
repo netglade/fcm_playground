@@ -2,18 +2,19 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 import 'fcm_send_exception.dart';
 import 'fcm_sender.dart';
-import 'notification_message.dart';
 import 'send_outcome.dart';
 
-/// Validates, stamps and sends one notification.
+/// Validates the token, injects it into the message and forwards it to FCM.
 ///
-/// Takes its clock and its id generator as parameters rather than reading them
-/// from the environment, so its tests assert exact values instead of matching
-/// patterns — and it depends on no `Request`, no credential and no socket.
-Future<SendOutcome> sendNotification(
-  SendNotificationRequest request, {
+/// The payload is the caller's: nothing here invents a data key or a
+/// notification block — [request.message] is forwarded untouched apart from
+/// the [request.token] injected as the delivery target. Takes its clock as a
+/// parameter rather than reading it from the environment, so its tests assert
+/// exact values instead of matching patterns — and it depends on no `Request`,
+/// no credential and no socket.
+Future<SendOutcome> sendMessage(
+  SendMessageRequest request, {
   required FcmSender sender,
-  required String Function() newPayloadId,
   required DateTime Function() now,
 }) async {
   if (request.token.trim().isEmpty) {
@@ -23,32 +24,16 @@ Future<SendOutcome> sendNotification(
     );
   }
 
-  final problems = const NotificationDraftValidator().validate(request.draft);
-  if (problems.isNotEmpty) {
-    final problem = problems.first;
-
-    return SendRejected(
-      statusCode: 400,
-      error: ApiError('$problem', field: problem.field),
-    );
-  }
-
-  final message = NotificationMessage(
-    token: request.token,
-    draft: request.draft,
-    payloadId: newPayloadId(),
-    sentAt: now(),
-  );
+  final body = {
+    'validate_only': request.validateOnly,
+    'message': {...request.message.toJson(), 'token': request.token},
+  };
 
   try {
-    final messageId = await sender.send(message.toJson());
+    final messageId = await sender.send(body);
 
     return SendSucceeded(
-      SendNotificationResponse(
-        messageId: messageId,
-        payloadId: message.payloadId,
-        sentAt: message.sentAt,
-      ),
+      SendMessageResponse(messageId: messageId, sentAt: now()),
     );
   } on FcmSendException catch (error) {
     return SendRejected(

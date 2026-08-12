@@ -10,11 +10,8 @@ import 'fake_fcm_sender.dart';
 void main() {
   final sentAt = DateTime.utc(2026, 8, 11, 9, 12, 3);
 
-  Handler handlerWith(FakeFcmSender sender) => ApiRouter(
-    sender: sender,
-    newPayloadId: () => 'api-1754812345678901',
-    now: () => sentAt,
-  ).handler;
+  Handler handlerWith(FakeFcmSender sender) =>
+      ApiRouter(sender: sender, now: () => sentAt).handler;
 
   FutureOr<Response> post(Object? body, {FakeFcmSender? sender}) =>
       handlerWith(sender ?? FakeFcmSender())(
@@ -29,10 +26,12 @@ void main() {
   Future<Map<String, dynamic>> bodyOf(Response response) async =>
       jsonDecode(await response.readAsString()) as Map<String, dynamic>;
 
-  Map<String, Object?> validBody({
-    String token = 'device-token',
-    String title = 'Build finished',
-  }) => {'token': token, 'title': title, 'body': 'main #128 passed'};
+  Map<String, Object?> validBody({String token = 'device-token'}) => {
+    'token': token,
+    'message': {
+      'notification': {'title': 'Build finished'},
+    },
+  };
 
   group('GET /health', () {
     test('answers 200 so the server can be checked without sending', () async {
@@ -52,7 +51,6 @@ void main() {
       expect(response.statusCode, 200);
       expect(await bodyOf(response), {
         'messageId': 'projects/p/messages/0:17',
-        'id': 'api-1754812345678901',
         'sentAt': '2026-08-11T09:12:03.000Z',
       });
     });
@@ -78,27 +76,22 @@ void main() {
     });
 
     test(
-      'answers 400 with the field when a data value is not a string',
+      'answers 400 with the field path for an unknown message field',
       () async {
         final response = await post({
-          ...validBody(),
-          'data': {'retries': 3},
+          'token': 'device-token',
+          'message': {
+            'notification': {'titel': 'typo'},
+          },
         });
 
         expect(response.statusCode, 400);
-        expect((await bodyOf(response))['error'], contains('retries'));
+        expect(
+          (await bodyOf(response))['error'],
+          contains('notification: unknown field "titel"'),
+        );
       },
     );
-
-    test('answers 400 and names the field for an invalid draft', () async {
-      final response = await post(validBody(title: ''));
-
-      expect(response.statusCode, 400);
-      expect(await bodyOf(response), {
-        'error': 'title must not be blank',
-        'field': 'title',
-      });
-    });
 
     test('answers 404 for an unregistered token', () async {
       final response = await post(
