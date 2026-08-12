@@ -1273,7 +1273,7 @@ Every `inputKey` is prefixed `android.notification.`.
 | `notificationPriority` | `GladeInput<AndroidNotificationPriority?>.optional` |
 | `visibility` | `GladeInput<NotificationVisibility?>.optional` |
 | `proxy` | `GladeInput<NotificationProxy?>.optional` |
-| `notificationCount` | `GladeIntInputNullable(useTextEditingController: true)` |
+| `notificationCount` | `GladeIntInputNullable` with the empty-means-absent converter below |
 | `bodyLocArgs`, `titleLocArgs`, `vibrateTimings` | `GladeInput<List<String>?>.optional` — the row editor hands back a whole list and `updateValue` takes it |
 | `lightSettings` | the nested `LightSettingsForm` |
 
@@ -1287,6 +1287,31 @@ hands back a list and `updateValue` takes it like any other value.
 
 **Validators**, the only ones FCM justifies here: `color` must match `#rrggbb`, and
 each entry of `vibrateTimings` must be a duration like `0.5s`.
+
+**`notificationCount` needs a custom converter, and this is not optional.** Task 1
+found and I confirmed that `GladeIntInputNullable`'s default converter treats an
+empty string as *unparseable* rather than as "no value": clearing the field leaves
+the last number in place, so a user who types `3` and then clears it still sends
+`notification_count: 3`. That is precisely the silent-wrong-payload failure this
+design exists to avoid. Measured working fix:
+
+```dart
+    notificationCount = GladeIntInputNullable(
+      inputKey: 'android.notification.notification_count',
+      useTextEditingController: true,
+      // The default converter treats '' as unparseable and keeps the previous
+      // value, so clearing the field would still send the old number.
+      stringToValueConverter: StringToTypeConverter<int?>(
+        converter: (raw, _) =>
+            (raw == null || raw.trim().isEmpty) ? null : int.parse(raw),
+        converterBack: (value) => value?.toString() ?? '',
+      ),
+    );
+```
+
+Note the two signatures, verified by compiling them: `converter` takes
+`(String? raw, _)` and `converterBack` takes only `(int? value)` — not the
+symmetric two-argument pair you would expect.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1534,6 +1559,7 @@ git commit -m "feat(app): add the payload form sections"
 
 **Files:**
 - Modify: `apps/fcm_app/lib/sandbox/sandbox_controller.dart`
+- Modify: `apps/fcm_app/lib/main.dart` (add `GladeForms.initialize()`)
 - Modify: `apps/fcm_app/test/sandbox_controller_test.dart`
 
 **Interfaces:**
@@ -1544,6 +1570,11 @@ git commit -m "feat(app): add the payload form sections"
 `scenarioRevision`. The revision existed to rebuild a text field from new text;
 with forms, `readFrom` updates the inputs in place and the widgets follow, so there
 is nothing to key on.
+
+**`GladeForms.initialize()` must be called once before any model is built.** Task 1
+found this the hard way in a test `setUpAll`; the app needs it too, so add it to
+`main()` in `apps/fcm_app/lib/main.dart` before `runApp`, alongside the existing
+`WidgetsFlutterBinding.ensureInitialized()`.
 
 `applyScenario` becomes `form.readFrom(FcmMessage.fromJson(scenario.payloadTemplate))`.
 `send()` uses `form.toModel()`. `canSend` requires a token, `form.isValid`, and no
@@ -1650,6 +1681,10 @@ Neither can run here. Report each as verified or unverified; never assume.
 
 ## Notes for the implementer
 
+- **`GladeIntInputNullable` keeps the old value when its field is cleared**, unless
+  given the custom converter in Task 8. Confirmed by measurement, not inference.
+- **`GladeForms.initialize()` is required once** before any model is constructed —
+  in `main()` for the app, in `setUpAll` for tests.
 - **Three `glade_forms` defaults are traps**, and Task 1 exists to prove them:
   `GladeStringInput` is required by default, `GladeIntInputNullable` has no
   controller by default, and `GladeBoolInput` cannot hold null.
