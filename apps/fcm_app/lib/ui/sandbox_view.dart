@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../sandbox/sandbox_controller.dart';
 import 'payload_editor.dart';
-import 'scenario_group_list.dart';
 import 'send_result_card.dart';
 
 /// Composes a push from a scenario or from scratch, and sends it to this
 /// device.
 ///
-/// A `ListView` rather than a `Column`, because the gallery plus the editor
-/// are taller than a phone once the keyboard is up.
+/// Nothing sits above the editor: the gallery that used to open this page
+/// lived here too, but the two together were taller than a phone screen,
+/// which pushed the editor below the fold with no editable field visible on
+/// arrival. The gallery now has its own page (`ScenariosView`) and hands off
+/// here with a template already applied, so this page only needs to say
+/// which one.
 class SandboxView extends StatelessWidget {
   /// Creates the page. Reads and edits [controller] directly, and rebuilds
   /// whenever it changes.
@@ -24,8 +27,20 @@ class SandboxView extends StatelessWidget {
     builder: (context, _) => ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        ScenarioGroupList(controller: controller),
-        const Divider(height: 32),
+        if (controller.selectedScenario case final scenario?) ...[
+          Text(scenario.title, style: Theme.of(context).textTheme.titleMedium),
+          if (scenario.expectation case final expectation?)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(expectation),
+            ),
+          if (scenario.requiresKilledApp)
+            const Padding(
+              padding: EdgeInsets.only(top: 4),
+              child: Text('Needs the app killed'),
+            ),
+          const Divider(height: 32),
+        ],
         CheckboxListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text('Validate only'),

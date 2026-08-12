@@ -7,17 +7,26 @@ import '../sandbox/sandbox_controller.dart';
 /// each one demonstrates.
 ///
 /// One [ExpansionTile] per group keeps all nine templates reachable from a
-/// single screen without nine screens' worth of scrolling before the editor
-/// and Send button come into view: only the first group starts open, so the
-/// page is still short on arrival. A scenario is a starting point rather
-/// than a fixed payload, so tapping its title applies it to the controller
-/// and the text stays editable afterwards.
+/// single page; only the first group starts open, so the page is still short
+/// on arrival. A scenario is a starting point rather than a fixed payload, so
+/// tapping its title applies it to [controller] and the text stays editable
+/// afterwards; [onScenarioSelected] fires once that application is done, so
+/// this widget owns applying the template and its caller owns whatever
+/// happens next — currently, moving to the Sandbox to show it.
 class ScenarioGroupList extends StatelessWidget {
-  /// Creates the gallery. Tapping a scenario applies it to [controller].
-  const ScenarioGroupList({required this.controller, super.key});
+  /// Creates the gallery. Tapping a scenario applies it to [controller], then
+  /// calls [onScenarioSelected].
+  const ScenarioGroupList({
+    required this.controller,
+    required this.onScenarioSelected,
+    super.key,
+  });
 
   /// The controller a tapped scenario is applied to.
   final SandboxController controller;
+
+  /// Called after a tapped scenario has been applied to [controller].
+  final VoidCallback onScenarioSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +46,10 @@ class ScenarioGroupList extends StatelessWidget {
               ))
                 ListTile(
                   title: Text(scenario.title),
-                  onTap: () => controller.applyScenario(scenario),
+                  onTap: () {
+                    controller.applyScenario(scenario);
+                    onScenarioSelected();
+                  },
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

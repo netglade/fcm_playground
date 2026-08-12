@@ -4,13 +4,15 @@ import '../push/push_inbox.dart';
 import '../sandbox/sandbox_controller.dart';
 import 'inbox_view.dart';
 import 'sandbox_view.dart';
+import 'scenarios_view.dart';
 
 /// Owns the app's chrome: one `AppBar` whose title follows the drawer's
 /// selection, and one body per destination.
 ///
-/// The destinations sit in an `IndexedStack` so both keep their state — the
-/// half-filled Sandbox form survives a look at the inbox — and because a
-/// `Widget`-returning helper method would break DCM's `avoid-returning-widgets`.
+/// The destinations sit in an `IndexedStack` so all three keep their state —
+/// the half-filled Sandbox form survives a look at the inbox or the gallery —
+/// and because a `Widget`-returning helper method would break DCM's
+/// `avoid-returning-widgets`.
 class AppShell extends StatefulWidget {
   const AppShell({required this.inbox, required this.sandbox, super.key});
 
@@ -25,7 +27,7 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  static const _titles = ['Push inbox', 'Sandbox'];
+  static const _titles = ['Push inbox', 'Scenarios', 'Sandbox'];
 
   int _destination = 0;
 
@@ -45,6 +47,10 @@ class _AppShellState extends State<AppShell> {
           label: Text('Inbox'),
         ),
         NavigationDrawerDestination(
+          icon: Icon(Icons.collections_bookmark_outlined),
+          label: Text('Scenarios'),
+        ),
+        NavigationDrawerDestination(
           icon: Icon(Icons.science_outlined),
           label: Text('Sandbox'),
         ),
@@ -54,6 +60,10 @@ class _AppShellState extends State<AppShell> {
       index: _destination,
       children: [
         InboxView(inbox: widget.inbox),
+        ScenariosView(
+          controller: widget.sandbox,
+          onScenarioSelected: _openSandbox,
+        ),
         SandboxView(controller: widget.sandbox),
       ],
     ),
@@ -64,5 +74,12 @@ class _AppShellState extends State<AppShell> {
   void _select(int index) {
     setState(() => _destination = index);
     Navigator.pop(context);
+  }
+
+  /// Switches to the Sandbox once a scenario has been applied from the
+  /// Scenarios page. Unlike [_select], this is not a drawer choice, so there
+  /// is no drawer open to pop.
+  void _openSandbox() {
+    setState(() => _destination = 2);
   }
 }
