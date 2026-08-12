@@ -71,9 +71,9 @@ class SandboxController extends ChangeNotifier {
     if (_state is SandboxSending) {
       return 'Sending…';
     }
-    if (_parseError != null) {
-      return _parseError;
-    }
+    // Covers both an unparseable payload and one that parsed but produced no
+    // message: the editor already states the cause (via `parseError`) right
+    // next to this text, so this only needs to state the consequence.
     if (_parsedMessage == null) {
       return 'Fix the payload before sending.';
     }

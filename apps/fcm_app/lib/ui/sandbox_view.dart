@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../sandbox/sandbox_controller.dart';
-import 'sandbox_form.dart';
-import 'scenario_picker.dart';
+import 'payload_editor.dart';
+import 'scenario_group_list.dart';
 import 'send_result_card.dart';
 
-/// Composes a push and sends it to this device.
+/// Composes a push from a scenario or from scratch, and sends it to this
+/// device.
 ///
-/// A `ListView` rather than a `Column`, because the form is taller than a phone
-/// once a few data rows are added and the keyboard is up.
+/// A `ListView` rather than a `Column`, because the gallery plus the editor
+/// are taller than a phone once the keyboard is up.
 class SandboxView extends StatelessWidget {
+  /// Creates the page. Reads and edits [controller] directly, and rebuilds
+  /// whenever it changes.
   const SandboxView({required this.controller, super.key});
 
   /// The controller this page reads and edits.
@@ -21,16 +24,30 @@ class SandboxView extends StatelessWidget {
     builder: (context, _) => ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('Presets', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        ScenarioPicker(controller: controller),
+        ScenarioGroupList(controller: controller),
         const Divider(height: 32),
-        // Keyed on the revision so loading a preset rebuilds the fields from the
-        // new draft; typing leaves the revision alone and the cursor with it.
-        SandboxForm(
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Validate only'),
+          value: controller.validateOnly,
+          onChanged: (value) => controller.setValidateOnly(value ?? false),
+        ),
+        const SizedBox(height: 8),
+        // Keyed on the revision so loading a scenario rebuilds the field from
+        // the new draft; typing leaves the revision alone and the cursor
+        // with it.
+        PayloadEditor(
           key: ValueKey(controller.scenarioRevision),
           controller: controller,
         ),
+        if (controller.parseError case final error?)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              error,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
         const SizedBox(height: 24),
         FilledButton.icon(
           onPressed: controller.canSend ? controller.send : null,
@@ -46,7 +63,7 @@ class SandboxView extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
-        SendResultCard(controller.state),
+        SendResultCard(controller.state, validateOnly: controller.validateOnly),
       ],
     ),
   );
