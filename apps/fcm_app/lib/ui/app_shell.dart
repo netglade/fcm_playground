@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../push/push_inbox.dart';
 import '../sandbox/sandbox_controller.dart';
 import 'inbox_view.dart';
+import 'message_detail_page.dart';
 import 'sandbox_view.dart';
 import 'scenarios_view.dart';
 
@@ -28,8 +31,28 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   static const _titles = ['Push inbox', 'Scenarios', 'Sandbox'];
+  static const _inboxDestination = 0;
+  static const _sandboxDestination = 2;
 
-  int _destination = 0;
+  late final AppLifecycleListener _lifecycle;
+
+  int _destination = _inboxDestination;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.inbox.addListener(_onInboxChanged);
+    // A push that arrived while the app was merely backgrounded sits in the
+    // pending key until something drains it, and resuming is that something.
+    _lifecycle = AppLifecycleListener(onResume: _onResume);
+  }
+
+  @override
+  void dispose() {
+    widget.inbox.removeListener(_onInboxChanged);
+    _lifecycle.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -80,6 +103,36 @@ class _AppShellState extends State<AppShell> {
   /// Scenarios page. Unlike [_select], this is not a drawer choice, so there
   /// is no drawer open to pop.
   void _openSandbox() {
-    setState(() => _destination = 2);
+    setState(() => _destination = _sandboxDestination);
+  }
+
+  void _onResume() => unawaited(widget.inbox.drainPending());
+
+  /// Acts on a notification tap once its message is known.
+  ///
+  /// Selecting the inbox happens as soon as a tap is outstanding: it is the
+  /// fallback for an id that will never resolve — evicted by the cap, or rejected
+  /// as malformed — and the right backdrop for the page about to be pushed.
+  void _onInboxChanged() {
+    if (!widget.inbox.hasPendingOpen) {
+      return;
+    }
+
+    if (_destination != _inboxDestination) {
+      setState(() => _destination = _inboxDestination);
+    }
+
+    final message = widget.inbox.pendingOpen;
+    if (message == null) {
+      return;
+    }
+
+    // Cleared before navigating, so a later notifyListeners cannot push twice.
+    widget.inbox.clearPendingOpen();
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => MessageDetailPage(message)),
+      ),
+    );
   }
 }

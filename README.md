@@ -299,30 +299,72 @@ thing that ties a send to the row it produces in the inbox.
 so only the machine running it can reach it. Do not deploy it as is — bound to
 `0.0.0.0` it is an open relay to any token an attacker already holds.
 
+## Notifications
+
+A received push is shown as a notification as well as landing in the inbox, and
+tapping either the notification or an inbox row opens a detail page for it.
+
+| When the push arrives | What draws the notification |
+| --- | --- |
+| App backgrounded or terminated | FCM's own SDK, from the `notification` block `apps/fcm_api` sends. No app code involved. |
+| App in the foreground | `LocalNotificationPresenter`, because Android shows nothing itself in this case. On iOS a single `setForegroundNotificationPresentationOptions` call is enough. |
+
+Both use one high-importance Android channel, `fcm_sample_high`. The app creates
+it, and `AndroidManifest.xml` points FCM at the same id with
+`default_notification_channel_id` — without that, only the foreground banners
+would be heads-up.
+
+The inbox is durable: the newest 100 payloads are kept in `shared_preferences`
+and reloaded at launch, so a push that arrived while the app was away is there
+whether or not it was ever tapped. The background handler writes to a separate
+key that only it appends to, and the UI drains that key at launch and on every
+resume — two keys rather than one, so neither isolate read-modify-writes the
+other's data.
+
+**A push is never notified twice.** Only messages arriving on the live foreground
+stream produce a banner; anything restored from storage was already shown by FCM
+while the app was away, so replaying it on launch is exactly what the code avoids.
+
+Notification permission is requested at startup by `firebase_messaging`, which
+covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
+and nothing else — the inbox still fills.
+
 ## Verified on this machine
 
 `melos run ci` passes clean — 20 `core` tests, 91 `fcm_gallery_shared` tests, 36
-`fcm_api` tests and 220 `fcm_app` tests. `fvm flutter build apk --debug` and
-`fvm flutter build web --release` both succeed (compile checks only: the web
-build cannot receive FCM pushes without a VAPID key, and an apk build is not
-the same as running on a device). The iOS build has **not** been verified here
-— there is no Xcode on this machine.
+`fcm_api` tests and 282 `fcm_app` tests. `fvm flutter build apk --debug`
+and `fvm flutter build web --release` both succeed (compile checks only: the web
+build cannot receive FCM pushes without a VAPID key, and an apk build is not the
+same as running on a device). The iOS build has **not** been verified here —
+there is no Xcode on this machine.
 
-Two things remain explicitly **not verified** on this machine:
+The Android build needs one thing that is easy to miss:
+`flutter_local_notifications` requires **core library desugaring**, and without
+it `:app:checkDebugAarMetadata` fails with
+`Dependency ':flutter_local_notifications' requires core library desugaring to be
+enabled for :app`. `android/app/build.gradle.kts` therefore sets
+`isCoreLibraryDesugaringEnabled = true` and adds
+`coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")`. This is
+needed even though the app only ever shows notifications immediately and never
+schedules one.
 
-- **The `validate_only` sweep through the form** — opening each of the nine
-  gallery scenarios in the Sandbox and sending it with validate-only on,
-  expecting a 200. The typed model's own templates were swept earlier; this is
-  the stronger and now more useful claim, that what the *form* builds is also
-  accepted. It needs a service account key downloaded from the Firebase console
-  and the API running against it, which this machine cannot do unattended.
-- **The on-device checks** — that `big_picture_remote` renders its image, that
-  `data_only` reaches the inbox with no notification drawn, that
+Three things remain explicitly **not verified** on this machine:
+
+- **The `validate_only` sweep through the form** — opening each gallery scenario
+  in the Sandbox and sending it with validate-only on, expecting a 200. The typed
+  model's own templates were swept earlier; this is the stronger and now more
+  useful claim, that what the *form* builds is also accepted. It needs a service
+  account key downloaded from the Firebase console and the API running against
+  it, which this machine cannot do unattended.
+- **The on-device payload checks** — that `big_picture_remote` renders its image,
+  that `data_only` reaches the inbox with no notification drawn, that
   `custom_channel` pops as a heads-up banner, and that `direct_boot_ok` sends
   `false` when set to false and omits the key when left unset. That last one is
   the only real-world proof of the tristate design; a widget test can show the
   three states cycling but not what leaves the device.
+- **The notification behaviour** — foreground banners, heads-up tray entries
+  while backgrounded, tapping a notification into the detail page, and a
+  background push reaching the inbox.
 
-No service account key has been generated for this project and no Android
-device has been attached on this machine, so neither of the above has actually
-been run.
+No service account key has been generated for this project and no Android device
+has been attached on this machine, so none of the above has actually been run.
