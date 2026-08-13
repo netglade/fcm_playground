@@ -711,6 +711,29 @@ void main() {
     }
   });
 
+  test('a killed-app scenario needs delayed sending to be arranged', () {
+    // Gives requiresKilledApp exactly one meaning: "meaningless unless the app
+    // is killed". Arranging that means holding the send, so the flag and the
+    // need go together. Without this the flag drifts into meaning "the killed
+    // case is the interesting one", which is true of far more scenarios and
+    // tells the Sandbox nothing. This replaces the invariant the legacy
+    // scenario_test.dart used to guard.
+    for (final scenario in scenarioGallery) {
+      if (scenario.requiresKilledApp) {
+        expect(
+          scenario.needs,
+          contains(ScenarioNeed.delayedSend),
+          reason: scenario.id,
+        );
+        expect(
+          scenario.defaultDelaySeconds,
+          greaterThan(0),
+          reason: '${scenario.id} must say how long to hold the send',
+        );
+      }
+    }
+  });
+
   test('a manual-step scenario says what the step is', () {
     for (final scenario in scenarioGallery) {
       if (scenario.needs.contains(ScenarioNeed.manualStep)) {
@@ -740,7 +763,9 @@ void main() {
 
       expect(dataOnly.payloadTemplate.containsKey('notification'), isFalse);
       expect(dataOnly.payloadTemplate['data'], isNotEmpty);
-      expect(dataOnly.requiresKilledApp, isTrue);
+      // Sendable today, so no killed-app flag: see the comment on the entry.
+      expect(dataOnly.requiresKilledApp, isFalse);
+      expect(dataOnly.isSupported, isTrue);
     });
 
     test('the hybrid scenario carries both blocks', () {
@@ -798,7 +823,12 @@ const groupA = <Scenario>[
     payloadTemplate: {
       'data': {'event': 'sync', 'build_number': '128'},
     },
-    requiresKilledApp: true,
+    // Deliberately NOT requiresKilledApp, despite the description asking about
+    // the killed case. That flag means "meaningless unless the app is killed",
+    // which implies delayed sending is needed to arrange it at all — and a
+    // data-only push is observable in every app state, so this one is sendable
+    // today. b3_killed is the scenario that is only about the killed state, and
+    // it carries the flag and the need together.
   ),
   Scenario(
     id: 'a3_hybrid',
@@ -1741,8 +1771,12 @@ const groupF = <Scenario>[
       'notification': {'title': 'Open build 126', 'body': 'Tap to route.'},
       'data': {'deep_link': '/builds/126'},
     },
-    needs: [ScenarioNeed.interaction],
+    // delayedSend as well as interaction: requiresKilledApp means the scenario
+    // is meaningless in any other state, and arranging that means holding the
+    // send until the app is gone.
+    needs: [ScenarioNeed.interaction, ScenarioNeed.delayedSend],
     requiresKilledApp: true,
+    defaultDelaySeconds: 20,
   ),
   Scenario(
     id: 'f6_delete_intent',

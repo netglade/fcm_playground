@@ -53,18 +53,6 @@ class ScenarioGroupList extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Wrap(
-                        spacing: 4,
-                        children: [
-                          for (final tag in scenario.tags)
-                            Chip(
-                              label: Text(tag),
-                              visualDensity: VisualDensity.compact,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                            ),
-                        ],
-                      ),
                       Text(scenario.description),
                       if (scenario.expectation case final expectation?)
                         Row(

@@ -20,7 +20,6 @@ class Scenario {
     this.expectation,
     this.requiresKilledApp = false,
     this.defaultDelaySeconds = 0,
-    this.tags = const [],
     this.needs = const [],
     this.manualSteps,
     this.target,
@@ -56,9 +55,6 @@ class Scenario {
 
   /// Seconds to hold the send for, once Spec 2 implements delaying.
   final int defaultDelaySeconds;
-
-  /// Free-form labels shown as chips: platform names, features.
-  final List<String> tags;
 
   /// What this scenario needs before it demonstrates anything, empty when it
   /// works today.

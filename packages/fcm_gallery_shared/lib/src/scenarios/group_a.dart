@@ -36,7 +36,12 @@ const groupA = <Scenario>[
     payloadTemplate: {
       'data': {'event': 'sync', 'build_number': '128'},
     },
-    requiresKilledApp: true,
+    // Deliberately NOT requiresKilledApp, despite the description asking about
+    // the killed case. That flag means "meaningless unless the app is killed",
+    // which implies the scenario needs delayed sending to be arranged at all —
+    // and a data-only push is observable in every app state, so this one is
+    // sendable today. b3_killed is the scenario that is only about the killed
+    // state, and it carries the flag and the need together.
   ),
   Scenario(
     id: 'a3_hybrid',

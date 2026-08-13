@@ -50,6 +50,28 @@ void main() {
     }
   });
 
+  test('a killed-app scenario needs delayed sending to be arranged', () {
+    // The invariant that gives requiresKilledApp exactly one meaning:
+    // "meaningless unless the app is killed". Arranging that means holding the
+    // send until the app is gone, so the flag and the need go together. Without
+    // this, the flag drifts into meaning "the killed case is the interesting
+    // one", which is true of far more scenarios and tells the Sandbox nothing.
+    for (final scenario in scenarioGallery) {
+      if (scenario.requiresKilledApp) {
+        expect(
+          scenario.needs,
+          contains(ScenarioNeed.delayedSend),
+          reason: scenario.id,
+        );
+        expect(
+          scenario.defaultDelaySeconds,
+          greaterThan(0),
+          reason: '${scenario.id} must say how long to hold the send',
+        );
+      }
+    }
+  });
+
   test('a manual-step scenario says what the step is', () {
     for (final scenario in scenarioGallery) {
       if (scenario.needs.contains(ScenarioNeed.manualStep)) {
@@ -79,7 +101,9 @@ void main() {
 
       expect(dataOnly.payloadTemplate.containsKey('notification'), isFalse);
       expect(dataOnly.payloadTemplate['data'], isNotEmpty);
-      expect(dataOnly.requiresKilledApp, isTrue);
+      // Sendable today, so no killed-app flag: see the comment on the entry.
+      expect(dataOnly.requiresKilledApp, isFalse);
+      expect(dataOnly.isSupported, isTrue);
     });
 
     test('the hybrid scenario carries both blocks', () {

@@ -58,7 +58,7 @@ void main() {
     }
   });
 
-  testWidgets("shows the first group's scenarios and their tags", (
+  testWidgets("shows the first group's scenarios with their descriptions", (
     tester,
   ) async {
     build();
@@ -66,9 +66,7 @@ void main() {
     await pump(tester);
 
     expect(find.text(first.title), findsOne);
-    for (final tag in first.tags) {
-      expect(find.text(tag), findsAtLeast(1));
-    }
+    expect(find.text(first.description), findsOne);
   });
 
   testWidgets('shows an expectation when the scenario has one', (tester) async {
