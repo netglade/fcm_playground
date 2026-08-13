@@ -1080,23 +1080,32 @@ Group-specific assertions:
 
     test('both ttl scenarios use a proto duration, not a number', () {
       // FCM wants "0s", not 0. A bare number is a 400 from Google.
+      //
+      // Matched against the full duration shape rather than endsWith('s'):
+      // '86400 seconds', '0 s' and even 'abcs' all end in s, so that check
+      // would pass on three spellings FCM rejects.
+      final duration = RegExp(r'^\d+(\.\d+)?s$');
+
       for (final id in const ['c3_ttl_zero', 'c4_ttl_long']) {
         final ttl =
             (groupC.firstWhere((s) => s.id == id).payloadTemplate['android']!
                 as Map)['ttl'];
         expect(ttl, isA<String>(), reason: id);
-        expect(ttl, endsWith('s'), reason: id);
+        expect(ttl, matches(duration), reason: id);
       }
     });
 
-    test('the adb scenarios carry the exact command', () {
+    test('the adb scenarios carry a runnable command, not just a keyword', () {
+      // contains('force-idle') alone would pass on prose that merely mentioned
+      // the flag. These are commands a user copies verbatim, so the assertion
+      // pins the whole invocation.
       expect(
         groupC.firstWhere((s) => s.id == 'c6_doze_test').manualSteps,
-        contains('force-idle'),
+        contains('adb shell dumpsys deviceidle force-idle'),
       );
       expect(
         groupC.firstWhere((s) => s.id == 'c7_standby_bucket').manualSteps,
-        contains('set-standby-bucket'),
+        contains('adb shell am set-standby-bucket cz.netglade.fcm_app'),
       );
     });
 ```

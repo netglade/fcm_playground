@@ -18,7 +18,11 @@ void main() {
       },
     );
 
-    test('the two priority scenarios differ only in priority', () {
+    test('the priority pair sends the two values FCM accepts', () {
+      // NOT "differ only in priority" — they also differ in title and body, so
+      // that name would be false. What matters is that the two spellings FCM
+      // accepts are both present and correctly cased: 'high' or 'Normal' is a
+      // 400 from Google, and nothing local would catch it.
       final high = groupC.firstWhere((s) => s.id == 'c1_priority_high');
       final normal = groupC.firstWhere((s) => s.id == 'c2_priority_normal');
 
@@ -28,23 +32,32 @@ void main() {
 
     test('both ttl scenarios use a proto duration, not a number', () {
       // FCM wants "0s", not 0. A bare number is a 400 from Google.
+      //
+      // Matched against the full duration shape rather than endsWith('s'):
+      // '86400 seconds', '0 s' and even 'abcs' all end in s, so that check
+      // would pass on three spellings FCM rejects.
+      final duration = RegExp(r'^\d+(\.\d+)?s$');
+
       for (final id in const ['c3_ttl_zero', 'c4_ttl_long']) {
         final ttl =
             (groupC.firstWhere((s) => s.id == id).payloadTemplate['android']!
                 as Map)['ttl'];
         expect(ttl, isA<String>(), reason: id);
-        expect(ttl, endsWith('s'), reason: id);
+        expect(ttl, matches(duration), reason: id);
       }
     });
 
-    test('the adb scenarios carry the exact command', () {
+    test('the adb scenarios carry a runnable command, not just a keyword', () {
+      // contains('force-idle') alone would pass on prose that merely mentioned
+      // the flag. These are commands a user copies verbatim, so the assertion
+      // pins the whole invocation.
       expect(
         groupC.firstWhere((s) => s.id == 'c6_doze_test').manualSteps,
-        contains('force-idle'),
+        contains('adb shell dumpsys deviceidle force-idle'),
       );
       expect(
         groupC.firstWhere((s) => s.id == 'c7_standby_bucket').manualSteps,
-        contains('set-standby-bucket'),
+        contains('adb shell am set-standby-bucket cz.netglade.fcm_app'),
       );
     });
 
