@@ -37,15 +37,8 @@ class SandboxView extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               if (controller.selectedScenario case final scenario?) ...[
-                Text(
-                  scenario.title,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
                 if (scenario.expectation case final expectation?)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(expectation),
-                  ),
+                  Text(expectation),
                 if (scenario.requiresKilledApp)
                   const Padding(
                     padding: EdgeInsets.only(top: 4),

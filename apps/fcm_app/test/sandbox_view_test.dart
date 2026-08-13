@@ -98,12 +98,16 @@ void main() {
     expect(find.byType(FilledButton).hitTestable(), findsOne);
   });
 
-  testWidgets('names the loaded scenario in the header', (tester) async {
+  testWidgets('does not name the loaded scenario', (tester) async {
+    // The gallery is where a scenario is chosen and named; repeating its title
+    // here only pushes the payload further down a page whose whole layout is
+    // arranged around what the user needs on arrival. The caveat below it stays,
+    // because that is advice about sending rather than a label.
     build();
 
     await pump(tester);
 
-    expect(find.text(controller.selectedScenario!.title), findsOne);
+    expect(find.text(controller.selectedScenario!.title), findsNothing);
   });
 
   testWidgets('disables Send while a field is invalid', (tester) async {
