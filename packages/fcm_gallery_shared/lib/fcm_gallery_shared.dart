@@ -31,6 +31,7 @@ export 'src/scenarios/group_g.dart';
 export 'src/scenarios/group_h.dart';
 export 'src/scenarios/group_i.dart';
 export 'src/scenarios/group_j.dart';
+export 'src/scenarios/group_k.dart';
 export 'src/scenarios/scenario.dart';
 export 'src/scenarios/scenario_gallery.dart';
 export 'src/scenarios/scenario_need.dart';

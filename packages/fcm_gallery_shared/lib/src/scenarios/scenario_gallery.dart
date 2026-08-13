@@ -8,6 +8,7 @@ import 'group_g.dart';
 import 'group_h.dart';
 import 'group_i.dart';
 import 'group_j.dart';
+import 'group_k.dart';
 import 'scenario.dart';
 
 /// The scenario catalogue, in the order of the source document.
@@ -26,4 +27,5 @@ const scenarioGallery = <Scenario>[
   ...groupH,
   ...groupI,
   ...groupJ,
+  ...groupK,
 ];

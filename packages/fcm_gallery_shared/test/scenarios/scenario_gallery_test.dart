@@ -102,6 +102,82 @@ void main() {
     }
   });
 
+  test('the catalogue is complete: 66 scenarios in 11 groups', () {
+    expect(scenarioGallery, hasLength(66));
+    expect(scenarioGallery.map((s) => s.group).toSet(), hasLength(11));
+  });
+
+  test('exactly 21 scenarios work today', () {
+    // Asserted so that mis-marking one as blocked, or quietly unmarking one to
+    // make it look supported, fails the build.
+    final supported = scenarioGallery.where((s) => s.isSupported).toList();
+
+    expect(
+      supported,
+      hasLength(21),
+      reason: supported.map((s) => s.id).join(', '),
+    );
+  });
+
+  test('every ScenarioNeed is used, so the enum cannot drift', () {
+    final usedBy = {
+      for (final need in ScenarioNeed.values)
+        need: scenarioGallery
+            .where((s) => s.needs.contains(need))
+            .map((s) => s.id)
+            .toList(),
+    };
+
+    for (final need in ScenarioNeed.values) {
+      expect(
+        usedBy[need],
+        isNotEmpty,
+        reason: '${need.name} is declared but no scenario needs it',
+      );
+    }
+
+    // isNotEmpty is weakest exactly where it matters most. A need carried by a
+    // single scenario is a need whose entire justification is that one entry, so
+    // the loop above stays green if that entry is renamed, re-marked or swapped
+    // for a different one — the enum survives while the claim behind it moves.
+    // Pin the sole users by id, and pin *which* needs are sole-use, so a second
+    // one cannot appear unnoticed.
+    final soleUse = {
+      for (final entry in usedBy.entries)
+        if (entry.value.length == 1) entry.key.name: entry.value.single,
+    };
+
+    expect(soleUse, {'badge': 'g3_badge'});
+  });
+
+  test('the groups appear in A to K order, each in one run', () {
+    final letters = scenarioGallery
+        .map((s) => s.group.substring(0, 1))
+        .toList();
+
+    // Comparing `letters.toSet().toList()` alone rests on two things, and only
+    // the first holds: `toSet()` does keep insertion order, because the default
+    // Set is a LinkedHashSet — but deduplication is not harmless. A, B, A
+    // collapses to [A, B] and would pass while group A was split across two
+    // places in the gallery. So the distinct letters are compared *and* the raw
+    // sequence is required never to go backwards, which is what "each group
+    // appears once, in order" actually means.
+    expect(letters.toSet().toList(), const [
+      'A',
+      'B',
+      'C',
+      'D',
+      'E',
+      'F',
+      'G',
+      'H',
+      'I',
+      'J',
+      'K',
+    ]);
+    expect(letters, [...letters]..sort());
+  });
+
   group('group A', () {
     test('offers all four basic-delivery scenarios', () {
       expect(groupA.map((s) => s.id), [
