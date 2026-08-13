@@ -2,6 +2,7 @@ import 'package:fcm_app/sandbox/notification_send_exception.dart';
 import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/ui/sandbox_view.dart';
 import 'package:fcm_app/ui/send_target_field.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
@@ -185,6 +186,52 @@ void main() {
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
       isNull,
     );
+  });
+
+  testWidgets('names the audience on the button, not always this device', (
+    tester,
+  ) async {
+    // Where a push goes is the one thing on this page a user cannot check by
+    // reading the payload back, so a button naming the wrong audience is worse
+    // than one naming none. It read "Send to this device" unconditionally until
+    // a target could be chosen.
+    build();
+    await pump(tester);
+    expect(find.text('Send to this device'), findsOne);
+
+    controller.setTarget(const TopicTarget('news'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Send to topic "news"'), findsOne);
+    expect(find.text('Send to this device'), findsNothing);
+
+    controller.setTarget(const AllDevicesTarget());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Send to every device'), findsOne);
+  });
+
+  testWidgets('a topic send needs no registration token', (tester) async {
+    // A topic names its own audience, so requiring this device's token would
+    // block the whole targeting feature — and every scenario in group J — on a
+    // device that has never registered.
+    build(token: null);
+    await pump(tester);
+    expect(controller.canSend, isFalse, reason: 'this device, no token');
+
+    controller.setTarget(const TopicTarget('news'));
+    await tester.pumpAndSettle();
+
+    expect(controller.sendBlockedReason, isNull);
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(sender.sent.single.target, const TopicTarget('news'));
   });
 
   testWidgets('renders a failure and keeps the payload', (tester) async {

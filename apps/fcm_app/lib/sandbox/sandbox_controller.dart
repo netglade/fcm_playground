@@ -68,7 +68,11 @@ class SandboxController extends ChangeNotifier {
     if (_isTargetBlank) {
       return 'Fill in the delivery target, or switch back to this device.';
     }
-    if (_token() == null) {
+    // Only a send to *this device* needs this device's token. A topic, a
+    // condition or an explicit token names its own audience, so requiring a
+    // registration token for those would block the whole targeting feature on a
+    // device that has not registered — including every scenario in group J.
+    if (_target == null && _token() == null) {
       return 'No registration token yet, so there is nowhere to send.';
     }
     if (_state is SandboxSending) {
@@ -117,9 +121,13 @@ class SandboxController extends ChangeNotifier {
   /// none was chosen, using the current [validateOnly] flag.
   Future<void> send() async {
     final token = _token();
+    // Resolved here rather than at choice time, because this device's token can
+    // change under us. A token is needed only to stand in for "this device" —
+    // a chosen topic or condition names its own audience.
+    final target = _target ?? (token == null ? null : TokenTarget(token));
     // Refuses exactly what Send is disabled for, so calling this directly
     // cannot post a target the page would not let the user send.
-    if (token == null || !canSend) {
+    if (target == null || !canSend) {
       return;
     }
 
@@ -132,7 +140,7 @@ class SandboxController extends ChangeNotifier {
     try {
       final response = await _sender.send(
         SendMessageRequest(
-          target: _target ?? TokenTarget(token),
+          target: target,
           message: message,
           validateOnly: _validateOnly,
         ),

@@ -1,3 +1,4 @@
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
 import '../sandbox/sandbox_controller.dart';
@@ -40,10 +41,24 @@ class SendFooter extends StatelessWidget {
         FilledButton.icon(
           onPressed: controller.canSend ? controller.send : null,
           icon: const Icon(Icons.send_outlined),
-          label: const Text('Send to this device'),
+          label: Text(_labelFor(controller.target)),
         ),
         SendResultCard(controller.state, validateOnly: controller.validateOnly),
       ],
     ),
   );
 }
+
+/// What the button promises, matching the chosen audience.
+///
+/// The label used to read "Send to this device" unconditionally, which stopped
+/// being true the moment a target could be chosen — and where a push goes is the
+/// one thing on this page a user cannot check by reading the payload back. A
+/// button that names the wrong audience is worse than one that names none.
+String _labelFor(SendTarget? target) => switch (target) {
+  null => 'Send to this device',
+  TokenTarget() => 'Send to that token',
+  TopicTarget(:final topic) => 'Send to topic "$topic"',
+  ConditionTarget() => 'Send to the condition',
+  AllDevicesTarget() => 'Send to every device',
+};
