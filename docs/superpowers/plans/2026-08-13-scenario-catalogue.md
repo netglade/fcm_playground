@@ -692,16 +692,39 @@ void main() {
     }
   });
 
-  test('no template sets its own delivery target', () {
+  test('no template sets its own delivery target, at any depth', () {
+    // Deep, via the shared `targetKeysIn` helper in
+    // test/scenarios/target_keys.dart — NOT containsKey. The top level is the one
+    // place already protected, because FcmMessage.read rejects a target there. A
+    // NESTED one slips past both that and a top-level check: `data: {'topic':
+    // 'news'}` is a legal map<string,string> entry, and anything under
+    // `apns.payload` is forwarded to Apple verbatim, so the typed model has no
+    // opinion about either. Found on Task 13.
     for (final scenario in scenarioGallery) {
-      for (final key in const ['token', 'topic', 'condition']) {
-        expect(
-          scenario.payloadTemplate.containsKey(key),
-          isFalse,
-          reason: '${scenario.id} sets $key; use Scenario.target instead',
-        );
-      }
+      expect(
+        targetKeysIn(scenario.payloadTemplate, scenario.id),
+        isEmpty,
+        reason: '${scenario.id} sets a target; use Scenario.target instead',
+      );
     }
+  });
+
+  test('the deep scan would really catch a nested target', () {
+    // The assertion above is isEmpty, which a scanner that never finds anything
+    // satisfies just as happily. Two positive fixtures keep it honest.
+    const inData = {
+      'data': {'topic': 'news'},
+    };
+    const inFreeForm = {
+      'apns': {
+        'payload': [
+          {'token': 'abc'},
+        ],
+      },
+    };
+
+    expect(targetKeysIn(inData, 'x'), ['x/data/topic']);
+    expect(targetKeysIn(inFreeForm, 'x'), ['x/apns/payload[0]/token']);
   });
 
   test('every scenario has a non-blank title and description', () {
