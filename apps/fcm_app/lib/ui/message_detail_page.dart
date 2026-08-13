@@ -18,37 +18,45 @@ class MessageDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(message.title)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(message.body, style: theme.textTheme.bodyLarge),
-          const Divider(height: 32),
-          Text('Sent', style: theme.textTheme.labelMedium),
-          Text(message.sentAt.toIso8601String()),
-          const SizedBox(height: 16),
-          Text('Payload id', style: theme.textTheme.labelMedium),
-          Text(message.id),
-          const Divider(height: 32),
-          Text('Extra data', style: theme.textTheme.labelMedium),
-          const SizedBox(height: 8),
-          if (message.data.isEmpty)
-            const Text('No extra data keys.')
-          else
-            for (final entry in message.data.entries)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      child: Text(entry.key, style: theme.textTheme.labelLarge),
-                    ),
-                    Expanded(child: Text(entry.value)),
-                  ],
+      // top: false — the AppBar covers that. The bottom matters because a long
+      // payload's last data row would otherwise end under the gesture bar.
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(message.body, style: theme.textTheme.bodyLarge),
+            const Divider(height: 32),
+            Text('Sent', style: theme.textTheme.labelMedium),
+            Text(message.sentAt.toIso8601String()),
+            const SizedBox(height: 16),
+            Text('Payload id', style: theme.textTheme.labelMedium),
+            Text(message.id),
+            const Divider(height: 32),
+            Text('Extra data', style: theme.textTheme.labelMedium),
+            const SizedBox(height: 8),
+            if (message.data.isEmpty)
+              const Text('No extra data keys.')
+            else
+              for (final entry in message.data.entries)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        child: Text(
+                          entry.key,
+                          style: theme.textTheme.labelLarge,
+                        ),
+                      ),
+                      Expanded(child: Text(entry.value)),
+                    ],
+                  ),
                 ),
-              ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -79,16 +79,24 @@ class _AppShellState extends State<AppShell> {
         ),
       ],
     ),
-    body: IndexedStack(
-      index: _destination,
-      children: [
-        InboxView(inbox: widget.inbox),
-        ScenariosView(
-          controller: widget.sandbox,
-          onScenarioSelected: _openSandbox,
-        ),
-        SandboxView(controller: widget.sandbox),
-      ],
+    // top: false because the AppBar already sits below the status bar; the
+    // insets that matter here are the bottom gesture bar — which the Sandbox's
+    // pinned SendFooter would otherwise sit underneath — and the side cutouts in
+    // landscape. Applied once around the IndexedStack rather than in each
+    // destination, so a new page cannot forget it.
+    body: SafeArea(
+      top: false,
+      child: IndexedStack(
+        index: _destination,
+        children: [
+          InboxView(inbox: widget.inbox),
+          ScenariosView(
+            controller: widget.sandbox,
+            onScenarioSelected: _openSandbox,
+          ),
+          SandboxView(controller: widget.sandbox),
+        ],
+      ),
     ),
   );
 
