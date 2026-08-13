@@ -30,21 +30,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// Brings Send into view.
-  ///
-  /// The open root section is taller than the viewport, so Send now sits below
-  /// the fold and a lazily-built `ListView` has not created it yet. Scrolling for
-  /// the *button* is fine — the defect these tests guard is an uneditable page on
-  /// arrival, and the form's own first section is on screen without this.
-  Future<void> scrollToSend(WidgetTester tester) async {
-    await tester.scrollUntilVisible(
-      find.byType(FilledButton),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-  }
-
   tearDown(() => controller.dispose());
 
   testWidgets('shows the payload form without scrolling, on arrival', (
@@ -57,6 +42,60 @@ void main() {
     // The reported bug was that no editable surface was on screen. This is the
     // regression test for it: found with no scroll helper of any kind.
     expect(find.text('message'), findsOne);
+  });
+
+  testWidgets('every block is reachable without a scroll helper', (
+    tester,
+  ) async {
+    // An editor below the fold that never mounted is what started this line of
+    // work, so every top-level block of the payload must be on screen after
+    // nothing but a pump.
+    build();
+
+    await pump(tester);
+
+    for (final block in const [
+      'notification',
+      'android',
+      'apns',
+      'webpush',
+      'fcm_options',
+    ]) {
+      expect(find.text(block), findsOne);
+    }
+  });
+
+  testWidgets('a field edited on arrival reaches the model', (tester) async {
+    // The original bug was not that no field existed, but that reaching one
+    // took a scroll the user did not know to make. One tap, no scrolling.
+    build();
+    await pump(tester);
+
+    await tester.tap(find.text('notification'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'title'),
+      'Hello',
+    );
+
+    expect(controller.form.notification.title.value, 'Hello');
+  });
+
+  testWidgets('keeps Send on screen, whatever the form does', (tester) async {
+    // Send was the last child of the scrolling list, so on arrival it sat below
+    // the fold and the lazy `ListView` had not even built it. Pinned in the
+    // footer it is hit-testable straight after a pump, and stays so as sections
+    // open: `android.notification` alone adds 27 fields.
+    build();
+    await pump(tester);
+
+    expect(find.byType(FilledButton).hitTestable(), findsOne);
+
+    await tester.tap(find.text('android'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FilledButton).hitTestable(), findsOne);
   });
 
   testWidgets('names the loaded scenario in the header', (tester) async {
@@ -73,7 +112,6 @@ void main() {
 
     controller.form.android.ttl.updateValue('later');
     await tester.pumpAndSettle();
-    await scrollToSend(tester);
 
     expect(
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
@@ -87,7 +125,6 @@ void main() {
 
     controller.form.data.updateValue({'a': 'b'});
     await tester.pumpAndSettle();
-    await scrollToSend(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -100,7 +137,6 @@ void main() {
 
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
-    await scrollToSend(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -112,7 +148,6 @@ void main() {
     build();
     await pump(tester);
 
-    await scrollToSend(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -124,7 +159,6 @@ void main() {
     build(token: null);
 
     await pump(tester);
-    await scrollToSend(tester);
 
     expect(find.textContaining('token'), findsAtLeast(1));
     expect(
@@ -139,7 +173,6 @@ void main() {
 
     controller.form.data.updateValue({'kept': 'yes'});
     await tester.pumpAndSettle();
-    await scrollToSend(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
