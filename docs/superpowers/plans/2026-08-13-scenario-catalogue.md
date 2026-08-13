@@ -2083,22 +2083,35 @@ Group-specific assertions:
     test('h4 is permanently blocked on Apple, not on us', () {
       final critical = groupH.firstWhere((s) => s.id == 'h4_ios_critical');
 
+      // contains('entitlement') is satisfied by prose saying the OPPOSITE —
+      // "needs no entitlement" — so pin the three things that make
+      // externalApproval distinct from every other need: who must approve, what
+      // the approval is, and that it is deliberately unscheduled.
       expect(critical.needs, [ScenarioNeed.externalApproval]);
-      expect(critical.expectation, contains('entitlement'));
+      expect(critical.isSupported, isFalse);
+      expect(critical.expectation, contains('critical-alert entitlement'));
+      expect(critical.expectation, contains('Apple must approve'));
+      expect(critical.expectation, contains('rather than scheduled'));
     });
 
-    test('the interruption level rides in the free-form aps dictionary', () {
-      // FCM has no field for it, which is exactly why apns.payload is untyped.
-      for (final (id, level) in const [
-        ('h3_ios_time_sensitive', 'time-sensitive'),
-        ('h4_ios_critical', 'critical'),
-        ('h5_ios_passive', 'passive'),
+    test('each interruption level comes with the priority it needs', () {
+      // FCM has no field for the level, which is exactly why apns.payload is
+      // untyped — and why the level alone is not enough to assert. A
+      // time-sensitive push written at apns-priority 5 would pass a level-only
+      // check while APNs may hold it, defeating the entry's whole point. Pin the
+      // pair.
+      for (final (id, level, priority) in const [
+        ('h3_ios_time_sensitive', 'time-sensitive', '10'),
+        ('h4_ios_critical', 'critical', '10'),
+        ('h5_ios_passive', 'passive', '5'),
       ]) {
         final scenario = groupH.firstWhere((s) => s.id == id);
-        final aps =
-            ((scenario.payloadTemplate['apns']! as Map)['payload']! as Map)['aps']!
-                as Map;
+        final apns = scenario.payloadTemplate['apns']! as Map;
+        final aps = (apns['payload']! as Map)['aps']! as Map;
+
         expect(aps['interruption-level'], level, reason: id);
+        expect((apns['headers']! as Map)['apns-priority'], isA<String>(), reason: id);
+        expect((apns['headers']! as Map)['apns-priority'], priority, reason: id);
       }
     });
 ```
