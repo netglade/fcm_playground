@@ -26,7 +26,12 @@ abstract interface class TelemetryStore {
   /// A batch is accepted whole. There is no foreign key onto a send, because a
   /// push made by hand has no `queued` row here and refusing its arrival would
   /// hide a real delivery.
-  Future<void> record(List<TelemetryEvent> events);
+  /// Returns how many were **newly** stored, which is not the same as how many
+  /// were given: a retried batch stores none and must still succeed. `POST
+  /// /events` reports that number so a client can tell a duplicate-suppressed
+  /// retry from a lost flush — the alternative, diffing [all] around the call, is
+  /// linear in the store and wrong the moment two devices flush at once.
+  Future<int> record(List<TelemetryEvent> events);
 
   /// Every stored event, in the order it was recorded.
   ///

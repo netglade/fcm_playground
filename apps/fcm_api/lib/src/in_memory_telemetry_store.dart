@@ -18,16 +18,25 @@ class InMemoryTelemetryStore implements TelemetryStore {
   final Map<_EventKey, TelemetryEvent> _events = {};
 
   @override
-  Future<void> record(List<TelemetryEvent> events) async {
+  Future<int> record(List<TelemetryEvent> events) async {
+    var stored = 0;
     for (final event in events) {
       final key = _keyOf(event);
       final kept = _events[key];
+      // Counted only when the key is new. Re-stamping an event this store already
+      // holds is not a new event, so a retry reports zero rather than claiming to
+      // have stored what it merely refreshed.
+      if (kept == null) {
+        stored++;
+      }
       // Earliest wins, so a re-stamped retry cannot move an arrival later and a
       // duplicate delivery cannot inflate the latency.
       if (kept == null || event.at.isBefore(kept.at)) {
         _events[key] = event;
       }
     }
+
+    return stored;
   }
 
   @override

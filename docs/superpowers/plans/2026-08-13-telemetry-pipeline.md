@@ -404,12 +404,29 @@ The task that keeps `melos run ci` free of a native library. **Every test in thi
 - Produces:
   ```dart
   abstract interface class TelemetryStore {
-    Future<void> record(List<TelemetryEvent> events);
+    Future<int> record(List<TelemetryEvent> events);   // newly-stored count
+    Future<List<TelemetryEvent>> all();
     Future<List<LatencyRow>> latencies();
     Future<void> close();
   }
   ```
   and `LatencyRow({required traceId, required deviceId, required sentAt, required receivedAt, required scenarioId})` with `Duration get latency` and `bool get isSkewed => latency.isNegative`.
+
+**`record` returns the newly-stored count, and `all()` is on the interface.**
+Task 6 answers `{"recorded": n}` and has no other source for `n` — diffing `all()`
+around the call is linear in the store and wrong the moment two devices flush at
+once. `all()` is a contract method rather than a test hook, because idempotency and
+(Task 5) persistence cannot be verified through `latencies()` alone, and Task 7 reads
+events back through it. **There is no `count()`:** `expect(await store.all(), [e])`
+asserts which row survived as well as how many, which is strictly stronger. Where a
+snippet below says `store.count()`, use `store.all()` with `hasLength`.
+
+**Where two records share the idempotency key, the EARLIEST `at` wins.** Found on
+Task 4: without a stated rule, two of the snippets below contradict each other — the
+two arrivals at 9:00:05 and 9:00:02 share a key, so under first-write-wins only
+9:00:05 survives and the expected 2s is unreachable. Earliest-wins satisfies both the
+idempotency and the first-arrival behaviours with one rule, and means a re-stamped
+retry cannot move an arrival later.
 
 **Idempotency is on `(traceId, type, deviceId)`.** A flush that succeeds server-side but fails to be acknowledged is retried, and a duplicated `received_fg` would corrupt the one number this pipeline exists to produce.
 

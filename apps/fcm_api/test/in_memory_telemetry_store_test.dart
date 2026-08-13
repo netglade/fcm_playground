@@ -32,6 +32,8 @@ void main() {
     scenarioId: scenarioId,
   );
 
+  final at9 = DateTime.utc(2026, 8, 13, 9);
+
   final event = TelemetryEvent(
     traceId: 'tr-1',
     type: TelemetryEventType.receivedFg,
@@ -346,6 +348,54 @@ void main() {
     test('is empty on a store nothing was recorded into', () async {
       expect(await store.latencies(), isEmpty);
       expect(await store.all(), isEmpty);
+    });
+  });
+
+  group('record reports how many were newly stored', () {
+    // The number `POST /events` sends back. Asserted at the store rather than
+    // only at the HTTP layer, because "how many were new" is a property of this
+    // deduplication, and a client uses it to tell a suppressed retry from a
+    // lost flush.
+    test('counts each new key once', () async {
+      expect(
+        await store.record([
+          sentAt('tr-1', at9),
+          arrivalAt('tr-1', 'dev', at9),
+        ]),
+        2,
+      );
+    });
+
+    test('counts zero for a replayed batch', () async {
+      await store.record([sentAt('tr-1', at9)]);
+
+      expect(await store.record([sentAt('tr-1', at9)]), 0);
+    });
+
+    test('counts zero for a re-stamped duplicate, not one', () async {
+      // The retry that arrives with a fresh timestamp. It refreshes nothing the
+      // caller needs to know about, so reporting it as stored would make a
+      // client believe a flush landed that had already landed.
+      await store.record([arrivalAt('tr-1', 'dev', at9)]);
+
+      expect(
+        await store.record([
+          arrivalAt('tr-1', 'dev', at9.subtract(const Duration(seconds: 5))),
+        ]),
+        0,
+      );
+    });
+
+    test('counts only the new members of a mixed batch', () async {
+      await store.record([sentAt('tr-1', at9)]);
+
+      expect(
+        await store.record([
+          sentAt('tr-1', at9),
+          arrivalAt('tr-1', 'dev', at9),
+        ]),
+        1,
+      );
     });
   });
 }
