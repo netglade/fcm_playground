@@ -9,9 +9,15 @@ import 'push_message_format_exception.dart';
 class PushMessageParser {
   const PushMessageParser();
 
-  /// Required payload keys. Anything else is passed through in
+  /// Keys this parser reads itself. Anything else is passed through in
   /// [PushMessage.data].
-  static const reservedKeys = {'id', 'title', 'body', 'sentAt'};
+  ///
+  /// `trace_id` is here because it is plumbing rather than payload: the send API
+  /// injects it so telemetry can correlate a send with its arrival, and showing
+  /// it as an "extra data" row in the inbox would present a detail of ours as
+  /// something the sender chose. It is deliberately **not** in [requiredKeys] —
+  /// a push sent by hand carries none and must still arrive.
+  static const reservedKeys = {'id', 'title', 'body', 'sentAt', 'trace_id'};
 
   /// Payload keys that must be present and non-blank.
   ///
