@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../sandbox/sandbox_controller.dart';
 import 'form/sections/message_section.dart';
+import 'manual_steps_block.dart';
+import 'scenario_needs_banner.dart';
 import 'send_footer.dart';
 import 'send_target_field.dart';
 
@@ -40,6 +42,9 @@ class SandboxView extends StatelessWidget {
             children: [
               SendTargetField(controller: controller),
               const SizedBox(height: 8),
+              ScenarioNeedsBanner(scenario: controller.selectedScenario),
+              if (controller.selectedScenario?.manualSteps case final steps?)
+                ManualStepsBlock(steps: steps),
               if (controller.selectedScenario case final scenario?) ...[
                 if (scenario.expectation case final expectation?)
                   Text(expectation),

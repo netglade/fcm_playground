@@ -1,6 +1,8 @@
 import 'package:fcm_app/sandbox/notification_send_exception.dart';
 import 'package:fcm_app/sandbox/sandbox_controller.dart';
+import 'package:fcm_app/ui/manual_steps_block.dart';
 import 'package:fcm_app/ui/sandbox_view.dart';
+import 'package:fcm_app/ui/scenario_needs_banner.dart';
 import 'package:fcm_app/ui/send_target_field.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
@@ -209,6 +211,40 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Send to every device'), findsOne);
+  });
+
+  testWidgets('reports an unmet need without blocking Send', (tester) async {
+    // The banner and the steps live above the fold, next to the target, because
+    // they are the same kind of fact: something the payload cannot tell you. And
+    // neither may disable Send — the push is valid, only the behaviour it shows
+    // is missing.
+    build();
+    await pump(tester);
+    // The scenario loaded by default works, so the banner is mounted but takes
+    // no space — a page that opens with a warning on it teaches the user to
+    // stop reading warnings.
+    // Height, not `Size.zero`: the `ListView` hands its children a tight width,
+    // so a shrunk banner here measures 768 x 0.
+    expect(tester.getSize(find.byType(ScenarioNeedsBanner)).height, 0);
+    expect(find.byType(ManualStepsBlock), findsNothing);
+
+    controller.applyScenario(
+      scenarioGallery.firstWhere((s) => s.id == 'c7_standby_bucket'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Needs a manual step'), findsOne);
+    expect(
+      find.descendant(
+        of: find.byType(ManualStepsBlock),
+        matching: find.textContaining('set-standby-bucket'),
+      ),
+      findsOne,
+    );
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
   });
 
   testWidgets('a topic send needs no registration token', (tester) async {

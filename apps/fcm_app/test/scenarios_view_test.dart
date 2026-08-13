@@ -81,6 +81,38 @@ void main() {
     expect(find.text(withExpectation.expectation!), findsOne);
   });
 
+  testWidgets('flags the rows that cannot be demonstrated yet', (tester) async {
+    // Group A is the one open on arrival and every one of its scenarios works,
+    // so a chip visible here would mean the flag is on every row and says
+    // nothing. Group D's first row is the nearest one that should carry it.
+    build();
+    await pump(tester);
+    expect(
+      scenarioGallery
+          .where((s) => s.group == first.group)
+          .every((s) => s.isSupported),
+      isTrue,
+      reason: 'the assertion below assumes group A is entirely supported',
+    );
+    expect(find.text('needs work'), findsNothing);
+
+    final needy = scenarioGallery.firstWhere(
+      (s) => s.id == 'd1_importance_high',
+    );
+    await scrollIntoView(tester, find.text(needy.group));
+    await tester.tap(find.text(needy.group));
+    await tester.pumpAndSettle();
+    await scrollIntoView(tester, find.text(needy.title));
+
+    expect(
+      find.descendant(
+        of: find.widgetWithText(ListTile, needy.title),
+        matching: find.text('needs work'),
+      ),
+      findsOne,
+    );
+  });
+
   testWidgets('applies the tapped scenario to the controller', (tester) async {
     build();
     await pump(tester);

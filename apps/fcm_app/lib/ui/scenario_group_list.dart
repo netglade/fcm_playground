@@ -46,6 +46,7 @@ class ScenarioGroupList extends StatelessWidget {
               ))
                 ListTile(
                   title: Text(scenario.title),
+                  trailing: scenario.isSupported ? null : _needsWork,
                   onTap: () {
                     controller.applyScenario(scenario);
                     onScenarioSelected();
@@ -79,3 +80,10 @@ class ScenarioGroupList extends StatelessWidget {
     );
   }
 }
+
+/// Marks a row whose scenario cannot be demonstrated yet.
+///
+/// One flag rather than a label per need: a row carrying five of them would be
+/// unreadable, and which needs they are only matters once the scenario is
+/// loaded, where `ScenarioNeedsBanner` names them.
+const Widget _needsWork = Chip(label: Text('needs work'));
