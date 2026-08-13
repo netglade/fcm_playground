@@ -2257,7 +2257,9 @@ Group-specific assertions:
       );
       final apns = background.payloadTemplate['apns']! as Map;
 
+      expect((apns['headers']! as Map)['apns-priority'], isA<String>());
       expect((apns['headers']! as Map)['apns-priority'], '5');
+      expect((apns['headers']! as Map)['apns-push-type'], 'background');
       final available = ((apns['payload']! as Map)['aps']! as Map)['content-available'];
 
       // isA<int>() beside the value, for the reason group G records: `1.0 == 1`
@@ -2267,16 +2269,40 @@ Group-specific assertions:
       expect(available, 1);
     });
 
-    test('the sync scenario draws nothing', () {
+    test('the sync scenario draws nothing, by any route', () {
+      // Absence of `notification` is not enough: an `android.notification` or an
+      // `apns.payload.aps.alert` would be drawn by the platform and pass. The
+      // only safe assertion is that `data` is the ONLY top-level key.
       final sync = groupI.firstWhere((s) => s.id == 'i2_silent_data_sync');
 
-      expect(sync.payloadTemplate.containsKey('notification'), isFalse);
+      expect(sync.payloadTemplate.keys.toSet(), {'data'});
+      expect(sync.payloadTemplate['data'], isNotEmpty);
+    });
+
+    test('the background push cannot accidentally become visible', () {
+      // apns-push-type: background alongside an alert is REJECTED by APNs, and a
+      // `notification` block would have FCM synthesise one — either silently
+      // turns this into an ordinary visible push and the scenario proves nothing.
+      final background = groupI.firstWhere(
+        (s) => s.id == 'i3_ios_content_available',
+      );
+      final aps =
+          ((background.payloadTemplate['apns']! as Map)['payload']! as Map)['aps']!
+              as Map;
+
+      expect(background.payloadTemplate.containsKey('notification'), isFalse);
+      expect(aps.containsKey('alert'), isFalse);
+      expect(aps.containsKey('sound'), isFalse);
     });
 
     test('the burst scenario says how many and how fast', () {
+      // contains('20') is satisfied by a date, a timeout or a package name, and
+      // proves neither the count nor the rate — and the RATE is the scenario:
+      // twenty pushes over an afternoon is not a burst.
       final burst = groupI.firstWhere((s) => s.id == 'i4_burst');
 
-      expect(burst.manualSteps, contains('20'));
+      expect(burst.manualSteps, contains('20 times'));
+      expect(burst.manualSteps, contains('within 10 seconds'));
     });
 ```
 
