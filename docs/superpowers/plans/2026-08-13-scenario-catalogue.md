@@ -2541,16 +2541,25 @@ Group-specific assertions, plus the catalogue-wide ones:
       ]);
     });
 
-    test('the oversize payload really is over 4 KB', () {
+    test('the oversize payload really is over 4 KB, by FCM\'s measure', () {
       // Asserting the size rather than trusting the name: a template trimmed
-      // during editing would silently stop testing the limit.
+      // during editing would silently stop testing the limit. It caught exactly
+      // that on Task 14 — the four chunks as first written summed to 2,885.
+      //
+      // Measured in BYTES, not String.length: that counts UTF-16 code units,
+      // while FCM counts bytes. And measured three ways, because "payload size"
+      // has more than one defensible reading and the scenario must clear the
+      // limit under the strictest — value bytes alone, no keys, no JSON
+      // punctuation. A first fix cleared 4096 only at 4,199 total while values
+      // alone were 4,105, a nine-byte margin that hung on whose definition won.
       final oversize = groupK.firstWhere((s) => s.id == 'k1_payload_oversize');
       final data = oversize.payloadTemplate['data']! as Map<String, Object?>;
-      final bytes = data.entries
-          .map((e) => e.key.length + (e.value! as String).length)
+      final valueBytes = data.values
+          .map((v) => utf8.encode(v! as String).length)
           .reduce((a, b) => a + b);
 
-      expect(bytes, greaterThan(4096));
+      expect(valueBytes, greaterThan(4096));
+      expect(utf8.encode(jsonEncode(data)).length, greaterThan(valueBytes));
     });
 
     test('the dead-token scenario targets a token, and a bad one', () {
@@ -2587,13 +2596,37 @@ Group-specific assertions, plus the catalogue-wide ones:
     }
   });
 
-  test('the groups appear in A to K order', () {
+  test('the single-use needs are pinned to the scenario that uses them', () {
+    // `any(...)` above stays green if the ONE scenario carrying a need is
+    // renamed, re-marked, or swapped for a different one — the enum survives
+    // while the claim behind it quietly moves. `badge` is carried by exactly one
+    // entry, so pin the pairing. Failing when a SECOND need becomes single-use
+    // is intentional: that is a fact worth re-reading the catalogue over.
+    final soleUse = <String, String>{};
+    for (final need in ScenarioNeed.values) {
+      final users = scenarioGallery.where((s) => s.needs.contains(need));
+      if (users.length == 1) {
+        soleUse[need.name] = users.single.id;
+      }
+    }
+
+    expect(soleUse, {'badge': 'g3_badge'});
+  });
+
+  test('the groups appear in A to K order, each in one run', () {
+    // `toSet().toList()` does preserve insertion order (the default Set is a
+    // LinkedHashSet), but the DEDUP hides a real defect: A,B,A collapses to
+    // [A,B] and would pass with group A split across two places in the gallery.
+    // Sorting the undeduplicated letters is what "each group in one contiguous
+    // run, in order" actually asserts.
     final letters = scenarioGallery
         .map((s) => s.group.substring(0, 1))
-        .toSet()
         .toList();
 
-    expect(letters, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']);
+    expect(letters, [...letters]..sort());
+    expect(letters.toSet().toList(), [
+      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
+    ]);
   });
 ```
 
