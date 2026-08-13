@@ -1288,6 +1288,73 @@ hands back a list and `updateValue` takes it like any other value.
 **Validators**, the only ones FCM justifies here: `color` must match `#rrggbb`, and
 each entry of `vibrateTimings` must be a duration like `0.5s`.
 
+**Both validators must stay quiet while the field is empty**, and the mechanism is
+not the obvious one. `isRequired: false` removes the *not-empty* rule, but it does
+not stop a validator you add yourself from running on `''` — and
+`StringValidator.match` is built on `RegExp.hasMatch`, which rejects an empty
+string. So an untouched `color` field would make the whole payload unsendable,
+which is the same class of defect as `LightSettingsForm` putting required-ness in
+its validator. Read from the 6.0.0 source, the fix is `shouldValidate`:
+
+```dart
+    color = GladeStringInput(
+      inputKey: 'android.notification.color',
+      isRequired: false,
+      validator: (validator) => (validator..match(
+            pattern: r'^#[0-9a-fA-F]{6}$',
+            // An empty field is absent, not invalid. Without this the regex runs
+            // on '' and an untouched form blocks Send.
+            shouldValidate: (value) => value.isNotEmpty,
+            devMessage: (_) => 'must be #rrggbb',
+          ))
+          .build(),
+    );
+```
+
+Three API facts behind that, all read from the installed 6.0.0 source rather than
+assumed:
+- `GladeStringInput` **does** take a `validator`, of type
+  `StringValidatorFactory = ValidatorInstance<String> Function(StringValidator)`.
+  Task 7's finding that `.optional` accepts no validator is about
+  `GladeInput.optional` specifically and does **not** extend to `GladeStringInput`.
+- `match` needs an **anchored** pattern. It calls `hasMatch`, so an unanchored
+  `#[0-9a-fA-F]{6}` would accept `blue #ff0000 ish`.
+- `ShouldValidateCallback<T> = bool Function(T value)` — single argument, matching
+  the other callbacks Task 7 corrected.
+
+**`vibrateTimings` must be `.create`, not `.optional`.** It is the one collection
+with a validator, and `GladeInput.optional` hard-codes `validator: (v) => v.build()`
+internally, so a per-entry duration rule cannot be attached to it. `bodyLocArgs`
+and `titleLocArgs` have no validator and stay `.optional`. As in Task 7, pass
+`value: null` to `.create` — the "at least one of value or initialValue" note in its
+doc comment does not require non-null, which `LightSettingsForm._component` already
+demonstrates. A null or empty list passes; only a non-empty list has its entries
+checked, so an untouched form stays valid:
+
+```dart
+    vibrateTimings = GladeInput<List<String>?>.create(
+      inputKey: 'android.notification.vibrate_timings',
+      value: null,
+      validator: (validator) => (validator..satisfy(
+            (value) =>
+                value == null ||
+                value.every((entry) => RegExp(r'^\d+(\.\d+)?s$').hasMatch(entry)),
+            devMessage: (_) => 'each entry must be a duration such as 0.5s',
+          ))
+          .build(),
+    );
+```
+
+**The `everyField` fixture cannot be imported — inline a copy.** It is a `const`
+local to `main()` in `packages/fcm_gallery_shared/test/message/android_notification_test.dart`,
+and one package's `test/` directory is not visible to another's. Copy the map into
+the app test verbatim. Because a copy can drift from the model, the app test must
+also carry the guard the original has — `expect(everyField, hasLength(27))` — so a
+28th field added to `AndroidNotification` without updating this fixture fails here
+instead of silently narrowing the round-trip. Note the fixture deliberately mixes
+`true` and `false` flags (`sticky: true`, `local_only: false`), which is what makes
+the round-trip cover the tristate in both directions.
+
 **`notificationCount` needs a custom converter, and this is not optional.** Task 1
 found and I confirmed that `GladeIntInputNullable`'s default converter treats an
 empty string as *unparseable* rather than as "no value": clearing the field leaves
@@ -1319,8 +1386,9 @@ The important tests, beyond the five from Task 6's pattern:
 
 ```dart
     test('round-trips all 27 fields', () {
-      // Reuse the everyField fixture from the contract package's own test as the
-      // source of truth for what "all 27" means.
+      // everyField is an inlined copy of the contract package's own fixture —
+      // see above for why it cannot be imported, and for the hasLength(27)
+      // guard that stops the copy drifting.
       final source = AndroidNotification.fromJson(everyField);
       final form = AndroidNotificationForm()..initialize();
 
