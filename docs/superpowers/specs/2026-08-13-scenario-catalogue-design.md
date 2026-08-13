@@ -20,26 +20,35 @@ the capability below; everything below is measured against what this defines.
 
 | # | Sub-project | Scenarios | Unblocks |
 | --- | --- | --- | --- |
-| **1** | **The catalogue** (this spec) | all 66 | the 20 that already work |
+| **1** | **The catalogue** (this spec) | all 66 | the 21 that then work |
 | 2 | Channels and importance | D1–D8, H1, H2, I1 | 11 |
 | 3 | Appearance styles | E1, E3, E6–E9 | 6 |
 | 4 | Interaction | F1–F9, G1, G2 | 11 |
 | 5 | Badge | G3 | 1 |
-| 6 | Targeting — multicast registry only | J3 | 1 |
+| 6 | Targeting — topic subscription + multicast registry | J1–J3 | 3 |
 | 7 | Delayed send | B3 | 1 |
 | 8 | Procedures and burst | B2, B4–B6, C5–C7, I4, K3–K5 | 11 |
 
 **The arithmetic closes at 66**, and it should be checkable rather than asserted:
-23 work once this spec lands, 42 are unblocked by sub-projects 2–8
-(11+6+11+1+1+1+11), and 1 — **H4**, iOS critical alerts — is permanently outside
-our control. 23 + 42 + 1 = 66.
+21 work once this spec lands, 44 are unblocked by sub-projects 2–8
+(11+6+11+1+3+1+11), and 1 — **H4**, iOS critical alerts — is permanently outside
+our control. 21 + 44 + 1 = 66.
 
 The 20 that work before this spec are A1–A4, B1, C1–C4, E2, E4, E5, E10, E11, G4,
-H3, H5, I2, I3 and K1. This spec adds three more — **J1, J2 and K2** — by widening
-the send envelope, which is the form gap described below. E2 counts as working
-because it works on Android; iOS needs a Notification Service Extension, which goes
-in `expectation` alongside every other iOS caveat in this repo rather than blocking
-the entry.
+H3, H5, I2, I3 and K1. This spec adds exactly one more: **K2**, a deliberately dead
+token, which needs nothing but the envelope.
+
+**J1 and J2 are not unblocked here, though it looks like they should be.** Widening
+the envelope lets the API *send* to a topic or a condition, and FCM will answer 200
+— but nothing arrives, because the device has never called `subscribeToTopic`. A
+send that succeeds while nothing is delivered is the least useful thing this
+playground could show, so both keep `ScenarioNeed.targeting` and sub-project 6 owns
+topic subscription alongside the multicast registry. The envelope work is still
+required for them; it is just not sufficient.
+
+E2 counts as working because it works on Android; iOS needs a Notification Service
+Extension, which goes in `expectation` alongside every other iOS caveat in this repo
+rather than blocking the entry.
 
 Sub-project 2 is where the catalogue's own note lands — *"the app must have a
 Channel management screen showing each channel's importance read **from the
@@ -123,9 +132,10 @@ rejecting targets; that assertion stays exactly as it is.
 **Multicast needs a token registry**, which the app does not have — it knows only
 its own token. So `AllDevicesTarget` is accepted by the envelope and the API
 returns a clear "not supported yet" rather than silently sending to one device.
-J3 keeps `ScenarioNeed.targeting` until sub-project 6 builds the registry; J1, J2
-and K2 are unblocked here, because a topic, a condition and a bad token each need
-only the envelope.
+J1, J2 and J3 all keep `ScenarioNeed.targeting`: J3 needs the registry, and J1/J2
+need `subscribeToTopic` before anything they send can be received. **K2 alone is
+unblocked here** — a dead token needs nothing but the envelope. The envelope is
+still a prerequisite for J1–J3; it is simply not sufficient.
 
 ## Files
 
@@ -202,7 +212,7 @@ scenario with unmet needs and is absent for one without.
 - Across the gallery: 66 entries, unique ids, 11 groups in A–K order, every
   template round-trips.
 - `ScenarioNeed`: every value is used by at least one scenario, so the enum cannot
-  drift from the catalogue. Also that exactly 23 scenarios have no needs — the
+  drift from the catalogue. Also that exactly 21 scenarios have no needs — the
   number is asserted so that mis-marking one as blocked, or quietly unmarking one
   to make it look supported, fails the build.
 - Targeting: a topic, a condition and an explicit token each reach the API in the
