@@ -175,5 +175,27 @@ void main() {
       expect(subject.toModel(), isNull);
       expect(subject.isValid, isTrue);
     });
+
+    test('is invalid when the nested light settings block is invalid', () {
+      // The nested form's inputs are not in `inputs`, so the inherited
+      // `isValid` cannot see them. Validity has to compose at every level or
+      // Task 12's section badge lies: green on android.notification while a red
+      // one hides inside a closed light_settings section.
+      final subject = form();
+
+      subject.lightSettings.red.controller!.text = '2.5';
+
+      expect(subject.lightSettings.isValid, isFalse);
+      expect(subject.isValid, isFalse);
+    });
+
+    test('stays valid when the nested block is merely empty', () {
+      // Untouched is absent, not invalid — an unused light_settings section must
+      // not block Send.
+      final subject = form();
+
+      expect(subject.lightSettings.toModel(), isNull);
+      expect(subject.isValid, isTrue);
+    });
   });
 }

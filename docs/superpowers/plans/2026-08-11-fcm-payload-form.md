@@ -1481,6 +1481,29 @@ Tests: the five from the pattern, plus a `ttl` of `'later'` is invalid, a nested
 notification round-trips, and `isValid` is false when the nested form is invalid —
 that last one is what makes the section badge in Task 12 meaningful.
 
+**Every form owning a subform must override `isValid`**, established on Task 8 and
+not optional from here on:
+
+```dart
+  @override
+  bool get isValid => super.isValid && notification.isValid && fcmOptions.isValid;
+```
+
+`GladeModel.isValid` is `inputs.every(...)`, and a subform's inputs deliberately
+**cannot** go in the parent's `inputs`: `GladeModel.initialize()` calls
+`bindToModel(this)` on everything in that list, which would tear the child's inputs
+away from the model that owns them. So a nested block escapes the inherited getter
+entirely, and each level has to fold its children back in.
+
+It must happen at every level rather than once at the page, because `FormSection`'s
+badge is per section. A green badge on `android` while a red one hides inside a
+closed `android.notification` — or inside `light_settings`, two levels down — is
+precisely the "invalid field the user cannot see, disabling Send for a reason they
+cannot find" that the badge was added to prevent. Task 8's
+`android_notification_form_test.dart` has the paired tests to copy: one asserting a
+nested-invalid parent is invalid, one asserting a merely-*empty* nested block leaves
+the parent valid.
+
 ```bash
 git add apps/fcm_app
 git commit -m "feat(app): add the Android config form"
@@ -1514,7 +1537,8 @@ The two dominated by row editors rather than fields, which is why they pair.
 | `fcmOptions` | nested `WebpushFcmOptionsForm` |
 
 Every field here is a collection input or a subform, so `isValid` is effectively
-the conjunction of the subforms', and
+the conjunction of the subforms' — override it as Task 9 describes, since a
+subform's inputs cannot live in the parent's `inputs` — and
 `toModel()` returns null when every collection is empty and the subform is null.
 
 **The test that matters most** is the `apns_alert` scenario's payload surviving a

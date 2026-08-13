@@ -137,6 +137,23 @@ class AndroidNotificationForm extends GladeModel {
     proxy,
   ];
 
+  /// Whether every input here **and in the nested block** is valid.
+  ///
+  /// `GladeModel.isValid` is `inputs.every(...)`, and [lightSettings]' inputs are
+  /// deliberately absent from [inputs] — `initialize()` binds everything in that
+  /// list to *this* model, which would tear the light-settings inputs away from
+  /// the model that owns them. So the nested block escapes the inherited getter
+  /// and has to be folded back in here.
+  ///
+  /// It is folded in at this level rather than left to the page, because
+  /// `FormSection`'s badge is per section: a green badge on `android.notification`
+  /// while a red one hides inside a closed `light_settings` is the "invalid field
+  /// the user cannot see" that the badge exists to prevent. Validity has to
+  /// compose at every level for the badges to mean anything, so each form owning
+  /// a subform overrides this the same way.
+  @override
+  bool get isValid => super.isValid && lightSettings.isValid;
+
   @override
   void initialize() {
     title = _text('title');
