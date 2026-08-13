@@ -243,8 +243,52 @@ path segments becoming list indices.
 models can be sent. That is the deliberate trade for a form that cannot produce
 a malformed payload, and the typed model in `packages/fcm_gallery_shared` covers
 the whole of FCM's v1 `Message`, so the gap is FCM's future additions rather
-than its present surface. All nine gallery scenarios round-trip through the form
+than its present surface. All 66 catalogue scenarios round-trip through the form
 unchanged — a test asserts it, so a field missing from a form fails the build.
+
+## The scenario catalogue
+
+The Scenarios page (drawer → Scenarios) holds **66 scenarios in eleven groups,
+A–K**, mirroring the FCM playground test plan. Tapping one applies its payload to
+the Sandbox form and switches you there. The groups are the facets of FCM each
+scenario probes: basic delivery, app states, priority and delivery window,
+channels and importance, appearance, interaction, groups and badges, intrusive
+delivery, silent and data, targeting, and edge cases.
+
+**21 of the 66 work today.** The rest carry a marker naming what they still need —
+notification channels, notification styles, notification actions, a launcher
+badge, a device registry, delayed sending, a manual step, or approval from Apple
+or the OS that this project cannot grant itself. That count is asserted by a test,
+so this README cannot drift from the code: if a scenario is quietly unmarked to
+look supported, the build fails.
+
+A blocked scenario is **still sendable**. The push is genuine and valid; only the
+behaviour it demonstrates is missing, and watching a client with no action support
+receive an action payload is itself worth seeing. The banner above the form says
+what is missing rather than disabling Send. Where a payload cannot produce the
+scenario at all — a reboot, a Doze window, a revoked permission — the scenario
+carries the exact command or procedure in a selectable block, because an adb line
+that cannot be copied is one that will be mistyped.
+
+Every one of the 66 templates round-trips `raw → FcmMessage → raw` unchanged, and
+none may set its own delivery target at any depth. Both are asserted across the
+whole catalogue, which is what makes 66 hand-written templates trustworthy.
+
+## Choosing who receives a send
+
+The delivery target lives in the **send envelope**, never in the payload:
+`FcmMessage` rejects `token`, `topic` and `condition` outright, so a template
+pasted out of Google's reference cannot quietly broadcast. The Sandbox offers one
+selector above the form — this device, an explicit token, a topic, a condition, or
+every device — and the button names the audience it will actually send to.
+
+Only a send to *this device* needs this device's registration token; a topic or a
+condition names its own audience. **Every device is refused with a 501** and a
+stated reason: FCM has no such audience, so honouring it needs a registry of
+tokens this API does not keep.
+
+`curl` examples below are unchanged by this, because the target sits at the top
+level of the request exactly where `token` always did.
 
 ## Sending a test push
 
@@ -331,8 +375,8 @@ and nothing else — the inbox still fills.
 
 ## Verified on this machine
 
-`melos run ci` passes clean — 20 `core` tests, 91 `fcm_gallery_shared` tests, 36
-`fcm_api` tests and 282 `fcm_app` tests. `fvm flutter build apk --debug`
+`melos run ci` passes clean — 20 `core` tests, 193 `fcm_gallery_shared` tests, 41
+`fcm_api` tests and 306 `fcm_app` tests. `fvm flutter build apk --debug`
 and `fvm flutter build web --release` both succeed (compile checks only: the web
 build cannot receive FCM pushes without a VAPID key, and an apk build is not the
 same as running on a device). The iOS build has **not** been verified here —
@@ -350,18 +394,25 @@ schedules one.
 
 Three things remain explicitly **not verified** on this machine:
 
-- **The `validate_only` sweep through the form** — opening each gallery scenario
-  in the Sandbox and sending it with validate-only on, expecting a 200. The typed
-  model's own templates were swept earlier; this is the stronger and now more
-  useful claim, that what the *form* builds is also accepted. It needs a service
-  account key downloaded from the Firebase console and the API running against
-  it, which this machine cannot do unattended.
-- **The on-device payload checks** — that `big_picture_remote` renders its image,
-  that `data_only` reaches the inbox with no notification drawn, that
-  `custom_channel` pops as a heads-up banner, and that `direct_boot_ok` sends
-  `false` when set to false and omits the key when left unset. That last one is
-  the only real-world proof of the tristate design; a widget test can show the
-  three states cycling but not what leaves the device.
+- **The `validate_only` sweep over the catalogue** — opening each of the 66
+  scenarios in the Sandbox and sending it with validate-only on, expecting a 200
+  for every one whose needs do not include a device registry or a manual step.
+  The round-trip test proves the templates agree with the *typed model*; only this
+  proves they agree with *Google*, which is a different claim and the one that
+  would catch a field FCM rejects for a reason no local parser can know. It needs
+  a service account key downloaded from the Firebase console and the API running
+  against it, which this machine cannot do unattended.
+- **The on-device payload checks** — that `e2_image_remote` renders its image,
+  that `a2_data_only` reaches the inbox with no notification drawn, that
+  `k2_invalid_token` reports UNREGISTERED rather than a generic 404, and that
+  `direct_boot_ok` sends `false` when set to false and omits the key when left
+  unset. That last one is the only real-world proof of the tristate design; a
+  widget test can show the three states cycling but not what leaves the device.
+- **The needs banner and the manual-steps block on a device** — that a blocked
+  scenario names what it needs, that a working one shows no banner at all, and
+  that an adb command can actually be selected and copied out of
+  `ManualStepsBlock`. Selection behaviour is the one thing a widget test cannot
+  stand in for.
 - **The notification behaviour** — foreground banners, heads-up tray entries
   while backgrounded, tapping a notification into the detail page, and a
   background push reaching the inbox.
