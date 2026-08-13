@@ -1560,6 +1560,19 @@ the conjunction of the subforms' — override it as Task 9 describes, since a
 subform's inputs cannot live in the parent's `inputs` — and
 `toModel()` returns null when every collection is empty and the subform is null.
 
+**The `{}`-is-not-null trap applies to every field in both forms**, and this is the
+task where it bites hardest, because these forms are *nothing but* collections.
+`ApnsConfig` and `WebpushConfig` each hold a `MapEquality<String, String>` and a
+`MapEquality<String, Object?>`, so `{}` is not equal to `null`. Emptying a row
+editor would otherwise leave `"headers": {}` in the payload *and* stop `toModel()`
+returning null for an untouched block. Both forms need the absent-if-empty helper —
+in two flavours here, `Map<String, String>?` and `Map<String, Object?>?`, since the
+free-form maps are typed differently. Tasks 8 and 9 have the pattern.
+
+Note `PathRowsField` edits a `Map<String, Object?>` through `flattenPaths`/
+`expandPaths`; the input still holds the *whole map*, so `toModel()` reads
+`payload.value` directly and never touches the row representation.
+
 **The test that matters most** is the `apns_alert` scenario's payload surviving a
 round trip, because that is the whole reason for the dotted-path work:
 
