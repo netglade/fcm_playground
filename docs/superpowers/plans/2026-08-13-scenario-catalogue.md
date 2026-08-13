@@ -2472,6 +2472,9 @@ const groupJ = <Scenario>[
     description:
         'A device must be in both topics to receive this. Watch that subscribing '
         'to only one excludes it.',
+    expectation:
+        'Like j1, sending works now and FCM answers 200 — but nothing is '
+        'delivered until the app can subscribe to both topics.',
     payloadTemplate: {
       'notification': {'title': 'Condition push', 'body': 'news AND beta.'},
     },

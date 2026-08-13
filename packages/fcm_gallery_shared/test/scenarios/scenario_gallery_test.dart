@@ -1,6 +1,8 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:test/test.dart';
 
+import 'target_keys.dart';
+
 void main() {
   test('every id is unique', () {
     final ids = scenarioGallery.map((s) => s.id).toList();
@@ -31,16 +33,36 @@ void main() {
     }
   });
 
-  test('no template sets its own delivery target', () {
+  test('no template sets its own delivery target, at any depth', () {
+    // Deep, not containsKey: the top level is already protected by
+    // FcmMessage.read, but `data: {'topic': 'news'}` is a legal string-map entry
+    // and anything under `apns.payload` is forwarded verbatim, so a nested target
+    // slips past both the model and a top-level check.
     for (final scenario in scenarioGallery) {
-      for (final key in const ['token', 'topic', 'condition']) {
-        expect(
-          scenario.payloadTemplate.containsKey(key),
-          isFalse,
-          reason: '${scenario.id} sets $key; use Scenario.target instead',
-        );
-      }
+      expect(
+        targetKeysIn(scenario.payloadTemplate, scenario.id),
+        isEmpty,
+        reason: '${scenario.id} sets a target; use Scenario.target instead',
+      );
     }
+  });
+
+  test('the deep scan would really catch a nested target', () {
+    // The assertion above is isEmpty, which a scanner that never finds anything
+    // satisfies just as happily. Two positive fixtures keep it honest.
+    const inData = {
+      'data': {'topic': 'news'},
+    };
+    const inFreeForm = {
+      'apns': {
+        'payload': [
+          {'token': 'abc'},
+        ],
+      },
+    };
+
+    expect(targetKeysIn(inData, 'x'), ['x/data/topic']);
+    expect(targetKeysIn(inFreeForm, 'x'), ['x/apns/payload[0]/token']);
   });
 
   test('every scenario has a non-blank title and description', () {

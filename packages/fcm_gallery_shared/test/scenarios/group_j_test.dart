@@ -1,37 +1,23 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:test/test.dart';
 
+import 'target_keys.dart';
+
 /// The one scenario in group J carrying [id].
 Scenario scenarioJ(String id) => groupJ.firstWhere((s) => s.id == id);
 
-/// Every path inside [node] whose key names an FCM delivery target.
-///
-/// Walks maps and lists to any depth, because the gallery-wide check only tests
-/// `containsKey` on the template's top level. [path] prefixes what is reported,
-/// so a hit names where it is rather than only that there is one.
-Iterable<String> targetKeysIn(Object? node, String path) {
-  const targetKeys = ['token', 'topic', 'condition'];
-  final found = <String>[];
-
-  if (node is Map) {
-    for (final entry in node.entries) {
-      final here = '$path/${entry.key}';
-      if (targetKeys.contains(entry.key)) {
-        found.add(here);
-      }
-      found.addAll(targetKeysIn(entry.value, here));
-    }
-  } else if (node is List) {
-    for (final (index, item) in node.indexed) {
-      found.addAll(targetKeysIn(item, '$path[$index]'));
-    }
-  }
-
-  return found;
-}
-
 void main() {
   group('group J', () {
+    test('every blocked scenario states why, not just that it is blocked', () {
+      // j2 originally had no expectation while j1 and j3 both explained
+      // themselves, so a user looking at j2 alone saw a blocked scenario with no
+      // stated cause. Uniform across the group now.
+      for (final scenario in groupJ) {
+        expect(scenario.expectation, isNotNull, reason: scenario.id);
+        expect(scenario.expectation!.trim(), isNotEmpty, reason: scenario.id);
+      }
+    });
+
     test('offers all three targeting scenarios, in order', () {
       expect(groupJ.map((s) => s.id), [
         'j1_topic',
