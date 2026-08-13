@@ -3,17 +3,19 @@ import 'package:flutter/material.dart';
 import '../sandbox/sandbox_controller.dart';
 import 'form/sections/message_section.dart';
 import 'send_footer.dart';
+import 'send_target_field.dart';
 
 /// Composes a push from a scenario or from scratch, and sends it to this
 /// device.
 ///
 /// Everything on this page is arranged around one rule: what the user needs on
-/// arrival must not be reachable only by scrolling. Nothing sits above the
-/// form, because the gallery that used to open this page lived here too and the
-/// two together were taller than a phone screen, which left no editable field
-/// visible; the gallery now has its own page (`ScenariosView`) and hands off
-/// here with a template already applied, so this page only needs to say which
-/// one. And Send is pinned in a [SendFooter] below the scrolling form rather
+/// arrival must not be reachable only by scrolling. Only the one-line
+/// [SendTargetField] sits above the form, because the gallery that used to open
+/// this page lived here too and the two together were taller than a phone
+/// screen, which left no editable field visible; the gallery now has its own
+/// page (`ScenariosView`) and hands off here with a template already applied, so
+/// this page only needs to say which one. And Send is pinned in a [SendFooter]
+/// below the scrolling form rather
 /// than trailing it, because a form that grows by 27 fields when one section
 /// opens will bury anything placed after it.
 ///
@@ -36,6 +38,8 @@ class SandboxView extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              SendTargetField(controller: controller),
+              const SizedBox(height: 8),
               if (controller.selectedScenario case final scenario?) ...[
                 if (scenario.expectation case final expectation?)
                   Text(expectation),

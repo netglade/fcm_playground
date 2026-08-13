@@ -35,8 +35,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // The outermost stack, which is the shell's: a closed `DropdownButton` builds
+  // an `IndexedStack` of its items, so the Sandbox page's target selector
+  // contributes a second one whenever that page is the visible destination.
+  // Finders walk the tree from the root, so the shell's comes first.
   int? selectedDestination(WidgetTester tester) =>
-      tester.widget<IndexedStack>(find.byType(IndexedStack)).index;
+      tester.widget<IndexedStack>(find.byType(IndexedStack).first).index;
 
   Future<void> scrollIntoView(WidgetTester tester, Finder finder) async {
     await tester.scrollUntilVisible(

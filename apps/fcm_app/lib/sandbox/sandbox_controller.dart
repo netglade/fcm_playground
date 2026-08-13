@@ -37,6 +37,7 @@ class SandboxController extends ChangeNotifier {
 
   bool _validateOnly = false;
   Scenario? _selectedScenario;
+  SendTarget? _target;
   SandboxSendState _state = const SandboxIdle();
 
   /// The message being composed, edited directly by the page's sections.
@@ -52,8 +53,21 @@ class SandboxController extends ChangeNotifier {
   /// Where the last send got to.
   SandboxSendState get state => _state;
 
+  /// Who to send to, or null for this device.
+  ///
+  /// Null rather than a resolved [TokenTarget], because the device's token can
+  /// change under us — it is read at send time, not when the choice is made.
+  SendTarget? get target => _target;
+
   /// Why Send cannot be pressed, or null when it can.
   String? get sendBlockedReason {
+    // A kind is chosen before its value is typed, so a half-filled target is a
+    // normal state of the form rather than a mistake — but sending it would
+    // deliver to the wrong audience or fail at the API, and `readFrom` draws
+    // the line at `trim()`, so this draws it in the same place.
+    if (_isTargetBlank) {
+      return 'Fill in the delivery target, or switch back to this device.';
+    }
     if (_token() == null) {
       return 'No registration token yet, so there is nowhere to send.';
     }
@@ -79,6 +93,12 @@ class SandboxController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Chooses an audience, or null to go back to this device.
+  void setTarget(SendTarget? target) {
+    _target = target;
+    notifyListeners();
+  }
+
   /// Replaces every field in [form] with [scenario]'s template.
   ///
   /// Replaces rather than merges: `readFrom` writes all of the template's
@@ -87,14 +107,19 @@ class SandboxController extends ChangeNotifier {
   void applyScenario(Scenario scenario) {
     _selectedScenario = scenario;
     _form.readFrom(FcmMessage.fromJson(scenario.payloadTemplate));
+    // Unconditionally, including back to null: a target the previous scenario
+    // chose would silently broadcast the next one.
+    _target = scenario.target;
     notifyListeners();
   }
 
-  /// Sends the form's message to this device, using the current [validateOnly]
-  /// flag.
+  /// Sends the form's message to the chosen [target], or to this device when
+  /// none was chosen, using the current [validateOnly] flag.
   Future<void> send() async {
     final token = _token();
-    if (token == null || _form.isNotValid || _state is SandboxSending) {
+    // Refuses exactly what Send is disabled for, so calling this directly
+    // cannot post a target the page would not let the user send.
+    if (token == null || !canSend) {
       return;
     }
 
@@ -107,7 +132,7 @@ class SandboxController extends ChangeNotifier {
     try {
       final response = await _sender.send(
         SendMessageRequest(
-          target: TokenTarget(token),
+          target: _target ?? TokenTarget(token),
           message: message,
           validateOnly: _validateOnly,
         ),
@@ -126,6 +151,15 @@ class SandboxController extends ChangeNotifier {
     }
     super.dispose();
   }
+
+  /// Whether a target was chosen but its value is still missing.
+  bool get _isTargetBlank => switch (_target) {
+    TokenTarget(:final token) => token.trim().isEmpty,
+    TopicTarget(:final topic) => topic.trim().isEmpty,
+    ConditionTarget(:final condition) => condition.trim().isEmpty,
+    // Null is this device, and all-devices carries nothing to fill in.
+    null || AllDevicesTarget() => false,
+  };
 
   void _onFormChanged() {
     // An edit invalidates the previous result: a stale "✓ Sent" beside a changed

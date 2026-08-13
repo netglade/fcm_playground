@@ -101,6 +101,75 @@ void main() {
       expect(sender.sent.single.validateOnly, isFalse);
     });
 
+    test('sends to this device when no target is chosen', () async {
+      final controller = controllerWith();
+
+      await controller.send();
+
+      expect(controller.target, isNull);
+      expect(sender.sent.single.target, const TokenTarget('device-token'));
+    });
+
+    test('sends to the chosen target instead of this device', () async {
+      final controller = controllerWith();
+
+      controller.setTarget(const TopicTarget('news'));
+      await controller.send();
+
+      expect(sender.sent.single.target, const TopicTarget('news'));
+    });
+
+    test('takes the target from an applied scenario, and drops it again', () {
+      final controller = controllerWith();
+
+      controller.applyScenario(
+        scenarioGallery.firstWhere((scenario) => scenario.id == 'j2_condition'),
+      );
+
+      expect(
+        controller.target,
+        const ConditionTarget("'news' in topics && 'beta' in topics"),
+      );
+
+      controller.applyScenario(
+        scenarioGallery.firstWhere(
+          (scenario) => scenario.id == 'a1_notification_only',
+        ),
+      );
+
+      // A target left behind by the previous scenario would broadcast the next
+      // one, which is the failure `FcmMessage` refuses to make possible.
+      expect(controller.target, isNull);
+    });
+
+    test('blocks Send with a reason when the chosen target is blank', () {
+      final controller = controllerWith()..setTarget(const TopicTarget(''));
+
+      expect(controller.canSend, isFalse);
+      expect(controller.sendBlockedReason, contains('delivery target'));
+    });
+
+    test('treats a whitespace-only target as blank', () {
+      // The API's own reader rejects a blank target on `trim()`, so accepting
+      // spaces here would only move the refusal to a 400.
+      final controller = controllerWith()..setTarget(const TokenTarget('   '));
+
+      expect(controller.canSend, isFalse);
+      expect(controller.sendBlockedReason, contains('delivery target'));
+    });
+
+    test(
+      'refuses to send a blank target, without calling the sender',
+      () async {
+        final controller = controllerWith()
+          ..setTarget(const ConditionTarget(''));
+
+        await controller.send();
+
+        expect(sender.sent, isEmpty);
+      },
+    );
+
     test('sends what was edited after a scenario was applied', () async {
       // The behaviour the whole form exists for: a scenario is a starting point,
       // not the payload. Asserted on the posted JSON, because that is the only

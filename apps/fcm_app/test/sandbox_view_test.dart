@@ -1,6 +1,7 @@
 import 'package:fcm_app/sandbox/notification_send_exception.dart';
 import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/ui/sandbox_view.dart';
+import 'package:fcm_app/ui/send_target_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
@@ -63,6 +64,21 @@ void main() {
     ]) {
       expect(find.text(block), findsOne);
     }
+  });
+
+  testWidgets('asks who to send to before anything else', (tester) async {
+    // Where a send goes matters more than what it says, and it is the one
+    // choice that cannot be corrected by reading the payload back, so it heads
+    // the page rather than trailing the 27 fields of `android.notification`.
+    build();
+
+    await pump(tester);
+
+    expect(find.byType(SendTargetField).hitTestable(), findsOne);
+    expect(
+      tester.getTopLeft(find.byType(SendTargetField)).dy,
+      lessThan(tester.getTopLeft(find.byType(CheckboxListTile)).dy),
+    );
   });
 
   testWidgets('a field edited on arrival reaches the model', (tester) async {
