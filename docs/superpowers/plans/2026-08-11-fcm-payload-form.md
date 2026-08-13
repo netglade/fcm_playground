@@ -1628,6 +1628,41 @@ children, and their children — and whoever renders the form listens to all of 
 Listening to the root alone would leave a change three levels down invisible: the
 value would be in the model and not on the screen, which is worse than either.
 
+**Compose it per level, exactly as `isValid` is composed**, so the root cannot miss
+a level. Each form that owns subforms gains:
+
+```dart
+  @override
+  List<GladeModelBase> get allModels => [
+    this,
+    ...notification.allModels,
+    ...fcmOptions.allModels,
+  ];
+```
+
+and each leaf form gains `List<GladeModelBase> get allModels => [this]`. Spelling
+the whole ten-model tree out at the root instead would mean that adding a subform
+anywhere later requires remembering to also register it at the root — and a
+forgotten one is invisible in tests and shows up only as an on-screen value that
+will not change. That is the same failure Task 5 fixed in the row editors, so do not
+reintroduce its shape here. Adding `allModels` to the Task 6–10 forms is part of
+this task.
+
+Include a test that the traversal really reaches the bottom: `allModels` must
+contain `android.notification.lightSettings`, three levels down. Counting the models
+is fine too, but the deep-containment assertion is what would actually catch a
+missed level.
+
+**Considered and rejected: `GladeComposedModel`.** The package ships one, and it
+does compose `isValid` across child models and wire `addListener(notifyListeners)`
+so a child's change propagates to the parent — which would have removed the need for
+the page to hold nine listeners. It does not fit: it extends `GladeModelBase`, not
+`GladeModel`, so it has **no `inputs` of its own**, and every nesting form here is
+mixed — `AndroidConfigForm` has six inputs *and* two subforms, the root has `data`
+*and* five subforms. Restructuring all five nesting forms to separate their inputs
+from their children, mid-plan, would buy nothing a correct `allModels` does not
+already give. Recorded so the choice is not revisited by accident.
+
 **The gallery invariant lands here**, and it is this plan's counterpart to the
 contract plan's round-trip test:
 
