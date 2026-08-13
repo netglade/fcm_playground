@@ -1711,6 +1711,44 @@ ten section files, not eight.
 Rules that bite here: **no `Widget _buildFoo()`** (build inline with
 collection-`for`), one widget per file, and every text field binds
 `controller: form.x.controller` with `validator: form.x.formFieldValidator`.
+Both members exist on `GladeInput` in 6.0.0 — verified, `controller` at
+glade_input.dart:94 and `formFieldValidator` at :385. `controller` is nullable, so
+a `!` or a null check is needed where the input was built with
+`useTextEditingController`.
+
+**`source-lines-of-code: 50` applies here and it is a real constraint, because
+`ui/form/sections/**` is NOT in `metrics-exclude` — only `sandbox/forms/**` is.**
+`AndroidNotificationSection` renders 27 fields, and the two obvious escapes are both
+fatal rules: `Widget _buildFoo()` helpers trip `avoid-returning-widgets`, and a
+second widget in the file trips `prefer-single-widget-per-file`. So write the fields
+as **data, iterated** rather than as 27 spelled-out widgets — a private top-level
+list of `(String label, GladeStringInput input)` records per control family, then one
+collection-`for` per family:
+
+```dart
+    for (final (label, input) in _texts(form))
+      TextFormField(
+        controller: input.controller,
+        validator: input.formFieldValidator,
+        decoration: InputDecoration(labelText: label),
+      ),
+    for (final (label, input) in _flags(form))
+      TristateField(label: label, input: input),
+```
+
+That collapses 27 fields into four loops, keeps `build` well inside the limit, and
+has the side benefit that a field cannot be bound to the wrong label by a copy-paste
+slip. If a section still exceeds 50 SLOC after this, the resolution is to add
+`apps/fcm_app/lib/ui/form/sections/**` to `metrics-exclude` with a justification
+comment matching the two already there — **not** to reintroduce a `_build` helper or
+a second widget. Say which you did and why.
+
+The controls' constructors, for reference: `TristateField({label, input})`,
+`EnumField<E>({label, input, values, labelOf})`, `StringMapRows({label, value,
+onChanged})`, `StringListRows({label, value, onChanged})`, `PathRowsField({label,
+value, onChanged})`. The three row editors are uncontrolled in glade's sense — they
+take a whole collection as `value` and hand a whole collection back through
+`onChanged`, so wire them as `value: form.x.value, onChanged: form.x.updateValue`.
 
 Tests, at the level that is worth testing in a widget: each section renders
 collapsed; expanding `android` reveals its fields and its nested `notification`
