@@ -132,13 +132,27 @@ void main() {
       expect(subject.isValid, isTrue);
     });
 
-    test('round-trips the apns_alert scenario payload', () {
+    test('round-trips an alert payload read out of a whole message', () {
       // The reason the dotted-path work exists: a real nested aps dictionary,
-      // from the gallery rather than from a fixture written to pass.
-      final scenario = scenarioGallery.firstWhere(
-        (scenario) => scenario.id == 'apns_alert',
-      );
-      final source = FcmMessage.fromJson(scenario.payloadTemplate).apns!;
+      // reached the way the Sandbox reaches it — through FcmMessage.fromJson
+      // rather than ApnsConfig.fromJson. Group A carries no APNs scenario, so
+      // the template is inline until g4_badge_ios exists to source it from.
+      const template = {
+        'apns': {
+          'headers': {'apns-priority': '10'},
+          'payload': {
+            'aps': {
+              'alert': {
+                'title': 'Build finished',
+                'body': 'Release 1.0.0 is ready.',
+              },
+              'badge': 1,
+              'sound': 'default',
+            },
+          },
+        },
+      };
+      final source = FcmMessage.fromJson(template).apns!;
       final subject = form();
 
       subject.readFrom(source);

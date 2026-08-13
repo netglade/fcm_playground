@@ -134,14 +134,11 @@ void main() {
     await openDrawer(tester);
     await tester.tap(find.text('Scenarios'));
     await tester.pumpAndSettle();
-    final dataOnly = scenarioGallery.firstWhere((s) => s.id == 'data_only');
+    final dataOnly = scenarioGallery.firstWhere((s) => s.id == 'a2_data_only');
 
-    // Reaching a later group is a scroll within the gallery's own page,
-    // unrelated to the bug this change fixes: that was the editor on the
+    // Reaching a scenario below the first is a scroll within the gallery's own
+    // page, unrelated to the bug this change fixes: that was the editor on the
     // *Sandbox* page sitting below the fold with nothing above it.
-    await scrollIntoView(tester, find.text(dataOnly.group));
-    await tester.tap(find.text(dataOnly.group));
-    await tester.pumpAndSettle();
     await scrollIntoView(tester, find.text(dataOnly.title));
     await tester.tap(find.text(dataOnly.title));
     await tester.pumpAndSettle();

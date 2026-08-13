@@ -6,7 +6,7 @@ import '../sandbox/sandbox_controller.dart';
 /// The gallery of message-payload templates, grouped by the facet of FCM
 /// each one demonstrates.
 ///
-/// One [ExpansionTile] per group keeps all nine templates reachable from a
+/// One [ExpansionTile] per group keeps every template reachable from a
 /// single page; only the first group starts open, so the page is still short
 /// on arrival. A scenario is a starting point rather than a fixed payload, so
 /// tapping its title applies it to [controller] and the text stays editable

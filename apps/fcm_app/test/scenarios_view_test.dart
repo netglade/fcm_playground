@@ -86,14 +86,12 @@ void main() {
   testWidgets('applies the tapped scenario to the controller', (tester) async {
     build();
     await pump(tester);
-    final dataOnly = scenarioGallery.firstWhere((s) => s.id == 'data_only');
+    final dataOnly = scenarioGallery.firstWhere((s) => s.id == 'a2_data_only');
 
-    // Reaching a later group is a scroll within the gallery's own page,
-    // which is unrelated to the bug this change fixes: that was the editor
-    // on the *Sandbox* page sitting below the fold with nothing above it.
-    await scrollIntoView(tester, find.text(dataOnly.group));
-    await tester.tap(find.text(dataOnly.group));
-    await tester.pumpAndSettle();
+    // Reaching a scenario below the first is a scroll within the gallery's own
+    // page, which is unrelated to the bug this change fixes: that was the
+    // editor on the *Sandbox* page sitting below the fold with nothing above
+    // it.
     await scrollIntoView(tester, find.text(dataOnly.title));
     await tester.tap(find.text(dataOnly.title));
     await tester.pumpAndSettle();

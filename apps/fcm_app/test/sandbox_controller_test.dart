@@ -47,18 +47,18 @@ void main() {
     test('replaces the fields when another scenario is applied', () {
       final controller = controllerWith();
       final dataOnly = scenarioGallery.firstWhere(
-        (scenario) => scenario.id == 'data_only',
+        (scenario) => scenario.id == 'a2_data_only',
       );
 
       controller.applyScenario(dataOnly);
 
-      expect(controller.selectedScenario?.id, 'data_only');
+      expect(controller.selectedScenario?.id, 'a2_data_only');
       expect(
         controller.form.toModel(),
         FcmMessage.fromJson(dataOnly.payloadTemplate),
       );
-      // data_only has no notification block, so the first scenario's title must
-      // be gone rather than merged into the new payload.
+      // a2_data_only has no notification block, so the first scenario's title
+      // must be gone rather than merged into the new payload.
       expect(controller.form.notification.title.value, isEmpty);
     });
 
@@ -115,7 +115,6 @@ void main() {
         'notification': {
           'title': 'Edited by hand',
           'body': 'Release 1.0.0 is ready.',
-          'image': 'https://picsum.photos/600/300',
         },
         'android': {
           'notification': {'color': '#ff0000'},
