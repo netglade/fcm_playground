@@ -1225,11 +1225,14 @@ const groupC = <Scenario>[
 
 ### Task 7: Group D — Channels and importance
 
-All eight need `ScenarioNeed.channels`. **Also re-point** any test still using
-`a1_notification_only` as a stand-in for the old `custom_channel` id: it becomes
-`d1_importance_high`. Find them with
-`grep -rn 'a1_notification_only' apps --include=*.dart` and check each against
-Task 4's mapping table.
+All eight need `ScenarioNeed.channels`.
+
+**The `custom_channel` stand-in turned out to be a no-op**, verified on Task 7
+against history: the legacy id existed only as a gallery entry in the old
+`scenario.dart` and was never referenced by a test, so Task 4 had nothing to
+re-point and neither does this task. Checked with
+`git grep custom_channel 3cc6091^ -- '*.dart'`. The `apns_alert` stand-in was real
+and is Task 10's to resolve.
 
 Group-specific assertions:
 
@@ -1240,7 +1243,11 @@ Group-specific assertions:
       }
     });
 
-    test('each names a distinct channel, since that is the variable', () {
+    test('each names a distinct, non-blank channel — that is the variable', () {
+      // Set-uniqueness alone is NOT enough: an entry that omitted channel_id
+      // contributes null, and a lone null is as "distinct" as any string, so the
+      // test would pass while one of the eight named no channel at all — the one
+      // defect this group cannot tolerate.
       final channels = groupD
           .map(
             (s) =>
@@ -1249,16 +1256,27 @@ Group-specific assertions:
           )
           .toList();
 
+      for (final channel in channels) {
+        expect(channel, isA<String>());
+        expect(channel, isNotEmpty);
+      }
       expect(channels.toSet(), hasLength(channels.length));
     });
 
-    test('the immutability scenario is versioned, which is its whole point', () {
+    test('d7 states that Android ignores the change, and names the fix', () {
+      // NOT "the immutability scenario is versioned": d7's own channel is
+      // deliberately chat_v1, the UNversioned one — d8 is the versioned one — so
+      // that name would be false. And contains('ignore') alone is satisfied by
+      // prose meaning the opposite ("do not ignore"), while contains('_v2')
+      // matches any token ending _v2 including a typo'd channel id.
       final immutable = groupD.firstWhere(
         (s) => s.id == 'd7_channel_immutability',
       );
 
-      expect(immutable.description, contains('ignore'));
-      expect(immutable.expectation, contains('_v2'));
+      expect(channelIdOf(immutable), 'chat_v1');
+      expect(immutable.description, contains('ignore the change'));
+      expect(immutable.expectation, contains('chat_v2'));
+      expect(channelIdOf(groupD.last), 'chat_v2', reason: 'the fix d7 names');
     });
 ```
 
