@@ -3,10 +3,13 @@ import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/ui/sandbox_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:glade_forms/glade_forms.dart';
 
 import 'fake_notification_sender.dart';
 
 void main() {
+  setUpAll(GladeForms.initialize);
+
   late FakeNotificationSender sender;
   late SandboxController controller;
 
@@ -27,26 +30,33 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Brings Send into view.
+  ///
+  /// The open root section is taller than the viewport, so Send now sits below
+  /// the fold and a lazily-built `ListView` has not created it yet. Scrolling for
+  /// the *button* is fine — the defect these tests guard is an uneditable page on
+  /// arrival, and the form's own first section is on screen without this.
+  Future<void> scrollToSend(WidgetTester tester) async {
+    await tester.scrollUntilVisible(
+      find.byType(FilledButton),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+  }
+
   tearDown(() => controller.dispose());
 
-  testWidgets('shows the editor without scrolling, on arrival', (tester) async {
-    build();
-
-    await pump(tester);
-
-    // The reported bug was that no editable field was on screen. This is the
-    // regression test for it: found with no scroll helper of any kind.
-    expect(find.byType(TextField), findsOne);
-  });
-
-  testWidgets('opens with the first scenario\'s payload in the editor', (
+  testWidgets('shows the payload form without scrolling, on arrival', (
     tester,
   ) async {
     build();
 
     await pump(tester);
 
-    expect(find.textContaining('"notification"'), findsOne);
+    // The reported bug was that no editable surface was on screen. This is the
+    // regression test for it: found with no scroll helper of any kind.
+    expect(find.text('message'), findsOne);
   });
 
   testWidgets('names the loaded scenario in the header', (tester) async {
@@ -57,39 +67,27 @@ void main() {
     expect(find.text(controller.selectedScenario!.title), findsOne);
   });
 
-  testWidgets('renders a parse error and disables Send', (tester) async {
+  testWidgets('disables Send while a field is invalid', (tester) async {
     build();
     await pump(tester);
 
-    await tester.enterText(find.byType(TextField), '{not json');
+    controller.form.android.ttl.updateValue('later');
     await tester.pumpAndSettle();
+    await scrollToSend(tester);
 
-    expect(find.textContaining('FormatException'), findsNothing);
     expect(
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
       isNull,
     );
   });
 
-  testWidgets('names the offending field for an unknown key', (tester) async {
-    build();
-    await pump(tester);
-
-    await tester.enterText(
-      find.byType(TextField),
-      '{"notification": {"titel": "typo"}}',
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('unknown field "titel"'), findsOne);
-  });
-
   testWidgets('sends the edited payload', (tester) async {
     build();
     await pump(tester);
 
-    await tester.enterText(find.byType(TextField), '{"data": {"a": "b"}}');
+    controller.form.data.updateValue({'a': 'b'});
     await tester.pumpAndSettle();
+    await scrollToSend(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -102,6 +100,7 @@ void main() {
 
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
+    await scrollToSend(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -113,6 +112,7 @@ void main() {
     build();
     await pump(tester);
 
+    await scrollToSend(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
@@ -124,6 +124,7 @@ void main() {
     build(token: null);
 
     await pump(tester);
+    await scrollToSend(tester);
 
     expect(find.textContaining('token'), findsAtLeast(1));
     expect(
@@ -136,12 +137,13 @@ void main() {
     build(failure: const NotificationSendException('The API is unreachable'));
     await pump(tester);
 
-    await tester.enterText(find.byType(TextField), '{"data": {"kept": "yes"}}');
+    controller.form.data.updateValue({'kept': 'yes'});
     await tester.pumpAndSettle();
+    await scrollToSend(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
     expect(find.text('The API is unreachable'), findsOne);
-    expect(find.textContaining('kept'), findsOne);
+    expect(controller.form.data.value, {'kept': 'yes'});
   });
 }

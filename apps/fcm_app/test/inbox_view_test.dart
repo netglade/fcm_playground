@@ -3,6 +3,7 @@ import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:glade_forms/glade_forms.dart';
 
 import 'fake_notification_sender.dart';
 import 'fake_push_source.dart';
@@ -16,6 +17,8 @@ Map<String, Object?> payload({String id = 'msg-1'}) => {
 };
 
 void main() {
+  setUpAll(GladeForms.initialize);
+
   late FakePushSource source;
   late PushInbox inbox;
   late SandboxController sandbox;

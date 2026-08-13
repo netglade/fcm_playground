@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../sandbox/sandbox_controller.dart';
-import 'payload_editor.dart';
+import 'form/sections/message_section.dart';
 import 'send_result_card.dart';
 
 /// Composes a push from a scenario or from scratch, and sends it to this
@@ -48,21 +48,7 @@ class SandboxView extends StatelessWidget {
           onChanged: (value) => controller.setValidateOnly(value ?? false),
         ),
         const SizedBox(height: 8),
-        // Keyed on the revision so loading a scenario rebuilds the field from
-        // the new draft; typing leaves the revision alone and the cursor
-        // with it.
-        PayloadEditor(
-          key: ValueKey(controller.scenarioRevision),
-          controller: controller,
-        ),
-        if (controller.parseError case final error?)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              error,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ),
+        MessageSection(form: controller.form),
         const SizedBox(height: 24),
         FilledButton.icon(
           onPressed: controller.canSend ? controller.send : null,

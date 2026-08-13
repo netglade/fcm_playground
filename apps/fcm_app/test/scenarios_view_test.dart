@@ -3,10 +3,13 @@ import 'package:fcm_app/ui/scenarios_view.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:glade_forms/glade_forms.dart';
 
 import 'fake_notification_sender.dart';
 
 void main() {
+  setUpAll(GladeForms.initialize);
+
   late SandboxController controller;
   late int selectedCount;
 

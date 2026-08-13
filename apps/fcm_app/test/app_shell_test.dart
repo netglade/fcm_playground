@@ -4,11 +4,14 @@ import 'package:fcm_app/ui/fcm_sample_app.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:glade_forms/glade_forms.dart';
 
 import 'fake_notification_sender.dart';
 import 'fake_push_source.dart';
 
 void main() {
+  setUpAll(GladeForms.initialize);
+
   late FakePushSource source;
   late PushInbox inbox;
   late SandboxController sandbox;
@@ -137,6 +140,6 @@ void main() {
     expect(selectedDestination(tester), 2);
     expect(find.widgetWithText(AppBar, 'Sandbox'), findsOne);
     expect(sandbox.selectedScenario?.id, dataOnly.id);
-    expect(find.textContaining('"event"'), findsOne);
+    expect(sandbox.form.data.value, dataOnly.payloadTemplate['data']);
   });
 }

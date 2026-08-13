@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:glade_forms/glade_forms.dart';
 import 'package:http/http.dart' as http;
 
 import 'firebase_options.dart';
@@ -17,6 +18,9 @@ import 'ui/fcm_sample_app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Every GladeModel built below — the whole payload form — depends on this
+  // having run, and it has to run exactly once, before the first one exists.
+  GladeForms.initialize();
 
   PushSource source = const DisabledPushSource();
   String? setupError;

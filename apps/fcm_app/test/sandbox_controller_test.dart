@@ -1,14 +1,18 @@
-import 'dart:convert';
-
 import 'package:fcm_app/sandbox/notification_send_exception.dart';
 import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/sandbox/sandbox_send_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:glade_forms/glade_forms.dart';
 
 import 'fake_notification_sender.dart';
 
 void main() {
+  // The controller builds a GladeModel in its constructor, so the library has
+  // to be initialized before the first one is created.
+  setUpAll(GladeForms.initialize);
+
   late FakeNotificationSender sender;
 
   SandboxController controllerWith({
@@ -16,8 +20,10 @@ void main() {
     FakeNotificationSender? withSender,
   }) {
     sender = withSender ?? FakeNotificationSender();
+    final controller = SandboxController(sender: sender, token: () => token);
+    addTearDown(controller.dispose);
 
-    return SandboxController(sender: sender, token: () => token);
+    return controller;
   }
 
   group('SandboxController', () {
@@ -25,22 +31,20 @@ void main() {
       final controller = controllerWith();
 
       expect(controller.selectedScenario?.id, scenarioGallery.first.id);
-      expect(controller.parseError, isNull);
-      expect(controller.parsedMessage, isNotNull);
+      expect(controller.form.isValid, isTrue);
       expect(controller.canSend, isTrue);
     });
 
-    test('writes the template into the editor as indented JSON', () {
+    test('reads the first scenario into the form', () {
       final controller = controllerWith();
 
-      expect(controller.payloadText, contains('\n'));
       expect(
-        jsonDecode(controller.payloadText),
-        scenarioGallery.first.payloadTemplate,
+        controller.form.toModel(),
+        FcmMessage.fromJson(scenarioGallery.first.payloadTemplate),
       );
     });
 
-    test('replaces the editor when another scenario is applied', () {
+    test('replaces the fields when another scenario is applied', () {
       final controller = controllerWith();
       final dataOnly = scenarioGallery.firstWhere(
         (scenario) => scenario.id == 'data_only',
@@ -49,64 +53,36 @@ void main() {
       controller.applyScenario(dataOnly);
 
       expect(controller.selectedScenario?.id, 'data_only');
-      expect(jsonDecode(controller.payloadText), dataOnly.payloadTemplate);
-    });
-
-    test('bumps the revision on a scenario so the field can be rebuilt', () {
-      final controller = controllerWith();
-      final before = controller.scenarioRevision;
-
-      controller.applyScenario(scenarioGallery.last);
-
-      expect(controller.scenarioRevision, greaterThan(before));
-    });
-
-    test('does not bump the revision on an ordinary edit', () {
-      final controller = controllerWith();
-      final before = controller.scenarioRevision;
-
-      controller.editPayload('{"data": {"a": "b"}}');
-
-      expect(controller.scenarioRevision, before);
-    });
-
-    test('reports text that is not JSON and blocks Send', () {
-      final controller = controllerWith();
-
-      controller.editPayload('{not json');
-
-      expect(controller.parseError, isNotNull);
-      expect(controller.parsedMessage, isNull);
-      expect(controller.canSend, isFalse);
-    });
-
-    test('reports an unknown field with its path', () {
-      final controller = controllerWith();
-
-      controller.editPayload('{"notification": {"titel": "typo"}}');
-
-      expect(controller.parseError, contains('unknown field "titel"'));
-    });
-
-    test('reports a template that sets its own target', () {
-      final controller = controllerWith();
-
-      controller.editPayload('{"token": "mine"}');
-
       expect(
-        controller.parseError,
-        contains('the server sets the delivery target'),
+        controller.form.toModel(),
+        FcmMessage.fromJson(dataOnly.payloadTemplate),
       );
+      // data_only has no notification block, so the first scenario's title must
+      // be gone rather than merged into the new payload.
+      expect(controller.form.notification.title.value, isEmpty);
     });
 
-    test('accepts a payload that is valid again after being broken', () {
-      final controller = controllerWith()..editPayload('{oops');
+    test('blocks Send with an actionable reason when a field is invalid', () {
+      final controller = controllerWith();
 
-      controller.editPayload('{"data": {"a": "b"}}');
+      controller.form.android.ttl.updateValue('later');
 
-      expect(controller.parseError, isNull);
-      expect(controller.parsedMessage?.data, {'a': 'b'});
+      expect(controller.form.isValid, isFalse);
+      expect(controller.canSend, isFalse);
+      expect(controller.sendBlockedReason, contains('invalid'));
     });
+
+    test(
+      'refuses to send an invalid form, without calling the sender',
+      () async {
+        final controller = controllerWith();
+
+        controller.form.android.ttl.updateValue('later');
+        await controller.send();
+
+        expect(sender.sent, isEmpty);
+      },
+    );
 
     test('blocks Send with a reason when there is no token', () {
       final controller = controllerWith(token: null);
@@ -115,15 +91,36 @@ void main() {
       expect(controller.sendBlockedReason, contains('token'));
     });
 
-    test('sends the parsed message with the device token', () async {
-      final controller = controllerWith()
-        ..editPayload('{"data": {"event": "manual"}}');
+    test('sends the form\'s message with the device token', () async {
+      final controller = controllerWith();
 
       await controller.send();
 
       expect(sender.sent.single.token, 'device-token');
-      expect(sender.sent.single.message.data, {'event': 'manual'});
+      expect(sender.sent.single.message, controller.form.toModel());
       expect(sender.sent.single.validateOnly, isFalse);
+    });
+
+    test('sends what was edited after a scenario was applied', () async {
+      // The behaviour the whole form exists for: a scenario is a starting point,
+      // not the payload. Asserted on the posted JSON, because that is the only
+      // place where a field lost between the input and the wire would show.
+      final controller = controllerWith();
+
+      controller.form.notification.title.updateValue('Edited by hand');
+      controller.form.android.notification.color.updateValue('#ff0000');
+      await controller.send();
+
+      expect(sender.sent.single.message.toJson(), {
+        'notification': {
+          'title': 'Edited by hand',
+          'body': 'Release 1.0.0 is ready.',
+          'image': 'https://picsum.photos/600/300',
+        },
+        'android': {
+          'notification': {'color': '#ff0000'},
+        },
+      });
     });
 
     test('sends validate_only when the flag is set', () async {
@@ -147,28 +144,63 @@ void main() {
       );
     });
 
-    test(
-      'refuses to send unparseable text, without calling the sender',
-      () async {
-        final controller = controllerWith()..editPayload('{oops');
-
-        await controller.send();
-
-        expect(sender.sent, isEmpty);
-      },
-    );
-
-    test('lands on Failed and keeps the text when the send fails', () async {
+    test('lands on Failed and keeps the form\'s contents', () async {
       final controller = controllerWith(
         withSender: FakeNotificationSender(
           failure: const NotificationSendException('The API is unreachable'),
         ),
-      )..editPayload('{"data": {"kept": "yes"}}');
+      );
 
+      controller.form.data.updateValue({'kept': 'yes'});
       await controller.send();
 
       expect(controller.state, isA<SandboxFailed>());
-      expect(controller.payloadText, contains('kept'));
+      expect(controller.form.data.value, {'kept': 'yes'});
+    });
+
+    test('drops a stale result when the payload changes', () async {
+      final controller = controllerWith();
+      await controller.send();
+      expect(controller.state, isA<SandboxSent>());
+
+      controller.form.notification.title.updateValue('Changed since');
+
+      expect(controller.state, isA<SandboxIdle>());
+    });
+
+    test('re-notifies for a change three levels down', () {
+      // What proves the allModels wiring is live: android.notification.color is
+      // owned by AndroidNotificationForm, whose notification never reaches the
+      // root, so a listener on the root form alone would miss this entirely.
+      final controller = controllerWith();
+      var notifications = 0;
+      controller.addListener(() => notifications++);
+
+      controller.form.android.notification.color.updateValue('#123456');
+
+      expect(notifications, greaterThan(0));
+    });
+
+    test('stops listening to every model on dispose', () {
+      // Eleven models, one listener each. An un-removed listener notifies a
+      // disposed ChangeNotifier, which asserts — but ChangeNotifier catches what
+      // a listener throws and reports it to FlutterError instead of rethrowing,
+      // so the reported errors are what has to be watched rather than the call.
+      final controller = SandboxController(
+        sender: FakeNotificationSender(),
+        token: () => 'device-token',
+      );
+      final form = controller.form;
+      controller.dispose();
+
+      final reported = <FlutterErrorDetails>[];
+      final previousOnError = FlutterError.onError;
+      FlutterError.onError = reported.add;
+      addTearDown(() => FlutterError.onError = previousOnError);
+
+      form.android.notification.color.updateValue('#123456');
+
+      expect(reported, isEmpty);
     });
   });
 }
