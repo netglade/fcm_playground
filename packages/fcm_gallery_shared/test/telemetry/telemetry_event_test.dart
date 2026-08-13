@@ -125,10 +125,20 @@ void main() {
     expect(local.at.isUtc, isTrue);
     expect(local.toJson()['at'], endsWith('Z'));
 
-    // And it is the same instant, not the same wall clock: reinterpreting
-    // 09:30 local as 09:30 UTC would satisfy both assertions above while
-    // shifting the event by the offset, which is the very error being avoided.
-    expect(local.at, DateTime(2026, 8, 13, 9, 30).toUtc());
+    // And it is the same INSTANT, not the same wall clock. Reinterpreting 09:30
+    // local as 09:30 UTC satisfies both assertions above — measured: both are
+    // isUtc, both serialise with Z, and they are two hours apart on a CEST
+    // machine — which is exactly the error this field exists to prevent.
+    //
+    // Compared as epoch milliseconds because that states the invariant directly:
+    // toUtc() changes the representation and preserves the instant, while a
+    // wall-clock reinterpretation does the opposite.
+    //
+    // Inherent limit, stated rather than hidden: at offset zero the two are the
+    // same value, so this cannot discriminate in a UTC environment. Nothing can —
+    // the bug is unobservable there. The isUtc and Z assertions carry it instead.
+    final input = DateTime(2026, 8, 13, 9, 30);
+    expect(local.at.millisecondsSinceEpoch, input.millisecondsSinceEpoch);
   });
 
   test('omits the optional fields rather than writing null', () {
