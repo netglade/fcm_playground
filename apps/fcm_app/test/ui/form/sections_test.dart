@@ -37,34 +37,46 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('starts collapsed, so the payload is not a wall of fields', (
+  testWidgets("shows FCM's five blocks on arrival, with no field revealed", (
     tester,
   ) async {
+    // The root starts open and its children start closed. Both halves matter:
+    // a wall of fields was the original defect, and one closed tile hiding the
+    // whole payload would be no better and would hide its shape too.
     await pump(tester);
 
     expect(find.text('message'), findsOne);
-    expect(find.text('android'), findsNothing);
-    expect(find.byType(TextFormField), findsNothing);
-  });
-
-  testWidgets("expanding the root reveals each of FCM's five blocks", (
-    tester,
-  ) async {
-    await pump(tester);
-    await expand(tester, 'message');
-
     expect(find.text('notification'), findsOne);
     expect(find.text('android'), findsOne);
     expect(find.text('apns'), findsOne);
     expect(find.text('webpush'), findsOne);
     expect(find.text('fcm_options'), findsOne);
+    expect(find.byType(TextFormField), findsNothing);
+  });
+
+  testWidgets('the blocks are reachable without scrolling the page', (
+    tester,
+  ) async {
+    // The defect that started this line of work was an editor sitting below the
+    // fold and never mounting, so a scroll helper was needed to reach it. Every
+    // top-level block must be hit-testable straight after a pump.
+    await pump(tester);
+
+    for (final block in const [
+      'notification',
+      'android',
+      'apns',
+      'webpush',
+      'fcm_options',
+    ]) {
+      expect(tester.getRect(find.text(block).first).top, lessThan(600));
+    }
   });
 
   testWidgets('expanding android reveals its fields and its nested sections', (
     tester,
   ) async {
     await pump(tester);
-    await expand(tester, 'message');
     await expand(tester, 'android');
 
     expect(find.text('collapse_key'), findsOne);
@@ -81,7 +93,6 @@ void main() {
     tester,
   ) async {
     await pump(tester);
-    await expand(tester, 'message');
     await expand(tester, 'android');
 
     expect(find.byIcon(Icons.error_outline), findsNothing);
@@ -96,11 +107,11 @@ void main() {
     form.android.notification.color.updateValue('blue');
 
     await pump(tester);
-    expect(find.byIcon(Icons.error_outline), findsOne);
 
-    await expand(tester, 'message');
+    // The root and android, both visible on arrival, before anything is opened.
     expect(find.byIcon(Icons.error_outline), findsNWidgets(2));
 
+    // Opening android reveals the notification block carrying the bad field.
     await expand(tester, 'android');
     expect(find.byIcon(Icons.error_outline), findsNWidgets(3));
   });
@@ -111,7 +122,6 @@ void main() {
     form.android.ttl.updateValue('later');
 
     await pump(tester);
-    await expand(tester, 'message');
 
     // android and the root; the notification block below it stays clean.
     expect(find.byIcon(Icons.error_outline), findsNWidgets(2));
@@ -123,7 +133,6 @@ void main() {
     form.android.notification.lightSettings.red.updateValue(2.5);
 
     await pump(tester);
-    await expand(tester, 'message');
     await expand(tester, 'android');
     // The second 'notification' header is android's, not the message's.
     await expand(tester, 'notification', index: 1);
@@ -143,7 +152,6 @@ void main() {
     });
 
     await pump(tester);
-    await expand(tester, 'message');
     await expand(tester, 'apns');
 
     expect(find.text('headers'), findsOne);
@@ -153,7 +161,6 @@ void main() {
 
   testWidgets('renders webpush with its own options block', (tester) async {
     await pump(tester);
-    await expand(tester, 'message');
     await expand(tester, 'webpush');
 
     expect(find.text('headers'), findsOne);
@@ -163,7 +170,6 @@ void main() {
 
   testWidgets('binds a text field back to its input', (tester) async {
     await pump(tester);
-    await expand(tester, 'message');
     await expand(tester, 'notification');
 
     await tester.enterText(

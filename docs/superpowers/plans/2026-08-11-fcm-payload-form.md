@@ -1710,11 +1710,19 @@ ten section files, not eight.
 
 Rules that bite here: **no `Widget _buildFoo()`** (build inline with
 collection-`for`), one widget per file, and every text field binds
-`controller: form.x.controller` with `validator: form.x.formFieldValidator`.
-Both members exist on `GladeInput` in 6.0.0 — verified, `controller` at
-glade_input.dart:94 and `formFieldValidator` at :385. `controller` is nullable, so
-a `!` or a null check is needed where the input was built with
-`useTextEditingController`.
+`controller: form.x.controller` with
+`validator: form.x.textFormFieldInputValidator`. `controller` is nullable, so a `!`
+or a null check is needed where the input was built with `useTextEditingController`.
+
+**Not `formFieldValidator`** — an earlier revision of this brief said to use it,
+having confirmed only that the member exists (glade_input.dart:385) without checking
+that its signature fits. It does not: it takes a non-nullable `T`, while
+`FormFieldValidator<String>` needs `String? Function(String?)`, and `String` is not a
+supertype of `String?`, so the argument is not assignable. The right sibling is
+`textFormFieldInputValidator(String? value, {...})` at glade_input.dart:376,
+documented "Shorthand validator for TextFieldForm inputs" — and it converts through
+`stringToValueConverter` first, which is exactly what the `int?` and `double?` inputs
+need to be validated from text at all.
 
 **`source-lines-of-code: 50` applies here and it is a real constraint, because
 `ui/form/sections/**` is NOT in `metrics-exclude` — only `sandbox/forms/**` is.**
@@ -1826,11 +1834,41 @@ git commit -m "feat(app): drive the sandbox from the payload form"
 checkbox, Send, the result card — and swaps the `PayloadEditor` for
 `MessageSection(form: controller.form)`.
 
-**Keep the regression test from the scenarios-page fix**: the form's first field
-must be reachable **with no scroll helper**, since burying the editable surface is
-the defect that started this. Assert `find.byType(TextField)` after nothing but a
-`pump`. With every section collapsed except the root's own fields, that holds — and
-if it does not, report it rather than adding a scroll helper.
+**Keep the regression test from the scenarios-page fix**, but not its original
+assertion, which does not survive the collapsible design. The defect it guards is
+real and must stay guarded: the editable surface must be reachable **with no scroll
+helper**, because an editor below the fold that never mounted is what started this
+whole line of work.
+
+The original wording said to assert `find.byType(TextField)` after nothing but a
+`pump`, on the reasoning that the root's own fields would be visible. That reasoning
+was wrong, and Task 12 found it: the root's only own input is `data`, a
+`StringMapRows` that renders no field at all until a row is added, so an untouched
+page has zero text fields by design. Assert the property instead of that proxy:
+
+```dart
+    testWidgets('every block is reachable without a scroll helper', (tester) async {
+      await tester.pumpWidget(...);           // nothing else — no ensureVisible
+
+      for (final block in const ['notification', 'android', 'apns', 'webpush', 'fcm_options']) {
+        expect(find.text(block), findsOne);
+      }
+    });
+
+    testWidgets('a field edited on arrival reaches the model', (tester) async {
+      await tester.pumpWidget(...);
+      await tester.tap(find.text('notification'));   // one tap, no scrolling
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.widgetWithText(TextFormField, 'title'), 'Hello');
+
+      expect(controller.form.notification.title.value, 'Hello');
+    });
+```
+
+`sections_test.dart` from Task 12 has both shapes already written; copy them. The
+second is the one that actually reproduces the original bug — it was not that no
+field existed, but that reaching one required a scroll the user did not know to make.
 
 `git rm apps/fcm_app/lib/ui/payload_editor.dart` and confirm
 `grep -rn 'PayloadEditor' apps packages --include=*.dart` is empty.

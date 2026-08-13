@@ -29,6 +29,10 @@ class MessageSection extends StatelessWidget {
     title: 'message',
     subtitle: 'The FCM v1 message, minus the delivery target the server sets',
     isValid: form.isValid,
+    // The only section that starts open. Every block beneath it starts closed, so
+    // arriving shows the payload's shape — data plus five named blocks — rather
+    // than either a wall of fields or one tile hiding all of it.
+    initiallyExpanded: true,
     children: [
       StringMapRows(
         label: 'data',

@@ -14,6 +14,7 @@ class FormSection extends StatelessWidget {
     required this.isValid,
     required this.children,
     this.subtitle,
+    this.initiallyExpanded = false,
     super.key,
   });
 
@@ -26,6 +27,14 @@ class FormSection extends StatelessWidget {
   /// What this object is for, when the name alone is not obvious.
   final String? subtitle;
 
+  /// Whether this section is already open when the page first builds.
+  ///
+  /// False for every nested block, so the page is not a wall of fields on
+  /// arrival. True for the outermost one only: a single closed tile hiding the
+  /// entire payload is just as unusable as the wall it replaced, and it hides the
+  /// payload's shape as well, so the root opens and shows its blocks.
+  final bool initiallyExpanded;
+
   final List<Widget> children;
 
   @override
@@ -37,6 +46,7 @@ class FormSection extends StatelessWidget {
         : Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
     childrenPadding: const EdgeInsets.only(left: 16, bottom: 8),
     expandedCrossAxisAlignment: CrossAxisAlignment.start,
+    initiallyExpanded: initiallyExpanded,
     children: children,
   );
 }
