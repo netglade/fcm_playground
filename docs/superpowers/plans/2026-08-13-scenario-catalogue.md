@@ -3095,6 +3095,13 @@ lists each need's `label`, comma-separated, prefixed "Needs ".
 `ManualStepsBlock` wraps the text in `SelectableText` in a monospace style, because
 an adb command that cannot be copied is a command that will be mistyped.
 
+**Note on measuring "renders nothing" inside a `ListView`:** a `ListView` gives its
+children a tight cross-axis width, so `SizedBox.shrink()` measures full-width by
+zero-*height* there rather than `Size.zero`. The standalone banner tests sit under
+`Scaffold`'s loose constraints and can assert `Size.zero`; a test that pumps the whole
+`SandboxView` must assert `.height == 0` instead. Found on Task 16 as a real failure,
+not predicted.
+
 - [ ] **Step 1: Write the failing tests**
 
 ```dart
@@ -3115,7 +3122,12 @@ void main() {
   testWidgets('renders nothing when no scenario is loaded', (tester) async {
     await pump(tester, null);
 
+    // findsNothing on Text only proves no WORDS rendered — a visible but
+    // wordless Card taking vertical space passes it, which is exactly the
+    // failure this widget exists to avoid. Verified on Task 16 by mutation: a
+    // Card wrapping an empty SizedBox fails only the size assertion.
     expect(find.byType(Text), findsNothing);
+    expect(tester.getSize(find.byType(ScenarioNeedsBanner)), Size.zero);
   });
 
   testWidgets('renders nothing for a scenario that works', (tester) async {
@@ -3127,6 +3139,7 @@ void main() {
     );
 
     expect(find.byType(Text), findsNothing);
+    expect(tester.getSize(find.byType(ScenarioNeedsBanner)), Size.zero);
   });
 
   testWidgets('names every unmet need, using its own words', (tester) async {
@@ -3167,8 +3180,22 @@ void main() {
       ),
     );
 
+    // Scoped to the SelectableText, because find.textContaining matches the
+    // EditableText that SelectableText builds just as readily as a plain Text —
+    // so an unscoped finder is satisfied by a Text beside an EMPTY
+    // SelectableText, and the copyability the widget exists for goes untested.
     expect(find.byType(SelectableText), findsOne);
-    expect(find.textContaining('force-idle'), findsOne);
+    expect(
+      find.descendant(
+        of: find.byType(SelectableText),
+        matching: find.textContaining('force-idle'),
+      ),
+      findsOne,
+    );
+    expect(
+      tester.widget<SelectableText>(find.byType(SelectableText)).style?.fontFamily,
+      'monospace',
+    );
   });
 }
 ```
