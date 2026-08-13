@@ -1,6 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import 'absent_if_empty.dart';
 import 'android_notification_form.dart';
 import 'fcm_notification_form.dart';
 import 'fcm_options_form.dart';
@@ -141,7 +142,7 @@ class AndroidConfigForm extends GladeModel {
       priority: priority.value,
       ttl: emptyMeansAbsent(ttl.value),
       restrictedPackageName: emptyMeansAbsent(restrictedPackageName.value),
-      data: _absentIfEmpty(data.value),
+      data: absentIfEmptyText(data.value),
       notification: notification.toModel(),
       fcmOptions: fcmOptions.toModel(),
       directBootOk: directBootOk.value,
@@ -158,12 +159,3 @@ class AndroidConfigForm extends GladeModel {
 /// that field was filled.
 GladeStringInput _text(String name) =>
     GladeStringInput(inputKey: 'android.$name', isRequired: false);
-
-/// An empty map means the field is absent, as an empty string does.
-///
-/// [AndroidConfig] compares `data` with `MapEquality`, so `{}` is not equal to
-/// null: deleting every row of the map editor would otherwise leave
-/// `"data": {}` in the payload *and* stop [AndroidConfigForm.toModel] returning
-/// null for an otherwise-untouched block.
-Map<String, String>? _absentIfEmpty(Map<String, String>? value) =>
-    (value == null || value.isEmpty) ? null : value;

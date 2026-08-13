@@ -1,6 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import 'absent_if_empty.dart';
 import 'apns_fcm_options_form.dart';
 
 /// Edits `apns` — how FCM hands a message to Apple's push notification service,
@@ -91,17 +92,3 @@ class ApnsConfigForm extends GladeModel {
     return result == const ApnsConfig() ? null : result;
   }
 }
-
-/// An empty map means the field is absent, as an empty string does.
-///
-/// [ApnsConfig] and [WebpushConfig] compare their string maps with
-/// `MapEquality`, so `{}` is not equal to null: deleting every row of a map
-/// editor would otherwise leave `"headers": {}` in the payload *and* stop
-/// `toModel` returning null for an otherwise-untouched block.
-Map<String, String>? absentIfEmptyText(Map<String, String>? value) =>
-    (value == null || value.isEmpty) ? null : value;
-
-/// [absentIfEmptyText] for the free-form maps, which hold arbitrary JSON values
-/// rather than strings and so need their own flavour of the same rule.
-Map<String, Object?>? absentIfEmptyObject(Map<String, Object?>? value) =>
-    (value == null || value.isEmpty) ? null : value;

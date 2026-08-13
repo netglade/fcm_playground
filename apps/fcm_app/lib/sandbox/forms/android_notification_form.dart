@@ -1,6 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import 'absent_if_empty.dart';
 import 'fcm_notification_form.dart';
 import 'light_settings_form.dart';
 
@@ -275,9 +276,9 @@ class AndroidNotificationForm extends GladeModel {
       tag: emptyMeansAbsent(tag.value),
       clickAction: emptyMeansAbsent(clickAction.value),
       bodyLocKey: emptyMeansAbsent(bodyLocKey.value),
-      bodyLocArgs: _absentIfEmpty(bodyLocArgs.value),
+      bodyLocArgs: absentIfEmptyList(bodyLocArgs.value),
       titleLocKey: emptyMeansAbsent(titleLocKey.value),
-      titleLocArgs: _absentIfEmpty(titleLocArgs.value),
+      titleLocArgs: absentIfEmptyList(titleLocArgs.value),
       channelId: emptyMeansAbsent(channelId.value),
       ticker: emptyMeansAbsent(ticker.value),
       sticky: sticky.value,
@@ -287,7 +288,7 @@ class AndroidNotificationForm extends GladeModel {
       defaultSound: defaultSound.value,
       defaultVibrateTimings: defaultVibrateTimings.value,
       defaultLightSettings: defaultLightSettings.value,
-      vibrateTimings: _absentIfEmpty(vibrateTimings.value),
+      vibrateTimings: absentIfEmptyList(vibrateTimings.value),
       visibility: visibility.value,
       notificationCount: notificationCount.value,
       lightSettings: lightSettings.toModel(),
@@ -335,11 +336,3 @@ GladeInput<List<String>?> _stringList(String name) =>
       inputKey: 'android.notification.$name',
       value: null,
     );
-
-/// An empty list means the field is absent, as an empty string does.
-///
-/// Deleting every row of a list editor leaves `[]`, and sending
-/// `"vibrate_timings": []` would ask Android for an empty vibration pattern
-/// rather than for its default.
-List<String>? _absentIfEmpty(List<String>? value) =>
-    (value == null || value.isEmpty) ? null : value;
