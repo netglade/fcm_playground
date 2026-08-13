@@ -45,6 +45,15 @@ class LightSettingsForm extends GladeModel {
     lightOffDuration,
   ];
 
+  /// This form alone — it owns no subform.
+  ///
+  /// The deepest leaf of the traversal `FcmMessageForm.allModels` composes,
+  /// three levels below the root. It exists because a nested model's
+  /// notification never reaches its parent, so whoever renders the tree has to
+  /// listen to every model in it — and this is the one a missed level would
+  /// drop.
+  List<GladeModelBase> get allModels => [this];
+
   @override
   void initialize() {
     red = _component('red');

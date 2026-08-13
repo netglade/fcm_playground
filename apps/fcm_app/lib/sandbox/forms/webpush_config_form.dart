@@ -42,6 +42,14 @@ class WebpushConfigForm extends GladeModel {
   @override
   List<GladeInput<Object?>> get inputs => [headers, data, notification];
 
+  /// This form and every model beneath it.
+  ///
+  /// Composed per level, exactly as [isValid] is, so a form added under this one
+  /// later is picked up here without anyone remembering to register it at the
+  /// root as well. See `FcmMessageForm.allModels` for why the whole tree has to
+  /// be listened to rather than just the root.
+  List<GladeModelBase> get allModels => [this, ...fcmOptions.allModels];
+
   /// Whether every input here **and in the nested options block** is valid.
   ///
   /// The subform's inputs are deliberately absent from [inputs], because

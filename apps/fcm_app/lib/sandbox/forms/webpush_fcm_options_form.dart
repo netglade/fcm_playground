@@ -17,6 +17,13 @@ class WebpushFcmOptionsForm extends GladeModel {
   @override
   List<GladeInput<Object?>> get inputs => [link, analyticsLabel];
 
+  /// This form alone — it owns no subform.
+  ///
+  /// A leaf of the traversal `FcmMessageForm.allModels` composes, which exists
+  /// because a nested model's notification never reaches its parent, so whoever
+  /// renders the tree has to listen to every model in it.
+  List<GladeModelBase> get allModels => [this];
+
   @override
   void initialize() {
     link = GladeStringInput(

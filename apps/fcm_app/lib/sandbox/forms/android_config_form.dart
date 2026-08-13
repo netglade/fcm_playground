@@ -63,6 +63,19 @@ class AndroidConfigForm extends GladeModel {
     directBootOk,
   ];
 
+  /// This form and every model beneath it, [notification]'s own children
+  /// included.
+  ///
+  /// Composed per level, exactly as [isValid] is: this is the level that carries
+  /// `light_settings` up from two below, and composing rather than enumerating is
+  /// what stops a level being forgotten. See `FcmMessageForm.allModels` for why
+  /// the whole tree has to be listened to rather than just the root.
+  List<GladeModelBase> get allModels => [
+    this,
+    ...notification.allModels,
+    ...fcmOptions.allModels,
+  ];
+
   /// Whether every input here **and in both nested blocks** is valid.
   ///
   /// `GladeModel.isValid` is `inputs.every(...)`, and the subforms' inputs are

@@ -138,6 +138,14 @@ class AndroidNotificationForm extends GladeModel {
     proxy,
   ];
 
+  /// This form and every model beneath it.
+  ///
+  /// Composed per level, exactly as [isValid] is, so a form added under
+  /// [lightSettings] later is picked up here without anyone remembering to
+  /// register it at the root as well. See `FcmMessageForm.allModels` for why the
+  /// whole tree has to be listened to rather than just the root.
+  List<GladeModelBase> get allModels => [this, ...lightSettings.allModels];
+
   /// Whether every input here **and in the nested block** is valid.
   ///
   /// `GladeModel.isValid` is `inputs.every(...)`, and [lightSettings]' inputs are
