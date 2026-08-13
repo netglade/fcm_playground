@@ -16,6 +16,7 @@ class FakeNotificationSender implements NotificationSender {
   static final response = SendMessageResponse(
     messageId: 'projects/p/messages/0:17',
     sentAt: DateTime.utc(2026, 8, 11, 9, 12, 3),
+    traceId: 'tr-1',
   );
 
   @override

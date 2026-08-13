@@ -14,11 +14,18 @@ import 'send_outcome.dart';
 /// the body, and this class only translates between that and `shelf`.
 class ApiRouter {
   /// Creates the router. [sender] delivers through FCM; [now] supplies the
-  /// clock used to stamp a successful send.
-  ApiRouter({required this._sender, required this._now});
+  /// clock used to stamp a successful send, and [newTraceId] the id each send is
+  /// traced by — both injected rather than read from the environment, so a test
+  /// asserts exact values instead of matching patterns.
+  ApiRouter({
+    required this._sender,
+    required this._now,
+    required this._newTraceId,
+  });
 
   final FcmSender _sender;
   final DateTime Function() _now;
+  final String Function() _newTraceId;
 
   /// The handler to serve.
   Handler get handler {
@@ -41,7 +48,12 @@ class ApiRouter {
       return _json(400, ApiError(error.message).toJson());
     }
 
-    final outcome = await sendMessage(parsed, sender: _sender, now: _now);
+    final outcome = await sendMessage(
+      parsed,
+      sender: _sender,
+      now: _now,
+      newTraceId: _newTraceId,
+    );
 
     return switch (outcome) {
       SendSucceeded(:final response) => _json(200, response.toJson()),

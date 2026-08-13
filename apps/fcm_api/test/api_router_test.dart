@@ -10,8 +10,11 @@ import 'fake_fcm_sender.dart';
 void main() {
   final sentAt = DateTime.utc(2026, 8, 11, 9, 12, 3);
 
-  Handler handlerWith(FakeFcmSender sender) =>
-      ApiRouter(sender: sender, now: () => sentAt).handler;
+  Handler handlerWith(FakeFcmSender sender) => ApiRouter(
+    sender: sender,
+    now: () => sentAt,
+    newTraceId: () => 'tr-1',
+  ).handler;
 
   FutureOr<Response> post(Object? body, {FakeFcmSender? sender}) =>
       handlerWith(sender ?? FakeFcmSender())(
@@ -45,14 +48,26 @@ void main() {
   });
 
   group('POST /send', () {
-    test('answers 200 with the stamped id and timestamp', () async {
+    test('answers 200 with the stamped id, timestamp and trace', () async {
       final response = await post(validBody());
 
       expect(response.statusCode, 200);
       expect(await bodyOf(response), {
         'messageId': 'projects/p/messages/0:17',
         'sentAt': '2026-08-11T09:12:03.000Z',
+        'traceId': 'tr-1',
       });
+    });
+
+    test('sends the trace id on to FCM inside data', () async {
+      // The route is the only path a real send takes, so the injection has to
+      // hold end to end and not just in sendMessage's own unit tests.
+      final sender = FakeFcmSender();
+
+      await post(validBody(), sender: sender);
+
+      final message = sender.sent.single['message']! as Map<String, Object?>;
+      expect(message['data'], {'trace_id': 'tr-1'});
     });
 
     test('answers JSON', () async {

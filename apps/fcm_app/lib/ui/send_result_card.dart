@@ -10,7 +10,10 @@ import '../sandbox/sandbox_send_state.dart';
 /// "validated, not sent" rather than borrowing the wording used for a real
 /// delivery. Shows the payload id on success, because that is the value the
 /// inbox will display — it is what turns "the API said 200" into "this push
-/// is mine".
+/// is mine" — and the trace id beside it, because that is the handle for asking
+/// later what became of this send. Both ids appear whether the send was real or
+/// only validated: a validated send is traced too, and hiding the id would make
+/// half the traces unfindable.
 class SendResultCard extends StatelessWidget {
   /// Creates the card. [validateOnly] reflects the flag as it was for the
   /// send that produced [state], so a stale checkbox toggle after the fact
@@ -37,10 +40,11 @@ class SendResultCard extends StatelessWidget {
         padding: const EdgeInsets.only(top: 16),
         child: Text(
           validateOnly
-              ? '✓ Validated · message ${response.messageId} · the payload '
-                    'was validated, not sent'
-              : '✓ Sent · message ${response.messageId} · it should appear '
-                    'in the Inbox shortly',
+              ? '✓ Validated · message ${response.messageId} · trace '
+                    '${response.traceId} · the payload was validated, not sent'
+              : '✓ Sent · message ${response.messageId} · trace '
+                    '${response.traceId} · it should appear in the Inbox '
+                    'shortly',
           style: TextStyle(color: colors.primary),
         ),
       ),

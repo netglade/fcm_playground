@@ -40,6 +40,7 @@ Future<void> _serve(ServerConfig config) async {
   final router = ApiRouter(
     sender: HttpV1FcmSender(client: client, projectId: config.projectId),
     now: () => DateTime.now().toUtc(),
+    newTraceId: newTraceId,
   );
 
   final server = await serve(

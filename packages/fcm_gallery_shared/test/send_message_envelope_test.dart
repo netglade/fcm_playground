@@ -130,6 +130,7 @@ void main() {
     final response = SendMessageResponse(
       messageId: 'projects/p/messages/0:17',
       sentAt: DateTime.utc(2026, 8, 11, 9, 12, 3),
+      traceId: 'tr-1',
     );
 
     test('round-trips', () {
@@ -137,12 +138,25 @@ void main() {
 
       expect(parsed.messageId, response.messageId);
       expect(parsed.sentAt, response.sentAt);
+      expect(parsed.traceId, response.traceId);
+    });
+
+    test('writes exactly the three fields the caller needs', () {
+      // Pinned as a whole map rather than key by key: a fourth key appearing, or
+      // traceId written under the wire spelling `trace_id`, would both be a
+      // silent contract change for the app parsing this.
+      expect(response.toJson(), {
+        'messageId': 'projects/p/messages/0:17',
+        'sentAt': '2026-08-11T09:12:03.000Z',
+        'traceId': 'tr-1',
+      });
     });
 
     test('normalises the timestamp to UTC', () {
       final parsed = SendMessageResponse.fromJson({
         'messageId': 'm',
         'sentAt': '2026-08-11T11:12:03+02:00',
+        'traceId': 'tr-1',
       });
 
       expect(parsed.sentAt, DateTime.utc(2026, 8, 11, 9, 12, 3));
@@ -152,6 +166,19 @@ void main() {
     test('rejects a response missing a field rather than inventing one', () {
       expect(
         () => SendMessageResponse.fromJson({'messageId': 'm'}),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects a response with no trace id, rather than blanking it', () {
+      // Every response from this API carries one. An absent trace id means the
+      // app is talking to an older server, and a blank one would look like a
+      // send that simply never got correlated.
+      expect(
+        () => SendMessageResponse.fromJson({
+          'messageId': 'm',
+          'sentAt': '2026-08-11T09:12:03.000Z',
+        }),
         throwsA(isA<FormatException>()),
       );
     });

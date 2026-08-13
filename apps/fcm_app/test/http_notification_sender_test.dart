@@ -35,6 +35,7 @@ void main() {
   final successBody = {
     'messageId': 'projects/p/messages/0:17',
     'sentAt': '2026-08-11T09:12:03.000Z',
+    'traceId': 'tr-1',
   };
 
   setUp(() {
@@ -64,6 +65,11 @@ void main() {
 
       expect(response.messageId, 'projects/p/messages/0:17');
       expect(response.sentAt, DateTime.utc(2026, 8, 11, 9, 12, 3));
+      expect(
+        response.traceId,
+        'tr-1',
+        reason: 'the trace id is what the app reports events against',
+      );
     });
 
     test('surfaces the server\'s error message and field', () async {
