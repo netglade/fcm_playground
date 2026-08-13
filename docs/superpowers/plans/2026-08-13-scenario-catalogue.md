@@ -3088,6 +3088,11 @@ Replace the "nine scenarios" wording wherever it appears — check with
 Update `## Verified on this machine` with the measured counts and honest build
 results.
 
+**Also fix `apps/fcm_api/README.md`**, found stale during Task 2: line 7 still
+documents the send body as `{token, title, body, data?}`, which stopped being true
+when the envelope started taking a nested `message` — before this plan, not because
+of it. It now takes a target plus `validate_only` plus `message`.
+
 - [ ] **Step 3: Commit**
 
 ```bash
