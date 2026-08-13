@@ -25,18 +25,21 @@ the capability below; everything below is measured against what this defines.
 | 3 | Appearance styles | E1, E3, E6–E9 | 6 |
 | 4 | Interaction | F1–F9, G1, G2 | 11 |
 | 5 | Badge | G3 | 1 |
-| 6 | Targeting | J1–J3, K2 | 4 |
+| 6 | Targeting — multicast registry only | J3 | 1 |
 | 7 | Delayed send | B3 | 1 |
 | 8 | Procedures and burst | B2, B4–B6, C5–C7, I4, K3–K5 | 11 |
 
 **The arithmetic closes at 66**, and it should be checkable rather than asserted:
-20 work today, 45 are unblocked by sub-projects 2–8 (11+6+11+1+4+1+11), and 1 —
-**H4**, iOS critical alerts — is permanently outside our control. 20 + 45 + 1 = 66.
+23 work once this spec lands, 42 are unblocked by sub-projects 2–8
+(11+6+11+1+1+1+11), and 1 — **H4**, iOS critical alerts — is permanently outside
+our control. 23 + 42 + 1 = 66.
 
-The 20 that work today are A1–A4, B1, C1–C4, E2, E4, E5, E10, E11, G4, H3, H5, I2,
-I3 and K1. E2 counts as working because it works on Android; iOS needs a
-Notification Service Extension, which goes in `expectation` alongside every other
-iOS caveat in this repo rather than blocking the entry.
+The 20 that work before this spec are A1–A4, B1, C1–C4, E2, E4, E5, E10, E11, G4,
+H3, H5, I2, I3 and K1. This spec adds three more — **J1, J2 and K2** — by widening
+the send envelope, which is the form gap described below. E2 counts as working
+because it works on Android; iOS needs a Notification Service Extension, which goes
+in `expectation` alongside every other iOS caveat in this repo rather than blocking
+the entry.
 
 Sub-project 2 is where the catalogue's own note lands — *"the app must have a
 Channel management screen showing each channel's importance read **from the
@@ -78,6 +81,51 @@ The catalogue's three columns map onto fields that already exist: *Scénář* �
 `title`, *Co sledovat* → `description`, and platform caveats → `expectation`.
 `requiresKilledApp` and `defaultDelaySeconds` are already on the model, unused,
 waiting for sub-project 7; B3 is what finally uses them.
+
+## The form's one real gap: the delivery target
+
+The form already covers the whole of FCM's v1 `Message` — all 27 Android
+notification fields, both free-form platform blocks, every enum. Checked against
+all 66 scenarios, exactly one thing they need cannot be expressed:
+
+`FcmMessage.read` **rejects** `token`, `topic` and `condition` outright, with
+*"the server sets the delivery target, so a payload template must not set it"*.
+That is right for a payload template, but **J1** sends to a topic, **J2** to a
+condition, **J3** to every registered device, and **K2** to a deliberately dead
+token. All four are targeting, not payload.
+
+Everything else the catalogue asks for is already a `Message` field, and it is
+worth recording which, because it looks like more than it is: G3's launcher badge
+is `android.notification.notification_count`; H3/H5/I3 are
+`apns.headers['apns-priority']` plus `interruption-level` and `content-available`
+inside the free-form `aps`; D5 and D6 are `sound` and `vibrate_timings`; K1 is
+simply a large `data` map. The client-side scenarios — BigTextStyle, action
+buttons, full-screen intents — need no FCM field at all, only app capability.
+
+**The target belongs to the envelope, not the message.** The API already takes
+`{token, validate_only, message}` and injects the token, so the message stays
+clean and cannot leak a target through a round-trip. Widening that envelope keeps
+both properties:
+
+```dart
+sealed class SendTarget {}
+class TokenTarget    extends SendTarget { final String? token; }  // null = this device
+class TopicTarget    extends SendTarget { final String topic; }
+class ConditionTarget extends SendTarget { final String condition; }
+class AllDevicesTarget extends SendTarget {}                      // J3, multicast
+```
+
+`Scenario` gains `SendTarget? target` — null meaning "this device", which is what
+all but four scenarios want. The Sandbox grows a target selector above the form,
+defaulting to this device so the common case is unchanged. `FcmMessage` keeps
+rejecting targets; that assertion stays exactly as it is.
+
+**Multicast needs a token registry**, which the app does not have — it knows only
+its own token. So `AllDevicesTarget` is accepted by the envelope and the API
+returns a clear "not supported yet" rather than silently sending to one device.
+J3 keeps `ScenarioNeed.targeting` until sub-project 6 builds the registry; J1, J2
+and K2 are unblocked here, because a topic, a condition and a bad token each need
+only the envelope.
 
 ## Files
 
@@ -154,9 +202,13 @@ scenario with unmet needs and is absent for one without.
 - Across the gallery: 66 entries, unique ids, 11 groups in A–K order, every
   template round-trips.
 - `ScenarioNeed`: every value is used by at least one scenario, so the enum cannot
-  drift from the catalogue. Also that exactly 20 scenarios have no needs — the
+  drift from the catalogue. Also that exactly 23 scenarios have no needs — the
   number is asserted so that mis-marking one as blocked, or quietly unmarking one
   to make it look supported, fails the build.
+- Targeting: a topic, a condition and an explicit token each reach the API in the
+  envelope; `AllDevicesTarget` is refused with a stated reason rather than falling
+  back to this device; and `FcmMessage` still rejects a template that sets a target
+  itself, which is the assertion that stops the two paths merging by accident.
 - Widget: the needs banner appears and disappears correctly; `manualSteps` renders
   when present.
 - Regression: the existing tests that named the old nine ids pass under the new
@@ -164,7 +216,10 @@ scenario with unmet needs and is absent for one without.
 
 ## Out of scope
 
-Everything in sub-projects 2–8. No notification channel beyond the existing
-heads-up one, no styles, no actions, no badge, no topic or multicast targeting, no
-delayed send, and no burst sender. This spec adds data, two model fields, and two
-small pieces of UI.
+Everything in sub-projects 2–8: no notification channel beyond the existing
+heads-up one, no styles, no action buttons, no inline reply, no launcher badge, no
+delayed send, no burst sender, and no token registry — so no working multicast.
+
+This spec adds the 66 entries, three model fields (`needs`, `manualSteps`,
+`target`), the send envelope's target, and three small pieces of UI: the target
+selector, the needs banner and the manual-steps block.
