@@ -24,6 +24,7 @@ export 'src/message/webpush_fcm_options.dart';
 export 'src/scenarios/group_a.dart';
 export 'src/scenarios/group_b.dart';
 export 'src/scenarios/group_c.dart';
+export 'src/scenarios/group_d.dart';
 export 'src/scenarios/scenario.dart';
 export 'src/scenarios/scenario_gallery.dart';
 export 'src/scenarios/scenario_need.dart';
