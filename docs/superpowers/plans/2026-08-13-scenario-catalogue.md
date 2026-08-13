@@ -1431,7 +1431,9 @@ Group-specific assertions:
 ```dart
     test('exactly five of the eleven work today', () {
       // The count is asserted so that quietly unmarking one to look supported
-      // fails the build.
+      // fails the build. hasLength(11) is what backs the words "of the eleven":
+      // without it the name claims a total nothing checks.
+      expect(groupE, hasLength(11));
       expect(groupE.where((s) => s.isSupported).map((s) => s.id), [
         'e2_image_remote',
         'e4_image_huge',
@@ -1451,17 +1453,30 @@ Group-specific assertions:
     });
 
     test('e2 warns that iOS needs a service extension', () {
+      // Both directional phrases, not just the noun: contains('Notification
+      // Service Extension') passes on prose that attributes it to the wrong
+      // platform, or denies the requirement outright ("no Notification Service
+      // Extension is needed").
       final remote = groupE.firstWhere((s) => s.id == 'e2_image_remote');
 
-      expect(remote.expectation, contains('Notification Service Extension'));
+      expect(remote.expectation, contains('Android does this natively'));
+      expect(
+        remote.expectation,
+        contains('iOS requires a Notification Service Extension'),
+      );
     });
 
-    test('the 404 scenario points somewhere that cannot resolve', () {
+    test('the 404 scenario points at a host that cannot resolve', () {
+      // Compare the HOST, not a substring: contains('example.test') is satisfied
+      // by https://picsum.photos/x?ref=example.test, which resolves fine and
+      // demonstrates nothing. The unresolvable authority is the scenario.
       final broken = groupE.firstWhere((s) => s.id == 'e5_image_404');
       final image =
           (broken.payloadTemplate['notification']! as Map)['image']! as String;
+      final url = Uri.parse(image);
 
-      expect(image, contains('example.test'));
+      expect(url.host, 'example.test', reason: '.test can never resolve');
+      expect(url.scheme, 'https');
     });
 ```
 
