@@ -1697,11 +1697,27 @@ All nine need `ScenarioNeed.interaction`; F8 needs `externalApproval` too.
 Group-specific assertions:
 
 ```dart
-    test('all nine are blocked on interaction work', () {
+    test('all nine are blocked on interaction work, and nothing else', () {
+      // `contains(interaction)` alone admits an entry that ALSO carries channels
+      // or styles, which would mis-attribute it to another sub-project. And
+      // nothing backed the word "nine". Pin the length and the exact set.
+      expect(groupF, hasLength(9));
+
       for (final scenario in groupF) {
+        expect(scenario.isSupported, isFalse, reason: scenario.id);
         expect(
           scenario.needs,
-          contains(ScenarioNeed.interaction),
+          switch (scenario.id) {
+            'f5_deeplink_killed' => [
+              ScenarioNeed.interaction,
+              ScenarioNeed.delayedSend,
+            ],
+            'f8_full_screen_intent' => [
+              ScenarioNeed.interaction,
+              ScenarioNeed.externalApproval,
+            ],
+            _ => [ScenarioNeed.interaction],
+          },
           reason: scenario.id,
         );
       }
@@ -1712,30 +1728,45 @@ Group-specific assertions:
         (s) => s.id == 'f8_full_screen_intent',
       );
 
+      // The permission name alone is satisfied by prose DENYING the requirement,
+      // so pin the directional phrases and what it degrades to.
       expect(fullScreen.needs, contains(ScenarioNeed.externalApproval));
       expect(fullScreen.expectation, contains('USE_FULL_SCREEN_INTENT'));
+      expect(fullScreen.expectation, contains('Android 14+ grants'));
+      expect(fullScreen.expectation, contains('degraded heads-up'));
     });
 
-    test('the three deep-link scenarios all carry a link to route to', () {
+    test('each deep-link scenario routes somewhere, and somewhere different', () {
+      // isNotNull is satisfied by '', 'true' or anything at all — and three
+      // IDENTICAL links would pass while making the three app-state paths
+      // indistinguishable on the device, which is the whole point of splitting
+      // them. Pin the shape and the mutual distinctness.
+      final links = <String>[];
+
       for (final id in const [
         'f3_deeplink_foreground',
         'f4_deeplink_background',
         'f5_deeplink_killed',
       ]) {
         final scenario = groupF.firstWhere((s) => s.id == id);
-        expect(
-          (scenario.payloadTemplate['data']! as Map)['deep_link'],
-          isNotNull,
-          reason: id,
-        );
+        final link = (scenario.payloadTemplate['data']! as Map)['deep_link'];
+
+        expect(link, isA<String>(), reason: id);
+        expect(link, startsWith('/'), reason: id);
+        links.add(link as String);
       }
+
+      expect(links.toSet(), hasLength(3), reason: 'the three must differ');
     });
 
-    test('f5 says it is the commonest source of bugs', () {
-      expect(
-        groupF.firstWhere((s) => s.id == 'f5_deeplink_killed').description,
-        contains('getInitialMessage'),
-      );
+    test('f5 names both the API and why it is the commonest bug source', () {
+      // The old name claimed "says it is the commonest source of bugs" while the
+      // assertion only looked for the API name — it would pass on a bare
+      // mechanism note that never said why f5 matters.
+      final killed = groupF.firstWhere((s) => s.id == 'f5_deeplink_killed');
+
+      expect(killed.description, contains('getInitialMessage'));
+      expect(killed.description, contains('commonest source of deep-link bugs'));
     });
 ```
 
