@@ -1,3 +1,6 @@
+import '../send_target.dart';
+import 'scenario_need.dart';
+
 /// A payload template the Sandbox can send as-is, to demonstrate one facet
 /// of FCM's `Message` model.
 ///
@@ -18,6 +21,9 @@ class Scenario {
     this.requiresKilledApp = false,
     this.defaultDelaySeconds = 0,
     this.tags = const [],
+    this.needs = const [],
+    this.manualSteps,
+    this.target,
   });
 
   /// Stable slug, used as a widget key and in tests.
@@ -53,6 +59,21 @@ class Scenario {
 
   /// Free-form labels shown as chips: platform names, features.
   final List<String> tags;
+
+  /// What this scenario needs before it demonstrates anything, empty when it
+  /// works today.
+  final List<ScenarioNeed> needs;
+
+  /// A step the user must perform by hand — an adb command, a settings change —
+  /// when the payload alone cannot produce the scenario.
+  final String? manualSteps;
+
+  /// Who to deliver to, or null for this device, which is what all but four
+  /// scenarios want.
+  final SendTarget? target;
+
+  /// Whether the app can demonstrate this scenario as it stands.
+  bool get isSupported => needs.isEmpty;
 }
 
 /// The nine payload templates the Sandbox offers, grouped by the facet of FCM

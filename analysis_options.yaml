@@ -45,7 +45,7 @@ dart_code_metrics:
     # count is the shape of the API being mirrored, not a design smell. Every
     # metric still binds everywhere logic lives.
     - packages/fcm_gallery_shared/lib/src/message/**
-    - packages/fcm_gallery_shared/lib/src/scenario.dart
+    - packages/fcm_gallery_shared/lib/src/scenarios/**
     # Form models mirroring the same API. AndroidNotificationForm declares 27
     # inputs, so number-of-parameters and source-lines-of-code cannot apply for
     # the same reason they cannot apply to the typed model above.
