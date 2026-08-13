@@ -24,3 +24,4 @@ export 'src/message/webpush_fcm_options.dart';
 export 'src/scenario.dart';
 export 'src/send_message_request.dart';
 export 'src/send_message_response.dart';
+export 'src/send_target.dart';
