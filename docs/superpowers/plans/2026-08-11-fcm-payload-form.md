@@ -1481,6 +1481,25 @@ Tests: the five from the pattern, plus a `ttl` of `'later'` is invalid, a nested
 notification round-trips, and `isValid` is false when the nested form is invalid —
 that last one is what makes the section badge in Task 12 meaningful.
 
+**Two traps carried forward from Task 8, both already solved there — copy, don't
+rediscover:**
+
+1. **`ttl`'s duration validator must not fire while the field is empty.**
+   `isRequired: false` drops the not-empty rule but does not stop a rule you add
+   from running on `''`, so an untouched `ttl` would make the whole payload
+   unsendable. Use `shouldValidate: (value) => value.isNotEmpty`, exactly as
+   `android_notification_form.dart` does for `color`. FCM's format is a duration
+   like `3600s` or `3.5s`, so `^\d+(\.\d+)?s$` — **anchored**, since `match` calls
+   `hasMatch`.
+2. **An empty `data` map must become absent, not `{}`.** `AndroidConfig.==`
+   compares `data` with `MapEquality`, so `{}` is not equal to `null`. Deleting
+   every row of the map editor would otherwise leave `"data": {}` in the payload
+   *and* stop `toModel()` returning null for an otherwise-untouched block, breaking
+   the "null rather than an empty object" invariant. Task 8 added
+   `_absentIfEmpty(List<String>?)` for the same reason on its three lists; this
+   needs the map equivalent. Every collection input from here to Task 11 needs it,
+   so give each form the helper its own fields require.
+
 **Every form owning a subform must override `isValid`**, established on Task 8 and
 not optional from here on:
 
