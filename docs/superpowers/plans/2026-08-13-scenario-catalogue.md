@@ -53,7 +53,7 @@ The delivery target as a closed set, so the API can switch on it exhaustively.
 
 **Files:**
 - Create: `packages/fcm_gallery_shared/lib/src/send_target.dart`
-- Modify: `packages/fcm_gallery_shared/lib/fcm_gallery_shared.dart` (add the export, alphabetically — it sorts between `src/scenario.dart` and `src/send_message_request.dart`)
+- Modify: `packages/fcm_gallery_shared/lib/fcm_gallery_shared.dart` (add the export **last**: `send_m` sorts before `send_t`, so `src/send_target.dart` follows `src/send_message_response.dart`, not `src/scenario.dart`)
 - Test: `packages/fcm_gallery_shared/test/send_target_test.dart`
 
 **Interfaces:**
@@ -285,8 +285,11 @@ class AllDevicesTarget extends SendTarget {
   @override
   bool operator ==(Object other) => other is AllDevicesTarget;
 
+  // There is no field to hash, so every instance is the same value and the type
+  // is the whole identity. NOT `AllDevicesTarget.hashCode` — that is static member
+  // access on a class with no such static, and does not compile.
   @override
-  int get hashCode => AllDevicesTarget.hashCode;
+  int get hashCode => runtimeType.hashCode;
 
   @override
   String toString() => 'AllDevicesTarget()';
