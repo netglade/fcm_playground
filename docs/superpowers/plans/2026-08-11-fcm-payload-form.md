@@ -1830,9 +1830,34 @@ git commit -m "feat(app): drive the sandbox from the payload form"
 - Delete: `apps/fcm_app/lib/ui/payload_editor.dart`
 - Modify: `apps/fcm_app/test/sandbox_view_test.dart`
 
-`SandboxView` keeps its shape — the loaded scenario's header, the validate-only
-checkbox, Send, the result card — and swaps the `PayloadEditor` for
-`MessageSection(form: controller.form)`.
+**Scope changed: the mechanical half of this task is already done.** Task 13 could
+not compile without it — once `payloadText` was gone there was nothing for a JSON
+editor to bind to — so its implementer swapped `PayloadEditor` for
+`MessageSection(form: controller.form)`, dropped the `parseError` block and the
+revision `ValueKey`, and `git rm`'d `lib/ui/payload_editor.dart`. Verify that
+(`grep -rn 'PayloadEditor' apps packages --include=*.dart` must be empty) rather than
+redoing it. What remains is the part below.
+
+**Pin Send outside the scrolling content.** Task 13 found that Send is now below the
+fold on arrival, and in a lazily-built `ListView` it is not even constructed — six of
+its tests needed a new `scrollToSend` helper to reach it. That is the *same* defect
+this page's doc comment already describes about the editor, now applied to the primary
+action, and it gets worse as the user opens sections: `android.notification` alone
+adds 27 fields, so Send drifts arbitrarily far down.
+
+`SandboxView` sits inside the shell's `IndexedStack`, so it cannot use
+`Scaffold.bottomNavigationBar`. Restructure its own body instead: a `Column` whose
+scrolling content is `Expanded(child: ListView(...))` — scenario header, validate-only,
+the form — with the blocked reason, the Send button and `SendResultCard` in a fixed
+footer beneath it. Send is then always on screen whatever the form's height, and the
+send result cannot appear off-screen either.
+
+**Delete the `scrollToSend` helper** once Send is pinned. Leaving it would let a future
+regression that buries Send again pass unnoticed, which is exactly how the original
+defect survived.
+
+Update the class doc comment: it still explains the layout in terms of "the editor",
+which no longer exists.
 
 **Keep the regression test from the scenarios-page fix**, but not its original
 assertion, which does not survive the collapsible design. The defect it guards is
