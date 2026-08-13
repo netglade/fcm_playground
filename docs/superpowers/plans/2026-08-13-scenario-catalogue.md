@@ -896,7 +896,7 @@ Each of these ten tasks has the **same mechanics**, spelled out here once so the
 per-task sections carry only what differs — the data, and the assertions specific
 to that group. Every one of Tasks 5–14 performs these steps:
 
-1. **Write the failing test** at `packages/fcm_gallery_shared/test/scenarios/group_<x>_test.dart`, asserting the group's exact id list in order, and the group-specific assertions given in the task.
+1. **Write the failing test** at `packages/fcm_gallery_shared/test/scenarios/group_<x>_test.dart`, asserting the group's exact id list in order, and the group-specific assertions given in the task. **Also assert every id in the group is present in `scenarioGallery`** — added on Task 5, because it is the one thing that catches writing the data file and forgetting the spread append in step 4, which every gallery-wide test would happily pass with the file orphaned. Compare **ids, not `Scenario` instances**: `Scenario` has no `operator ==`, so a `contains(scenario)` matcher would be relying on const canonicalisation.
 2. **Run it and see it fail:** `fvm dart test packages/fcm_gallery_shared/test/scenarios/group_<x>_test.dart` — `group<X>` not found.
 3. **Create** `packages/fcm_gallery_shared/lib/src/scenarios/group_<x>.dart` with the `const group<X>` list given in the task.
 4. **Append it** to `scenario_gallery.dart`'s spread, in letter order, and **export** the new file from `packages/fcm_gallery_shared/lib/fcm_gallery_shared.dart` in alphabetical position.
