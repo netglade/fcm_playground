@@ -4,11 +4,11 @@ import 'fcm_send_exception.dart';
 import 'fcm_sender.dart';
 import 'send_outcome.dart';
 
-/// Validates the token, injects it into the message and forwards it to FCM.
+/// Injects the delivery target into the message and forwards it to FCM.
 ///
 /// The payload is the caller's: nothing here invents a data key or a
 /// notification block — [request.message] is forwarded untouched apart from
-/// the [request.token] injected as the delivery target. Takes its clock as a
+/// the [request.target] injected as the delivery target. Takes its clock as a
 /// parameter rather than reading it from the environment, so its tests assert
 /// exact values instead of matching patterns — and it depends on no `Request`,
 /// no credential and no socket.
@@ -17,16 +17,13 @@ Future<SendOutcome> sendMessage(
   required FcmSender sender,
   required DateTime Function() now,
 }) async {
-  if (request.token.trim().isEmpty) {
-    return const SendRejected(
-      statusCode: 400,
-      error: ApiError('token must not be blank', field: 'token'),
-    );
+  if (request.target case AllDevicesTarget()) {
+    return _allDevicesUnsupported;
   }
 
   final body = {
     'validate_only': request.validateOnly,
-    'message': {...request.message.toJson(), 'token': request.token},
+    'message': {...request.message.toJson(), ...request.target.toJson()},
   };
 
   try {
@@ -42,6 +39,18 @@ Future<SendOutcome> sendMessage(
     );
   }
 }
+
+/// AllDevices is the one target FCM cannot express: it has no such audience, so
+/// honouring it needs a registry of tokens this app does not keep. Refusing with
+/// a reason beats sending to one device and calling it a broadcast.
+const _allDevicesUnsupported = SendRejected(
+  statusCode: 501,
+  error: ApiError(
+    'sending to all devices needs a token registry, which this API does not '
+    'have yet — pick a token, topic or condition',
+    field: 'all_devices',
+  ),
+);
 
 /// FCM's error codes, mapped onto the status the caller should see.
 int _statusFor(String fcmStatus) => switch (fcmStatus) {

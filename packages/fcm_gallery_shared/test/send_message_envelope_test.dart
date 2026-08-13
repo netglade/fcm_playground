@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('SendMessageRequest', () {
     const request = SendMessageRequest(
-      token: 'device-token',
+      target: TokenTarget('device-token'),
       message: FcmMessage(notification: FcmNotification(title: 'Hi')),
     );
 
@@ -21,14 +21,35 @@ void main() {
     test('round-trips', () {
       final parsed = SendMessageRequest.fromJson(request.toJson());
 
-      expect(parsed.token, 'device-token');
+      expect(parsed.target, const TokenTarget('device-token'));
       expect(parsed.validateOnly, isFalse);
       expect(parsed.message.notification?.title, 'Hi');
     });
 
+    test('reads a topic target', () {
+      final request = SendMessageRequest.fromJson({
+        'topic': 'news',
+        'message': {
+          'notification': {'title': 'Hi'},
+        },
+      });
+
+      expect(request.target, const TopicTarget('news'));
+    });
+
+    test('writes the target back at the top level', () {
+      const request = SendMessageRequest(
+        target: TopicTarget('news'),
+        message: FcmMessage(),
+      );
+
+      expect(request.toJson()['topic'], 'news');
+      expect(request.toJson().containsKey('token'), isFalse);
+    });
+
     test('carries validate_only when set', () {
       const validating = SendMessageRequest(
-        token: 't',
+        target: TokenTarget('t'),
         message: FcmMessage(),
         validateOnly: true,
       );
@@ -90,6 +111,17 @@ void main() {
             contains('the server sets the delivery target'),
           ),
         ),
+      );
+    });
+
+    test('still rejects a message that sets a target of another kind', () {
+      // The envelope owning the target is exactly why the message must not.
+      expect(
+        () => SendMessageRequest.fromJson({
+          'token': 'abc',
+          'message': {'topic': 'news'},
+        }),
+        throwsA(isA<FormatException>()),
       );
     });
   });

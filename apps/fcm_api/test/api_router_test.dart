@@ -93,6 +93,41 @@ void main() {
       },
     );
 
+    test('answers 400 for a blank token, not 500', () async {
+      // The blankness check moved into SendTarget.readFrom, so this asserts the
+      // FormatException it throws still reaches the caller as a 400.
+      final response = await post(validBody(token: '  '));
+
+      expect(response.statusCode, 400);
+      expect((await bodyOf(response))['error'], contains('blank'));
+    });
+
+    test('answers 400 when the body names no delivery target', () async {
+      final response = await post({
+        'message': {
+          'notification': {'title': 'Build finished'},
+        },
+      });
+
+      expect(response.statusCode, 400);
+      expect((await bodyOf(response))['error'], contains('target is required'));
+    });
+
+    test('answers 501 for all_devices, having sent nothing', () async {
+      final sender = FakeFcmSender();
+      final body = {
+        'all_devices': true,
+        'message': {
+          'notification': {'title': 'Build finished'},
+        },
+      };
+
+      final response = await post(body, sender: sender);
+
+      expect(response.statusCode, 501);
+      expect(sender.sent, isEmpty, reason: 'nothing may be sent');
+    });
+
     test('answers 404 for an unregistered token', () async {
       final response = await post(
         validBody(),

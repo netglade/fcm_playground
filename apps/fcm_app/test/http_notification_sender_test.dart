@@ -23,7 +23,7 @@ void main() {
       );
 
   const request = SendMessageRequest(
-    token: 'device-token',
+    target: TokenTarget('device-token'),
     message: FcmMessage(
       notification: FcmNotification(
         title: 'Build finished',

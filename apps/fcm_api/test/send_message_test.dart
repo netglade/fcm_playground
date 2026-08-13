@@ -17,13 +17,13 @@ void main() {
   );
 
   SendMessageRequest request({
-    String token = 'device-token',
+    SendTarget target = const TokenTarget('device-token'),
     bool validateOnly = false,
     FcmMessage message = const FcmMessage(
       notification: FcmNotification(title: 'Build finished'),
     ),
   }) => SendMessageRequest(
-    token: token,
+    target: target,
     message: message,
     validateOnly: validateOnly,
   );
@@ -92,12 +92,41 @@ void main() {
       expect(sender.sent.single['validate_only'], isFalse);
     });
 
-    test('rejects a blank token with 400, naming the field', () async {
-      final outcome = await run(request(token: '  '));
+    test('forwards a topic as the delivery target', () async {
+      final sender = FakeFcmSender();
 
-      final rejected = outcome as SendRejected;
-      expect(rejected.statusCode, 400);
-      expect(rejected.error.field, 'token');
+      final outcome = await run(
+        request(target: const TopicTarget('news'), message: const FcmMessage()),
+        sender: sender,
+      );
+
+      expect(outcome, isA<SendSucceeded>());
+      expect(sender.sent.single['message'], containsPair('topic', 'news'));
+    });
+
+    test('refuses all-devices with 501 rather than sending to one', () async {
+      final sender = FakeFcmSender();
+
+      final outcome = await run(
+        request(target: const AllDevicesTarget()),
+        sender: sender,
+      );
+
+      expect(outcome, isA<SendRejected>());
+      expect((outcome as SendRejected).statusCode, 501);
+      expect(outcome.error.field, 'all_devices');
+      expect(sender.sent, isEmpty, reason: 'nothing may be sent');
+    });
+
+    test('a blank token is still a 400, now via the target reader', () {
+      // The guard moved into SendTarget.readFrom; the guarantee did not move.
+      expect(
+        () => SendMessageRequest.fromJson({
+          'token': '  ',
+          'message': <String, Object?>{},
+        }),
+        throwsA(isA<FormatException>()),
+      );
     });
 
     test('maps an unregistered token to 404 with wording of its own', () async {

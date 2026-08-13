@@ -1,14 +1,14 @@
-import 'json_field.dart';
 import 'message/fcm_message.dart';
+import 'send_target.dart';
 
 /// A request to send a message through the local FCM API.
 ///
-/// The caller provides the delivery target ([token]) and the message content
+/// The caller provides the delivery target ([target]) and the message content
 /// ([message]); [validateOnly] controls whether to actually deliver it.
 class SendMessageRequest {
   /// Creates a request to send a message.
   const SendMessageRequest({
-    required this.token,
+    required this.target,
     required this.message,
     this.validateOnly = false,
   });
@@ -16,8 +16,12 @@ class SendMessageRequest {
   /// Parses a request body, reading `message` by delegating to [FcmMessage.fromJson]
   /// so that a malformed message reports its path rather than failing opaquely,
   /// and so that a message setting its own target is rejected.
+  ///
+  /// The target is read by [SendTarget.readFrom] from the body's *top level*,
+  /// which is where FCM's own `oneof` sits, so "no target", "two targets" and a
+  /// blank one all report from one place.
   factory SendMessageRequest.fromJson(Map<String, Object?> json) {
-    final token = requireText(json['token'], 'token');
+    final target = SendTarget.readFrom(json);
     final messageJson = json['message'];
     if (messageJson == null) {
       throw FormatException('"message" is missing');
@@ -31,14 +35,14 @@ class SendMessageRequest {
     final validateOnly = json['validate_only'] as bool? ?? false;
 
     return SendMessageRequest(
-      token: token,
+      target: target,
       message: message,
       validateOnly: validateOnly,
     );
   }
 
-  /// The device token to deliver the message to.
-  final String token;
+  /// Where the message should be delivered.
+  final SendTarget target;
 
   /// The message content to send.
   final FcmMessage message;
@@ -51,8 +55,11 @@ class SendMessageRequest {
 
   /// Serialises the request, always writing `validate_only` even when false
   /// to capture the caller's explicit intent.
+  ///
+  /// The target is spread at the top level rather than nested, so the body keeps
+  /// the shape FCM uses and every `curl` example in the README still applies.
   Map<String, Object?> toJson() => {
-    'token': token,
+    ...target.toJson(),
     'validate_only': validateOnly,
     'message': message.toJson(),
   };

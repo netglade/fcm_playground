@@ -96,7 +96,7 @@ void main() {
 
       await controller.send();
 
-      expect(sender.sent.single.token, 'device-token');
+      expect(sender.sent.single.target, const TokenTarget('device-token'));
       expect(sender.sent.single.message, controller.form.toModel());
       expect(sender.sent.single.validateOnly, isFalse);
     });

@@ -107,7 +107,7 @@ class SandboxController extends ChangeNotifier {
     try {
       final response = await _sender.send(
         SendMessageRequest(
-          token: token,
+          target: TokenTarget(token),
           message: message,
           validateOnly: _validateOnly,
         ),
