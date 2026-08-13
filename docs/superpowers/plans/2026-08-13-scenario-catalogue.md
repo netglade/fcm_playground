@@ -1931,19 +1931,35 @@ Group-specific assertions:
 
 ```dart
     test('only the iOS badge scenario works today', () {
-      expect(groupG.where((s) => s.isSupported).map((s) => s.id), [
-        'g4_badge_ios',
-      ]);
+      // `where(isSupported)` is only `needs.isEmpty`, so this passed for ANY
+      // three entries with ANY non-empty needs — including three filed under the
+      // wrong sub-project. Pin the length and the exact needs per id.
+      expect(groupG, hasLength(4));
+      for (final scenario in groupG) {
+        expect(
+          scenario.needs,
+          switch (scenario.id) {
+            'g3_badge' => [ScenarioNeed.badge],
+            'g4_badge_ios' => <ScenarioNeed>[],
+            _ => [ScenarioNeed.interaction],
+          },
+          reason: scenario.id,
+        );
+      }
     });
 
     test('the Android badge uses notification_count, an FCM field', () {
       final badge = groupG.firstWhere((s) => s.id == 'g3_badge');
 
-      expect(
-        ((badge.payloadTemplate['android']! as Map)['notification']!
-            as Map)['notification_count'],
-        5,
-      );
+      final count =
+          ((badge.payloadTemplate['android']! as Map)['notification']!
+              as Map)['notification_count'];
+
+      // isA<int>() is NOT redundant beside the value check: Dart's `5.0 == 5` is
+      // true, so `expect(count, 5)` alone passes on a double — and a double in a
+      // typed int32 field is a 400 from Google.
+      expect(count, isA<int>());
+      expect(count, 5);
       expect(badge.needs, [ScenarioNeed.badge]);
     });
 
@@ -1953,6 +1969,9 @@ Group-specific assertions:
           ((badge.payloadTemplate['apns']! as Map)['payload']! as Map)['aps']!
               as Map;
 
+      // isA<int>() is the ONLY guard here: apns.payload is free-form, so a double
+      // would round-trip unchanged and reach APNs as the wrong type.
+      expect(aps['badge'], isA<int>());
       expect(aps['badge'], 7);
     });
 
@@ -2226,7 +2245,13 @@ Group-specific assertions:
       final apns = background.payloadTemplate['apns']! as Map;
 
       expect((apns['headers']! as Map)['apns-priority'], '5');
-      expect(((apns['payload']! as Map)['aps']! as Map)['content-available'], 1);
+      final available = ((apns['payload']! as Map)['aps']! as Map)['content-available'];
+
+      // isA<int>() beside the value, for the reason group G records: `1.0 == 1`
+      // is true in Dart, and apns.payload is free-form so nothing else would
+      // catch a double reaching APNs where it requires an integer.
+      expect(available, isA<int>());
+      expect(available, 1);
     });
 
     test('the sync scenario draws nothing', () {
@@ -3250,6 +3275,12 @@ Neither can run here. Report each as verified or unverified; never assume.
   `5`. The model enforces it and the round-trip test will catch it.
 - **Numbers inside `apns.payload` are not.** That block is free-form, so
   `'badge': 7` is correct there and `'badge': '7'` would be wrong.
+- **Assert `isA<int>()` beside every integer value, and never instead of it.**
+  Dart's `5.0 == 5` is `true` and `5.0 is int` is `false`, so `expect(x, 5)` alone
+  passes on a double. Inside `apns.payload` that is the *only* guard, because the
+  block is free-form and the round-trip preserves a double unchanged; in a typed
+  int32 field like `notification_count` a double is a 400 from Google. Verified
+  empirically on Task 10.
 - **Group letters live in `group`, not just the id.** The prefix test compares the
   id's first character with the group string's first character, so
   `group: 'C — Priority and delivery window'` and `id: 'c1_…'` must agree.
