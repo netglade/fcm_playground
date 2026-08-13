@@ -38,5 +38,6 @@ export 'src/scenarios/scenario_need.dart';
 export 'src/send_message_request.dart';
 export 'src/send_message_response.dart';
 export 'src/send_target.dart';
+export 'src/telemetry/latency_row.dart';
 export 'src/telemetry/telemetry_event.dart';
 export 'src/telemetry/telemetry_event_type.dart';
