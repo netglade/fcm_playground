@@ -1,10 +1,12 @@
 import 'package:fcm_app/push/push_inbox.dart';
 import 'package:fcm_app/sandbox/sandbox_controller.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
+import 'package:fcm_app/ui/message_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_notification_sender.dart';
+import 'fake_push_payload_store.dart';
 import 'fake_push_source.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
@@ -40,7 +42,7 @@ void main() {
   });
 
   testWidgets('shows an empty state before anything arrives', (tester) async {
-    inbox = PushInbox(source)..listen();
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
 
     await pumpApp(tester);
 
@@ -48,7 +50,7 @@ void main() {
   });
 
   testWidgets('renders a received message with its data keys', (tester) async {
-    inbox = PushInbox(source)..listen();
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
     await pumpApp(tester);
 
     source.emit(payload());
@@ -61,7 +63,7 @@ void main() {
   });
 
   testWidgets('shows the registration token once resolved', (tester) async {
-    inbox = PushInbox(source)..listen();
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
     await inbox.refreshToken();
 
     await pumpApp(tester);
@@ -70,7 +72,11 @@ void main() {
   });
 
   testWidgets('surfaces a setup error in a banner', (tester) async {
-    inbox = PushInbox(source, setupError: 'Firebase is not configured');
+    inbox = PushInbox(
+      source,
+      store: FakePushPayloadStore(),
+      setupError: 'Firebase is not configured',
+    );
 
     await pumpApp(tester);
 
@@ -79,12 +85,40 @@ void main() {
   });
 
   testWidgets('counts malformed payloads', (tester) async {
-    inbox = PushInbox(source)..listen();
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
     await pumpApp(tester);
 
     source.emit({'id': 'broken'});
     await tester.pumpAndSettle();
 
     expect(find.text('1 malformed payload(s) dropped'), findsOne);
+  });
+
+  testWidgets('opens the detail page when a row is tapped', (tester) async {
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    await pumpApp(tester);
+    source.emit(payload());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Build finished'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MessageDetailPage), findsOne);
+    expect(find.text('/builds/42'), findsOne);
+  });
+
+  testWidgets('comes back to the inbox from the detail page', (tester) async {
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    await pumpApp(tester);
+    source.emit(payload());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Build finished'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MessageDetailPage), findsNothing);
+    expect(find.widgetWithText(AppBar, 'Push inbox'), findsOne);
   });
 }

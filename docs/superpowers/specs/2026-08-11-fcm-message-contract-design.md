@@ -286,8 +286,8 @@ store is exactly when you want to know, but the README must stop describing it a
 an expected outcome.
 
 `PushMessage.title` and `.body` therefore stop being guaranteed non-empty. Their
-doc comments say so, and `MessageTile` shows a muted placeholder rather than a
-blank row.
+doc comments say so, and `MessageTile` and `MessageDetailPage` show a muted
+placeholder rather than a blank row.
 
 ## Branch relationship
 
@@ -309,6 +309,13 @@ textual rather than structural:
 Whichever merges second resolves them. Worth knowing now so neither branch is
 surprised, and worth re-checking before merging rather than assuming this list is
 still complete.
+
+**Resolved.** `feature/notification-display` merged into `main` first, and this
+section is kept as history rather than a live warning. Re-checking was the right
+instinct: the list above was incomplete by the time it mattered. Against `main`
+only this spec file conflicted — an add/add, because both branches authored it —
+while the nine-file conflict the list predicted applies to the *payload form*
+branch, which merges after this and inherits the resolution.
 
 ## The Sandbox
 

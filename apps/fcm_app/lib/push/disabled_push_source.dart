@@ -12,6 +12,9 @@ class DisabledPushSource implements PushSource {
   Stream<Map<String, Object?>> get payloads => const Stream.empty();
 
   @override
+  Stream<String> get taps => const Stream.empty();
+
+  @override
   Future<String?> token() => Future<String?>.value();
 
   @override

@@ -1,7 +1,9 @@
 import 'package:fcm_app/push/push_inbox.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fake_push_payload_store.dart';
 import 'fake_push_source.dart';
+import 'recording_notification_presenter.dart';
 
 Map<String, Object?> payload({String id = 'msg-1', String title = 'Hello'}) => {
   'id': id,
@@ -16,7 +18,7 @@ void main() {
 
   setUp(() {
     source = FakePushSource();
-    inbox = PushInbox(source)..listen();
+    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
   });
 
   tearDown(() async {
@@ -75,12 +77,357 @@ void main() {
 
   test('refreshToken leaves the token null when the source fails', () async {
     final failing = FakePushSource(tokenThrows: true);
-    final failingInbox = PushInbox(failing);
+    final failingInbox = PushInbox(failing, store: FakePushPayloadStore());
     addTearDown(failingInbox.dispose);
     addTearDown(failing.dispose);
 
     await failingInbox.refreshToken();
 
     expect(failingInbox.token, isNull);
+  });
+
+  group('PushInbox.restore', () {
+    test(
+      'loads stored payloads newest first, as the inbox shows them',
+      () async {
+        final store = FakePushPayloadStore(
+          inbox: [
+            payload(id: 'newest'),
+            payload(id: 'oldest'),
+          ],
+        );
+        inbox = PushInbox(source, store: store);
+
+        await inbox.restore();
+
+        expect(inbox.messages.map((message) => message.id), [
+          'newest',
+          'oldest',
+        ]);
+      },
+    );
+
+    test('drains what the background isolate left', () async {
+      final store = FakePushPayloadStore(pending: [payload(id: 'background')]);
+      inbox = PushInbox(source, store: store);
+
+      await inbox.restore();
+
+      expect(inbox.messages.single.id, 'background');
+      expect(store.pending, isEmpty);
+    });
+
+    test('keeps a payload once when it is both stored and pending', () async {
+      final store = FakePushPayloadStore(
+        inbox: [payload(id: 'msg-1')],
+        pending: [payload(id: 'msg-1')],
+      );
+      inbox = PushInbox(source, store: store);
+
+      await inbox.restore();
+
+      expect(inbox.messages, hasLength(1));
+    });
+
+    test(
+      'persists the merged result, so the drained payload is not lost',
+      () async {
+        final store = FakePushPayloadStore(
+          pending: [payload(id: 'background')],
+        );
+        inbox = PushInbox(source, store: store);
+
+        await inbox.restore();
+
+        expect(store.saves, 1);
+        expect(store.inbox.single['id'], 'background');
+      },
+    );
+
+    test('counts a malformed stored payload as a rejection', () async {
+      final store = FakePushPayloadStore(
+        inbox: [
+          {'id': 'broken'},
+        ],
+      );
+      inbox = PushInbox(source, store: store);
+
+      await inbox.restore();
+
+      expect(inbox.messages, isEmpty);
+      expect(inbox.rejections, hasLength(1));
+    });
+
+    test('degrades to an empty inbox when storage fails', () async {
+      inbox = PushInbox(source, store: FakePushPayloadStore(loadThrows: true));
+
+      await inbox.restore();
+
+      expect(inbox.messages, isEmpty);
+      expect(inbox.setupError, contains('could not be read'));
+    });
+
+    test(
+      'leaves an existing setup error alone when storage also fails',
+      () async {
+        inbox = PushInbox(
+          source,
+          store: FakePushPayloadStore(loadThrows: true),
+          setupError: 'Firebase is not configured',
+        );
+
+        await inbox.restore();
+
+        expect(inbox.setupError, 'Firebase is not configured');
+      },
+    );
+  });
+
+  group('PushInbox.drainPending', () {
+    test('merges a payload that arrived while backgrounded', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
+      final store = FakePushPayloadStore();
+      inbox = PushInbox(source, store: store)..listen();
+      await inbox.restore();
+      store.pending.add(payload(id: 'while-away'));
+
+      await inbox.drainPending();
+
+      expect(inbox.messages.single.id, 'while-away');
+    });
+
+    test('does not duplicate when drained twice', () async {
+      final store = FakePushPayloadStore(pending: [payload(id: 'once')]);
+      inbox = PushInbox(source, store: store);
+
+      await inbox.drainPending();
+      await inbox.drainPending();
+
+      expect(inbox.messages, hasLength(1));
+    });
+
+    test('does not save when there was nothing pending', () async {
+      final store = FakePushPayloadStore();
+      inbox = PushInbox(source, store: store);
+
+      await inbox.drainPending();
+
+      expect(store.saves, 0);
+    });
+  });
+
+  group('PushInbox persistence of live messages', () {
+    test('persists a payload that arrives on the stream', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
+      final store = FakePushPayloadStore();
+      inbox = PushInbox(source, store: store)..listen();
+
+      source.emit(payload(id: 'live'));
+      await pumpEventQueue();
+
+      expect(store.inbox.single['id'], 'live');
+    });
+  });
+
+  group('PushInbox cap', () {
+    test(
+      'keeps only the newest maxStoredMessages and drops the oldest',
+      () async {
+        // A fresh source: `source` from setUp is already listened to by the
+        // inbox built there, and payloads is single-subscription.
+        source = FakePushSource();
+        final store = FakePushPayloadStore();
+        inbox = PushInbox(source, store: store)..listen();
+
+        for (var index = 0; index <= PushInbox.maxStoredMessages; index++) {
+          source.emit(payload(id: 'msg-$index'));
+        }
+        await pumpEventQueue();
+
+        expect(inbox.messages, hasLength(PushInbox.maxStoredMessages));
+        expect(inbox.messages.first.id, 'msg-${PushInbox.maxStoredMessages}');
+        expect(
+          inbox.messages.map((message) => message.id),
+          isNot(contains('msg-0')),
+        );
+      },
+    );
+
+    test('persists the capped list, not the full history', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
+      final store = FakePushPayloadStore();
+      inbox = PushInbox(source, store: store)..listen();
+
+      for (var index = 0; index <= PushInbox.maxStoredMessages; index++) {
+        source.emit(payload(id: 'msg-$index'));
+      }
+      await pumpEventQueue();
+
+      expect(store.inbox, hasLength(PushInbox.maxStoredMessages));
+    });
+  });
+
+  group('PushInbox notifications', () {
+    late RecordingNotificationPresenter presenter;
+
+    setUp(() {
+      presenter = RecordingNotificationPresenter();
+    });
+
+    tearDown(() async {
+      await presenter.dispose();
+    });
+
+    test('shows a banner for a payload arriving on the stream', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(),
+        presenter: presenter,
+      )..listen();
+
+      source.emit(payload(id: 'live'));
+      await pumpEventQueue();
+
+      expect(presenter.shown.single.id, 'live');
+    });
+
+    test(
+      'shows nothing for a restored payload, which FCM already showed',
+      () async {
+        inbox = PushInbox(
+          source,
+          store: FakePushPayloadStore(inbox: [payload(id: 'old')]),
+          presenter: presenter,
+        );
+
+        await inbox.restore();
+
+        expect(inbox.messages, hasLength(1));
+        expect(presenter.shown, isEmpty);
+      },
+    );
+
+    test(
+      'shows nothing for a drained payload, which FCM already showed',
+      () async {
+        inbox = PushInbox(
+          source,
+          store: FakePushPayloadStore(pending: [payload(id: 'background')]),
+          presenter: presenter,
+        );
+
+        await inbox.drainPending();
+
+        expect(inbox.messages, hasLength(1));
+        expect(presenter.shown, isEmpty);
+      },
+    );
+
+    test('shows nothing for a payload that fails validation', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(),
+        presenter: presenter,
+      )..listen();
+
+      source.emit({'id': 'broken'});
+      await pumpEventQueue();
+
+      expect(presenter.shown, isEmpty);
+    });
+
+    test('shows a repeated id once, matching the inbox', () async {
+      // A fresh source: `source` from setUp is already listened to by the
+      // inbox built there, and payloads is single-subscription.
+      source = FakePushSource();
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(),
+        presenter: presenter,
+      )..listen();
+
+      source.emit(payload(id: 'twice'));
+      source.emit(payload(id: 'twice'));
+      await pumpEventQueue();
+
+      expect(presenter.shown, hasLength(1));
+    });
+  });
+
+  group('PushInbox.requestOpen', () {
+    test('resolves an id the inbox holds', () async {
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(inbox: [payload(id: 'msg-1')]),
+      );
+      await inbox.restore();
+
+      inbox.requestOpen('msg-1');
+
+      expect(inbox.hasPendingOpen, isTrue);
+      expect(inbox.pendingOpen?.id, 'msg-1');
+    });
+
+    test('stays outstanding but unresolved for an unknown id', () {
+      inbox = PushInbox(source, store: FakePushPayloadStore());
+
+      inbox.requestOpen('never-seen');
+
+      expect(inbox.hasPendingOpen, isTrue);
+      expect(inbox.pendingOpen, isNull);
+    });
+
+    test(
+      'resolves once the message arrives, whatever the stream order',
+      () async {
+        // A fresh source: `source` from setUp is already listened to by the
+        // inbox built there, and payloads is single-subscription.
+        source = FakePushSource();
+        inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+
+        inbox.requestOpen('late');
+        expect(inbox.pendingOpen, isNull);
+        source.emit(payload(id: 'late'));
+        await pumpEventQueue();
+
+        expect(inbox.pendingOpen?.id, 'late');
+      },
+    );
+
+    test('notifies listeners so the shell can react', () {
+      inbox = PushInbox(source, store: FakePushPayloadStore());
+      var notifications = 0;
+      inbox.addListener(() => notifications++);
+
+      inbox.requestOpen('msg-1');
+
+      expect(notifications, 1);
+    });
+
+    test('clears, so the shell does not navigate twice', () async {
+      inbox = PushInbox(
+        source,
+        store: FakePushPayloadStore(inbox: [payload(id: 'msg-1')]),
+      );
+      await inbox.restore();
+      inbox.requestOpen('msg-1');
+
+      inbox.clearPendingOpen();
+
+      expect(inbox.hasPendingOpen, isFalse);
+      expect(inbox.pendingOpen, isNull);
+    });
   });
 }

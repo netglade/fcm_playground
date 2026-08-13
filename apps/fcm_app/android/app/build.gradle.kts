@@ -13,6 +13,11 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // flutter_local_notifications 10+ relies on library desugaring for its
+        // backwards-compatible scheduling APIs, and the AAR metadata check fails
+        // the build without it — even though this app only shows notifications
+        // immediately and never schedules one.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -45,4 +50,10 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // The version flutter_local_notifications 22.3.0 documents for its
+    // desugaring requirement. Its own android/build.gradle uses the same one.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
