@@ -135,24 +135,14 @@ void main() {
     test('round-trips an alert payload read out of a whole message', () {
       // The reason the dotted-path work exists: a real nested aps dictionary,
       // reached the way the Sandbox reaches it — through FcmMessage.fromJson
-      // rather than ApnsConfig.fromJson. Group A carries no APNs scenario, so
-      // the template is inline until g4_badge_ios exists to source it from.
-      const template = {
-        'apns': {
-          'headers': {'apns-priority': '10'},
-          'payload': {
-            'aps': {
-              'alert': {
-                'title': 'Build finished',
-                'body': 'Release 1.0.0 is ready.',
-              },
-              'badge': 1,
-              'sound': 'default',
-            },
-          },
-        },
-      };
-      final source = FcmMessage.fromJson(template).apns!;
+      // rather than ApnsConfig.fromJson, on a template a user can actually
+      // pick. g4_badge_ios is the catalogue's APNs entry, and group_g_test.dart
+      // pins its shape — nested alert, integer badge, sound — so the coverage
+      // here cannot be narrowed by a change over in the contract package.
+      final scenario = scenarioGallery.firstWhere(
+        (s) => s.id == 'g4_badge_ios',
+      );
+      final source = FcmMessage.fromJson(scenario.payloadTemplate).apns!;
       final subject = form();
 
       subject.readFrom(source);
