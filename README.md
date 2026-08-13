@@ -166,8 +166,8 @@ What the Sandbox sends is FCM's own v1 `Message` object — typed in
 `notification`, `android`, `webpush`, `apns` and `fcm_options`. A `Scenario`
 holds a raw JSON template of that object, so it can be pasted straight out of
 [Google's REST reference](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages)
-without translation; the Sandbox's payload editor lets you change the template
-before sending.
+without translation; the Sandbox's form lets you change the template before
+sending.
 
 `apps/fcm_api`'s `POST /send` is a passthrough. It takes
 
@@ -199,15 +199,52 @@ On arrival, `core`'s parser treats `title` and `body` as optional: a data-only
 push, with no `notification` block at all, still reaches the inbox, showing a
 `(no title)` placeholder in place of the missing headline. As a result,
 `PushInbox.rejections` is now a **rare** signal rather than an expected one —
-only a blank `id` or an unparseable `sentAt` still trips it, and the server
-always supplies both correctly for anything sent through the Sandbox, so it
-only fires on a hand-edited payload that breaks one of those two fields.
+only a blank `id` or an unparseable `sentAt` still trips it. Neither comes from
+the server: the client fills them from the FCM envelope itself (`messageId` and
+`sentTime`) and then spreads the message's own `data` over the top, so they are
+always present unless a `data` entry overrides one of them with something
+broken. Adding `id` or `sentAt` to the `data` map in the Sandbox form is
+therefore the one way to trip it on purpose.
 
 **A real loss of observability:** the send response no longer carries a
 payload id — only FCM's own `messageId`, which has no relationship to
 anything the inbox stores. Matching a send to its arrival therefore needs an
 `id` you put in the message's `data` map yourself; there is no longer any
 other way to tell which arriving push came from which send.
+
+## The payload form
+
+The Sandbox edits the message through a form, not a JSON text field. Ten
+collapsible sections mirror FCM's own objects one for one — `message`,
+`notification`, `android`, `android.notification`, `android.notification.
+light_settings`, `apns`, `webpush` and the three `fcm_options` variants — nesting
+four levels deep exactly as the payload does. Every section starts closed except
+the outermost, so arriving shows the payload's shape rather than a wall of
+fields; each header carries an error badge that lights when anything inside it is
+invalid, at any depth, so a bad field cannot hide behind a closed section while
+Send sits disabled.
+
+**Optional booleans are tristate, and that is not a nicety.** FCM distinguishes
+"absent" from "false": omitting `direct_boot_ok` leaves the platform default in
+place, while sending `false` states a choice. A plain checkbox has only two
+states and would silently send `false` for every flag the user never touched, so
+each one offers unset / true / false and shows "Not sent" when unset. The same
+rule drives the text fields — an empty box means the key is omitted, not sent as
+`""` — and emptying a list or map editor omits the key rather than sending `[]`
+or `{}`.
+
+**`apns.payload` and `webpush.notification` are edited as dotted-path rows**
+(`aps.alert.title`, `aps.badge`) instead of nested controls. FCM defines both as
+free-form — Apple's `aps` dictionary is Apple's, not Google's — so no form can
+enumerate their fields. Rows expand back into nested JSON on send, with numeric
+path segments becoming list indices.
+
+**The accepted limitation: there is no JSON escape hatch.** Only fields the form
+models can be sent. That is the deliberate trade for a form that cannot produce
+a malformed payload, and the typed model in `packages/fcm_gallery_shared` covers
+the whole of FCM's v1 `Message`, so the gap is FCM's future additions rather
+than its present surface. All nine gallery scenarios round-trip through the form
+unchanged — a test asserts it, so a field missing from a form fails the build.
 
 ## Sending a test push
 
@@ -265,7 +302,7 @@ so only the machine running it can reach it. Do not deploy it as is — bound to
 ## Verified on this machine
 
 `melos run ci` passes clean — 20 `core` tests, 91 `fcm_gallery_shared` tests, 36
-`fcm_api` tests and 53 `fcm_app` tests. `fvm flutter build apk --debug` and
+`fcm_api` tests and 220 `fcm_app` tests. `fvm flutter build apk --debug` and
 `fvm flutter build web --release` both succeed (compile checks only: the web
 build cannot receive FCM pushes without a VAPID key, and an apk build is not
 the same as running on a device). The iOS build has **not** been verified here
@@ -273,15 +310,18 @@ the same as running on a device). The iOS build has **not** been verified here
 
 Two things remain explicitly **not verified** on this machine:
 
-- **The `validate_only` sweep** — sending each of the nine gallery scenarios'
-  templates to FCM with `validate_only: true` and confirming a 200. This needs
-  a service account key downloaded from the Firebase console and the API
-  running against it, which this machine cannot do unattended.
+- **The `validate_only` sweep through the form** — opening each of the nine
+  gallery scenarios in the Sandbox and sending it with validate-only on,
+  expecting a 200. The typed model's own templates were swept earlier; this is
+  the stronger and now more useful claim, that what the *form* builds is also
+  accepted. It needs a service account key downloaded from the Firebase console
+  and the API running against it, which this machine cannot do unattended.
 - **The on-device checks** — that `big_picture_remote` renders its image, that
   `data_only` reaches the inbox with no notification drawn, that
-  `custom_channel` pops as a heads-up banner, and that an edited payload with a
-  typo disables Send with the field path shown. This needs a physical Android
-  device.
+  `custom_channel` pops as a heads-up banner, and that `direct_boot_ok` sends
+  `false` when set to false and omits the key when left unset. That last one is
+  the only real-world proof of the tristate design; a widget test can show the
+  three states cycling but not what leaves the device.
 
 No service account key has been generated for this project and no Android
 device has been attached on this machine, so neither of the above has actually
