@@ -44,22 +44,7 @@ class InMemoryTelemetryStore implements TelemetryStore {
       List<TelemetryEvent>.unmodifiable(_events.values);
 
   @override
-  Future<List<LatencyRow>> latencies() async {
-    final sends = <String, TelemetryEvent>{};
-    final arrivals = <_PairKey, TelemetryEvent>{};
-    for (final event in _events.values) {
-      if (event.type == TelemetryEventType.sent) {
-        sends[event.traceId] = event;
-      } else if (_isArrival(event.type)) {
-        _keepEarliest(arrivals, event);
-      }
-    }
-
-    return [
-      for (final arrival in arrivals.values)
-        if (sends[arrival.traceId] case final sent?) _rowFor(sent, arrival),
-    ];
-  }
+  Future<List<LatencyRow>> latencies() async => pairLatencies(_events.values);
 
   @override
   Future<void> close() => Future<void>.value();
@@ -68,38 +53,5 @@ class InMemoryTelemetryStore implements TelemetryStore {
 /// The idempotency key: one event, whatever timestamp it is reported with.
 typedef _EventKey = (String traceId, TelemetryEventType type, String deviceId);
 
-/// What a latency row is per: one trace, one device. Both halves matter — two
-/// sends to one handset are two measurements, and one send to two handsets is
-/// the reason the matrix exists.
-typedef _PairKey = (String traceId, String deviceId);
-
 _EventKey _keyOf(TelemetryEvent event) =>
     (event.traceId, event.type, event.deviceId);
-
-/// Whether this event says the message reached a device.
-///
-/// Both arrival types count, and they are separate keys, so one trace can hold a
-/// foreground *and* a background arrival for one device — hence the comparison
-/// in [_keepEarliest] rather than reliance on the idempotency key.
-bool _isArrival(TelemetryEventType type) =>
-    type == TelemetryEventType.receivedFg ||
-    type == TelemetryEventType.receivedBg;
-
-void _keepEarliest(Map<_PairKey, TelemetryEvent> arrivals, TelemetryEvent at) {
-  final key = (at.traceId, at.deviceId);
-  final earliest = arrivals[key];
-  if (earliest == null || at.at.isBefore(earliest.at)) {
-    arrivals[key] = at;
-  }
-}
-
-/// The scenario comes from the sending side when it knew it, and from the device
-/// otherwise: the API knows it for a gallery send, the device reads it off the
-/// payload, and a row with neither is a row nobody can group.
-LatencyRow _rowFor(TelemetryEvent sent, TelemetryEvent arrival) => LatencyRow(
-  traceId: sent.traceId,
-  deviceId: arrival.deviceId,
-  sentAt: sent.at,
-  receivedAt: arrival.at,
-  scenarioId: sent.scenarioId ?? arrival.scenarioId,
-);

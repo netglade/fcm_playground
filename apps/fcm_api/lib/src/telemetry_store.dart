@@ -52,3 +52,63 @@ abstract interface class TelemetryStore {
   /// holds nothing.
   Future<void> close();
 }
+
+/// The one implementation of [TelemetryStore.latencies], over whatever events a
+/// store holds.
+///
+/// Both stores call this rather than each deriving the pairing for itself. The
+/// alternative for the SQLite store — the same rules again as a query — would be
+/// faster on a large database, but it would run only where the native library
+/// happens to be installed, so `melos run ci` could not see the two definitions
+/// of "first arrival" drift apart. One definition, pinned by
+/// `in_memory_telemetry_store_test.dart`, is worth more here than a query plan:
+/// this is a local development tool, and the rows are one per send per device.
+List<LatencyRow> pairLatencies(Iterable<TelemetryEvent> events) {
+  final sends = <String, TelemetryEvent>{};
+  final arrivals = <_PairKey, TelemetryEvent>{};
+  for (final event in events) {
+    if (event.type == TelemetryEventType.sent) {
+      sends[event.traceId] = event;
+    } else if (_isArrival(event.type)) {
+      _keepEarliest(arrivals, event);
+    }
+  }
+
+  return [
+    for (final arrival in arrivals.values)
+      if (sends[arrival.traceId] case final sent?) _rowFor(sent, arrival),
+  ];
+}
+
+/// What a latency row is per: one trace, one device. Both halves matter — two
+/// sends to one handset are two measurements, and one send to two handsets is
+/// the reason the matrix exists.
+typedef _PairKey = (String traceId, String deviceId);
+
+/// Whether this event says the message reached a device.
+///
+/// Both arrival types count, and they are separate idempotency keys, so one trace
+/// can hold a foreground *and* a background arrival for one device — hence the
+/// comparison in [_keepEarliest] rather than reliance on the key.
+bool _isArrival(TelemetryEventType type) =>
+    type == TelemetryEventType.receivedFg ||
+    type == TelemetryEventType.receivedBg;
+
+void _keepEarliest(Map<_PairKey, TelemetryEvent> arrivals, TelemetryEvent at) {
+  final key = (at.traceId, at.deviceId);
+  final earliest = arrivals[key];
+  if (earliest == null || at.at.isBefore(earliest.at)) {
+    arrivals[key] = at;
+  }
+}
+
+/// The scenario comes from the sending side when it knew it, and from the device
+/// otherwise: the API knows it for a gallery send, the device reads it off the
+/// payload, and a row with neither is a row nobody can group.
+LatencyRow _rowFor(TelemetryEvent sent, TelemetryEvent arrival) => LatencyRow(
+  traceId: sent.traceId,
+  deviceId: arrival.deviceId,
+  sentAt: sent.at,
+  receivedAt: arrival.at,
+  scenarioId: sent.scenarioId ?? arrival.scenarioId,
+);
