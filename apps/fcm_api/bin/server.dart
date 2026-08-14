@@ -41,6 +41,10 @@ Future<void> _serve(ServerConfig config) async {
     sender: HttpV1FcmSender(client: client, projectId: config.projectId),
     now: () => DateTime.now().toUtc(),
     newTraceId: newTraceId,
+    // In memory for now, so the routes are servable before the database path is
+    // configurable. Task 8 of the telemetry plan swaps in the SQLite store,
+    // which is the only one that survives a restart.
+    telemetry: InMemoryTelemetryStore(),
   );
 
   final server = await serve(

@@ -14,6 +14,7 @@ void main() {
     sender: sender,
     now: () => sentAt,
     newTraceId: () => 'tr-1',
+    telemetry: InMemoryTelemetryStore(),
   ).handler;
 
   FutureOr<Response> post(Object? body, {FakeFcmSender? sender}) =>

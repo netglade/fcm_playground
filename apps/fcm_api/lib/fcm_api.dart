@@ -6,6 +6,7 @@
 library;
 
 export 'src/api_router.dart';
+export 'src/events_handler.dart';
 export 'src/fcm_send_exception.dart';
 export 'src/fcm_sender.dart';
 export 'src/http_v1_fcm_sender.dart';
