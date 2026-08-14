@@ -41,3 +41,10 @@ apps/*/ios/Runner/GoogleService-Info.plist
 
 # OS
 .DS_Store
+
+# Superpowers working notes: specs, implementation plans and the SDD ledgers.
+# Kept on disk and out of the repository — they are a record of how the work was
+# planned and reviewed, not part of the software. What they document that matters
+# to a reader of this repo lives in the code, its doc comments and README.md.
+docs/superpowers/
+.superpowers/
