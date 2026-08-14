@@ -270,6 +270,48 @@ void main() {
     expect(sender.sent.single.target, const TopicTarget('news'));
   });
 
+  testWidgets('a toggled field repaints, though no state scalar moved', (
+    tester,
+  ) async {
+    // The guard for the one reason `SandboxState` is deliberately not
+    // value-equal. Form controls are `StatelessWidget`s reading `input.value`,
+    // and this `BlocBuilder` is the only thing that redraws them — but ticking
+    // `direct_boot_ok` moves none of the five scalars in the state. Give the
+    // state an `==` and `Cubit.emit` drops the new state as equal, so the
+    // checkbox the user just tapped stays visibly unticked while the model
+    // underneath it has changed. Asserted through the rendered `Checkbox`
+    // rather than through `form.directBootOk.value`, because the model updating
+    // is exactly what this cannot rely on to prove the screen followed.
+    build();
+    await pump(tester);
+    await tester.tap(find.text('android'));
+    await tester.pumpAndSettle();
+
+    final box = find.ancestor(
+      of: find.text('direct_boot_ok'),
+      matching: find.byType(CheckboxListTile),
+    );
+    // The open `android` section is taller than the screen, and a tap dispatched
+    // at a point below the viewport lands on nothing at all — silently, leaving
+    // a green test that touched no widget.
+    await tester.ensureVisible(box);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(box).value, isNull);
+
+    await tester.tap(find.descendant(of: box, matching: find.byType(Checkbox)));
+    await tester.pumpAndSettle();
+
+    // `false`, not `true`: a tristate checkbox cycles absent -> false -> true,
+    // and absent -> false is the transition that matters most here, since those
+    // two are different messages to FCM.
+    expect(tester.widget<CheckboxListTile>(box).value, isFalse);
+    expect(
+      find.descendant(of: box, matching: find.text('Not sent')),
+      findsNothing,
+      reason: 'the absent-value hint must go with the tick',
+    );
+  });
+
   testWidgets('renders a failure and keeps the payload', (tester) async {
     build(failure: const NotificationSendException('The API is unreachable'));
     await pump(tester);
