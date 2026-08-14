@@ -11,6 +11,13 @@ dependencies:
   core:
     path: ../../packages/core
   cupertino_icons: ^1.0.8
+  # Held below drift 2.32 and drift_flutter 0.3, which require sqlite3 ^3.4.0.
+  # sqlite3 3.0 replaced the DynamicLibrary loader with build hooks, and
+  # apps/fcm_api relies on that loader to point at libsqlite3.so.0 — see
+  # useSystemSqlite in sqlite_telemetry_store.dart. One workspace means one
+  # sqlite3, so the app's Drift version is pinned by the server's loader.
+  drift: ">=2.29.0 <2.32.0"
+  drift_flutter: ^0.2.8
   fcm_gallery_shared:
     path: ../../packages/fcm_gallery_shared
   firebase_core: ^4.13.0
@@ -23,10 +30,22 @@ dependencies:
   shared_preferences: ^2.5.5
 
 dev_dependencies:
+  # Not pinned to a major-latest: build_runner >=2.15.2 needs an analyzer whose
+  # `meta` requirement conflicts with the one flutter_test pins from the SDK.
+  build_runner: ^2.4.0
+  # Matched to the runtime above, because a drift_dev generates for one drift
+  # minor range and a mismatch fails in ways that read as a logic bug. Every
+  # version in this range caps cli_util at ^0.4.0, which melos 8 forbids — see
+  # the override at the workspace root.
+  drift_dev: ">=2.29.0 <2.32.0"
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
   shared_preferences_platform_interface: ^2.4.2
+  # Test-only: `flutter test` runs on the Dart VM, where drift_flutter's bundled
+  # native library is not available, so the tests name the system one the same
+  # way the server does.
+  sqlite3: ^2.4.0
 
 flutter:
   uses-material-design: true
