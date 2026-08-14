@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 import 'fcm_send_exception.dart';
 import 'fcm_sender.dart';
 import 'send_outcome.dart';
+import 'telemetry_store.dart';
 
 /// Injects the delivery target and a trace id into the message and forwards it
 /// to FCM.
@@ -10,40 +13,103 @@ import 'send_outcome.dart';
 /// The payload is otherwise the caller's: nothing here invents a notification
 /// block or a data key of its own — [request.message] is forwarded untouched
 /// apart from the [request.target] injected as the delivery target and the
-/// trace id injected into `data`. Takes its clock and its id generator as
-/// parameters rather than reading either from the environment, so its tests
-/// assert exact values instead of matching patterns — and it depends on no
-/// `Request`, no credential and no socket.
+/// trace id injected into `data`. Takes its clock, its id generator and its
+/// [TelemetryStore] as parameters rather than reading any of them from the
+/// environment, so its tests assert exact values instead of matching patterns —
+/// and it depends on no `Request`, no credential and no socket.
+///
+/// It records the send side of the pipeline as it goes: `queued` before FCM is
+/// asked, then `sent` or `send_failed`. **These five parameters are the limit**
+/// — `number-of-parameters: 5` is fatal here — so a sixth needs the arguments
+/// gathered into an object rather than appended.
 Future<SendOutcome> sendMessage(
   SendMessageRequest request, {
   required FcmSender sender,
   required DateTime Function() now,
   required String Function() newTraceId,
+  required TelemetryStore telemetry,
 }) async {
   if (request.target case AllDevicesTarget()) {
+    // Nothing is recorded, deliberately: the refusal happens before anything is
+    // queued, and a `queued` row with no `sent` or `send_failed` beside it would
+    // read as a message lost in flight rather than one never accepted.
     return _allDevicesUnsupported;
   }
 
   // Minted once, so the id on the wire and the id returned are the same one.
   final traceId = newTraceId();
+  // One clock reading stamps every event of this send, which is why
+  // `TelemetryStore.all` is specified in recorded order: two readings would
+  // separate `queued` from `sent` by however long FCM took, and nothing here
+  // wants to measure that — the figure this pipeline exists for is
+  // `sent → received`.
+  final at = now();
+  await _record(telemetry, _event(traceId, TelemetryEventType.queued, at));
 
   try {
     final messageId = await sender.send(_bodyFor(request, traceId));
+    // FCM's own name for the message, which is what ties this trace to Google's
+    // record of the same send.
+    await _record(
+      telemetry,
+      _event(traceId, TelemetryEventType.sent, at, detail: messageId),
+    );
 
     return SendSucceeded(
-      SendMessageResponse(
-        messageId: messageId,
-        sentAt: now(),
-        traceId: traceId,
-      ),
+      SendMessageResponse(messageId: messageId, sentAt: at, traceId: traceId),
     );
   } on FcmSendException catch (error) {
+    // The code rather than the human message: the code is what groups a hundred
+    // failures into three causes, and the prose varies with the request.
+    await _record(
+      telemetry,
+      _event(traceId, TelemetryEventType.sendFailed, at, detail: error.status),
+    );
+
     return SendRejected(
       statusCode: _statusFor(error.status),
       error: ApiError(_messageFor(error)),
     );
   }
 }
+
+/// Stores one event, swallowing whatever the store does about it.
+///
+/// Telemetry observes something more important than itself. Losing a row is a
+/// nuisance; failing a push because the event store was unavailable would be a
+/// bug in a tool whose only purpose is sending pushes. The reason goes to
+/// `stderr` rather than nowhere, so a store that is quietly failing is still
+/// visible to whoever is watching the server.
+Future<void> _record(TelemetryStore telemetry, TelemetryEvent event) async {
+  try {
+    await telemetry.record([event]);
+  } on Object catch (error) {
+    stderr.writeln(
+      'telemetry: dropped ${event.type.wireName} for ${event.traceId}: $error',
+    );
+  }
+}
+
+/// One of the three send-side events.
+///
+/// `deviceId` is empty because these happen on the server, with no device
+/// involved yet. `scenarioId` is left null because nothing reaching here carries
+/// one: a [SendMessageRequest] is a target and a message, so the gallery's choice
+/// of scenario does not survive the HTTP boundary — only the payload it produced
+/// does. Anything grouping latencies by scenario has to read it from the arrival
+/// side, which `pairLatencies` already falls back to.
+TelemetryEvent _event(
+  String traceId,
+  TelemetryEventType type,
+  DateTime at, {
+  String? detail,
+}) => TelemetryEvent(
+  traceId: traceId,
+  type: type,
+  at: at,
+  deviceId: '',
+  detail: detail,
+);
 
 /// Builds FCM's request body, merging [traceId] into the message's `data`.
 ///

@@ -3,19 +3,23 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:test/test.dart';
 
 import 'fake_fcm_sender.dart';
+import 'store_reading_fcm_sender.dart';
+import 'throwing_telemetry_store.dart';
 
 void main() {
   final sentAt = DateTime.utc(2026, 8, 11, 9, 12, 3);
 
   Future<SendOutcome> run(
     SendMessageRequest request, {
-    FakeFcmSender? sender,
+    FcmSender? sender,
     String traceId = 'tr-1',
+    TelemetryStore? telemetry,
   }) => sendMessage(
     request,
     sender: sender ?? FakeFcmSender(),
     now: () => sentAt,
     newTraceId: () => traceId,
+    telemetry: telemetry ?? InMemoryTelemetryStore(),
   );
 
   Map<String, Object?> messageIn(FakeFcmSender sender) =>
@@ -123,6 +127,7 @@ void main() {
         sender: sender,
         now: () => sentAt,
         newTraceId: () => 'tr-${++minted}',
+        telemetry: InMemoryTelemetryStore(),
       );
 
       expect(minted, 1, reason: 'minted exactly once per send');
@@ -260,6 +265,134 @@ void main() {
 
       expect((outcome as SendRejected).statusCode, 502);
       expect(outcome.error.message, contains('QUOTA_EXCEEDED'));
+    });
+
+    group('telemetry', () {
+      late InMemoryTelemetryStore store;
+
+      setUp(() => store = InMemoryTelemetryStore());
+
+      test('records queued then sent, in that order', () async {
+        await run(request(), telemetry: store);
+
+        expect((await store.all()).map((e) => e.type), [
+          TelemetryEventType.queued,
+          TelemetryEventType.sent,
+        ]);
+      });
+
+      test('has queued stored before FCM is called at all', () async {
+        // The order in `all()` cannot tell "queued before the send" from "both
+        // recorded after it returned" — the store's order is the order it was
+        // written in, and one clock reading stamps both, so neither the sequence
+        // nor the timestamps distinguish those two implementations. What the
+        // store holds at the moment the sender runs does, and that is the whole
+        // point of `queued`: a request that never reached FCM has to be
+        // distinguishable from one that was never made.
+        final sender = StoreReadingFcmSender(store);
+
+        await run(request(), sender: sender, telemetry: store);
+
+        expect(sender.eventsWhenCalled.map((e) => e.type), [
+          TelemetryEventType.queued,
+        ]);
+      });
+
+      test('records the FCM message id on the sent event', () async {
+        // What ties our trace to Google's own record of the send. Asserted
+        // against a literal distinct from the fake's default, so a detail that
+        // came from anywhere but FCM's answer — a constant, the trace id, an
+        // empty string — fails here instead of matching by coincidence.
+        await run(
+          request(),
+          sender: FakeFcmSender(messageId: 'projects/p/messages/0:99'),
+          telemetry: store,
+        );
+
+        final events = await store.all();
+        expect(events.last.detail, 'projects/p/messages/0:99');
+        expect(
+          events.first.detail,
+          isNull,
+          reason: 'queued knows nothing yet, so it claims nothing',
+        );
+      });
+
+      test('records queued then send_failed, keeping the error code', () async {
+        final sender = FakeFcmSender(
+          failure: const FcmSendException(
+            status: 'UNREGISTERED',
+            message: 'Requested entity was not found.',
+          ),
+        );
+
+        await run(request(), sender: sender, telemetry: store);
+
+        final events = await store.all();
+        expect(events.map((e) => e.type), [
+          TelemetryEventType.queued,
+          TelemetryEventType.sendFailed,
+        ]);
+        expect(events.last.detail, 'UNREGISTERED');
+        expect(
+          events.last.detail,
+          isNot(contains('Requested entity')),
+          reason: 'the code groups a hundred failures; the prose does not',
+        );
+      });
+
+      test('all events carry the same trace id and an empty device', () async {
+        await run(request(), traceId: 'tr-7', telemetry: store);
+
+        final events = await store.all();
+        // Length first: a `for` over an empty list asserts nothing at all.
+        expect(events, hasLength(2));
+        for (final event in events) {
+          expect(event.traceId, 'tr-7');
+          expect(
+            event.deviceId,
+            isEmpty,
+            reason: 'server-side events have no device',
+          );
+          expect(event.at, sentAt);
+          expect(event.at.isUtc, isTrue);
+        }
+      });
+
+      test('a telemetry failure does not fail the send', () async {
+        // This tool exists to send pushes. Failing one because the event store
+        // was unavailable would be the wrong trade every time.
+        final telemetry = ThrowingTelemetryStore();
+        final sender = FakeFcmSender();
+
+        final outcome = await run(
+          request(),
+          sender: sender,
+          telemetry: telemetry,
+        );
+
+        // `isA<SendSucceeded>` alone would also pass for an implementation that
+        // swallowed the store error and skipped the send, so the push itself and
+        // the answer built from FCM's reply are checked too.
+        expect(sender.sent, hasLength(1), reason: 'the push must still go out');
+        final response = (outcome as SendSucceeded).response;
+        expect(response.messageId, 'projects/p/messages/0:17');
+        expect(response.traceId, 'tr-1');
+        expect(
+          telemetry.attempts.map((e) => e.type),
+          [TelemetryEventType.queued, TelemetryEventType.sent],
+          reason: 'a queued that threw must not stop sent being attempted',
+        );
+      });
+
+      test('records nothing at all for a refused all-devices target', () async {
+        // The 501 happens before anything is queued, so a queued event with no
+        // matching sent or send_failed row would look like a message lost in
+        // flight rather than one never accepted.
+        await run(request(target: const AllDevicesTarget()), telemetry: store);
+
+        expect(await store.all(), isEmpty);
+      });
     });
   });
 }

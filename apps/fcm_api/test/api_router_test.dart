@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:fcm_api/fcm_api.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -69,6 +70,33 @@ void main() {
 
       final message = sender.sent.single['message']! as Map<String, Object?>;
       expect(message['data'], {'trace_id': 'tr-1'});
+    });
+
+    test('records the send into the store the router was given', () async {
+      // The route has to reach the *same* store `GET /latency` reads from. A
+      // router that recorded into a store of its own would compile, pass every
+      // send-side unit test, and answer an empty latency page forever.
+      final store = InMemoryTelemetryStore();
+      final handler = ApiRouter(
+        sender: FakeFcmSender(),
+        now: () => sentAt,
+        newTraceId: () => 'tr-1',
+        telemetry: store,
+      ).handler;
+
+      await handler(
+        Request(
+          'POST',
+          Uri.parse('http://localhost:8080/send'),
+          body: jsonEncode(validBody()),
+          headers: const {'content-type': 'application/json'},
+        ),
+      );
+
+      expect((await store.all()).map((e) => (e.traceId, e.type)), [
+        ('tr-1', TelemetryEventType.queued),
+        ('tr-1', TelemetryEventType.sent),
+      ]);
     });
 
     test('answers JSON', () async {

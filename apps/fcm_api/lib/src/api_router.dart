@@ -19,9 +19,11 @@ class ApiRouter {
   /// clock used to stamp a successful send, and [newTraceId] the id each send is
   /// traced by — both injected rather than read from the environment, so a test
   /// asserts exact values instead of matching patterns. [telemetry] is where
-  /// `POST /events` puts what devices report and where `GET /latency` reads
-  /// from, injected for the same reason: every test uses the in-memory store, so
-  /// the gate never needs a native SQLite.
+  /// `POST /events` puts what devices report, where a send records its own
+  /// `queued`/`sent`/`send_failed`, and where `GET /latency` reads from — one
+  /// store for all three, since a latency pairs a row from the first with a row
+  /// from the second. Injected for the same reason as the rest: every test uses
+  /// the in-memory store, so the gate never needs a native SQLite.
   ApiRouter({
     required this._sender,
     required this._now,
@@ -56,6 +58,7 @@ class ApiRouter {
       sender: _sender,
       now: _now,
       newTraceId: _newTraceId,
+      telemetry: _telemetry,
     );
 
     return switch (outcome) {
