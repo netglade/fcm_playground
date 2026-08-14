@@ -1099,8 +1099,17 @@ attempt one enormous request.
 **never throws** — a hook that can throw would take down the push handler it is
 attached to.
 
-**Flush policy:** on app resume, after each `record`, and never in the background
-isolate. Events are forgotten only on a `200`.
+**Flush policy — CORRECTED on Task 12, and Task 13 depends on the correction.**
+`record` **only buffers; it never flushes.** The original wording ("after each
+`record`") cannot coexist with Task 13's "`receivedBg` writes to the buffer and does
+not flush": if `record` flushed internally, the background hook could not opt out, and
+"never in the background isolate" is not a decision the reporter can make — it cannot
+know where it was called from. So flushing is **call-site policy**: a hook that knows
+it is in the foreground calls `record` and then `flush`, and the background handler
+calls `record` alone. A test pins that `record` sends nothing by itself, so Task 13
+can rely on it.
+
+Events are forgotten only on a `200`.
 
 - [ ] **Step 1: Write the failing test**
 
