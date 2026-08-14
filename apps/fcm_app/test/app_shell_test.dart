@@ -1,4 +1,5 @@
 import 'package:fcm_app/push/push_inbox.dart';
+import 'package:fcm_app/push/push_repository.dart';
 import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
 import 'package:fcm_app/ui/message_detail_page.dart';
@@ -22,6 +23,7 @@ void main() {
   setUpAll(GladeForms.initialize);
 
   late FakePushSource source;
+  late PushRepository repository;
   late PushInbox inbox;
   late SandboxCubit sandbox;
 
@@ -53,7 +55,9 @@ void main() {
 
   setUp(() {
     source = FakePushSource();
-    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = PushInbox(repository);
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.token,
@@ -63,6 +67,7 @@ void main() {
   tearDown(() async {
     await sandbox.close();
     inbox.dispose();
+    repository.dispose();
     await source.dispose();
   });
 
@@ -216,7 +221,8 @@ void main() {
     final store = FakePushPayloadStore();
     // A fresh source: setUp's `source` already has a listener from the outer
     // `inbox`, and a single-subscription stream accepts only one ever.
-    inbox = PushInbox(FakePushSource(), store: store)..listen();
+    repository = PushRepository(FakePushSource(), store: store)..listen();
+    inbox = PushInbox(repository);
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.token,

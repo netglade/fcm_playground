@@ -19,6 +19,7 @@ import 'push/disabled_push_source.dart';
 import 'push/firebase_push_source.dart';
 import 'push/push_inbox.dart';
 import 'push/push_payload_store.dart';
+import 'push/push_repository.dart';
 import 'push/push_source.dart';
 import 'push/remote_message_payload.dart';
 import 'push/shared_preferences_push_payload_store.dart';
@@ -59,15 +60,15 @@ Future<void> main() async {
   final PushTelemetry telemetry = buffer == null
       ? const SilentPushTelemetry()
       : _reporterOn(buffer);
-  final inbox = PushInbox(
+  final repository = PushRepository(
     source,
     store: store,
     presenter: presenter,
     telemetry: telemetry,
     setupError: setupError,
   )..listen();
-  await inbox.restore();
-  await inbox.refreshToken();
+  await repository.restore();
+  await repository.refreshToken();
   // Sends what the background isolate buffered while the app was not running:
   // those arrivals deliberately did not flush themselves, so without this they
   // would wait for the next foreground event to carry them. Not awaited — the
@@ -75,13 +76,13 @@ Future<void> main() async {
   // flush that cannot reach its own database must not cost the launch.
   unawaited(_flushQuietly(telemetry));
 
-  // Both channels mean the same thing to the inbox: FCM reports taps on the tray
-  // entries it drew itself, and the presenter reports taps on the banners the app
-  // posted while it was in the foreground.
-  source.taps.listen(inbox.requestOpen);
-  presenter.taps.listen(inbox.requestOpen);
+  // Both channels mean the same thing to the repository: FCM reports taps on the
+  // tray entries it drew itself, and the presenter reports taps on the banners the
+  // app posted while it was in the foreground.
+  source.taps.listen(repository.requestOpen);
+  presenter.taps.listen(repository.requestOpen);
 
-  // Sending needs the same registration token the inbox listens with, so
+  // Sending needs the same registration token the repository listens with, so
   // there is no separate "is sending available" question to answer here.
   final NotificationSender sender = setupError == null
       ? HttpNotificationSender(
@@ -89,15 +90,16 @@ Future<void> main() async {
           baseUrl: Uri.parse(defaultApiBaseUrl),
         )
       : UnavailableNotificationSender(setupError);
-  // The same reporter the inbox records arrivals through, so a `not_received`
-  // and the `sent` it contradicts land in one buffer and one database.
+  // The same reporter the repository records arrivals through, so a
+  // `not_received` and the `sent` it contradicts land in one buffer and one
+  // database.
   final sandbox = SandboxCubit(
     sender: sender,
-    token: () => inbox.token,
+    token: () => repository.token,
     telemetry: telemetry,
   );
 
-  runApp(FcmSampleApp(inbox: inbox, sandbox: sandbox));
+  runApp(FcmSampleApp(inbox: PushInbox(repository), sandbox: sandbox));
 }
 
 /// Starts local notifications, degrading to silence rather than failing.
@@ -157,7 +159,7 @@ Future<void> _flushQuietly(PushTelemetry telemetry) async {
 ///
 /// It persists and records. FCM has already drawn the tray entry for this
 /// message, so posting a notification here would show it twice. The UI isolate
-/// picks the payload up in `PushInbox.restore` at next launch, or in
+/// picks the payload up in `PushRepository.restore` at next launch, or in
 /// `drainPending` when the app resumes.
 ///
 /// Only ever runs for a payload carrying `data`: a notification-only push is

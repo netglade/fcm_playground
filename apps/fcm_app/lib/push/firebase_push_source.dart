@@ -12,8 +12,8 @@ class FirebasePushSource implements PushSource {
   final FirebaseMessaging _messaging;
 
   // Single-subscription, not broadcast: start() emits the launch message before
-  // PushInbox subscribes, and a broadcast controller discards events added while
-  // nothing is listening. PushInbox is the only subscriber either way.
+  // PushRepository subscribes, and a broadcast controller discards events added
+  // while nothing is listening. PushRepository is the only subscriber either way.
   final _controller = StreamController<Map<String, Object?>>();
   final _taps = StreamController<String>();
   StreamSubscription<RemoteMessage>? _subscription;

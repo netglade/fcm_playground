@@ -1,4 +1,5 @@
 import 'package:fcm_app/push/push_inbox.dart';
+import 'package:fcm_app/push/push_repository.dart';
 import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
 import 'package:fcm_app/ui/message_detail_page.dart';
@@ -22,6 +23,7 @@ void main() {
   setUpAll(GladeForms.initialize);
 
   late FakePushSource source;
+  late PushRepository repository;
   late PushInbox inbox;
   late SandboxCubit sandbox;
 
@@ -41,11 +43,14 @@ void main() {
   tearDown(() async {
     await sandbox.close();
     inbox.dispose();
+    repository.dispose();
     await source.dispose();
   });
 
   testWidgets('shows an empty state before anything arrives', (tester) async {
-    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = PushInbox(repository);
 
     await pumpApp(tester);
 
@@ -53,7 +58,9 @@ void main() {
   });
 
   testWidgets('renders a received message with its data keys', (tester) async {
-    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = PushInbox(repository);
     await pumpApp(tester);
 
     source.emit(payload());
@@ -66,8 +73,10 @@ void main() {
   });
 
   testWidgets('shows the registration token once resolved', (tester) async {
-    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
-    await inbox.refreshToken();
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = PushInbox(repository);
+    await repository.refreshToken();
 
     await pumpApp(tester);
 
@@ -75,11 +84,12 @@ void main() {
   });
 
   testWidgets('surfaces a setup error in a banner', (tester) async {
-    inbox = PushInbox(
+    repository = PushRepository(
       source,
       store: FakePushPayloadStore(),
       setupError: 'Firebase is not configured',
     );
+    inbox = PushInbox(repository);
 
     await pumpApp(tester);
 
@@ -88,7 +98,9 @@ void main() {
   });
 
   testWidgets('counts malformed payloads', (tester) async {
-    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = PushInbox(repository);
     await pumpApp(tester);
 
     source.emit({'id': 'broken'});
@@ -98,7 +110,9 @@ void main() {
   });
 
   testWidgets('shows a placeholder for a push with no title', (tester) async {
-    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = PushInbox(repository);
     await pumpApp(tester);
 
     source.emit({
@@ -114,7 +128,9 @@ void main() {
   });
 
   testWidgets('opens the detail page when a row is tapped', (tester) async {
-    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = PushInbox(repository);
     await pumpApp(tester);
     source.emit(payload());
     await tester.pumpAndSettle();
@@ -127,7 +143,9 @@ void main() {
   });
 
   testWidgets('comes back to the inbox from the detail page', (tester) async {
-    inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = PushInbox(repository);
     await pumpApp(tester);
     source.emit(payload());
     await tester.pumpAndSettle();
