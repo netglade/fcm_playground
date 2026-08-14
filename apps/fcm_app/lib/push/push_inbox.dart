@@ -1,10 +1,14 @@
 import 'dart:async';
 
 import 'package:core/core.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 
 import '../notifications/notification_presenter.dart';
 import '../notifications/silent_notification_presenter.dart';
+import '../telemetry/push_telemetry.dart';
+import '../telemetry/report_push_event.dart';
+import '../telemetry/silent_push_telemetry.dart';
 import 'push_payload_store.dart';
 import 'push_source.dart';
 
@@ -22,6 +26,7 @@ class PushInbox extends ChangeNotifier {
     this._source, {
     required this._store,
     this._presenter = const SilentNotificationPresenter(),
+    this._telemetry = const SilentPushTelemetry(),
     this._setupError,
   });
 
@@ -33,6 +38,7 @@ class PushInbox extends ChangeNotifier {
   final PushSource _source;
   final PushPayloadStore _store;
   final NotificationPresenter _presenter;
+  final PushTelemetry _telemetry;
   final _parser = const PushMessageParser();
   final _accepted = <_AcceptedPush>[];
   final _rejections = <String>[];
@@ -41,6 +47,14 @@ class PushInbox extends ChangeNotifier {
   String? _setupError;
   String? _token;
   String? _pendingOpenId;
+
+  /// A tap whose message the inbox did not hold when it arrived.
+  ///
+  /// The Android warm-start path: FCM reports the tap as the app resumes, while
+  /// the payload is still in the queue the background isolate appended to. The
+  /// `opened` event waits here for the payload that carries its trace id, and is
+  /// cleared once reported so one press cannot record two opens.
+  String? _unreportedOpenId;
 
   /// Why push is unavailable, or `null` when everything started cleanly.
   ///
@@ -75,18 +89,26 @@ class PushInbox extends ChangeNotifier {
       return null;
     }
 
-    for (final push in _accepted) {
-      if (push.message.id == id) {
-        return push.message;
-      }
-    }
-
-    return null;
+    return _acceptedFor(id)?.message;
   }
 
   /// Asks the shell to open the message with [id].
   void requestOpen(String id) {
     _pendingOpenId = id;
+    // Fire and forget: a tap is handled whether or not it can be reported. The
+    // trace id lives on the payload rather than on the message — the parser
+    // reserves it — so a tap the inbox cannot resolve has nothing to record
+    // against, and the id is held until the payload turns up instead of being
+    // recorded against a fabricated trace, which would appear in the matrix as a
+    // message nobody sent. It supersedes any earlier unreported tap, because the
+    // user has since pressed something else.
+    final opened = _acceptedFor(id);
+    _unreportedOpenId = opened == null ? id : null;
+    if (opened != null) {
+      unawaited(
+        reportAndFlush(_telemetry, TelemetryEventType.opened, opened.payload),
+      );
+    }
     notifyListeners();
   }
 
@@ -159,6 +181,16 @@ class PushInbox extends ChangeNotifier {
   }
 
   void _onLivePayload(Map<String, Object?> payload) {
+    // Reported before parsing, and only for the live stream. A payload the
+    // parser rejects still arrived — it is exactly the kind of push the matrix
+    // is wanted for — and its trace id is readable whether or not the rest of it
+    // is valid. Restored and drained payloads are not arrivals: the background
+    // handler recorded those as `received_bg` when they actually landed, and
+    // reporting them again on every launch would turn a database read into a
+    // delivery.
+    unawaited(
+      reportAndFlush(_telemetry, TelemetryEventType.receivedFg, payload),
+    );
     _ingest(payload, notify: true);
     // Fire and forget: the stream handler is synchronous, and a failed write
     // must not break delivery to the UI.
@@ -177,13 +209,52 @@ class PushInbox extends ChangeNotifier {
           _accepted.removeLast();
         }
         if (notify) {
-          unawaited(_presenter.show(message));
+          unawaited(_show(message, payload));
+        }
+        if (message.id == _unreportedOpenId) {
+          // Whether or not this arrival notifies: the tap that is waiting came
+          // from a message the background isolate stored, so the payload that
+          // resolves it arrives through a drain rather than through the stream.
+          _unreportedOpenId = null;
+          unawaited(
+            reportAndFlush(_telemetry, TelemetryEventType.opened, payload),
+          );
         }
       }
     } on PushMessageFormatException catch (error) {
       _rejections.add('$error');
     }
     notifyListeners();
+  }
+
+  /// Draws the banner for [message], and reports it only once that has worked.
+  ///
+  /// The order is the whole point: a `displayed` recorded before [show] returned
+  /// would claim a notification that a failing presenter never drew, and
+  /// "displayed but not seen" is a conclusion someone would then chase on the
+  /// device. A failure costs the banner and the event, not the message — which
+  /// the inbox is already holding by the time this runs.
+  Future<void> _show(PushMessage message, Map<String, Object?> payload) async {
+    try {
+      await _presenter.show(message);
+    } on Object catch (error) {
+      debugPrint('No banner for ${message.id}: $error');
+
+      return;
+    }
+
+    await reportAndFlush(_telemetry, TelemetryEventType.displayed, payload);
+  }
+
+  /// The held push with [id], or null when the inbox does not have it.
+  _AcceptedPush? _acceptedFor(String id) {
+    for (final push in _accepted) {
+      if (push.message.id == id) {
+        return push;
+      }
+    }
+
+    return null;
   }
 
   Future<void> _save() =>

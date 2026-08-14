@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:ui' show DartPluginRegistrant;
 
+import 'package:drift_flutter/drift_flutter.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +25,11 @@ import 'sandbox/http_notification_sender.dart';
 import 'sandbox/notification_sender.dart';
 import 'sandbox/sandbox_controller.dart';
 import 'sandbox/unavailable_notification_sender.dart';
+import 'telemetry/drift_telemetry_buffer.dart';
+import 'telemetry/report_push_event.dart';
+import 'telemetry/shared_preferences_device_identity.dart';
+import 'telemetry/telemetry_buffer.dart';
+import 'telemetry/telemetry_reporter.dart';
 import 'ui/fcm_sample_app.dart';
 
 Future<void> main() async {
@@ -42,14 +50,22 @@ Future<void> main() async {
 
   final PushPayloadStore store = SharedPreferencesPushPayloadStore();
   final presenter = await _startPresenter();
+  final telemetry = _reporterOn(_openTelemetryBuffer());
   final inbox = PushInbox(
     source,
     store: store,
     presenter: presenter,
+    telemetry: telemetry,
     setupError: setupError,
   )..listen();
   await inbox.restore();
   await inbox.refreshToken();
+  // Sends what the background isolate buffered while the app was not running:
+  // those arrivals deliberately did not flush themselves, so without this they
+  // would wait for the next foreground event to carry them. Not awaited — the
+  // first frame does not wait for a network round trip — and quiet, because a
+  // flush that cannot reach its own database must not cost the launch.
+  unawaited(_flushQuietly(telemetry));
 
   // Both channels mean the same thing to the inbox: FCM reports taps on the tray
   // entries it drew itself, and the presenter reports taps on the banners the app
@@ -88,15 +104,43 @@ Future<NotificationPresenter> _startPresenter() async {
   }
 }
 
+/// Opens the on-device event buffer.
+///
+/// One function rather than two constructions, because the foreground and the
+/// background isolate have to name the same file: a `received_bg` written to one
+/// database and flushed from another would never be sent.
+DriftTelemetryBuffer _openTelemetryBuffer() =>
+    DriftTelemetryBuffer(driftDatabase(name: 'fcm_telemetry'));
+
+/// The reporter over [buffer], pointed at the same API the sandbox sends through.
+TelemetryReporter _reporterOn(TelemetryBuffer buffer) => TelemetryReporter(
+  buffer: buffer,
+  identity: SharedPreferencesDeviceIdentity(),
+  baseUrl: Uri.parse(defaultApiBaseUrl),
+);
+
+/// Sends the buffer without letting a failure reach the caller.
+Future<void> _flushQuietly(TelemetryReporter telemetry) async {
+  try {
+    await telemetry.flush();
+  } on Object catch (error) {
+    debugPrint('Buffered telemetry could not be sent: $error');
+  }
+}
+
 /// Handles pushes that arrive while the app is backgrounded or terminated.
 ///
 /// Must be a top-level function, and annotated so AOT compilation keeps it
 /// reachable from the background isolate.
 ///
-/// It only persists. FCM has already drawn the tray entry for this message, so
-/// posting a notification here would show it twice. The UI isolate picks the
-/// payload up in `PushInbox.restore` at next launch, or in `drainPending` when
-/// the app resumes.
+/// It persists and records. FCM has already drawn the tray entry for this
+/// message, so posting a notification here would show it twice. The UI isolate
+/// picks the payload up in `PushInbox.restore` at next launch, or in
+/// `drainPending` when the app resumes.
+///
+/// Only ever runs for a payload carrying `data`: a notification-only push is
+/// drawn by the system and never wakes this handler, so the absence of a
+/// `received_bg` for one of those is correct rather than a missed event.
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
   // This isolate has its own memory and its own plugin registry, so both need
@@ -104,9 +148,24 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
   DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await SharedPreferencesPushPayloadStore().appendPending(
-    remoteMessageToPayload(message),
-  );
+  final payload = remoteMessageToPayload(message);
+  await SharedPreferencesPushPayloadStore().appendPending(payload);
+
+  // Recorded and deliberately not flushed. This isolate is killed once the
+  // handler returns, and can be killed before that, so a request in flight would
+  // lose the event it was carrying — while a buffered row is picked up by the
+  // next foreground flush. Closed again either way, so a handset that wakes for
+  // twenty pushes does not leave twenty connections to the file open.
+  final buffer = _openTelemetryBuffer();
+  try {
+    await reportWithoutFlushing(
+      _reporterOn(buffer),
+      TelemetryEventType.receivedBg,
+      payload,
+    );
+  } finally {
+    await buffer.close();
+  }
 }
 
 /// Starts Firebase and returns a live [PushSource].

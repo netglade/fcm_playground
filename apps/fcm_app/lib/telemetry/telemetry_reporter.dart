@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'device_identity.dart';
+import 'push_telemetry.dart';
 import 'telemetry_buffer.dart';
 
 /// Records what happens to a push on this device, and sends it to the API.
@@ -15,7 +16,7 @@ import 'telemetry_buffer.dart';
 /// moment — and a handler is not in a position to know whether a request is safe
 /// to start, so that decision belongs to whoever wires the hook up rather than
 /// to a reporter that cannot see it.
-class TelemetryReporter {
+class TelemetryReporter implements PushTelemetry {
   /// Reports for the install [_identity] names, buffering in [_buffer] and
   /// sending to [_baseUrl].
   ///
@@ -45,6 +46,7 @@ class TelemetryReporter {
   /// which is strictly worse than a missing row. A failure is reported to the
   /// debug console rather than nowhere, so a device that is quietly recording
   /// nothing is still visible to whoever is looking.
+  @override
   Future<void> record(
     TelemetryEventType type, {
     required String traceId,
@@ -74,6 +76,7 @@ class TelemetryReporter {
   /// exactly like a message that never arrived. Only the rows that were sent are
   /// forgotten, because events arrive *during* a flush and a blanket clear would
   /// delete observations that were never sent.
+  @override
   Future<void> flush() async {
     final pending = await _buffer.pending();
     if (pending.isEmpty) {

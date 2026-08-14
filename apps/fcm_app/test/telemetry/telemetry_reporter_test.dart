@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:fcm_app/telemetry/drift_telemetry_buffer.dart';
+import 'package:fcm_app/telemetry/push_telemetry.dart';
 import 'package:fcm_app/telemetry/telemetry_buffer.dart';
 import 'package:fcm_app/telemetry/telemetry_reporter.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
@@ -70,6 +71,12 @@ void main() {
   });
 
   tearDown(() => database.close());
+
+  test('is a PushTelemetry, which is what the hooks depend on', () {
+    // The four hooks take the interface so each can default to silence; this is
+    // what keeps the real reporter substitutable for that default.
+    expect(reporter, isA<PushTelemetry>());
+  });
 
   group('record', () {
     test('stamps the device id and the time, so no hook has to', () async {
