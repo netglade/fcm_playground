@@ -5,6 +5,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 import 'package:http/http.dart' as http;
@@ -26,8 +27,10 @@ import 'sandbox/notification_sender.dart';
 import 'sandbox/sandbox_controller.dart';
 import 'sandbox/unavailable_notification_sender.dart';
 import 'telemetry/drift_telemetry_buffer.dart';
+import 'telemetry/push_telemetry.dart';
 import 'telemetry/report_push_event.dart';
 import 'telemetry/shared_preferences_device_identity.dart';
+import 'telemetry/silent_push_telemetry.dart';
 import 'telemetry/telemetry_buffer.dart';
 import 'telemetry/telemetry_reporter.dart';
 import 'ui/fcm_sample_app.dart';
@@ -50,7 +53,12 @@ Future<void> main() async {
 
   final PushPayloadStore store = SharedPreferencesPushPayloadStore();
   final presenter = await _startPresenter();
-  final telemetry = _reporterOn(_openTelemetryBuffer());
+  final buffer = _openTelemetryBuffer();
+  // Silence rather than a reporter when there is no buffer to hold anything —
+  // every hook already treats telemetry as optional.
+  final PushTelemetry telemetry = buffer == null
+      ? const SilentPushTelemetry()
+      : _reporterOn(buffer);
   final inbox = PushInbox(
     source,
     store: store,
@@ -110,13 +118,21 @@ Future<NotificationPresenter> _startPresenter() async {
   }
 }
 
-/// Opens the on-device event buffer.
+/// Opens the on-device event buffer, or null where there is none.
 ///
 /// One function rather than two constructions, because the foreground and the
 /// background isolate have to name the same file: a `received_bg` written to one
 /// database and flushed from another would never be sent.
-DriftTelemetryBuffer _openTelemetryBuffer() =>
-    DriftTelemetryBuffer(driftDatabase(name: 'fcm_telemetry'));
+///
+/// **Null on web, and this is not a shortcut.** `drift_flutter`'s web path
+/// requires a `web:` argument naming a `sqlite3.wasm` and a drift worker, and
+/// throws `ArgumentError` *synchronously* without one — so the web build compiles
+/// and then dies at startup, which `flutter build web --release` cannot catch
+/// because it only compiles. Rather than ship those assets: this app cannot
+/// receive a push on web at all without a VAPID key, so there is nothing on web
+/// for a telemetry buffer to hold.
+DriftTelemetryBuffer? _openTelemetryBuffer() =>
+    kIsWeb ? null : DriftTelemetryBuffer(driftDatabase(name: 'fcm_telemetry'));
 
 /// The reporter over [buffer], pointed at the same API the sandbox sends through.
 TelemetryReporter _reporterOn(TelemetryBuffer buffer) => TelemetryReporter(
@@ -126,7 +142,7 @@ TelemetryReporter _reporterOn(TelemetryBuffer buffer) => TelemetryReporter(
 );
 
 /// Sends the buffer without letting a failure reach the caller.
-Future<void> _flushQuietly(TelemetryReporter telemetry) async {
+Future<void> _flushQuietly(PushTelemetry telemetry) async {
   try {
     await telemetry.flush();
   } on Object catch (error) {
@@ -163,6 +179,9 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
   // next foreground flush. Closed again either way, so a handset that wakes for
   // twenty pushes does not leave twenty connections to the file open.
   final buffer = _openTelemetryBuffer();
+  if (buffer == null) {
+    return;
+  }
   try {
     await reportWithoutFlushing(
       _reporterOn(buffer),
