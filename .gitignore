@@ -35,5 +35,9 @@ apps/*/ios/Runner/GoogleService-Info.plist
 # Firebase service account keys. These grant send rights on the whole project.
 *service-account*.json
 
+# The telemetry database. It defaults to sitting beside the service account key,
+# which is often a directory inside this one, and it holds device ids and labels.
+*.sqlite
+
 # OS
 .DS_Store

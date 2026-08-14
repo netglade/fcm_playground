@@ -65,6 +65,61 @@ void main() {
       expect(config.port, 9000);
     });
 
+    test('defaults the database beside the service-account key', () {
+      // The two files that must not be committed then live together, so an
+      // operator who has excluded one directory has excluded both.
+      final config = read(const {'GOOGLE_APPLICATION_CREDENTIALS': keyPath});
+
+      expect(config.databasePath, '/keys/fcm-telemetry.sqlite');
+    });
+
+    test('follows the key wherever it lives, rather than one fixed place', () {
+      // The test above alone would also pass if the default ignored the key
+      // entirely and named a literal; no single literal satisfies all four of
+      // these. The last two pin that a relative key stays relative — the key
+      // is given as a path from the working directory often enough.
+      final expected = {
+        keyPath: '/keys/fcm-telemetry.sqlite',
+        '/home/martin/secrets/fcm-key.json':
+            '/home/martin/secrets/fcm-telemetry.sqlite',
+        'secrets/sa.json': 'secrets/fcm-telemetry.sqlite',
+        'sa.json': 'fcm-telemetry.sqlite',
+      };
+
+      for (final MapEntry(key: path, value: database) in expected.entries) {
+        final config = read({'GOOGLE_APPLICATION_CREDENTIALS': path});
+
+        expect(config.databasePath, database, reason: 'key at $path');
+      }
+    });
+
+    test('lets FCM_TELEMETRY_DB override it', () {
+      final config = read(const {
+        'GOOGLE_APPLICATION_CREDENTIALS': keyPath,
+        'FCM_TELEMETRY_DB': '/var/lib/fcm/events.sqlite',
+      });
+
+      expect(config.databasePath, '/var/lib/fcm/events.sqlite');
+    });
+
+    test('refuses a blank FCM_TELEMETRY_DB rather than falling back', () {
+      // Falling back would put the database somewhere the operator did not ask
+      // for, and they would look for their data in the wrong place.
+      expect(
+        () => read(const {
+          'GOOGLE_APPLICATION_CREDENTIALS': keyPath,
+          'FCM_TELEMETRY_DB': '  ',
+        }),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('FCM_TELEMETRY_DB'),
+          ),
+        ),
+      );
+    });
+
     test('refuses to start without a credential, saying which variable', () {
       expect(
         () => read(const {}),

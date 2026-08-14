@@ -2,13 +2,14 @@ import 'dart:io';
 
 import 'package:fcm_api/fcm_api.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
+
+import 'sqlite_availability.dart';
 
 void main() {
   // Probed once, at registration time, so every test in the group carries the
   // same verdict.
-  final skipReason = _sqliteAvailability();
+  final skipReason = sqliteAvailability();
 
   // The same expectations `in_memory_telemetry_store_test.dart` pins, against a
   // real database, plus the ones only a file can show. The pairing itself is
@@ -443,25 +444,4 @@ void _storeBehaviour() {
       expect(await store.all(), [event]);
     });
   });
-}
-
-/// Why these tests cannot run here, or `null` when they can.
-///
-/// A skip rather than a failure, because `melos run ci` must not depend on a
-/// native library being installed: the in-memory store from the previous task is
-/// what every other test uses, so a machine without SQLite still verifies all the
-/// behaviour — only the storage adapter goes unexercised.
-///
-/// The probe opens a database rather than merely looking for the file, because
-/// [useSystemSqlite] defers the load until the first open: a missing library
-/// surfaces here, as a throw from `openInMemory`, and nowhere earlier.
-String? _sqliteAvailability() {
-  try {
-    useSystemSqlite();
-    sqlite3.openInMemory().dispose();
-
-    return null;
-  } on Object {
-    return 'no system SQLite library';
-  }
 }
