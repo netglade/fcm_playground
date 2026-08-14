@@ -15,7 +15,7 @@ void main() {
 
   group('the payload stream', () {
     test('buffers a payload emitted before anything listens', () async {
-      // The launch message is emitted inside start(), before PushInbox
+      // The launch message is emitted inside start(), before PushRepository
       // subscribes. A broadcast controller would drop it.
       source.emit({'id': 'launch'});
 

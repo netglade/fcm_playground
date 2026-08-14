@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fcm_app/push/inbox_state.dart';
 import 'package:fcm_app/push/push_repository.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -494,6 +495,29 @@ void main() {
 
       expect(repository.hasPendingOpen, isFalse);
       expect(repository.pendingOpen, isNull);
+    });
+
+    test('publishes the clear, so no watcher keeps a stale tap', () async {
+      // The getters above would read false whether or not the clear published,
+      // because they read the fields directly. Every watcher reads the snapshot
+      // instead, where the tap is a field — so a silent clear would leave the
+      // shell's copy claiming a tap is outstanding until some unrelated push
+      // happened to publish one. That it used to work at all was timing: the
+      // shell navigates on the statement after the clear.
+      repository = PushRepository(
+        source,
+        store: FakePushPayloadStore(inbox: [payload(id: 'msg-1')]),
+      );
+      await repository.restore();
+      final seen = <InboxState>[];
+      final watching = repository.changes.listen(seen.add);
+      addTearDown(watching.cancel);
+      repository.requestOpen('msg-1');
+
+      repository.clearPendingOpen();
+
+      expect(seen, hasLength(2));
+      expect(seen.last.hasPendingOpen, isFalse);
     });
   });
 

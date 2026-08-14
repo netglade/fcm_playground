@@ -17,7 +17,7 @@ import 'notifications/notification_presenter.dart';
 import 'notifications/silent_notification_presenter.dart';
 import 'push/disabled_push_source.dart';
 import 'push/firebase_push_source.dart';
-import 'push/push_inbox.dart';
+import 'push/inbox_cubit.dart';
 import 'push/push_payload_store.dart';
 import 'push/push_repository.dart';
 import 'push/push_source.dart';
@@ -99,7 +99,7 @@ Future<void> main() async {
     telemetry: telemetry,
   );
 
-  runApp(FcmSampleApp(inbox: PushInbox(repository), sandbox: sandbox));
+  runApp(FcmSampleApp(inbox: InboxCubit(repository), sandbox: sandbox));
 }
 
 /// Starts local notifications, degrading to silence rather than failing.

@@ -15,7 +15,8 @@ cd apps/fcm_app && fvm flutter run  # run on a device
 Structure:
 
 - `lib/push/` — `PushSource` interface plus its Firebase and disabled
-  implementations, and `PushInbox`, the `ChangeNotifier` the UI listens to
+  implementations, `PushRepository`, the app-scoped owner of everything received,
+  and `InboxCubit`, the page-scoped projection the UI watches
 - `lib/ui/` — one widget per file
 - `lib/firebase_options.dart` — project id is real (`fcm-sandbox-770fa`), but
   `apiKey`, `appId` and `messagingSenderId` are **still placeholders**; see the

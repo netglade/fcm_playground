@@ -1,4 +1,4 @@
-import 'package:fcm_app/push/push_inbox.dart';
+import 'package:fcm_app/push/inbox_cubit.dart';
 import 'package:fcm_app/push/push_repository.dart';
 import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
@@ -24,10 +24,33 @@ void main() {
 
   late FakePushSource source;
   late PushRepository repository;
-  late PushInbox inbox;
+  late InboxCubit inbox;
   late SandboxCubit sandbox;
 
+  // Everything but the source is built here rather than in `setUp`, and the
+  // reason is a zone, not a preference.
+  //
+  // `PushRepository.changes` is a *synchronous* broadcast controller, so it
+  // hands each event to `InboxCubit` inside the `add` call — but through
+  // `_zone.runUnaryGuarded`, meaning the cubit's `emit` executes in whatever
+  // zone the cubit *subscribed* in. A cubit's own state stream is an ordinary
+  // asynchronous broadcast controller, which schedules its delivery with
+  // `Zone.current.scheduleMicrotask`. Built in `setUp`, that is the outer test
+  // zone, which `testWidgets` does not drive: the microtask is queued somewhere
+  // `pumpAndSettle` never flushes and the shell hears nothing however long the
+  // test pumps. Measured — the four notification-tap tests below go silent.
+  //
+  // Built here, the subscription lives in the zone the tester drives, which is
+  // also where it will live for real once `AppShell` creates the cubit through
+  // `BlocProvider(create: …)`.
   Future<void> pumpApp(WidgetTester tester) async {
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = InboxCubit(repository);
+    sandbox = SandboxCubit(
+      sender: FakeNotificationSender(),
+      token: () => inbox.state.token,
+    );
     await tester.pumpWidget(FcmSampleApp(inbox: inbox, sandbox: sandbox));
     await tester.pumpAndSettle();
   }
@@ -55,18 +78,11 @@ void main() {
 
   setUp(() {
     source = FakePushSource();
-    repository = PushRepository(source, store: FakePushPayloadStore())
-      ..listen();
-    inbox = PushInbox(repository);
-    sandbox = SandboxCubit(
-      sender: FakeNotificationSender(),
-      token: () => inbox.token,
-    );
   });
 
   tearDown(() async {
     await sandbox.close();
-    inbox.dispose();
+    await inbox.close();
     repository.dispose();
     await source.dispose();
   });
@@ -176,7 +192,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(MessageDetailPage), findsOne);
-    expect(inbox.hasPendingOpen, isFalse);
+    expect(inbox.state.hasPendingOpen, isFalse);
   });
 
   testWidgets('leaves the sandbox for the inbox when a tap arrives', (
@@ -218,14 +234,16 @@ void main() {
   });
 
   testWidgets('drains pending payloads when the app resumes', (tester) async {
+    // Built here rather than through `pumpApp` only because this test needs to
+    // hold on to the store it puts a pending payload into. The zone note on
+    // `pumpApp` applies just the same, which is why it is still built inside the
+    // test body.
     final store = FakePushPayloadStore();
-    // A fresh source: setUp's `source` already has a listener from the outer
-    // `inbox`, and a single-subscription stream accepts only one ever.
-    repository = PushRepository(FakePushSource(), store: store)..listen();
-    inbox = PushInbox(repository);
+    repository = PushRepository(source, store: store)..listen();
+    inbox = InboxCubit(repository);
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
-      token: () => inbox.token,
+      token: () => inbox.state.token,
     );
     await tester.pumpWidget(FcmSampleApp(inbox: inbox, sandbox: sandbox));
     await tester.pumpAndSettle();
@@ -235,6 +253,6 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
 
-    expect(inbox.messages.single.id, 'while-away');
+    expect(inbox.state.messages.single.id, 'while-away');
   });
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../push/push_inbox.dart';
+import '../push/inbox_cubit.dart';
+import '../push/inbox_state.dart';
 import 'message_detail_page.dart';
 import 'message_tile.dart';
 import 'setup_error_banner.dart';
@@ -12,16 +14,16 @@ import 'setup_error_banner.dart';
 class InboxView extends StatelessWidget {
   const InboxView({required this.inbox, super.key});
 
-  final PushInbox inbox;
+  final InboxCubit inbox;
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: inbox,
-    builder: (context, _) => Column(
+  Widget build(BuildContext context) => BlocBuilder<InboxCubit, InboxState>(
+    bloc: inbox,
+    builder: (context, state) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (inbox.setupError case final error?) SetupErrorBanner(error),
-        if (inbox.token case final token?)
+        if (state.setupError case final error?) SetupErrorBanner(error),
+        if (state.token case final token?)
           ListTile(
             dense: true,
             leading: const Icon(Icons.key_outlined),
@@ -29,12 +31,12 @@ class InboxView extends StatelessWidget {
             subtitle: Text(token, maxLines: 2, overflow: TextOverflow.ellipsis),
           ),
         Expanded(
-          child: inbox.messages.isEmpty
+          child: state.messages.isEmpty
               ? const Center(child: Text('No pushes received yet.'))
               : ListView.builder(
-                  itemCount: inbox.messages.length,
+                  itemCount: state.messages.length,
                   itemBuilder: (context, index) => MessageTile(
-                    inbox.messages[index],
+                    state.messages[index],
                     onTap: (message) => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -44,11 +46,11 @@ class InboxView extends StatelessWidget {
                   ),
                 ),
         ),
-        if (inbox.rejections.isNotEmpty)
+        if (state.rejections.isNotEmpty)
           Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
-              '${inbox.rejections.length} malformed payload(s) dropped',
+              '${state.rejections.length} malformed payload(s) dropped',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),

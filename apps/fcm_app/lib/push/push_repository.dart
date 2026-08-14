@@ -9,6 +9,7 @@ import '../notifications/silent_notification_presenter.dart';
 import '../telemetry/push_telemetry.dart';
 import '../telemetry/report_push_event.dart';
 import '../telemetry/silent_push_telemetry.dart';
+import 'inbox_state.dart';
 import 'push_payload_store.dart';
 import 'push_source.dart';
 
@@ -67,7 +68,7 @@ class PushRepository {
   // Measured: the shell's three notification-tap tests went silent. Publishing
   // synchronously also keeps the tap-routing order the shell relies on, since
   // `_publish` is only ever called with the repository already consistent.
-  final _changes = StreamController<PushInboxState>.broadcast(sync: true);
+  final _changes = StreamController<InboxState>.broadcast(sync: true);
   StreamSubscription<Map<String, Object?>>? _subscription;
   String? _setupError;
   String? _token;
@@ -82,10 +83,10 @@ class PushRepository {
   String? _unreportedOpenId;
 
   /// Emits after every change, so a watcher can re-read or re-render.
-  Stream<PushInboxState> get changes => _changes.stream;
+  Stream<InboxState> get changes => _changes.stream;
 
   /// A snapshot of everything a screen shows, as of now.
-  PushInboxState get state => PushInboxState(
+  InboxState get state => InboxState(
     messages: messages,
     rejections: rejections,
     token: _token,
@@ -120,14 +121,11 @@ class PushRepository {
   /// Resolved on every read rather than when the tap arrived: the tap and the
   /// payload come from two different streams, so the message may land after the
   /// request. An event on [changes] from either brings the shell back to check.
-  PushMessage? get pendingOpen {
-    final id = _pendingOpenId;
-    if (id == null) {
-      return null;
-    }
-
-    return _acceptedFor(id)?.message;
-  }
+  ///
+  /// Answered by [state] rather than by a second scan of its own, so the
+  /// repository and every watcher of [changes] resolve a tap by exactly the same
+  /// rule and cannot disagree about whether one is resolvable.
+  PushMessage? get pendingOpen => state.pendingOpen;
 
   /// Asks the shell to open the message with [id].
   void requestOpen(String id) {
@@ -150,8 +148,17 @@ class PushRepository {
   }
 
   /// Called by the shell once it has navigated, so it does not navigate twice.
+  ///
+  /// Published like every other change, and that is not cosmetic. The tap is a
+  /// field of the snapshot on [changes], so a silent clear would leave every
+  /// watcher holding a state that still claims a tap is outstanding until some
+  /// unrelated push happened to publish — and the shell would act on it. Clearing
+  /// *before* navigating then means the extra event the clear itself produces
+  /// carries no pending open, so the shell's guard correctly does nothing;
+  /// relying on the clear staying invisible would have been relying on timing.
   void clearPendingOpen() {
     _pendingOpenId = null;
+    _publish();
   }
 
   /// Begins consuming [PushSource.payloads].
@@ -305,38 +312,6 @@ class PushRepository {
   void _publish() {
     _changes.add(state);
   }
-}
-
-/// What the inbox holds, as one immutable snapshot.
-///
-/// Published rather than a bare "something changed" tick so a watcher cannot
-/// read half of one update and half of the next. The tap is carried as an **id**,
-/// not a resolved message: the message it names may not have arrived yet, and
-/// resolving it against the list in the same snapshot is what makes a tap that
-/// precedes its payload work.
-class PushInboxState {
-  const PushInboxState({
-    required this.messages,
-    required this.rejections,
-    required this.token,
-    required this.setupError,
-    required this.pendingOpenId,
-  });
-
-  /// Received messages, newest first.
-  final List<PushMessage> messages;
-
-  /// Payloads that failed validation, oldest first.
-  final List<String> rejections;
-
-  /// The device's registration token, once it has resolved.
-  final String? token;
-
-  /// Why push is unavailable, or null when it is.
-  final String? setupError;
-
-  /// The message id a notification tap is waiting on, if any.
-  final String? pendingOpenId;
 }
 
 /// One accepted push: the parsed message the UI shows, beside the raw payload

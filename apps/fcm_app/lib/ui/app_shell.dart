@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../push/push_inbox.dart';
+import '../push/inbox_cubit.dart';
+import '../push/inbox_state.dart';
 import '../sandbox/sandbox_cubit.dart';
 import 'inbox_view.dart';
 import 'message_detail_page.dart';
@@ -20,7 +21,7 @@ class AppShell extends StatefulWidget {
   const AppShell({required this.inbox, required this.sandbox, super.key});
 
   /// The inbox rendered by the "Inbox" destination.
-  final PushInbox inbox;
+  final InboxCubit inbox;
 
   /// The controller rendered by the "Sandbox" destination.
   final SandboxCubit sandbox;
@@ -35,13 +36,18 @@ class _AppShellState extends State<AppShell> {
   static const _sandboxDestination = 2;
 
   late final AppLifecycleListener _lifecycle;
+  // A subscription rather than a listener, because the inbox is a cubit now. It
+  // stays a side-effect watcher — routing a tap is not painting — which is what
+  // `BlocListener` will replace it with once the tree reads its cubits from
+  // context.
+  late final StreamSubscription<InboxState> _inboxChanges;
 
   int _destination = _inboxDestination;
 
   @override
   void initState() {
     super.initState();
-    widget.inbox.addListener(_onInboxChanged);
+    _inboxChanges = widget.inbox.stream.listen(_onInboxChanged);
     // A push that arrived while the app was merely backgrounded sits in the
     // pending key until something drains it, and resuming is that something.
     _lifecycle = AppLifecycleListener(onResume: _onResume);
@@ -49,7 +55,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
-    widget.inbox.removeListener(_onInboxChanged);
+    unawaited(_inboxChanges.cancel());
     _lifecycle.dispose();
     super.dispose();
   }
@@ -121,8 +127,8 @@ class _AppShellState extends State<AppShell> {
   /// Selecting the inbox happens as soon as a tap is outstanding: it is the
   /// fallback for an id that will never resolve — evicted by the cap, or rejected
   /// as malformed — and the right backdrop for the page about to be pushed.
-  void _onInboxChanged() {
-    if (!widget.inbox.hasPendingOpen) {
+  void _onInboxChanged(InboxState inbox) {
+    if (!inbox.hasPendingOpen) {
       return;
     }
 
@@ -130,12 +136,14 @@ class _AppShellState extends State<AppShell> {
       setState(() => _destination = _inboxDestination);
     }
 
-    final message = widget.inbox.pendingOpen;
+    final message = inbox.pendingOpen;
     if (message == null) {
       return;
     }
 
-    // Cleared before navigating, so a later notifyListeners cannot push twice.
+    // Cleared before navigating, so a later event cannot push twice — including
+    // the one this clear itself publishes, which arrives with no pending open
+    // and is turned away by the guard above.
     widget.inbox.clearPendingOpen();
     unawaited(
       Navigator.of(context).push(
