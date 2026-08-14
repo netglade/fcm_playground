@@ -712,6 +712,24 @@ Three events, with `deviceId: ''` because these happen server-side:
 
 **`queued` is recorded even when the send then fails**, so a request that never reached FCM is distinguishable from one never made. And recording must not be able to fail the send: wrap it so a store error is logged and swallowed. Losing a telemetry row is a nuisance; failing a push because telemetry was unavailable is a bug in a tool whose purpose is sending pushes.
 
+**THE SCENARIO ID, resolved during this task — Tasks 13 and 15 depend on it.**
+`TelemetryEvent.scenarioId` was structurally dead: nothing reaching `sendMessage`
+could supply one, so every server-side event was null — and `pairLatencies` computes
+`sent.scenarioId ?? arrival.scenarioId`, whose second operand was never populated
+either, because **the payload a scenario produces does not identify the scenario**.
+The `scenario × device` matrix would have had no scenario axis at all.
+
+Fixed end to end: `SendMessageRequest` carries `scenarioId`; `sendMessage` records it
+on all three events **and** injects it into `data.scenario_id`, which is the device's
+only source for it; `scenario_id` joins `PushMessageParser.reservedKeys` beside
+`trace_id` so it is not an inbox data row; and `SandboxController.send` names the
+selected scenario. Neither key joins `requiredKeys` — a payload composed by hand
+belongs to no scenario and must still arrive.
+
+So **Task 13's hooks read `scenario_id` off the received payload** and pass it to
+`TelemetryReporter.record`, rather than leaving it null as an earlier reading of this
+plan would have implied.
+
 - [ ] **Step 1: Write the failing test**
 
 ```dart
