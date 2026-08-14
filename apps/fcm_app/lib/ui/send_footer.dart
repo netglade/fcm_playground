@@ -43,7 +43,11 @@ class SendFooter extends StatelessWidget {
           icon: const Icon(Icons.send_outlined),
           label: Text(_labelFor(controller.target)),
         ),
-        SendResultCard(controller.state, validateOnly: controller.validateOnly),
+        SendResultCard(
+          controller.state,
+          validateOnly: controller.validateOnly,
+          onNotReceived: controller.reportNotReceived,
+        ),
       ],
     ),
   );

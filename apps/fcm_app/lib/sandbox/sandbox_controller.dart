@@ -1,6 +1,8 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 
+import '../telemetry/push_telemetry.dart';
+import '../telemetry/silent_push_telemetry.dart';
 import 'forms/fcm_message_form.dart';
 import 'notification_send_exception.dart';
 import 'notification_sender.dart';
@@ -22,7 +24,15 @@ import 'sandbox_send_state.dart';
 class SandboxController extends ChangeNotifier {
   /// Creates a controller wired to a sender and a way to read the current
   /// registration token.
-  SandboxController({required this._sender, required this._token}) {
+  ///
+  /// [telemetry] defaults to silence, the same way every push hook does: a test
+  /// about the payload form must not have to open a Drift database to get a
+  /// controller.
+  SandboxController({
+    required this._sender,
+    required this._token,
+    this._telemetry = const SilentPushTelemetry(),
+  }) {
     for (final model in _form.allModels) {
       model.addListener(_onFormChanged);
     }
@@ -33,6 +43,7 @@ class SandboxController extends ChangeNotifier {
 
   final NotificationSender _sender;
   final String? Function() _token;
+  final PushTelemetry _telemetry;
   final FcmMessageForm _form = FcmMessageForm();
 
   bool _validateOnly = false;
@@ -154,6 +165,36 @@ class SandboxController extends ChangeNotifier {
       _state = SandboxFailed(error.message);
     }
     notifyListeners();
+  }
+
+  /// Records that the user says the push for [traceId] never arrived, and sends
+  /// it straight away.
+  ///
+  /// Recorded *and* flushed, unlike the background arrival hook: this is a
+  /// foreground action the user just took, and they are entitled to assume it has
+  /// been reported rather than left in a buffer until the next push.
+  ///
+  /// It reports nothing about whether it worked, deliberately. `record` never
+  /// throws, and a `flush` that cannot reach the API keeps the event buffered for
+  /// the next one — so the honest answer to "did this reach the server?" is "not
+  /// yet, and it will", which is not something to alarm the user with.
+  Future<void> reportNotReceived(String traceId) async {
+    try {
+      await _telemetry.record(
+        TelemetryEventType.notReceived,
+        traceId: traceId,
+        // The scenario that produced the send. Any change to the selection
+        // rewrites the form, which clears the result the button hangs off, so the
+        // selection cannot have moved on while this button exists.
+        scenarioId: _selectedScenario?.id,
+      );
+      await _telemetry.flush();
+    } on Object catch (error) {
+      // Telemetry must never break what it observes, and here that is the page
+      // itself: an escaping error from a button's callback is an unhandled
+      // asynchronous error on the send screen.
+      debugPrint('telemetry: not_received for $traceId was not sent: $error');
+    }
   }
 
   @override

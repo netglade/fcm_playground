@@ -81,7 +81,13 @@ Future<void> main() async {
           baseUrl: Uri.parse(defaultApiBaseUrl),
         )
       : UnavailableNotificationSender(setupError);
-  final sandbox = SandboxController(sender: sender, token: () => inbox.token);
+  // The same reporter the inbox records arrivals through, so a `not_received`
+  // and the `sent` it contradicts land in one buffer and one database.
+  final sandbox = SandboxController(
+    sender: sender,
+    token: () => inbox.token,
+    telemetry: telemetry,
+  );
 
   runApp(FcmSampleApp(inbox: inbox, sandbox: sandbox));
 }

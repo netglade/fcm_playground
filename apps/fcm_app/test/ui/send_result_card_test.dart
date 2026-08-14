@@ -17,12 +17,20 @@ void main() {
     bool validateOnly = false,
   }) => tester.pumpWidget(
     MaterialApp(
-      home: Scaffold(body: SendResultCard(state, validateOnly: validateOnly)),
+      home: Scaffold(
+        body: SendResultCard(
+          state,
+          validateOnly: validateOnly,
+          onNotReceived: (_) => Future<void>.value(),
+        ),
+      ),
     ),
   );
 
+  /// The result line. First rather than only: a real send also carries the
+  /// not-received button, and that has a label of its own.
   String textOf(WidgetTester tester) =>
-      tester.widget<Text>(find.byType(Text)).data!;
+      tester.widget<Text>(find.byType(Text).first).data!;
 
   testWidgets('shows the trace id after a real send', (tester) async {
     // The handle a user needs to find their own message in the telemetry later.
