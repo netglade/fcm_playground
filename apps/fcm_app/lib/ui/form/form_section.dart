@@ -13,13 +13,27 @@ import 'form_depth.dart';
 ///
 /// **Depth is shown three ways at once**, because one alone is not enough to read
 /// four levels of nesting: a coloured rail down the left of the contents, an
-/// indent that steps in per level, and a header that gets quieter as it goes
-/// deeper. Nesting that is only expressed as indentation reads as a flat list
+/// indent that steps in per level, and a header whose size and weight shrink as it
+/// goes deeper. Nesting that is only expressed as indentation reads as a flat list
 /// once two siblings are open at different depths — and a payload where the user
 /// cannot tell which object a field belongs to is one they will fill in wrongly.
 /// The depth itself comes from [FormDepth], read from the tree rather than passed
 /// in, so no section can be styled as though it lived somewhere it does not.
-class FormSection extends StatelessWidget {
+///
+/// **Colour answers a different question: open or closed.** Size and weight say
+/// how deep a section sits; a closed one is dimmed and an open one is at full
+/// strength, so finding what is currently expanded does not mean hunting for
+/// chevrons down a page of collapsed rows. The two signals are kept orthogonal
+/// deliberately — overloading colour with depth as well would make a deep open
+/// block and a shallow closed one look alike, which is the confusion this exists
+/// to remove.
+///
+/// The colour is applied here rather than through `ExpansionTile`'s
+/// `collapsedTextColor`/`textColor`: the theme bakes a colour into
+/// `titleMedium` and friends, and an explicit colour on the `Text` beats the
+/// tile's pair, so that route silently does nothing. Hence tracking the open
+/// state — it is the only way the header can be made to follow it.
+class FormSection extends StatefulWidget {
   const FormSection({
     required this.title,
     required this.isValid,
@@ -46,6 +60,15 @@ class FormSection extends StatelessWidget {
   /// payload's shape as well, so the root opens and shows its blocks.
   final bool initiallyExpanded;
 
+  final List<Widget> children;
+
+  @override
+  State<FormSection> createState() => _FormSectionState();
+}
+
+class _FormSectionState extends State<FormSection> {
+  late bool _expanded = widget.initiallyExpanded;
+
   @override
   Widget build(BuildContext context) {
     final depth = FormDepth.of(context);
@@ -60,6 +83,12 @@ class FormSection extends StatelessWidget {
       (depth * 0.3).clamp(0.0, 0.9),
     )!;
 
+    final base = switch (depth) {
+      0 => theme.textTheme.titleMedium,
+      1 => theme.textTheme.titleSmall,
+      _ => theme.textTheme.bodyMedium,
+    };
+
     return FormDepth(
       depth: depth + 1,
       child: Theme(
@@ -68,28 +97,24 @@ class FormSection extends StatelessWidget {
         data: theme.copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           title: Text(
-            title,
-            style: switch (depth) {
-              0 => theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-              1 => theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              _ => theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: scheme.onSurfaceVariant,
-              ),
-            },
+            widget.title,
+            style: base?.copyWith(
+              fontWeight: depth == 0 ? FontWeight.w700 : FontWeight.w600,
+              color: _expanded ? scheme.onSurface : scheme.onSurfaceVariant,
+            ),
           ),
-          subtitle: subtitle == null ? null : Text(subtitle!),
-          trailing: isValid
+          collapsedIconColor: scheme.onSurfaceVariant,
+          iconColor: scheme.onSurface,
+          onExpansionChanged: (expanded) =>
+              setState(() => _expanded = expanded),
+          subtitle: widget.subtitle == null ? null : Text(widget.subtitle!),
+          trailing: widget.isValid
               ? null
               : Icon(Icons.error_outline, color: scheme.error),
           tilePadding: EdgeInsets.only(left: depth == 0 ? 0 : 8, right: 0),
           childrenPadding: EdgeInsets.zero,
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
-          initiallyExpanded: initiallyExpanded,
+          initiallyExpanded: widget.initiallyExpanded,
           children: [
             DecoratedBox(
               decoration: BoxDecoration(
@@ -99,7 +124,7 @@ class FormSection extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 12, bottom: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: children,
+                  children: widget.children,
                 ),
               ),
             ),
@@ -108,6 +133,4 @@ class FormSection extends StatelessWidget {
       ),
     );
   }
-
-  final List<Widget> children;
 }

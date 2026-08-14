@@ -60,6 +60,74 @@ void main() {
     expect(find.text('a field'), findsOne);
   });
 
+  group('open versus closed', () {
+    Color? titleColour(WidgetTester tester) =>
+        tester.widget<Text>(find.text('Android')).style?.color;
+
+    testWidgets('dims a closed section and brightens it when opened', (
+      tester,
+    ) async {
+      // What the user asked for, and asserted on the rendered title rather than
+      // on the tile's collapsedTextColor: the theme bakes a colour into
+      // titleMedium, and an explicit colour on the Text beats the tile's pair —
+      // so setting those properties alone would change nothing visible. This
+      // test caught exactly that.
+      await pump(tester, isValid: true);
+      final closed = titleColour(tester);
+
+      await tester.tap(find.text('Android'));
+      await tester.pumpAndSettle();
+
+      expect(closed, isNotNull);
+      expect(titleColour(tester), isNotNull);
+      expect(
+        titleColour(tester),
+        isNot(closed),
+        reason: 'a closed header must not read the same as an open one',
+      );
+    });
+
+    testWidgets('uses the scheme colours rather than arbitrary ones', (
+      tester,
+    ) async {
+      // isNot(closed) alone would pass for any two colours, including two that
+      // are indistinguishable on screen or that ignore the theme entirely.
+      await pump(tester, isValid: true);
+      final scheme = Theme.of(
+        tester.element(find.byType(ExpansionTile)),
+      ).colorScheme;
+
+      expect(titleColour(tester), scheme.onSurfaceVariant);
+
+      await tester.tap(find.text('Android'));
+      await tester.pumpAndSettle();
+
+      expect(titleColour(tester), scheme.onSurface);
+    });
+
+    testWidgets('a section that starts open reads as open', (tester) async {
+      // The root section is the one that starts expanded, and it must not look
+      // closed on arrival — the state has to be seeded, not merely toggled.
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FormSection(
+              title: 'Android',
+              isValid: true,
+              initiallyExpanded: true,
+              children: [Text('a field')],
+            ),
+          ),
+        ),
+      );
+      final scheme = Theme.of(
+        tester.element(find.byType(ExpansionTile)),
+      ).colorScheme;
+
+      expect(titleColour(tester), scheme.onSurface);
+    });
+  });
+
   group('depth', () {
     /// Pumps a section nested [levels] deep and opens every one of them.
     Future<void> pumpNested(WidgetTester tester, int levels) async {
