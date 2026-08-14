@@ -17,6 +17,16 @@ workspace:
 dev_dependencies:
   melos: ^8.2.2
 
+# One shared resolution means one cli_util, and the two tools that want it
+# disagree: melos 8 requires ^0.5.0, while every drift_dev that can be resolved
+# here at all caps it at ^0.4.0. The override picks melos's, because 0.5.0 only
+# added `BaseDirectories` and deprecated `applicationConfigHome` — nothing
+# drift_dev calls was removed — so drift_dev runs unchanged against it.
+#
+# Overrides live only at the workspace root; pub refuses them in a member.
+dependency_overrides:
+  cli_util: ^0.5.0
+
 # Melos 8 reads its configuration from the pub workspace root, not melos.yaml.
 # Every script shells out through `fvm` so the SDK pinned in .fvmrc is used,
 # regardless of which Flutter happens to be on PATH.
@@ -43,6 +53,19 @@ melos:
     fix:
       description: Apply automated analyzer fixes in every package.
       exec: fvm dart fix --apply
+
+    generate:
+      description: Regenerate Drift's database code. Run after changing a table.
+      # Not part of `ci`: the generated files are committed, so a fresh clone
+      # analyses and tests without a codegen step. The cost is remembering to
+      # run this whenever a table changes.
+      #
+      # No `--delete-conflicting-outputs`: build_runner 2.15 removed the option
+      # and warns that it was ignored. Outputs are written beside their source
+      # and overwritten in place, so there is nothing left to clear.
+      exec: fvm dart run build_runner build
+      packageFilters:
+        dependsOn: drift_dev
 
     api:serve:
       description: >-

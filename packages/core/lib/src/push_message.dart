@@ -2,6 +2,7 @@
 ///
 /// Instances are only created by `PushMessageParser`, so a `PushMessage` that
 /// exists is always well-formed — callers never have to null-check its fields.
+/// Fields are still never null, but `title` and `body` may be empty.
 class PushMessage {
   const PushMessage({
     required this.id,
@@ -16,9 +17,15 @@ class PushMessage {
   final String id;
 
   /// Short headline, suitable for a notification title or list tile.
+  ///
+  /// Empty for a data-only push, which carries no notification block at all — so
+  /// a caller rendering this must handle a blank string.
   final String title;
 
   /// The message text.
+  ///
+  /// Empty for a data-only push, which carries no notification block at all — so
+  /// a caller rendering this must handle a blank string.
   final String body;
 
   /// When the sender created the message, in UTC.

@@ -35,5 +35,16 @@ apps/*/ios/Runner/GoogleService-Info.plist
 # Firebase service account keys. These grant send rights on the whole project.
 *service-account*.json
 
+# The telemetry database. It defaults to sitting beside the service account key,
+# which is often a directory inside this one, and it holds device ids and labels.
+*.sqlite
+
 # OS
 .DS_Store
+
+# Superpowers working notes: specs, implementation plans and the SDD ledgers.
+# Kept on disk and out of the repository — they are a record of how the work was
+# planned and reviewed, not part of the software. What they document that matters
+# to a reader of this repo lives in the code, its doc comments and README.md.
+docs/superpowers/
+.superpowers/

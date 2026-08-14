@@ -7,6 +7,13 @@ abstract interface class PushSource {
   /// Raw FCM `data` maps, in arrival order.
   Stream<Map<String, Object?>> get payloads;
 
+  /// Ids of messages whose notification the user tapped.
+  ///
+  /// Fed by FCM's own tray notifications — `onMessageOpenedApp` while the app was
+  /// backgrounded, and the launch message when it was terminated. A banner the
+  /// app posted itself is reported by `NotificationPresenter.taps` instead.
+  Stream<String> get taps;
+
   /// The device's registration token, or `null` when unavailable.
   Future<String?> token();
 

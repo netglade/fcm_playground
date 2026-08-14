@@ -22,8 +22,8 @@ final class SandboxSending extends SandboxSendState {
 final class SandboxSent extends SandboxSendState {
   const SandboxSent(this.response);
 
-  /// Carries the payload id, which is what the inbox will show.
-  final SendNotificationResponse response;
+  /// FCM's own message id and the time the server sent it.
+  final SendMessageResponse response;
 }
 
 /// The send did not happen.

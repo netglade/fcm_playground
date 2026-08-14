@@ -16,6 +16,6 @@ class UnavailableNotificationSender implements NotificationSender {
   final String reason;
 
   @override
-  Future<SendNotificationResponse> send(SendNotificationRequest _) =>
+  Future<SendMessageResponse> send(SendMessageRequest _) =>
       Future.error(NotificationSendException(reason));
 }

@@ -12,8 +12,10 @@ dependencies:
     path: ../../packages/fcm_gallery_shared
   googleapis_auth: ^2.3.3
   http: ^1.6.0
+  path: ^1.9.1
   shelf: ^1.4.2
   shelf_router: ^1.1.4
+  sqlite3: ^2.4.0
 
 dev_dependencies:
   lints: ^6.0.0

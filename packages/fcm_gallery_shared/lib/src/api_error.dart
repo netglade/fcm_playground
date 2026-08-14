@@ -22,8 +22,8 @@ class ApiError {
   /// Human-readable, and safe to show as-is.
   final String message;
 
-  /// The request field at fault, when there is one, matching
-  /// `DraftProblem.field`.
+  /// The request field at fault, when there is one — the JSON path of the
+  /// unknown or invalid field in the send request.
   final String? field;
 
   /// Serialises to the wire shape `{error, field?}`, omitting the field key

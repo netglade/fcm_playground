@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:fcm_api/fcm_api.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -12,8 +13,9 @@ void main() {
 
   Handler handlerWith(FakeFcmSender sender) => ApiRouter(
     sender: sender,
-    newPayloadId: () => 'api-1754812345678901',
     now: () => sentAt,
+    newTraceId: () => 'tr-1',
+    telemetry: InMemoryTelemetryStore(),
   ).handler;
 
   FutureOr<Response> post(Object? body, {FakeFcmSender? sender}) =>
@@ -29,10 +31,12 @@ void main() {
   Future<Map<String, dynamic>> bodyOf(Response response) async =>
       jsonDecode(await response.readAsString()) as Map<String, dynamic>;
 
-  Map<String, Object?> validBody({
-    String token = 'device-token',
-    String title = 'Build finished',
-  }) => {'token': token, 'title': title, 'body': 'main #128 passed'};
+  Map<String, Object?> validBody({String token = 'device-token'}) => {
+    'token': token,
+    'message': {
+      'notification': {'title': 'Build finished'},
+    },
+  };
 
   group('GET /health', () {
     test('answers 200 so the server can be checked without sending', () async {
@@ -46,15 +50,53 @@ void main() {
   });
 
   group('POST /send', () {
-    test('answers 200 with the stamped id and timestamp', () async {
+    test('answers 200 with the stamped id, timestamp and trace', () async {
       final response = await post(validBody());
 
       expect(response.statusCode, 200);
       expect(await bodyOf(response), {
         'messageId': 'projects/p/messages/0:17',
-        'id': 'api-1754812345678901',
         'sentAt': '2026-08-11T09:12:03.000Z',
+        'traceId': 'tr-1',
       });
+    });
+
+    test('sends the trace id on to FCM inside data', () async {
+      // The route is the only path a real send takes, so the injection has to
+      // hold end to end and not just in sendMessage's own unit tests.
+      final sender = FakeFcmSender();
+
+      await post(validBody(), sender: sender);
+
+      final message = sender.sent.single['message']! as Map<String, Object?>;
+      expect(message['data'], {'trace_id': 'tr-1'});
+    });
+
+    test('records the send into the store the router was given', () async {
+      // The route has to reach the *same* store `GET /latency` reads from. A
+      // router that recorded into a store of its own would compile, pass every
+      // send-side unit test, and answer an empty latency page forever.
+      final store = InMemoryTelemetryStore();
+      final handler = ApiRouter(
+        sender: FakeFcmSender(),
+        now: () => sentAt,
+        newTraceId: () => 'tr-1',
+        telemetry: store,
+      ).handler;
+
+      await handler(
+        Request(
+          'POST',
+          Uri.parse('http://localhost:8080/send'),
+          body: jsonEncode(validBody()),
+          headers: const {'content-type': 'application/json'},
+        ),
+      );
+
+      expect((await store.all()).map((e) => (e.traceId, e.type)), [
+        ('tr-1', TelemetryEventType.queued),
+        ('tr-1', TelemetryEventType.sent),
+      ]);
     });
 
     test('answers JSON', () async {
@@ -78,26 +120,56 @@ void main() {
     });
 
     test(
-      'answers 400 with the field when a data value is not a string',
+      'answers 400 with the field path for an unknown message field',
       () async {
         final response = await post({
-          ...validBody(),
-          'data': {'retries': 3},
+          'token': 'device-token',
+          'message': {
+            'notification': {'titel': 'typo'},
+          },
         });
 
         expect(response.statusCode, 400);
-        expect((await bodyOf(response))['error'], contains('retries'));
+        expect(
+          (await bodyOf(response))['error'],
+          contains('notification: unknown field "titel"'),
+        );
       },
     );
 
-    test('answers 400 and names the field for an invalid draft', () async {
-      final response = await post(validBody(title: ''));
+    test('answers 400 for a blank token, not 500', () async {
+      // The blankness check moved into SendTarget.readFrom, so this asserts the
+      // FormatException it throws still reaches the caller as a 400.
+      final response = await post(validBody(token: '  '));
 
       expect(response.statusCode, 400);
-      expect(await bodyOf(response), {
-        'error': 'title must not be blank',
-        'field': 'title',
+      expect((await bodyOf(response))['error'], contains('blank'));
+    });
+
+    test('answers 400 when the body names no delivery target', () async {
+      final response = await post({
+        'message': {
+          'notification': {'title': 'Build finished'},
+        },
       });
+
+      expect(response.statusCode, 400);
+      expect((await bodyOf(response))['error'], contains('target is required'));
+    });
+
+    test('answers 501 for all_devices, having sent nothing', () async {
+      final sender = FakeFcmSender();
+      final body = {
+        'all_devices': true,
+        'message': {
+          'notification': {'title': 'Build finished'},
+        },
+      };
+
+      final response = await post(body, sender: sender);
+
+      expect(response.statusCode, 501);
+      expect(sender.sent, isEmpty, reason: 'nothing may be sent');
     });
 
     test('answers 404 for an unregistered token', () async {

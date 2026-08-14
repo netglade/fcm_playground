@@ -14,7 +14,7 @@ final class SendSucceeded extends SendOutcome {
   const SendSucceeded(this.response);
 
   /// The 200 body.
-  final SendNotificationResponse response;
+  final SendMessageResponse response;
 }
 
 /// The send did not happen, or FCM refused it.

@@ -1,72 +1,99 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 
+import '../telemetry/push_telemetry.dart';
+import '../telemetry/silent_push_telemetry.dart';
+import 'forms/fcm_message_form.dart';
 import 'notification_send_exception.dart';
 import 'notification_sender.dart';
 import 'sandbox_send_state.dart';
 
-/// Holds what the Sandbox form contains and what became of the last send.
+/// Holds the Sandbox's payload [form] and what became of the last send.
 ///
-/// It asks for a token through a callback rather than holding a `PushInbox`, so
-/// the Sandbox knows nothing about the receiving side, and it holds no
-/// `TextEditingController` — that is view state, and keeping it out is what lets
-/// these rules be tested without pumping a widget.
+/// The form is the payload: there is no text to parse and nothing to keep in
+/// sync, so a field can only ever hold something the typed model accepts and
+/// "is this sendable?" is the form's own [FcmMessageForm.isValid]. It asks for a
+/// token through a callback rather than holding a `PushInbox`, so the Sandbox
+/// knows nothing about the receiving side.
+///
+/// It republishes every model in the form tree as its own notifications, so the
+/// page above needs one listenable while a change four levels down still
+/// reaches the screen. That indirection is necessary because the form controls
+/// are stateless readers of `input.value` and a nested `GladeModel`'s
+/// notification does not travel up to its parent.
 class SandboxController extends ChangeNotifier {
-  SandboxController({required this._sender, required this._token}) {
+  /// Creates a controller wired to a sender and a way to read the current
+  /// registration token.
+  ///
+  /// [telemetry] defaults to silence, the same way every push hook does: a test
+  /// about the payload form must not have to open a Drift database to get a
+  /// controller.
+  SandboxController({
+    required this._sender,
+    required this._token,
+    this._telemetry = const SilentPushTelemetry(),
+  }) {
+    for (final model in _form.allModels) {
+      model.addListener(_onFormChanged);
+    }
     // Opening on a preset means the page is sendable on arrival, and it makes
     // the gallery's purpose obvious without a tap.
-    _load(notificationGallery.first.draft);
+    applyScenario(scenarioGallery.first);
   }
-
-  static const _validator = NotificationDraftValidator();
 
   final NotificationSender _sender;
   final String? Function() _token;
+  final PushTelemetry _telemetry;
+  final FcmMessageForm _form = FcmMessageForm();
 
-  String _title = '';
-  String _body = '';
-  List<MapEntry<String, String>> _entries = const [];
-  List<DraftProblem> _problems = const [];
+  bool _validateOnly = false;
+  Scenario? _selectedScenario;
+  SendTarget? _target;
   SandboxSendState _state = const SandboxIdle();
-  int _scenarioRevision = 0;
 
-  /// The notification title as currently typed.
-  String get title => _title;
+  /// The message being composed, edited directly by the page's sections.
+  FcmMessageForm get form => _form;
 
-  /// The notification body as currently typed.
-  String get body => _body;
+  /// Whether a send should only validate the request rather than deliver it.
+  bool get validateOnly => _validateOnly;
 
-  /// The data rows, still a list so a key typed twice is visible.
-  List<MapEntry<String, String>> get entries => List.unmodifiable(_entries);
-
-  /// What is wrong with the form right now. Empty when it can be sent.
-  List<DraftProblem> get problems => _problems;
+  /// The scenario last applied to the form, so the page can show which preset
+  /// the current payload started from.
+  Scenario? get selectedScenario => _selectedScenario;
 
   /// Where the last send got to.
   SandboxSendState get state => _state;
 
-  /// Bumped every time a scenario is loaded, so the view can rebuild its text
-  /// fields from the new values without fighting the user's cursor.
-  int get scenarioRevision => _scenarioRevision;
-
-  /// The form as a draft, with duplicate keys collapsed — only ever read once
-  /// [problems] is empty, which is where duplicates are caught.
-  NotificationDraft get draft => NotificationDraft(
-    title: _title,
-    body: _body,
-    data: Map.fromEntries(_entries),
-  );
+  /// Who to send to, or null for this device.
+  ///
+  /// Null rather than a resolved [TokenTarget], because the device's token can
+  /// change under us — it is read at send time, not when the choice is made.
+  SendTarget? get target => _target;
 
   /// Why Send cannot be pressed, or null when it can.
   String? get sendBlockedReason {
-    if (_token() == null) {
+    // A kind is chosen before its value is typed, so a half-filled target is a
+    // normal state of the form rather than a mistake — but sending it would
+    // deliver to the wrong audience or fail at the API, and `readFrom` draws
+    // the line at `trim()`, so this draws it in the same place.
+    if (_isTargetBlank) {
+      return 'Fill in the delivery target, or switch back to this device.';
+    }
+    // Only a send to *this device* needs this device's token. A topic, a
+    // condition or an explicit token names its own audience, so requiring a
+    // registration token for those would block the whole targeting feature on a
+    // device that has not registered — including every scenario in group J.
+    if (_target == null && _token() == null) {
       return 'No registration token yet, so there is nowhere to send.';
     }
     if (_state is SandboxSending) {
       return 'Sending…';
     }
-    if (_problems.isNotEmpty) {
-      return 'Fix the problems above first.';
+    // An invalid field can sit behind a closed section, so this has to point at
+    // where to look rather than just state that something is wrong.
+    if (_form.isNotValid) {
+      return 'A field is invalid. The sections marked with an error icon say '
+          'which.';
     }
 
     return null;
@@ -75,53 +102,63 @@ class SandboxController extends ChangeNotifier {
   /// Whether Send can be pressed right now.
   bool get canSend => sendBlockedReason == null;
 
-  /// Replaces the whole form with a preset.
-  void applyScenario(NotificationScenario scenario) {
-    _scenarioRevision++;
-    _load(scenario.draft);
-  }
-
-  /// Applies an edit from the form. Anything omitted is left alone.
-  void edit({
-    String? title,
-    String? body,
-    List<MapEntry<String, String>>? entries,
-  }) {
-    _title = title ?? _title;
-    _body = body ?? _body;
-    _entries = entries ?? _entries;
-    // An edit invalidates the previous result: a stale "✓ Sent" next to changed
-    // fields would claim something untrue.
-    _state = const SandboxIdle();
-    _revalidate();
+  /// Sets whether a send should only validate the request.
+  void setValidateOnly(bool value) {
+    _validateOnly = value;
     notifyListeners();
   }
 
-  /// Sends the current draft to this device.
+  /// Chooses an audience, or null to go back to this device.
+  void setTarget(SendTarget? target) {
+    _target = target;
+    notifyListeners();
+  }
+
+  /// Replaces every field in [form] with [scenario]'s template.
+  ///
+  /// Replaces rather than merges: `readFrom` writes all of the template's
+  /// fields *and* clears the ones it leaves out, so switching scenarios cannot
+  /// leave the previous one's notification behind.
+  void applyScenario(Scenario scenario) {
+    _selectedScenario = scenario;
+    _form.readFrom(FcmMessage.fromJson(scenario.payloadTemplate));
+    // Unconditionally, including back to null: a target the previous scenario
+    // chose would silently broadcast the next one.
+    _target = scenario.target;
+    notifyListeners();
+  }
+
+  /// Sends the form's message to the chosen [target], or to this device when
+  /// none was chosen, using the current [validateOnly] flag.
   Future<void> send() async {
     final token = _token();
-    if (token == null) {
-      _state = const SandboxFailed(
-        'No registration token yet — push is unavailable on this device.',
-      );
-      notifyListeners();
-
+    // Resolved here rather than at choice time, because this device's token can
+    // change under us. A token is needed only to stand in for "this device" —
+    // a chosen topic or condition names its own audience.
+    final target = _target ?? (token == null ? null : TokenTarget(token));
+    // Refuses exactly what Send is disabled for, so calling this directly
+    // cannot post a target the page would not let the user send.
+    if (target == null || !canSend) {
       return;
     }
 
-    _revalidate();
-    if (_problems.isNotEmpty) {
-      notifyListeners();
-
-      return;
-    }
-
+    // Read before the await: what gets reported as sent must be what left, not
+    // whatever the form holds by the time the response lands.
+    final message = _form.toModel();
     _state = const SandboxSending();
     notifyListeners();
 
     try {
       final response = await _sender.send(
-        SendNotificationRequest(token: token, draft: draft),
+        SendMessageRequest(
+          target: target,
+          message: message,
+          validateOnly: _validateOnly,
+          // Named so telemetry can group by scenario. The payload alone does not
+          // identify which scenario produced it, so if the sender does not say,
+          // nothing downstream can — and the matrix loses its scenario axis.
+          scenarioId: _selectedScenario?.id,
+        ),
       );
       _state = SandboxSent(response);
     } on NotificationSendException catch (error) {
@@ -130,20 +167,60 @@ class SandboxController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _load(NotificationDraft draft) {
-    _title = draft.title;
-    _body = draft.body;
-    _entries = draft.data.entries.toList();
-    _state = const SandboxIdle();
-    _revalidate();
-    notifyListeners();
+  /// Records that the user says the push for [traceId] never arrived, and sends
+  /// it straight away.
+  ///
+  /// Recorded *and* flushed, unlike the background arrival hook: this is a
+  /// foreground action the user just took, and they are entitled to assume it has
+  /// been reported rather than left in a buffer until the next push.
+  ///
+  /// It reports nothing about whether it worked, deliberately. `record` never
+  /// throws, and a `flush` that cannot reach the API keeps the event buffered for
+  /// the next one — so the honest answer to "did this reach the server?" is "not
+  /// yet, and it will", which is not something to alarm the user with.
+  Future<void> reportNotReceived(String traceId) async {
+    try {
+      await _telemetry.record(
+        TelemetryEventType.notReceived,
+        traceId: traceId,
+        // The scenario that produced the send. Any change to the selection
+        // rewrites the form, which clears the result the button hangs off, so the
+        // selection cannot have moved on while this button exists.
+        scenarioId: _selectedScenario?.id,
+      );
+      await _telemetry.flush();
+    } on Object catch (error) {
+      // Telemetry must never break what it observes, and here that is the page
+      // itself: an escaping error from a button's callback is an unhandled
+      // asynchronous error on the send screen.
+      debugPrint('telemetry: not_received for $traceId was not sent: $error');
+    }
   }
 
-  void _revalidate() {
-    _problems = _validator.validateEntries(
-      title: _title,
-      body: _body,
-      data: _entries,
-    );
+  @override
+  void dispose() {
+    for (final model in _form.allModels) {
+      model.removeListener(_onFormChanged);
+    }
+    super.dispose();
+  }
+
+  /// Whether a target was chosen but its value is still missing.
+  bool get _isTargetBlank => switch (_target) {
+    TokenTarget(:final token) => token.trim().isEmpty,
+    TopicTarget(:final topic) => topic.trim().isEmpty,
+    ConditionTarget(:final condition) => condition.trim().isEmpty,
+    // Null is this device, and all-devices carries nothing to fill in.
+    null || AllDevicesTarget() => false,
+  };
+
+  void _onFormChanged() {
+    // An edit invalidates the previous result: a stale "✓ Sent" beside a changed
+    // payload would claim something untrue. A send in flight is left alone, or
+    // an edit made while waiting would re-enable Send and allow a second one.
+    if (_state is! SandboxSending) {
+      _state = const SandboxIdle();
+    }
+    notifyListeners();
   }
 }

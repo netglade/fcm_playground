@@ -40,6 +40,34 @@ dart_code_metrics:
     source-lines-of-code: 50
   metrics-exclude:
     - test/**
+    # Drift's output. Generated code is not written to satisfy this repo's lints
+    # and cannot be edited to, and `// ignore_for_file` is not allowed here, so
+    # it is excluded by path on both sides — the hand-written library declaring
+    # the tables is still fully checked. Regenerate with `melos run generate`
+    # after changing a table.
+    #
+    # Measured on DCM 1.38.2: this entry is insurance rather than the thing that
+    # works. `dcm analyze` reports nothing inside a `part` file — code that
+    # raises two warnings in a library raises none when moved into the generated
+    # part — and it reports rules, not metrics, so a metrics entry could not
+    # have covered rule violations anyway. The analyzer exclude above is the
+    # half that measurably matters: without it, Drift's output raises 18 infos,
+    # `use_null_aware_elements` and `use_super_parameters` among them.
+    - "**/*.g.dart"
+    # Data classes mirroring Google's FCM v1 Message API. AndroidNotification has
+    # 27 fields and Scenario has 9, so number-of-parameters cannot apply: the
+    # count is the shape of the API being mirrored, not a design smell. Every
+    # metric still binds everywhere logic lives.
+    - packages/fcm_gallery_shared/lib/src/message/**
+    - packages/fcm_gallery_shared/lib/src/scenarios/**
+    # A data class mirroring the telemetry wire format. TelemetryEvent declares
+    # six fields, so number-of-parameters cannot apply: the count is the shape of
+    # the event both sides exchange, not a design smell.
+    - packages/fcm_gallery_shared/lib/src/telemetry/**
+    # Form models mirroring the same API. AndroidNotificationForm declares 27
+    # inputs, so number-of-parameters and source-lines-of-code cannot apply for
+    # the same reason they cannot apply to the typed model above.
+    - apps/fcm_app/lib/sandbox/forms/**
   rules:
     # Dart
     - avoid-collection-methods-with-unrelated-types

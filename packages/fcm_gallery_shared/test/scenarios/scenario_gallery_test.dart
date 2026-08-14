@@ -1,0 +1,214 @@
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
+import 'package:test/test.dart';
+
+import 'target_keys.dart';
+
+void main() {
+  test('every id is unique', () {
+    final ids = scenarioGallery.map((s) => s.id).toList();
+
+    expect(ids.toSet(), hasLength(ids.length));
+  });
+
+  test("every id starts with its group's letter", () {
+    // The one assertion that catches an entry filed under the wrong table as
+    // eleven files grow independently.
+    for (final scenario in scenarioGallery) {
+      final letter = scenario.group.substring(0, 1).toLowerCase();
+      expect(
+        scenario.id,
+        startsWith(letter),
+        reason: '${scenario.id} is filed under ${scenario.group}',
+      );
+    }
+  });
+
+  test('every template round-trips through the typed model', () {
+    // 66 hand-written templates is exactly where a `titel` typo or a camelCase
+    // key slips in. The strict parser plus this assertion turns that into a
+    // failed build rather than an opaque 400 from Google on a device.
+    for (final scenario in scenarioGallery) {
+      final raw = Map<String, Object?>.from(scenario.payloadTemplate);
+      expect(FcmMessage.fromJson(raw).toJson(), raw, reason: scenario.id);
+    }
+  });
+
+  test('no template sets its own delivery target, at any depth', () {
+    // Deep, not containsKey: the top level is already protected by
+    // FcmMessage.read, but `data: {'topic': 'news'}` is a legal string-map entry
+    // and anything under `apns.payload` is forwarded verbatim, so a nested target
+    // slips past both the model and a top-level check.
+    for (final scenario in scenarioGallery) {
+      expect(
+        targetKeysIn(scenario.payloadTemplate, scenario.id),
+        isEmpty,
+        reason: '${scenario.id} sets a target; use Scenario.target instead',
+      );
+    }
+  });
+
+  test('the deep scan would really catch a nested target', () {
+    // The assertion above is isEmpty, which a scanner that never finds anything
+    // satisfies just as happily. Two positive fixtures keep it honest.
+    const inData = {
+      'data': {'topic': 'news'},
+    };
+    const inFreeForm = {
+      'apns': {
+        'payload': [
+          {'token': 'abc'},
+        ],
+      },
+    };
+
+    expect(targetKeysIn(inData, 'x'), ['x/data/topic']);
+    expect(targetKeysIn(inFreeForm, 'x'), ['x/apns/payload[0]/token']);
+  });
+
+  test('every scenario has a non-blank title and description', () {
+    for (final scenario in scenarioGallery) {
+      expect(scenario.title.trim(), isNotEmpty, reason: scenario.id);
+      expect(scenario.description.trim(), isNotEmpty, reason: scenario.id);
+    }
+  });
+
+  test('a killed-app scenario needs delayed sending to be arranged', () {
+    // The invariant that gives requiresKilledApp exactly one meaning:
+    // "meaningless unless the app is killed". Arranging that means holding the
+    // send until the app is gone, so the flag and the need go together. Without
+    // this, the flag drifts into meaning "the killed case is the interesting
+    // one", which is true of far more scenarios and tells the Sandbox nothing.
+    for (final scenario in scenarioGallery) {
+      if (scenario.requiresKilledApp) {
+        expect(
+          scenario.needs,
+          contains(ScenarioNeed.delayedSend),
+          reason: scenario.id,
+        );
+        expect(
+          scenario.defaultDelaySeconds,
+          greaterThan(0),
+          reason: '${scenario.id} must say how long to hold the send',
+        );
+      }
+    }
+  });
+
+  test('a manual-step scenario says what the step is', () {
+    for (final scenario in scenarioGallery) {
+      if (scenario.needs.contains(ScenarioNeed.manualStep)) {
+        expect(scenario.manualSteps, isNotNull, reason: scenario.id);
+      }
+    }
+  });
+
+  test('the catalogue is complete: 66 scenarios in 11 groups', () {
+    expect(scenarioGallery, hasLength(66));
+    expect(scenarioGallery.map((s) => s.group).toSet(), hasLength(11));
+  });
+
+  test('exactly 21 scenarios work today', () {
+    // Asserted so that mis-marking one as blocked, or quietly unmarking one to
+    // make it look supported, fails the build.
+    final supported = scenarioGallery.where((s) => s.isSupported).toList();
+
+    expect(
+      supported,
+      hasLength(21),
+      reason: supported.map((s) => s.id).join(', '),
+    );
+  });
+
+  test('every ScenarioNeed is used, so the enum cannot drift', () {
+    final usedBy = {
+      for (final need in ScenarioNeed.values)
+        need: scenarioGallery
+            .where((s) => s.needs.contains(need))
+            .map((s) => s.id)
+            .toList(),
+    };
+
+    for (final need in ScenarioNeed.values) {
+      expect(
+        usedBy[need],
+        isNotEmpty,
+        reason: '${need.name} is declared but no scenario needs it',
+      );
+    }
+
+    // isNotEmpty is weakest exactly where it matters most. A need carried by a
+    // single scenario is a need whose entire justification is that one entry, so
+    // the loop above stays green if that entry is renamed, re-marked or swapped
+    // for a different one — the enum survives while the claim behind it moves.
+    // Pin the sole users by id, and pin *which* needs are sole-use, so a second
+    // one cannot appear unnoticed.
+    final soleUse = {
+      for (final entry in usedBy.entries)
+        if (entry.value.length == 1) entry.key.name: entry.value.single,
+    };
+
+    expect(soleUse, {'badge': 'g3_badge'});
+  });
+
+  test('the groups appear in A to K order, each in one run', () {
+    final letters = scenarioGallery
+        .map((s) => s.group.substring(0, 1))
+        .toList();
+
+    // Comparing `letters.toSet().toList()` alone rests on two things, and only
+    // the first holds: `toSet()` does keep insertion order, because the default
+    // Set is a LinkedHashSet — but deduplication is not harmless. A, B, A
+    // collapses to [A, B] and would pass while group A was split across two
+    // places in the gallery. So the distinct letters are compared *and* the raw
+    // sequence is required never to go backwards, which is what "each group
+    // appears once, in order" actually means.
+    expect(letters.toSet().toList(), const [
+      'A',
+      'B',
+      'C',
+      'D',
+      'E',
+      'F',
+      'G',
+      'H',
+      'I',
+      'J',
+      'K',
+    ]);
+    expect(letters, [...letters]..sort());
+  });
+
+  group('group A', () {
+    test('offers all four basic-delivery scenarios', () {
+      expect(groupA.map((s) => s.id), [
+        'a1_notification_only',
+        'a2_data_only',
+        'a3_hybrid',
+        'a4_no_display',
+      ]);
+    });
+
+    test('all four work today, with nothing outstanding', () {
+      for (final scenario in groupA) {
+        expect(scenario.isSupported, isTrue, reason: scenario.id);
+      }
+    });
+
+    test('the data-only scenario carries no notification block', () {
+      final dataOnly = groupA.firstWhere((s) => s.id == 'a2_data_only');
+
+      expect(dataOnly.payloadTemplate.containsKey('notification'), isFalse);
+      expect(dataOnly.payloadTemplate['data'], isNotEmpty);
+      // Sendable today, so no killed-app flag: see the comment on the entry.
+      expect(dataOnly.requiresKilledApp, isFalse);
+      expect(dataOnly.isSupported, isTrue);
+    });
+
+    test('the hybrid scenario carries both blocks', () {
+      final hybrid = groupA.firstWhere((s) => s.id == 'a3_hybrid');
+
+      expect(hybrid.payloadTemplate['notification'], isNotNull);
+      expect(hybrid.payloadTemplate['data'], isNotNull);
+    });
+  });
+}

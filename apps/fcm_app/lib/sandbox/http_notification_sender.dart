@@ -24,7 +24,7 @@ class HttpNotificationSender implements NotificationSender {
   final Uri _baseUrl;
 
   @override
-  Future<SendNotificationResponse> send(SendNotificationRequest request) async {
+  Future<SendMessageResponse> send(SendMessageRequest request) async {
     final http.Response response;
     try {
       response = await _client.post(
@@ -48,7 +48,7 @@ class HttpNotificationSender implements NotificationSender {
     }
 
     try {
-      return SendNotificationResponse.fromJson(_decodeObject(response.body));
+      return SendMessageResponse.fromJson(_decodeObject(response.body));
     } on FormatException catch (error) {
       throw NotificationSendException(
         'The API answered 200 with something unreadable: ${error.message}',

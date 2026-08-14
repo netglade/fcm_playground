@@ -24,12 +24,13 @@ the app behind `PushSource`, an interface with two implementations
 (`FirebasePushSource`, `DisabledPushSource`) plus a fake in the tests — which is
 why the widget tests never touch Firebase.
 
-`packages/fcm_gallery_shared` holds what the two sides must agree on: the
-editable draft, the gallery presets, the request and response DTOs, and the one
-validator both of them run. It depends on `core` for
-`PushMessageParser.reservedKeys`, so the payload keys the app requires are
-defined once and a data key that would collide with them fails to compile past
-the validator rather than at delivery time.
+`packages/fcm_gallery_shared` holds what the two sides must agree on: FCM's own
+`Message` model, typed as `FcmMessage` and its nested blocks
+(`AndroidConfig`, `ApnsConfig`, `WebpushConfig`, `FcmNotification`, …), the
+scenario gallery's raw payload templates, and the `/send` request and response
+DTOs. It no longer depends on `core` for anything — the inbox's four reserved
+`data` keys are `core`'s concern alone, and this package only knows the shape
+FCM itself defines.
 
 `apps/fcm_api` is a plain `shelf` server, not a Cloud Function: `dart run` and
 `curl` are the whole story, and the interesting logic — the FCM v1 payload and
@@ -160,21 +161,201 @@ real — a real key is the thing that is still missing.
 
 ## Message format
 
-`PushMessageParser` expects a flat FCM `data` payload with four required keys;
-anything else is passed through in `PushMessage.data`.
+What the Sandbox sends is FCM's own v1 `Message` object — typed in
+`packages/fcm_gallery_shared` as `FcmMessage`, with nested blocks for
+`notification`, `android`, `webpush`, `apns` and `fcm_options`. A `Scenario`
+holds a raw JSON template of that object, so it can be pasted straight out of
+[Google's REST reference](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages)
+without translation; the Sandbox's form lets you change the template before
+sending.
+
+`apps/fcm_api`'s `POST /send` is a passthrough. It takes
 
 ```json
-{
-  "id": "msg-1",
-  "title": "Build finished",
-  "body": "Release 1.0.0 is ready.",
-  "sentAt": "2026-08-06T09:30:00Z",
-  "deepLink": "/builds/42"
-}
+{"token": "<registration token>", "validate_only": false, "message": {"…": "…"}}
 ```
 
-A payload that fails validation is counted and surfaced in the UI rather than
-silently dropped — see `PushInbox.rejections`.
+parses `message` with `FcmMessage.fromJson`, injects `token` as the delivery
+target — a template must not set its own `token`, `topic` or `condition`, and
+is rejected if it does — forwards the result to FCM verbatim, and on success
+answers
+
+```json
+{"messageId": "projects/p/messages/0:1234…", "sentAt": "2026-08-12T09:30:00Z"}
+```
+
+The parser is strict: an unknown key anywhere inside `message`, at any depth,
+is rejected with the JSON path that named it, for example
+`{"error": "message.android.notification: unknown field \"titel\""}`, rather
+than being silently dropped or sent as something else. `apns.payload`,
+`webpush.notification` and every `data` map are the exception — FCM defines
+those as free-form, so whatever is inside them passes through unexamined,
+`aps` dictionary included. The model reads and writes the same snake_case keys
+FCM's REST API does (`fcm_options`, `validate_only`, …), so a payload copied
+from Google's docs round-trips through `FcmMessage.fromJson`/`.toJson()`
+unchanged.
+
+On arrival, `core`'s parser treats `title` and `body` as optional: a data-only
+push, with no `notification` block at all, still reaches the inbox, showing a
+`(no title)` placeholder in place of the missing headline. As a result,
+`PushInbox.rejections` is now a **rare** signal rather than an expected one —
+only a blank `id` or an unparseable `sentAt` still trips it. Neither comes from
+the server: the client fills them from the FCM envelope itself (`messageId` and
+`sentTime`) and then spreads the message's own `data` over the top, so they are
+always present unless a `data` entry overrides one of them with something
+broken. Adding `id` or `sentAt` to the `data` map in the Sandbox form is
+therefore the one way to trip it on purpose.
+
+**A real loss of observability:** the send response no longer carries a
+payload id — only FCM's own `messageId`, which has no relationship to
+anything the inbox stores. Matching a send to its arrival therefore needs an
+`id` you put in the message's `data` map yourself; there is no longer any
+other way to tell which arriving push came from which send.
+
+## The payload form
+
+The Sandbox edits the message through a form, not a JSON text field. Ten
+collapsible sections mirror FCM's own objects one for one — `message`,
+`notification`, `android`, `android.notification`, `android.notification.
+light_settings`, `apns`, `webpush` and the three `fcm_options` variants — nesting
+four levels deep exactly as the payload does. Every section starts closed except
+the outermost, so arriving shows the payload's shape rather than a wall of
+fields; each header carries an error badge that lights when anything inside it is
+invalid, at any depth, so a bad field cannot hide behind a closed section while
+Send sits disabled.
+
+**Optional booleans are tristate, and that is not a nicety.** FCM distinguishes
+"absent" from "false": omitting `direct_boot_ok` leaves the platform default in
+place, while sending `false` states a choice. A plain checkbox has only two
+states and would silently send `false` for every flag the user never touched, so
+each one offers unset / true / false and shows "Not sent" when unset. The same
+rule drives the text fields — an empty box means the key is omitted, not sent as
+`""` — and emptying a list or map editor omits the key rather than sending `[]`
+or `{}`.
+
+**`apns.payload` and `webpush.notification` are edited as dotted-path rows**
+(`aps.alert.title`, `aps.badge`) instead of nested controls. FCM defines both as
+free-form — Apple's `aps` dictionary is Apple's, not Google's — so no form can
+enumerate their fields. Rows expand back into nested JSON on send, with numeric
+path segments becoming list indices.
+
+**The accepted limitation: there is no JSON escape hatch.** Only fields the form
+models can be sent. That is the deliberate trade for a form that cannot produce
+a malformed payload, and the typed model in `packages/fcm_gallery_shared` covers
+the whole of FCM's v1 `Message`, so the gap is FCM's future additions rather
+than its present surface. All 66 catalogue scenarios round-trip through the form
+unchanged — a test asserts it, so a field missing from a form fails the build.
+
+## The scenario catalogue
+
+The Scenarios page (drawer → Scenarios) holds **66 scenarios in eleven groups,
+A–K**, mirroring the FCM playground test plan. Tapping one applies its payload to
+the Sandbox form and switches you there. The groups are the facets of FCM each
+scenario probes: basic delivery, app states, priority and delivery window,
+channels and importance, appearance, interaction, groups and badges, intrusive
+delivery, silent and data, targeting, and edge cases.
+
+**21 of the 66 work today.** The rest carry a marker naming what they still need —
+notification channels, notification styles, notification actions, a launcher
+badge, a device registry, delayed sending, a manual step, or approval from Apple
+or the OS that this project cannot grant itself. That count is asserted by a test,
+so this README cannot drift from the code: if a scenario is quietly unmarked to
+look supported, the build fails.
+
+A blocked scenario is **still sendable**. The push is genuine and valid; only the
+behaviour it demonstrates is missing, and watching a client with no action support
+receive an action payload is itself worth seeing. The banner above the form says
+what is missing rather than disabling Send. Where a payload cannot produce the
+scenario at all — a reboot, a Doze window, a revoked permission — the scenario
+carries the exact command or procedure in a selectable block, because an adb line
+that cannot be copied is one that will be mistyped.
+
+Every one of the 66 templates round-trips `raw → FcmMessage → raw` unchanged, and
+none may set its own delivery target at any depth. Both are asserted across the
+whole catalogue, which is what makes 66 hand-written templates trustworthy.
+
+## Choosing who receives a send
+
+The delivery target lives in the **send envelope**, never in the payload:
+`FcmMessage` rejects `token`, `topic` and `condition` outright, so a template
+pasted out of Google's reference cannot quietly broadcast. The Sandbox offers one
+selector above the form — this device, an explicit token, a topic, a condition, or
+every device — and the button names the audience it will actually send to.
+
+Only a send to *this device* needs this device's registration token; a topic or a
+condition names its own audience. **Every device is refused with a 501** and a
+stated reason: FCM has no such audience, so honouring it needs a registry of
+tokens this API does not keep.
+
+`curl` examples below are unchanged by this, because the target sits at the top
+level of the request exactly where `token` always did.
+
+## Telemetry
+
+Every send gets a `trace_id`, and both sides record events against it, so
+`sent → received` latency is a number rather than an impression. That is the point
+of the whole thing: it turns *"push feels slow on Xiaomi"* into *"median 4m12s on
+Xiaomi, 1.1s on Pixel, same payload, same minute"*.
+
+**The API mints the trace id**, not the app, and injects it into `data.trace_id`.
+Three reasons: none of the 66 catalogue templates carries one, so templates stay
+untouched and their round-trip invariant is unaffected; the API is the only party
+present for `queued`, `sent` and `send_failed`; and a send made by hand with `curl`
+gets a trace id too, which is how half of this project's testing happens. It also
+injects `data.scenario_id`, because **the payload a scenario produces does not
+identify the scenario** — without the sender naming it, the scenario axis of the
+matrix would be empty. Both are reserved keys in `PushMessageParser`, so neither
+shows up as an "extra data" row in the inbox.
+
+Nine events, seven of which are recorded today:
+
+| Event | Where it comes from |
+| --- | --- |
+| `queued`, `sent`, `send_failed` | the API. `send_failed` carries FCM's error **code**, which is what groups a hundred failures into three causes |
+| `received_fg` | the foreground stream |
+| `received_bg` | the background handler — **data payloads only**, since a notification-only push never wakes it |
+| `displayed` | after the local notification is actually drawn, never before |
+| `opened` | a tap. On Android the tap is reported as the app resumes, *before* the payload carrying the trace id exists, so it is held and reported once that arrives |
+| `dismissed` | **not yet** — needs a delete intent (`f6_delete_intent`) |
+| `not_received` | the one event a human asserts, and the only evidence available when the interesting answer is silence |
+
+`opened` records no "from which state" qualifier yet: that needs the three-state
+routing of `f3`–`f5`. Both gaps are in the enum and the schema from the start, so
+nothing changes shape when that work lands.
+
+**Events buffer on the device and flush to `POST /events`.** They are deleted only
+once the API acknowledges them, and only the ones acknowledged — a blanket clear
+after a partial flush would lose whatever arrived during it, which is the common
+case rather than an edge one. `record` never throws, because it is called from
+inside push handlers and a throw there would take down delivery itself. The
+background handler buffers without flushing: its isolate can be killed mid-request,
+and the event would go with it.
+
+**A negative latency means the clocks disagree, not that delivery beat the send.**
+`GET /latency` reports both timestamps rather than clamping to zero, because
+clamping turns a measurement error into a false result — and a "1 ms on Xiaomi"
+would discredit every other number in the system.
+
+**The device is identified by a generated id plus a label you type.** Not the FCM
+token: it rotates on reinstall and clear-data, which would split one handset into
+several columns — and `b6_token_refresh` exists precisely to make that happen. No
+automatic value is as useful as "Xiaomi 13" typed by someone who knows which phone
+is on the desk.
+
+**No telemetry on web.** `drift_flutter`'s web path needs a `sqlite3.wasm` and a
+drift worker shipped as assets, and the app cannot receive a push on web at all
+without a VAPID key — so there is nothing there for a buffer to hold.
+
+### Independent confirmation
+
+FCM can export delivery data to BigQuery, where Google reports how many messages it
+dropped and why — `DROPPED_DEVICE_INACTIVE`, `DROPPED_TOO_MANY_MESSAGES`. Enabled in
+the Firebase console under Cloud Messaging, not here.
+
+It answers the one question our own telemetry cannot: when a message never arrived,
+whether **Google** dropped it or the **handset** did. Our events end at the network;
+Google's begin there. It is therefore the arbiter when our numbers and a tester
+disagree, and worth turning on before trusting either.
 
 ## Sending a test push
 
@@ -212,31 +393,109 @@ Sending by hand instead:
 curl -X POST http://127.0.0.1:8080/send \
   -H 'content-type: application/json' \
   -d '{"token":"<registration token from the Inbox page>",
-       "title":"Build finished",
-       "body":"Release 1.0.0 is ready.",
-       "data":{"deepLink":"/builds/42"}}'
+       "validate_only":false,
+       "message":{
+         "notification":{"title":"Build finished","body":"Release 1.0.0 is ready."},
+         "data":{"id":"msg-1","sentAt":"2026-08-12T09:30:00Z","deepLink":"/builds/42"}
+       }}'
 ```
 
-The response's `id` is the payload's `id`, so it is the value that then appears
-in the inbox — that is how a send is matched to an arrival. `id` and `sentAt` are
-stamped by the server, and a data key colliding with one of the four reserved
-keys is rejected with a 400.
+The `id` and `sentAt` above are read by `core`'s parser once the push arrives —
+they are plain `data` keys as far as FCM and this API are concerned, not
+something the server stamps. See [Message format](#message-format) above for
+why: the response no longer echoes an id, so the `id` in `data` is the only
+thing that ties a send to the row it produces in the inbox.
 
 **The API is a development tool.** It has no authentication and binds loopback,
 so only the machine running it can reach it. Do not deploy it as is — bound to
 `0.0.0.0` it is an open relay to any token an attacker already holds.
 
+## Notifications
+
+A received push is shown as a notification as well as landing in the inbox, and
+tapping either the notification or an inbox row opens a detail page for it.
+
+| When the push arrives | What draws the notification |
+| --- | --- |
+| App backgrounded or terminated | FCM's own SDK, from the `notification` block `apps/fcm_api` sends. No app code involved. |
+| App in the foreground | `LocalNotificationPresenter`, because Android shows nothing itself in this case. On iOS a single `setForegroundNotificationPresentationOptions` call is enough. |
+
+Both use one high-importance Android channel, `fcm_sample_high`. The app creates
+it, and `AndroidManifest.xml` points FCM at the same id with
+`default_notification_channel_id` — without that, only the foreground banners
+would be heads-up.
+
+The inbox is durable: the newest 100 payloads are kept in `shared_preferences`
+and reloaded at launch, so a push that arrived while the app was away is there
+whether or not it was ever tapped. The background handler writes to a separate
+key that only it appends to, and the UI drains that key at launch and on every
+resume — two keys rather than one, so neither isolate read-modify-writes the
+other's data.
+
+**A push is never notified twice.** Only messages arriving on the live foreground
+stream produce a banner; anything restored from storage was already shown by FCM
+while the app was away, so replaying it on launch is exactly what the code avoids.
+
+Notification permission is requested at startup by `firebase_messaging`, which
+covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
+and nothing else — the inbox still fills.
+
 ## Verified on this machine
 
-`melos run ci` passes clean — 20 `core` tests, 41 `fcm_gallery_shared` tests, 44
-`fcm_api` tests and 49 `fcm_app` tests — and `fvm flutter build web --release`
-succeeds (a compile check only: web cannot receive FCM pushes without a VAPID
-key). The Android and iOS builds have **not** been verified here — there is no
-Android SDK or Xcode on this machine.
+`melos run ci` passes clean — 24 `core` tests, 209 `fcm_gallery_shared` tests, 133
+`fcm_api` tests and 386 `fcm_app` tests. `fvm flutter build apk --debug`
+and `fvm flutter build web --release` both succeed (compile checks only: the web
+build cannot receive FCM pushes without a VAPID key, and an apk build is not the
+same as running on a device). The iOS build has **not** been verified here —
+there is no Xcode on this machine.
 
-The end-to-end path above — generating a service account key, running
-`apps/fcm_api` against it, and a Sandbox send arriving in the Inbox on a real
-device with the matching `id` — is **not yet verified**. No service account key
-has been generated for this project, and no Android device has been attached on
-this machine, so neither the API nor the on-device round trip has actually been
-run.
+The Android build needs one thing that is easy to miss:
+`flutter_local_notifications` requires **core library desugaring**, and without
+it `:app:checkDebugAarMetadata` fails with
+`Dependency ':flutter_local_notifications' requires core library desugaring to be
+enabled for :app`. `android/app/build.gradle.kts` therefore sets
+`isCoreLibraryDesugaringEnabled = true` and adds
+`coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")`. This is
+needed even though the app only ever shows notifications immediately and never
+schedules one.
+
+Three things remain explicitly **not verified** on this machine:
+
+- **The `validate_only` sweep over the catalogue** — opening each of the 66
+  scenarios in the Sandbox and sending it with validate-only on, expecting a 200
+  for every one whose needs do not include a device registry or a manual step.
+  The round-trip test proves the templates agree with the *typed model*; only this
+  proves they agree with *Google*, which is a different claim and the one that
+  would catch a field FCM rejects for a reason no local parser can know. It needs
+  a service account key downloaded from the Firebase console and the API running
+  against it, which this machine cannot do unattended.
+- **The on-device payload checks** — that `e2_image_remote` renders its image,
+  that `a2_data_only` reaches the inbox with no notification drawn, that
+  `k2_invalid_token` reports UNREGISTERED rather than a generic 404, and that
+  `direct_boot_ok` sends `false` when set to false and omits the key when left
+  unset. That last one is the only real-world proof of the tristate design; a
+  widget test can show the three states cycling but not what leaves the device.
+- **The telemetry round trip on a real device.** Send a scenario, then read
+  `GET /latency` and confirm the figure is plausible; repeat with the app
+  backgrounded and killed. The killed case is the one that matters and the one that
+  needs `b3_killed`'s delayed send to arrange properly. *Partly verified here:* the
+  pipeline was driven end to end against the real router and the real SQLite file
+  with a stubbed FCM sender — a send, an arrival, `{"recorded":1}` then
+  `{"recorded":0}` on replay, and one latency row carrying the right device and
+  scenario. What is **not** verified is the FCM leg, a real handset, or the entry
+  point's own socket, none of which can run without a service-account key.
+- **Two devices, one send** — the point of the whole pipeline, and the only way to
+  see the matrix do its job. Send to a topic both have subscribed to (which needs
+  the targeting work) or twice by token, and confirm two rows with different
+  latencies and different labels.
+- **The needs banner and the manual-steps block on a device** — that a blocked
+  scenario names what it needs, that a working one shows no banner at all, and
+  that an adb command can actually be selected and copied out of
+  `ManualStepsBlock`. Selection behaviour is the one thing a widget test cannot
+  stand in for.
+- **The notification behaviour** — foreground banners, heads-up tray entries
+  while backgrounded, tapping a notification into the detail page, and a
+  background push reaching the inbox.
+
+No service account key has been generated for this project and no Android device
+has been attached on this machine, so none of the above has actually been run.

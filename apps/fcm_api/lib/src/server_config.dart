@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
+
 /// Everything the server reads from its environment, resolved once at startup.
 ///
 /// Every failure here is a [StateError] naming the variable at fault, and the
@@ -12,6 +14,7 @@ class ServerConfig {
     required this.serviceAccountJson,
     required this.projectId,
     required this.port,
+    required this.databasePath,
   });
 
   /// Reads the config from [environment], using [readFile] to load the service
@@ -46,6 +49,7 @@ class ServerConfig {
       serviceAccountJson: serviceAccountJson,
       projectId: projectId,
       port: _readPort(environment['PORT']),
+      databasePath: _readDatabasePath(environment['FCM_TELEMETRY_DB'], path),
     );
   }
 
@@ -58,6 +62,38 @@ class ServerConfig {
 
   /// The loopback port to listen on.
   final int port;
+
+  /// Where the telemetry database lives. Handed to `SqliteTelemetryStore.open`.
+  final String databasePath;
+}
+
+/// The name of the database file, when the operator has not named one.
+const _databaseFileName = 'fcm-telemetry.sqlite';
+
+/// Resolves the telemetry database from `FCM_TELEMETRY_DB`, defaulting to a
+/// file beside the service-account key at [keyPath].
+///
+/// Beside the key deliberately: the two files that must never be committed then
+/// live in one directory, so whoever has kept one out of the repository has kept
+/// both out.
+///
+/// A blank explicit value is refused rather than treated as unset. Falling back
+/// would put the database somewhere the operator did not ask for, and they would
+/// then look for their data in the wrong place — which, for a store that exists
+/// to be queried days later, is indistinguishable from having recorded nothing.
+String _readDatabasePath(String? value, String keyPath) {
+  if (value == null) {
+    return p.normalize(p.join(p.dirname(keyPath), _databaseFileName));
+  }
+
+  if (value.trim().isEmpty) {
+    throw StateError(
+      'FCM_TELEMETRY_DB is set but blank. Give it a path to a file, or unset '
+      'it to keep the database beside the service account key.',
+    );
+  }
+
+  return value;
 }
 
 /// Loads and decodes the service account key at [path] via [readFile].

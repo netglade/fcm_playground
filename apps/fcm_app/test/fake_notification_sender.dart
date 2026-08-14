@@ -10,22 +10,36 @@ class FakeNotificationSender implements NotificationSender {
   final NotificationSendException? failure;
 
   /// Every request handed to [send], so the payload can be asserted.
-  final sent = <SendNotificationRequest>[];
+  final sent = <SendMessageRequest>[];
 
-  /// Returned by [send] on success.
-  static final response = SendNotificationResponse(
+  /// Every response [send] answered with, in order, so a test can name the trace
+  /// id of one particular send.
+  final responses = <SendMessageResponse>[];
+
+  /// What [send] answers, apart from the trace id.
+  static final response = SendMessageResponse(
     messageId: 'projects/p/messages/0:17',
-    payloadId: 'api-1754812345678901',
     sentAt: DateTime.utc(2026, 8, 11, 9, 12, 3),
+    traceId: 'tr-1',
   );
 
   @override
-  Future<SendNotificationResponse> send(SendNotificationRequest request) async {
+  Future<SendMessageResponse> send(SendMessageRequest request) async {
     sent.add(request);
     if (failure case final failure?) {
       throw failure;
     }
 
-    return response;
+    // A fresh trace id per send, because the API mints one per send. A constant
+    // would let a widget report against the *previous* send's trace id and still
+    // satisfy every assertion about it.
+    final answer = SendMessageResponse(
+      messageId: response.messageId,
+      sentAt: response.sentAt,
+      traceId: 'tr-${sent.length}',
+    );
+    responses.add(answer);
+
+    return answer;
   }
 }
