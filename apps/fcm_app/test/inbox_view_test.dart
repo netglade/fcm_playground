@@ -1,5 +1,5 @@
 import 'package:fcm_app/push/push_inbox.dart';
-import 'package:fcm_app/sandbox/sandbox_controller.dart';
+import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
 import 'package:fcm_app/ui/message_detail_page.dart';
 import 'package:flutter/material.dart';
@@ -23,10 +23,10 @@ void main() {
 
   late FakePushSource source;
   late PushInbox inbox;
-  late SandboxController sandbox;
+  late SandboxCubit sandbox;
 
   Future<void> pumpApp(WidgetTester tester) async {
-    sandbox = SandboxController(
+    sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.token,
     );
@@ -39,7 +39,7 @@ void main() {
   });
 
   tearDown(() async {
-    sandbox.dispose();
+    await sandbox.close();
     inbox.dispose();
     await source.dispose();
   });

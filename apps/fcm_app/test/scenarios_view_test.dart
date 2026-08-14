@@ -1,4 +1,4 @@
-import 'package:fcm_app/sandbox/sandbox_controller.dart';
+import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/scenarios_view.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +10,11 @@ import 'fake_notification_sender.dart';
 void main() {
   setUpAll(GladeForms.initialize);
 
-  late SandboxController controller;
+  late SandboxCubit controller;
   late int selectedCount;
 
   void build() {
-    controller = SandboxController(
+    controller = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => 'device-token',
     );
@@ -46,7 +46,7 @@ void main() {
 
   final first = scenarioGallery.first;
 
-  tearDown(() => controller.dispose());
+  tearDown(() => controller.close());
 
   testWidgets('lists every group', (tester) async {
     build();
@@ -126,7 +126,7 @@ void main() {
     await tester.tap(find.text(dataOnly.title));
     await tester.pumpAndSettle();
 
-    expect(controller.selectedScenario?.id, dataOnly.id);
+    expect(controller.state.selectedScenario?.id, dataOnly.id);
   });
 
   testWidgets('calls onScenarioSelected once applyScenario has run', (
@@ -139,6 +139,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(selectedCount, 1);
-    expect(controller.selectedScenario?.id, first.id);
+    expect(controller.state.selectedScenario?.id, first.id);
   });
 }

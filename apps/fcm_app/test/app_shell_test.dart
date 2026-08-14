@@ -1,5 +1,5 @@
 import 'package:fcm_app/push/push_inbox.dart';
-import 'package:fcm_app/sandbox/sandbox_controller.dart';
+import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/fcm_sample_app.dart';
 import 'package:fcm_app/ui/message_detail_page.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
@@ -23,7 +23,7 @@ void main() {
 
   late FakePushSource source;
   late PushInbox inbox;
-  late SandboxController sandbox;
+  late SandboxCubit sandbox;
 
   Future<void> pumpApp(WidgetTester tester) async {
     await tester.pumpWidget(FcmSampleApp(inbox: inbox, sandbox: sandbox));
@@ -54,14 +54,14 @@ void main() {
   setUp(() {
     source = FakePushSource();
     inbox = PushInbox(source, store: FakePushPayloadStore())..listen();
-    sandbox = SandboxController(
+    sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.token,
     );
   });
 
   tearDown(() async {
-    sandbox.dispose();
+    await sandbox.close();
     inbox.dispose();
     await source.dispose();
   });
@@ -149,7 +149,7 @@ void main() {
 
     expect(selectedDestination(tester), 2);
     expect(find.widgetWithText(AppBar, 'Sandbox'), findsOne);
-    expect(sandbox.selectedScenario?.id, dataOnly.id);
+    expect(sandbox.state.selectedScenario?.id, dataOnly.id);
     expect(sandbox.form.data.value, dataOnly.payloadTemplate['data']);
   });
 
@@ -217,7 +217,7 @@ void main() {
     // A fresh source: setUp's `source` already has a listener from the outer
     // `inbox`, and a single-subscription stream accepts only one ever.
     inbox = PushInbox(FakePushSource(), store: store)..listen();
-    sandbox = SandboxController(
+    sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.token,
     );

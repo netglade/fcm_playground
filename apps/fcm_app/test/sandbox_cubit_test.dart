@@ -1,5 +1,5 @@
 import 'package:fcm_app/sandbox/notification_send_exception.dart';
-import 'package:fcm_app/sandbox/sandbox_controller.dart';
+import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/sandbox/sandbox_send_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
@@ -9,129 +9,129 @@ import 'package:glade_forms/glade_forms.dart';
 import 'fake_notification_sender.dart';
 
 void main() {
-  // The controller builds a GladeModel in its constructor, so the library has
-  // to be initialized before the first one is created.
+  // The cubit builds a GladeModel in its constructor, so the library has to be
+  // initialized before the first one is created.
   setUpAll(GladeForms.initialize);
 
   late FakeNotificationSender sender;
 
-  SandboxController controllerWith({
+  SandboxCubit cubitWith({
     String? token = 'device-token',
     FakeNotificationSender? withSender,
   }) {
     sender = withSender ?? FakeNotificationSender();
-    final controller = SandboxController(sender: sender, token: () => token);
-    addTearDown(controller.dispose);
+    final cubit = SandboxCubit(sender: sender, token: () => token);
+    addTearDown(cubit.close);
 
-    return controller;
+    return cubit;
   }
 
-  group('SandboxController', () {
+  group('SandboxCubit', () {
     test('opens on the first scenario, so the page is sendable at once', () {
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
-      expect(controller.selectedScenario?.id, scenarioGallery.first.id);
-      expect(controller.form.isValid, isTrue);
-      expect(controller.canSend, isTrue);
+      expect(cubit.state.selectedScenario?.id, scenarioGallery.first.id);
+      expect(cubit.form.isValid, isTrue);
+      expect(cubit.canSend, isTrue);
     });
 
     test('reads the first scenario into the form', () {
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
       expect(
-        controller.form.toModel(),
+        cubit.form.toModel(),
         FcmMessage.fromJson(scenarioGallery.first.payloadTemplate),
       );
     });
 
     test('replaces the fields when another scenario is applied', () {
-      final controller = controllerWith();
+      final cubit = cubitWith();
       final dataOnly = scenarioGallery.firstWhere(
         (scenario) => scenario.id == 'a2_data_only',
       );
 
-      controller.applyScenario(dataOnly);
+      cubit.applyScenario(dataOnly);
 
-      expect(controller.selectedScenario?.id, 'a2_data_only');
+      expect(cubit.state.selectedScenario?.id, 'a2_data_only');
       expect(
-        controller.form.toModel(),
+        cubit.form.toModel(),
         FcmMessage.fromJson(dataOnly.payloadTemplate),
       );
       // a2_data_only has no notification block, so the first scenario's title
       // must be gone rather than merged into the new payload.
-      expect(controller.form.notification.title.value, isEmpty);
+      expect(cubit.form.notification.title.value, isEmpty);
     });
 
     test('blocks Send with an actionable reason when a field is invalid', () {
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
-      controller.form.android.ttl.updateValue('later');
+      cubit.form.android.ttl.updateValue('later');
 
-      expect(controller.form.isValid, isFalse);
-      expect(controller.canSend, isFalse);
-      expect(controller.sendBlockedReason, contains('invalid'));
+      expect(cubit.form.isValid, isFalse);
+      expect(cubit.canSend, isFalse);
+      expect(cubit.sendBlockedReason, contains('invalid'));
     });
 
     test(
       'refuses to send an invalid form, without calling the sender',
       () async {
-        final controller = controllerWith();
+        final cubit = cubitWith();
 
-        controller.form.android.ttl.updateValue('later');
-        await controller.send();
+        cubit.form.android.ttl.updateValue('later');
+        await cubit.send();
 
         expect(sender.sent, isEmpty);
       },
     );
 
     test('blocks Send with a reason when there is no token', () {
-      final controller = controllerWith(token: null);
+      final cubit = cubitWith(token: null);
 
-      expect(controller.canSend, isFalse);
-      expect(controller.sendBlockedReason, contains('token'));
+      expect(cubit.canSend, isFalse);
+      expect(cubit.sendBlockedReason, contains('token'));
     });
 
     test('sends the form\'s message with the device token', () async {
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
-      await controller.send();
+      await cubit.send();
 
       expect(sender.sent.single.target, const TokenTarget('device-token'));
-      expect(sender.sent.single.message, controller.form.toModel());
+      expect(sender.sent.single.message, cubit.form.toModel());
       expect(sender.sent.single.validateOnly, isFalse);
     });
 
     test('sends to this device when no target is chosen', () async {
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
-      await controller.send();
+      await cubit.send();
 
-      expect(controller.target, isNull);
+      expect(cubit.state.target, isNull);
       expect(sender.sent.single.target, const TokenTarget('device-token'));
     });
 
     test('sends to the chosen target instead of this device', () async {
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
-      controller.setTarget(const TopicTarget('news'));
-      await controller.send();
+      cubit.setTarget(const TopicTarget('news'));
+      await cubit.send();
 
       expect(sender.sent.single.target, const TopicTarget('news'));
     });
 
     test('takes the target from an applied scenario, and drops it again', () {
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
-      controller.applyScenario(
+      cubit.applyScenario(
         scenarioGallery.firstWhere((scenario) => scenario.id == 'j2_condition'),
       );
 
       expect(
-        controller.target,
+        cubit.state.target,
         const ConditionTarget("'news' in topics && 'beta' in topics"),
       );
 
-      controller.applyScenario(
+      cubit.applyScenario(
         scenarioGallery.firstWhere(
           (scenario) => scenario.id == 'a1_notification_only',
         ),
@@ -139,32 +139,31 @@ void main() {
 
       // A target left behind by the previous scenario would broadcast the next
       // one, which is the failure `FcmMessage` refuses to make possible.
-      expect(controller.target, isNull);
+      expect(cubit.state.target, isNull);
     });
 
     test('blocks Send with a reason when the chosen target is blank', () {
-      final controller = controllerWith()..setTarget(const TopicTarget(''));
+      final cubit = cubitWith()..setTarget(const TopicTarget(''));
 
-      expect(controller.canSend, isFalse);
-      expect(controller.sendBlockedReason, contains('delivery target'));
+      expect(cubit.canSend, isFalse);
+      expect(cubit.sendBlockedReason, contains('delivery target'));
     });
 
     test('treats a whitespace-only target as blank', () {
       // The API's own reader rejects a blank target on `trim()`, so accepting
       // spaces here would only move the refusal to a 400.
-      final controller = controllerWith()..setTarget(const TokenTarget('   '));
+      final cubit = cubitWith()..setTarget(const TokenTarget('   '));
 
-      expect(controller.canSend, isFalse);
-      expect(controller.sendBlockedReason, contains('delivery target'));
+      expect(cubit.canSend, isFalse);
+      expect(cubit.sendBlockedReason, contains('delivery target'));
     });
 
     test(
       'refuses to send a blank target, without calling the sender',
       () async {
-        final controller = controllerWith()
-          ..setTarget(const ConditionTarget(''));
+        final cubit = cubitWith()..setTarget(const ConditionTarget(''));
 
-        await controller.send();
+        await cubit.send();
 
         expect(sender.sent, isEmpty);
       },
@@ -174,11 +173,11 @@ void main() {
       // The behaviour the whole form exists for: a scenario is a starting point,
       // not the payload. Asserted on the posted JSON, because that is the only
       // place where a field lost between the input and the wire would show.
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
-      controller.form.notification.title.updateValue('Edited by hand');
-      controller.form.android.notification.color.updateValue('#ff0000');
-      await controller.send();
+      cubit.form.notification.title.updateValue('Edited by hand');
+      cubit.form.android.notification.color.updateValue('#ff0000');
+      await cubit.send();
 
       expect(sender.sent.single.message.toJson(), {
         'notification': {
@@ -192,74 +191,82 @@ void main() {
     });
 
     test('sends validate_only when the flag is set', () async {
-      final controller = controllerWith()..setValidateOnly(true);
+      final cubit = cubitWith()..setValidateOnly(true);
 
-      await controller.send();
+      await cubit.send();
 
       expect(sender.sent.single.validateOnly, isTrue);
-      expect(controller.validateOnly, isTrue);
+      expect(cubit.state.validateOnly, isTrue);
     });
 
     test('lands on Sent with the response', () async {
-      final controller = controllerWith();
+      final cubit = cubitWith();
 
-      await controller.send();
+      await cubit.send();
 
-      expect(controller.state, isA<SandboxSent>());
+      expect(cubit.state.sendState, isA<SandboxSent>());
       expect(
-        (controller.state as SandboxSent).response.messageId,
+        (cubit.state.sendState as SandboxSent).response.messageId,
         FakeNotificationSender.response.messageId,
       );
     });
 
     test('lands on Failed and keeps the form\'s contents', () async {
-      final controller = controllerWith(
+      final cubit = cubitWith(
         withSender: FakeNotificationSender(
           failure: const NotificationSendException('The API is unreachable'),
         ),
       );
 
-      controller.form.data.updateValue({'kept': 'yes'});
-      await controller.send();
+      cubit.form.data.updateValue({'kept': 'yes'});
+      await cubit.send();
 
-      expect(controller.state, isA<SandboxFailed>());
-      expect(controller.form.data.value, {'kept': 'yes'});
+      expect(cubit.state.sendState, isA<SandboxFailed>());
+      expect(cubit.form.data.value, {'kept': 'yes'});
     });
 
     test('drops a stale result when the payload changes', () async {
-      final controller = controllerWith();
-      await controller.send();
-      expect(controller.state, isA<SandboxSent>());
+      final cubit = cubitWith();
+      await cubit.send();
+      expect(cubit.state.sendState, isA<SandboxSent>());
 
-      controller.form.notification.title.updateValue('Changed since');
+      cubit.form.notification.title.updateValue('Changed since');
 
-      expect(controller.state, isA<SandboxIdle>());
+      expect(cubit.state.sendState, isA<SandboxIdle>());
     });
 
-    test('re-notifies for a change three levels down', () {
+    test('re-notifies for a change three levels down', () async {
       // What proves the allModels wiring is live: android.notification.color is
       // owned by AndroidNotificationForm, whose notification never reaches the
       // root, so a listener on the root form alone would miss this entirely.
-      final controller = controllerWith();
+      //
+      // A valid colour on purpose: it moves none of the five scalars in
+      // SandboxState, so this is also what pins the state's identity equality.
+      // Were the state value-equal, `Cubit.emit` would drop this edit and the
+      // form controls — stateless readers of `input.value` — would never redraw.
+      final cubit = cubitWith();
       var notifications = 0;
-      controller.addListener(() => notifications++);
+      final states = cubit.stream.listen((_) => notifications++);
+      addTearDown(states.cancel);
 
-      controller.form.android.notification.color.updateValue('#123456');
+      cubit.form.android.notification.color.updateValue('#123456');
+      // `state` moves synchronously, but the stream delivers in a microtask.
+      await Future<void>.delayed(Duration.zero);
 
       expect(notifications, greaterThan(0));
     });
 
-    test('stops listening to every model on dispose', () {
-      // Eleven models, one listener each. An un-removed listener notifies a
-      // disposed ChangeNotifier, which asserts — but ChangeNotifier catches what
-      // a listener throws and reports it to FlutterError instead of rethrowing,
-      // so the reported errors are what has to be watched rather than the call.
-      final controller = SandboxController(
+    test('stops listening to every model on close', () async {
+      // Eleven models, one listener each. A listener left behind emits on a
+      // closed cubit, which throws — but ChangeNotifier catches what a listener
+      // throws and reports it to FlutterError instead of rethrowing, so the
+      // reported errors are what has to be watched rather than the call.
+      final cubit = SandboxCubit(
         sender: FakeNotificationSender(),
         token: () => 'device-token',
       );
-      final form = controller.form;
-      controller.dispose();
+      final form = cubit.form;
+      await cubit.close();
 
       final reported = <FlutterErrorDetails>[];
       final previousOnError = FlutterError.onError;

@@ -1,7 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../sandbox/sandbox_controller.dart';
+import '../sandbox/sandbox_cubit.dart';
 import 'scenario_card.dart';
 
 /// The gallery of message-payload templates, grouped by the facet of FCM
@@ -28,7 +28,7 @@ class ScenarioGroupList extends StatelessWidget {
   });
 
   /// The controller a tapped scenario is applied to.
-  final SandboxController controller;
+  final SandboxCubit controller;
 
   /// Called after a tapped scenario has been applied to [controller].
   final VoidCallback onScenarioSelected;

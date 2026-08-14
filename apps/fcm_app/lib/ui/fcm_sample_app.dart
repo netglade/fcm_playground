@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../push/push_inbox.dart';
-import '../sandbox/sandbox_controller.dart';
+import '../sandbox/sandbox_cubit.dart';
 import 'app_shell.dart';
 
-/// Root widget. Takes the [PushInbox] and the [SandboxController] as parameters
+/// Root widget. Takes the [PushInbox] and the [SandboxCubit] as parameters
 /// rather than creating them, so widget tests can supply an inbox wired to a fake
 /// source and a sandbox wired to a fake sender.
 class FcmSampleApp extends StatelessWidget {
@@ -14,7 +14,7 @@ class FcmSampleApp extends StatelessWidget {
   final PushInbox inbox;
 
   /// The sandbox controller handed down to [AppShell].
-  final SandboxController sandbox;
+  final SandboxCubit sandbox;
 
   @override
   Widget build(BuildContext context) => MaterialApp(

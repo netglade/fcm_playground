@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../sandbox/sandbox_controller.dart';
+import '../sandbox/sandbox_cubit.dart';
+import '../sandbox/sandbox_state.dart';
 
 /// Chooses who a send goes to.
 ///
@@ -22,8 +25,8 @@ class SendTargetField extends StatefulWidget {
   /// Reads and sets [controller]'s target.
   const SendTargetField({required this.controller, super.key});
 
-  /// The controller whose target this chooses.
-  final SandboxController controller;
+  /// The cubit whose target this chooses.
+  final SandboxCubit controller;
 
   @override
   State<SendTargetField> createState() => _SendTargetFieldState();
@@ -32,23 +35,28 @@ class SendTargetField extends StatefulWidget {
 class _SendTargetFieldState extends State<SendTargetField> {
   final TextEditingController _value = TextEditingController();
 
+  /// The cubit's states, watched for a target set from elsewhere. Cancelled in
+  /// [dispose]: a subscription left on a page-scoped cubit outlives the box it
+  /// writes into.
+  late final StreamSubscription<SandboxState> _states;
+
   @override
   void initState() {
     super.initState();
-    _value.text = _valueOf(widget.controller.target);
-    widget.controller.addListener(_readTarget);
+    _value.text = _valueOf(widget.controller.state.target);
+    _states = widget.controller.stream.listen((_) => _readTarget());
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_readTarget);
+    unawaited(_states.cancel());
     _value.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final kind = _kindOf(widget.controller.target);
+    final kind = _kindOf(widget.controller.state.target);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +86,7 @@ class _SendTargetFieldState extends State<SendTargetField> {
   }
 
   void _readTarget() => setState(() {
-    final value = _valueOf(widget.controller.target);
+    final value = _valueOf(widget.controller.state.target);
     // Assigning unconditionally would fight the keystroke that caused this
     // notification, so only a target set from elsewhere is taken.
     if (value != _value.text) {
@@ -134,7 +142,7 @@ bool _takesText(String kind) =>
 
 /// The target for a freshly chosen [kind], before anything is typed.
 ///
-/// Deliberately blank rather than pre-filled: the controller blocks Send while
+/// Deliberately blank rather than pre-filled: the cubit blocks Send while
 /// it is, which is better than guessing an audience on the user's behalf.
 SendTarget? _emptyFor(String? kind) => switch (kind) {
   _token => const TokenTarget(''),

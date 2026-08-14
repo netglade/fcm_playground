@@ -1,5 +1,5 @@
 import 'package:fcm_app/sandbox/notification_send_exception.dart';
-import 'package:fcm_app/sandbox/sandbox_controller.dart';
+import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/manual_steps_block.dart';
 import 'package:fcm_app/ui/sandbox_view.dart';
 import 'package:fcm_app/ui/scenario_needs_banner.dart';
@@ -15,14 +15,14 @@ void main() {
   setUpAll(GladeForms.initialize);
 
   late FakeNotificationSender sender;
-  late SandboxController controller;
+  late SandboxCubit controller;
 
   void build({
     String? token = 'device-token',
     NotificationSendException? failure,
   }) {
     sender = FakeNotificationSender(failure: failure);
-    controller = SandboxController(sender: sender, token: () => token);
+    controller = SandboxCubit(sender: sender, token: () => token);
   }
 
   Future<void> pump(WidgetTester tester) async {
@@ -34,7 +34,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  tearDown(() => controller.dispose());
+  tearDown(() => controller.close());
 
   testWidgets('shows the payload form without scrolling, on arrival', (
     tester,
@@ -126,7 +126,7 @@ void main() {
 
     await pump(tester);
 
-    expect(find.text(controller.selectedScenario!.title), findsNothing);
+    expect(find.text(controller.state.selectedScenario!.title), findsNothing);
   });
 
   testWidgets('disables Send while a field is invalid', (tester) async {

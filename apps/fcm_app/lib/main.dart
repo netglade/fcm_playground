@@ -24,7 +24,7 @@ import 'push/remote_message_payload.dart';
 import 'push/shared_preferences_push_payload_store.dart';
 import 'sandbox/http_notification_sender.dart';
 import 'sandbox/notification_sender.dart';
-import 'sandbox/sandbox_controller.dart';
+import 'sandbox/sandbox_cubit.dart';
 import 'sandbox/unavailable_notification_sender.dart';
 import 'telemetry/drift_telemetry_buffer.dart';
 import 'telemetry/push_telemetry.dart';
@@ -91,7 +91,7 @@ Future<void> main() async {
       : UnavailableNotificationSender(setupError);
   // The same reporter the inbox records arrivals through, so a `not_received`
   // and the `sent` it contradicts land in one buffer and one database.
-  final sandbox = SandboxController(
+  final sandbox = SandboxCubit(
     sender: sender,
     token: () => inbox.token,
     telemetry: telemetry,

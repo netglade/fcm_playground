@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../sandbox/sandbox_controller.dart';
+import '../sandbox/sandbox_cubit.dart';
 import 'scenario_group_list.dart';
 
 /// The scenario gallery's own page.
@@ -21,7 +21,7 @@ class ScenariosView extends StatelessWidget {
   });
 
   /// The controller a tapped scenario is applied to.
-  final SandboxController controller;
+  final SandboxCubit controller;
 
   /// Called once a tapped scenario has been applied, so the caller can move
   /// on — this page does not know what "on" means.

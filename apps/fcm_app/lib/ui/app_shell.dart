@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../push/push_inbox.dart';
-import '../sandbox/sandbox_controller.dart';
+import '../sandbox/sandbox_cubit.dart';
 import 'inbox_view.dart';
 import 'message_detail_page.dart';
 import 'sandbox_view.dart';
@@ -23,7 +23,7 @@ class AppShell extends StatefulWidget {
   final PushInbox inbox;
 
   /// The controller rendered by the "Sandbox" destination.
-  final SandboxController sandbox;
+  final SandboxCubit sandbox;
 
   @override
   State<AppShell> createState() => _AppShellState();

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../sandbox/sandbox_controller.dart';
+import '../sandbox/sandbox_cubit.dart';
+import '../sandbox/sandbox_state.dart';
 import 'form/sections/message_section.dart';
 import 'manual_steps_block.dart';
 import 'scenario_needs_banner.dart';
@@ -25,16 +27,16 @@ import 'send_target_field.dart';
 /// `Scaffold.bottomNavigationBar`; the `Column` here is what pins it.
 class SandboxView extends StatelessWidget {
   /// Creates the page. Reads and edits [controller] directly, and rebuilds
-  /// whenever it changes.
+  /// whenever it emits.
   const SandboxView({required this.controller, super.key});
 
-  /// The controller this page reads and edits.
-  final SandboxController controller;
+  /// The cubit this page reads and edits.
+  final SandboxCubit controller;
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: controller,
-    builder: (context, _) => Column(
+  Widget build(BuildContext context) => BlocBuilder<SandboxCubit, SandboxState>(
+    bloc: controller,
+    builder: (_, state) => Column(
       children: [
         Expanded(
           child: ListView(
@@ -42,10 +44,10 @@ class SandboxView extends StatelessWidget {
             children: [
               SendTargetField(controller: controller),
               const SizedBox(height: 8),
-              ScenarioNeedsBanner(scenario: controller.selectedScenario),
-              if (controller.selectedScenario?.manualSteps case final steps?)
+              ScenarioNeedsBanner(scenario: state.selectedScenario),
+              if (state.selectedScenario?.manualSteps case final steps?)
                 ManualStepsBlock(steps: steps),
-              if (controller.selectedScenario case final scenario?) ...[
+              if (state.selectedScenario case final scenario?) ...[
                 if (scenario.expectation case final expectation?)
                   Text(expectation),
                 if (scenario.requiresKilledApp)
@@ -58,7 +60,7 @@ class SandboxView extends StatelessWidget {
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Validate only'),
-                value: controller.validateOnly,
+                value: state.validateOnly,
                 onChanged: (value) =>
                     controller.setValidateOnly(value ?? false),
               ),

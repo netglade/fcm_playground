@@ -13,8 +13,8 @@ import 'package:flutter/material.dart';
 /// button that quietly ignores a press is indistinguishable from one that
 /// worked.
 ///
-/// The pressed state lives here rather than on `SandboxController` because it is
-/// a fact about one trace id, not about the page: the controller would need a
+/// The pressed state lives here rather than on `SandboxCubit` because it is
+/// a fact about one trace id, not about the page: the cubit would need a
 /// second thing to invalidate in step with its send state, and a flag left set
 /// across a send would silently lose a real report. [didUpdateWidget] resets it
 /// when the trace id changes, so a rebuild that swaps the id in place re-enables

@@ -1,7 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../sandbox/sandbox_controller.dart';
+import '../sandbox/sandbox_cubit.dart';
 import 'send_result_card.dart';
 
 /// The page's primary action, with whatever is blocking it and whatever came
@@ -18,11 +18,11 @@ import 'send_result_card.dart';
 /// [SandboxView] because DCM's `avoid-returning-widgets` forbids the helper.
 class SendFooter extends StatelessWidget {
   /// Creates the footer. Reads [controller] directly; something above it is
-  /// expected to rebuild it when the controller changes.
+  /// expected to rebuild it when the cubit emits.
   const SendFooter({required this.controller, super.key});
 
-  /// The controller whose send this footer triggers and reports.
-  final SandboxController controller;
+  /// The cubit whose send this footer triggers and reports.
+  final SandboxCubit controller;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -41,11 +41,11 @@ class SendFooter extends StatelessWidget {
         FilledButton.icon(
           onPressed: controller.canSend ? controller.send : null,
           icon: const Icon(Icons.send_outlined),
-          label: Text(_labelFor(controller.target)),
+          label: Text(_labelFor(controller.state.target)),
         ),
         SendResultCard(
-          controller.state,
-          validateOnly: controller.validateOnly,
+          controller.state.sendState,
+          validateOnly: controller.state.validateOnly,
           onNotReceived: controller.reportNotReceived,
         ),
       ],

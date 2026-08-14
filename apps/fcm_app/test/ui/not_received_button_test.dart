@@ -1,5 +1,5 @@
 import 'package:fcm_app/sandbox/notification_send_exception.dart';
-import 'package:fcm_app/sandbox/sandbox_controller.dart';
+import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/not_received_button.dart';
 import 'package:fcm_app/ui/sandbox_view.dart';
 import 'package:fcm_app/ui/send_result_card.dart';
@@ -16,12 +16,12 @@ void main() {
 
   late FakeNotificationSender sender;
   late RecordingPushTelemetry reporter;
-  late SandboxController controller;
+  late SandboxCubit controller;
 
   void build({NotificationSendException? failure}) {
     sender = FakeNotificationSender(failure: failure);
     reporter = RecordingPushTelemetry();
-    controller = SandboxController(
+    controller = SandboxCubit(
       sender: sender,
       token: () => 'device-token',
       telemetry: reporter,
@@ -63,7 +63,7 @@ void main() {
     for (final response in sender.responses) response.traceId,
   ];
 
-  tearDown(() => controller.dispose());
+  tearDown(() => controller.close());
 
   testWidgets('appears only after a send', (tester) async {
     // Before a send there is no trace id to report against, and a button that
@@ -116,7 +116,7 @@ void main() {
     expect(recorded.traceId, traceIdsSent().single);
     expect(
       recorded.scenarioId,
-      controller.selectedScenario!.id,
+      controller.state.selectedScenario!.id,
       reason: 'the matrix groups not-received by scenario',
     );
     // Record *then* flush: the value stored at the flush proves the flush
@@ -216,7 +216,7 @@ void main() {
     // holds it there: removing `didUpdateWidget` fails this *and* the two-sends
     // test above.
     //
-    // Built without a page: the shared `tearDown` disposes whatever the last
+    // Built without a page: the shared `tearDown` closes whatever the last
     // `build` made, so this makes one for it to dispose rather than reaching
     // into the previous test's.
     build();

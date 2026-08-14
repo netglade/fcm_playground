@@ -1,4 +1,4 @@
-import 'package:fcm_app/sandbox/sandbox_controller.dart';
+import 'package:fcm_app/sandbox/sandbox_cubit.dart';
 import 'package:fcm_app/ui/send_target_field.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
@@ -10,16 +10,16 @@ import '../fake_notification_sender.dart';
 void main() {
   setUpAll(GladeForms.initialize);
 
-  late SandboxController controller;
+  late SandboxCubit controller;
 
   setUp(() {
-    controller = SandboxController(
+    controller = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => 'device-token',
     );
   });
 
-  tearDown(() => controller.dispose());
+  tearDown(() => controller.close());
 
   Scenario scenario(String id) =>
       scenarioGallery.firstWhere((scenario) => scenario.id == id);
@@ -44,7 +44,7 @@ void main() {
     expect(find.text('This device'), findsOne);
     expect(find.text('Topic'), findsNothing);
     expect(find.byType(TextField), findsNothing);
-    expect(controller.target, isNull);
+    expect(controller.state.target, isNull);
   });
 
   testWidgets('choosing a topic reveals a field and sets the target', (
@@ -59,14 +59,14 @@ void main() {
 
     // Blank on purpose: the kind is chosen before its value is known, and the
     // controller has to refuse to send that rather than pick an audience.
-    expect(controller.target, const TopicTarget(''));
+    expect(controller.state.target, const TopicTarget(''));
     expect(find.byType(TextField), findsOne);
     expect(controller.sendBlockedReason, isNotNull);
 
     await tester.enterText(find.byType(TextField), 'news');
     await tester.pumpAndSettle();
 
-    expect(controller.target, const TopicTarget('news'));
+    expect(controller.state.target, const TopicTarget('news'));
     expect(controller.sendBlockedReason, isNull);
   });
 
@@ -87,7 +87,7 @@ void main() {
 
     // A topic name left behind in a condition box would be read as an
     // expression and sent to nobody.
-    expect(controller.target, const ConditionTarget(''));
+    expect(controller.state.target, const ConditionTarget(''));
     expect(find.widgetWithText(TextField, 'news'), findsNothing);
   });
 
@@ -101,7 +101,7 @@ void main() {
     await tester.tap(find.text('All devices').last);
     await tester.pumpAndSettle();
 
-    expect(controller.target, const AllDevicesTarget());
+    expect(controller.state.target, const AllDevicesTarget());
     expect(find.byType(TextField), findsNothing);
     expect(find.textContaining('registry'), findsOne);
   });
@@ -122,13 +122,13 @@ void main() {
     controller.applyScenario(scenario('j1_topic'));
     // Without this, the reset below would pass on a controller whose
     // applyScenario never touched the target at all.
-    expect(controller.target, const TopicTarget('news'));
+    expect(controller.state.target, const TopicTarget('news'));
 
     controller.applyScenario(scenario('a1_notification_only'));
 
     await pump(tester);
 
-    expect(controller.target, isNull);
+    expect(controller.state.target, isNull);
     expect(find.text('This device'), findsOne);
     expect(find.byType(TextField), findsNothing);
   });
