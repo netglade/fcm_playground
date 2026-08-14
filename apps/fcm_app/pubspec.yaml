@@ -24,7 +24,9 @@ dependencies:
   firebase_messaging: ^16.5.0
   flutter:
     sdk: flutter
+  flutter_bloc: ^9.1.1
   flutter_local_notifications: ^22.3.0
+  get_it: ^8.2.0
   glade_forms: ^6.0.0
   http: ^1.6.0
   shared_preferences: ^2.5.5
