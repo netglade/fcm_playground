@@ -1,39 +1,25 @@
 import 'dart:async';
 import 'dart:ui' show DartPluginRegistrant;
 
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
-import 'package:http/http.dart' as http;
 
+import 'di/service_locator.dart';
 import 'firebase_options.dart';
-import 'firebase_setup.dart';
-import 'notifications/local_notification_presenter.dart';
 import 'notifications/notification_presenter.dart';
-import 'notifications/silent_notification_presenter.dart';
-import 'push/disabled_push_source.dart';
-import 'push/firebase_push_source.dart';
 import 'push/inbox_cubit.dart';
-import 'push/push_payload_store.dart';
 import 'push/push_repository.dart';
 import 'push/push_source.dart';
 import 'push/remote_message_payload.dart';
 import 'push/shared_preferences_push_payload_store.dart';
-import 'sandbox/http_notification_sender.dart';
 import 'sandbox/notification_sender.dart';
 import 'sandbox/sandbox_cubit.dart';
-import 'sandbox/unavailable_notification_sender.dart';
-import 'telemetry/drift_telemetry_buffer.dart';
 import 'telemetry/push_telemetry.dart';
 import 'telemetry/report_push_event.dart';
 import 'telemetry/shared_preferences_device_identity.dart';
-import 'telemetry/silent_push_telemetry.dart';
-import 'telemetry/telemetry_buffer.dart';
-import 'telemetry/telemetry_reporter.dart';
 import 'ui/fcm_sample_app.dart';
 
 Future<void> main() async {
@@ -42,31 +28,13 @@ Future<void> main() async {
   // having run, and it has to run exactly once, before the first one exists.
   GladeForms.initialize();
 
-  PushSource source = const DisabledPushSource();
-  String? setupError;
-  try {
-    source = await _startPushSource();
-  } catch (error) {
-    // Firebase failing to start must not stop the app from opening — the
-    // reason is shown in the UI instead.
-    setupError = '$error';
-  }
+  // Construction lives in the locator; what is left here is the startup
+  // sequence, which is not construction: the order these run in is a fact about
+  // launching the app, not about how any one collaborator is built.
+  await configureDependencies(onBackgroundMessage: _onBackgroundMessage);
 
-  final PushPayloadStore store = SharedPreferencesPushPayloadStore();
-  final presenter = await _startPresenter();
-  final buffer = _openTelemetryBuffer();
-  // Silence rather than a reporter when there is no buffer to hold anything —
-  // every hook already treats telemetry as optional.
-  final PushTelemetry telemetry = buffer == null
-      ? const SilentPushTelemetry()
-      : _reporterOn(buffer);
-  final repository = PushRepository(
-    source,
-    store: store,
-    presenter: presenter,
-    telemetry: telemetry,
-    setupError: setupError,
-  )..listen();
+  final telemetry = getIt<PushTelemetry>();
+  final repository = getIt<PushRepository>()..listen();
   await repository.restore();
   await repository.refreshToken();
   // Sends what the background isolate buffered while the app was not running:
@@ -79,69 +47,17 @@ Future<void> main() async {
   // Both channels mean the same thing to the repository: FCM reports taps on the
   // tray entries it drew itself, and the presenter reports taps on the banners the
   // app posted while it was in the foreground.
-  source.taps.listen(repository.requestOpen);
-  presenter.taps.listen(repository.requestOpen);
+  getIt<PushSource>().taps.listen(repository.requestOpen);
+  getIt<NotificationPresenter>().taps.listen(repository.requestOpen);
 
-  // Sending needs the same registration token the repository listens with, so
-  // there is no separate "is sending available" question to answer here.
-  final NotificationSender sender = setupError == null
-      ? HttpNotificationSender(
-          client: http.Client(),
-          baseUrl: Uri.parse(defaultApiBaseUrl),
-        )
-      : UnavailableNotificationSender(setupError);
-  // The same reporter the repository records arrivals through, so a
-  // `not_received` and the `sent` it contradicts land in one buffer and one
-  // database.
   final sandbox = SandboxCubit(
-    sender: sender,
+    sender: getIt<NotificationSender>(),
     token: () => repository.token,
     telemetry: telemetry,
   );
 
   runApp(FcmSampleApp(inbox: InboxCubit(repository), sandbox: sandbox));
 }
-
-/// Starts local notifications, degrading to silence rather than failing.
-///
-/// A broken notification plugin should cost the banners, not the app — the same
-/// principle `DisabledPushSource` applies when Firebase will not start.
-Future<NotificationPresenter> _startPresenter() async {
-  final presenter = LocalNotificationPresenter();
-  try {
-    await presenter.initialize();
-
-    return presenter;
-  } catch (error) {
-    debugPrint('Local notifications are unavailable: $error');
-    await presenter.dispose();
-
-    return const SilentNotificationPresenter();
-  }
-}
-
-/// Opens the on-device event buffer, or null where there is none.
-///
-/// One function rather than two constructions, because the foreground and the
-/// background isolate have to name the same file: a `received_bg` written to one
-/// database and flushed from another would never be sent.
-///
-/// **Null on web, and this is not a shortcut.** `drift_flutter`'s web path
-/// requires a `web:` argument naming a `sqlite3.wasm` and a drift worker, and
-/// throws `ArgumentError` *synchronously* without one — so the web build compiles
-/// and then dies at startup, which `flutter build web --release` cannot catch
-/// because it only compiles. Rather than ship those assets: this app cannot
-/// receive a push on web at all without a VAPID key, so there is nothing on web
-/// for a telemetry buffer to hold.
-DriftTelemetryBuffer? _openTelemetryBuffer() =>
-    kIsWeb ? null : DriftTelemetryBuffer(driftDatabase(name: 'fcm_telemetry'));
-
-/// The reporter over [buffer], pointed at the same API the sandbox sends through.
-TelemetryReporter _reporterOn(TelemetryBuffer buffer) => TelemetryReporter(
-  buffer: buffer,
-  identity: SharedPreferencesDeviceIdentity(),
-  baseUrl: Uri.parse(defaultApiBaseUrl),
-);
 
 /// Sends the buffer without letting a failure reach the caller.
 Future<void> _flushQuietly(PushTelemetry telemetry) async {
@@ -165,6 +81,16 @@ Future<void> _flushQuietly(PushTelemetry telemetry) async {
 /// Only ever runs for a payload carrying `data`: a notification-only push is
 /// drawn by the system and never wakes this handler, so the absence of a
 /// `received_bg` for one of those is correct rather than a missed event.
+///
+/// **Everything here is built by hand, deliberately.** This runs in its own
+/// isolate, with its own memory, so `configureDependencies` has not run and
+/// nothing is registered — a `getIt` lookup would throw and background telemetry
+/// would silently stop recording. Configuring a locator here instead would build
+/// a presenter, a sender and a repository this handler must never use, and start
+/// Firebase Messaging's listeners in an isolate that is about to be killed. So it
+/// calls the two constructions it actually needs directly, which are the same two
+/// the locator calls — one definition of the database name, which is what keeps a
+/// `received_bg` flushable from the foreground.
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
   // This isolate has its own memory and its own plugin registry, so both need
@@ -180,38 +106,17 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
   // lose the event it was carrying — while a buffered row is picked up by the
   // next foreground flush. Closed again either way, so a handset that wakes for
   // twenty pushes does not leave twenty connections to the file open.
-  final buffer = _openTelemetryBuffer();
+  final buffer = openTelemetryBuffer();
   if (buffer == null) {
     return;
   }
   try {
     await reportWithoutFlushing(
-      _reporterOn(buffer),
+      telemetryReporterOn(buffer, SharedPreferencesDeviceIdentity()),
       TelemetryEventType.receivedBg,
       payload,
     );
   } finally {
     await buffer.close();
   }
-}
-
-/// Starts Firebase and returns a live [PushSource].
-///
-/// Throws [StateError] while `firebase_options.dart` still holds placeholder
-/// credentials. The project id is real, so the API key is what gets checked —
-/// initialising with a fake key fails later with a far less useful message.
-Future<PushSource> _startPushSource() async {
-  final options = DefaultFirebaseOptions.currentPlatform;
-  if (options.apiKey == unconfiguredApiKey) {
-    throw StateError(firebaseSetupInstructions);
-  }
-
-  await Firebase.initializeApp(options: options);
-  FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
-
-  final source = FirebasePushSource(FirebaseMessaging.instance);
-  await source.requestPermission();
-  await source.start();
-
-  return source;
 }
