@@ -290,6 +290,73 @@ tokens this API does not keep.
 `curl` examples below are unchanged by this, because the target sits at the top
 level of the request exactly where `token` always did.
 
+## Telemetry
+
+Every send gets a `trace_id`, and both sides record events against it, so
+`sent → received` latency is a number rather than an impression. That is the point
+of the whole thing: it turns *"push feels slow on Xiaomi"* into *"median 4m12s on
+Xiaomi, 1.1s on Pixel, same payload, same minute"*.
+
+**The API mints the trace id**, not the app, and injects it into `data.trace_id`.
+Three reasons: none of the 66 catalogue templates carries one, so templates stay
+untouched and their round-trip invariant is unaffected; the API is the only party
+present for `queued`, `sent` and `send_failed`; and a send made by hand with `curl`
+gets a trace id too, which is how half of this project's testing happens. It also
+injects `data.scenario_id`, because **the payload a scenario produces does not
+identify the scenario** — without the sender naming it, the scenario axis of the
+matrix would be empty. Both are reserved keys in `PushMessageParser`, so neither
+shows up as an "extra data" row in the inbox.
+
+Nine events, seven of which are recorded today:
+
+| Event | Where it comes from |
+| --- | --- |
+| `queued`, `sent`, `send_failed` | the API. `send_failed` carries FCM's error **code**, which is what groups a hundred failures into three causes |
+| `received_fg` | the foreground stream |
+| `received_bg` | the background handler — **data payloads only**, since a notification-only push never wakes it |
+| `displayed` | after the local notification is actually drawn, never before |
+| `opened` | a tap. On Android the tap is reported as the app resumes, *before* the payload carrying the trace id exists, so it is held and reported once that arrives |
+| `dismissed` | **not yet** — needs a delete intent (`f6_delete_intent`) |
+| `not_received` | the one event a human asserts, and the only evidence available when the interesting answer is silence |
+
+`opened` records no "from which state" qualifier yet: that needs the three-state
+routing of `f3`–`f5`. Both gaps are in the enum and the schema from the start, so
+nothing changes shape when that work lands.
+
+**Events buffer on the device and flush to `POST /events`.** They are deleted only
+once the API acknowledges them, and only the ones acknowledged — a blanket clear
+after a partial flush would lose whatever arrived during it, which is the common
+case rather than an edge one. `record` never throws, because it is called from
+inside push handlers and a throw there would take down delivery itself. The
+background handler buffers without flushing: its isolate can be killed mid-request,
+and the event would go with it.
+
+**A negative latency means the clocks disagree, not that delivery beat the send.**
+`GET /latency` reports both timestamps rather than clamping to zero, because
+clamping turns a measurement error into a false result — and a "1 ms on Xiaomi"
+would discredit every other number in the system.
+
+**The device is identified by a generated id plus a label you type.** Not the FCM
+token: it rotates on reinstall and clear-data, which would split one handset into
+several columns — and `b6_token_refresh` exists precisely to make that happen. No
+automatic value is as useful as "Xiaomi 13" typed by someone who knows which phone
+is on the desk.
+
+**No telemetry on web.** `drift_flutter`'s web path needs a `sqlite3.wasm` and a
+drift worker shipped as assets, and the app cannot receive a push on web at all
+without a VAPID key — so there is nothing there for a buffer to hold.
+
+### Independent confirmation
+
+FCM can export delivery data to BigQuery, where Google reports how many messages it
+dropped and why — `DROPPED_DEVICE_INACTIVE`, `DROPPED_TOO_MANY_MESSAGES`. Enabled in
+the Firebase console under Cloud Messaging, not here.
+
+It answers the one question our own telemetry cannot: when a message never arrived,
+whether **Google** dropped it or the **handset** did. Our events end at the network;
+Google's begin there. It is therefore the arbiter when our numbers and a tester
+disagree, and worth turning on before trusting either.
+
 ## Sending a test push
 
 The Sandbox page (drawer → Sandbox) composes a payload and sends it to the
@@ -375,8 +442,8 @@ and nothing else — the inbox still fills.
 
 ## Verified on this machine
 
-`melos run ci` passes clean — 20 `core` tests, 193 `fcm_gallery_shared` tests, 41
-`fcm_api` tests and 306 `fcm_app` tests. `fvm flutter build apk --debug`
+`melos run ci` passes clean — 24 `core` tests, 209 `fcm_gallery_shared` tests, 133
+`fcm_api` tests and 386 `fcm_app` tests. `fvm flutter build apk --debug`
 and `fvm flutter build web --release` both succeed (compile checks only: the web
 build cannot receive FCM pushes without a VAPID key, and an apk build is not the
 same as running on a device). The iOS build has **not** been verified here —
@@ -408,6 +475,19 @@ Three things remain explicitly **not verified** on this machine:
   `direct_boot_ok` sends `false` when set to false and omits the key when left
   unset. That last one is the only real-world proof of the tristate design; a
   widget test can show the three states cycling but not what leaves the device.
+- **The telemetry round trip on a real device.** Send a scenario, then read
+  `GET /latency` and confirm the figure is plausible; repeat with the app
+  backgrounded and killed. The killed case is the one that matters and the one that
+  needs `b3_killed`'s delayed send to arrange properly. *Partly verified here:* the
+  pipeline was driven end to end against the real router and the real SQLite file
+  with a stubbed FCM sender — a send, an arrival, `{"recorded":1}` then
+  `{"recorded":0}` on replay, and one latency row carrying the right device and
+  scenario. What is **not** verified is the FCM leg, a real handset, or the entry
+  point's own socket, none of which can run without a service-account key.
+- **Two devices, one send** — the point of the whole pipeline, and the only way to
+  see the matrix do its job. Send to a topic both have subscribed to (which needs
+  the targeting work) or twice by token, and confirm two rows with different
+  latencies and different labels.
 - **The needs banner and the manual-steps block on a device** — that a blocked
   scenario names what it needs, that a working one shows no banner at all, and
   that an adb command can actually be selected and copied out of
