@@ -44,7 +44,11 @@ Future<SendOutcome> sendMessage(
   // wants to measure that — the figure this pipeline exists for is
   // `sent → received`.
   final at = now();
-  await _record(telemetry, _event(traceId, TelemetryEventType.queued, at));
+  final scenarioId = request.scenarioId;
+  await _record(
+    telemetry,
+    _event(traceId, TelemetryEventType.queued, at, scenarioId: scenarioId),
+  );
 
   try {
     final messageId = await sender.send(_bodyFor(request, traceId));
@@ -52,7 +56,13 @@ Future<SendOutcome> sendMessage(
     // record of the same send.
     await _record(
       telemetry,
-      _event(traceId, TelemetryEventType.sent, at, detail: messageId),
+      _event(
+        traceId,
+        TelemetryEventType.sent,
+        at,
+        scenarioId: scenarioId,
+        detail: messageId,
+      ),
     );
 
     return SendSucceeded(
@@ -63,7 +73,13 @@ Future<SendOutcome> sendMessage(
     // failures into three causes, and the prose varies with the request.
     await _record(
       telemetry,
-      _event(traceId, TelemetryEventType.sendFailed, at, detail: error.status),
+      _event(
+        traceId,
+        TelemetryEventType.sendFailed,
+        at,
+        scenarioId: scenarioId,
+        detail: error.status,
+      ),
     );
 
     return SendRejected(
@@ -93,25 +109,26 @@ Future<void> _record(TelemetryStore telemetry, TelemetryEvent event) async {
 /// One of the three send-side events.
 ///
 /// `deviceId` is empty because these happen on the server, with no device
-/// involved yet. `scenarioId` is left null because nothing reaching here carries
-/// one: a [SendMessageRequest] is a target and a message, so the gallery's choice
-/// of scenario does not survive the HTTP boundary — only the payload it produced
-/// does. Anything grouping latencies by scenario has to read it from the arrival
-/// side, which `pairLatencies` already falls back to.
+/// involved yet. `scenarioId` comes off the request, which is the only way it can
+/// be known here: the payload a scenario produces does not identify the scenario,
+/// so without the sender naming it the `scenario × device` matrix would have no
+/// scenario axis on either side.
 TelemetryEvent _event(
   String traceId,
   TelemetryEventType type,
   DateTime at, {
+  String? scenarioId,
   String? detail,
 }) => TelemetryEvent(
   traceId: traceId,
   type: type,
   at: at,
   deviceId: '',
+  scenarioId: scenarioId,
   detail: detail,
 );
 
-/// Builds FCM's request body, merging [traceId] into the message's `data`.
+/// Builds FCM's request body, merging the trace and scenario ids into `data`.
 ///
 /// The merge builds a **new** map. `FcmMessage.toJson` returns a fresh outer map
 /// but passes `data` through by reference, so writing into that map in place
@@ -128,6 +145,11 @@ Map<String, Object?> _bodyFor(SendMessageRequest request, String traceId) {
       'data': {
         ...?message['data'] as Map<String, String>?,
         'trace_id': traceId,
+        // Injected as well as recorded, so the DEVICE knows which scenario it is
+        // holding. Its arrival events carry no scenario otherwise, and a matrix
+        // whose rows come only from the send side could not tell which handset
+        // received which scenario.
+        'scenario_id': ?request.scenarioId,
       },
       ...request.target.toJson(),
     },

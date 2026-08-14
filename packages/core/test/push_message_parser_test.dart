@@ -209,6 +209,22 @@ void main() {
       expect(message.data, isEmpty);
     });
 
+    test('keeps scenario_id out of the data map too, and optional', () {
+      // Injected by the API so the device knows which scenario it is holding.
+      // Same reasoning as trace_id: plumbing, so not an "extra data" row — and
+      // not required, because a payload composed by hand belongs to no scenario.
+      final named = parser.parse({
+        'id': 'msg-1',
+        'sentAt': '2026-08-13T09:30:00Z',
+        'scenario_id': 'c1_priority_high',
+        'event': 'sync',
+      });
+
+      expect(named.data, {'event': 'sync'});
+      expect(PushMessageParser.reservedKeys, contains('scenario_id'));
+      expect(PushMessageParser.requiredKeys, isNot(contains('scenario_id')));
+    });
+
     test('is reserved but not required', () {
       // Pinned on the sets directly, because neither test above nor the
       // generated `requiredKeys` loop can see the mistake this guards: adding

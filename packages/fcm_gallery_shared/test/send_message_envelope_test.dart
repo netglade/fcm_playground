@@ -26,6 +26,35 @@ void main() {
       expect(parsed.message.notification?.title, 'Hi');
     });
 
+    test('carries the scenario id, which nothing else can recover', () {
+      // The payload a scenario produces does not identify the scenario, so if
+      // the sender does not name it the `scenario x device` matrix has no
+      // scenario axis on either side.
+      const request = SendMessageRequest(
+        target: TokenTarget('abc'),
+        message: FcmMessage(),
+        scenarioId: 'a1_notification_only',
+      );
+
+      expect(request.toJson()['scenario_id'], 'a1_notification_only');
+      expect(
+        SendMessageRequest.fromJson(request.toJson()).scenarioId,
+        'a1_notification_only',
+      );
+    });
+
+    test('omits the scenario id for a payload composed by hand', () {
+      // A real case rather than an error, so absent rather than empty: an empty
+      // string would become a matrix row for a scenario that does not exist.
+      const request = SendMessageRequest(
+        target: TokenTarget('abc'),
+        message: FcmMessage(),
+      );
+
+      expect(request.toJson().containsKey('scenario_id'), isFalse);
+      expect(SendMessageRequest.fromJson(request.toJson()).scenarioId, isNull);
+    });
+
     test('reads a topic target', () {
       final request = SendMessageRequest.fromJson({
         'topic': 'news',

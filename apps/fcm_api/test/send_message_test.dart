@@ -267,7 +267,80 @@ void main() {
       expect(outcome.error.message, contains('QUOTA_EXCEEDED'));
     });
 
+    test('sends the scenario id on to the device, not only to telemetry', () async {
+      // Recorded AND injected. The device's own arrival events carry no scenario
+      // otherwise, so a matrix built only from send-side rows could not say which
+      // handset received which scenario.
+      final sender = FakeFcmSender();
+      await run(
+        const SendMessageRequest(
+          target: TokenTarget('abc'),
+          message: FcmMessage(data: {'event': 'sync'}),
+          scenarioId: 'c1_priority_high',
+        ),
+        sender: sender,
+      );
+
+      expect(dataIn(sender), {
+        'event': 'sync',
+        'trace_id': 'tr-1',
+        'scenario_id': 'c1_priority_high',
+      });
+    });
+
+    test('omits scenario_id from data when there is no scenario', () async {
+      // Absent rather than empty: an empty string would reach the device as a
+      // scenario that does not exist, and its arrival would join a phantom row.
+      final sender = FakeFcmSender();
+      await run(
+        const SendMessageRequest(
+          target: TokenTarget('abc'),
+          message: FcmMessage(),
+        ),
+        sender: sender,
+      );
+
+      expect(dataIn(sender), {'trace_id': 'tr-1'});
+    });
+
     group('telemetry', () {
+      test('records the scenario id on every send-side event', () async {
+        // Both halves of the matrix need it: the send side names the scenario, and
+        // pairLatencies reads it from here first. Without it the scenario axis is
+        // empty however many events arrive.
+        final store = InMemoryTelemetryStore();
+        await run(
+          const SendMessageRequest(
+            target: TokenTarget('abc'),
+            message: FcmMessage(),
+            scenarioId: 'c1_priority_high',
+          ),
+          telemetry: store,
+        );
+
+        final events = await store.all();
+        expect(events, hasLength(2));
+        for (final event in events) {
+          expect(event.scenarioId, 'c1_priority_high', reason: event.type.name);
+        }
+      });
+
+      test('leaves the scenario id null for a hand-made payload', () async {
+        final store = InMemoryTelemetryStore();
+        await run(
+          const SendMessageRequest(
+            target: TokenTarget('abc'),
+            message: FcmMessage(),
+          ),
+          telemetry: store,
+        );
+
+        expect(
+          (await store.all()).map((e) => e.scenarioId),
+          everyElement(isNull),
+        );
+      });
+
       late InMemoryTelemetryStore store;
 
       setUp(() => store = InMemoryTelemetryStore());

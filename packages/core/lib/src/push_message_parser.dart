@@ -12,12 +12,22 @@ class PushMessageParser {
   /// Keys this parser reads itself. Anything else is passed through in
   /// [PushMessage.data].
   ///
-  /// `trace_id` is here because it is plumbing rather than payload: the send API
-  /// injects it so telemetry can correlate a send with its arrival, and showing
-  /// it as an "extra data" row in the inbox would present a detail of ours as
-  /// something the sender chose. It is deliberately **not** in [requiredKeys] —
-  /// a push sent by hand carries none and must still arrive.
-  static const reservedKeys = {'id', 'title', 'body', 'sentAt', 'trace_id'};
+  /// `trace_id` and `scenario_id` are here because they are plumbing rather than
+  /// payload. The send API injects both — the first so telemetry can correlate a
+  /// send with its arrival, the second so the device knows which catalogue
+  /// scenario it is holding — and showing either as an "extra data" row would
+  /// present a detail of ours as something the sender chose.
+  ///
+  /// Neither is in [requiredKeys]: a push sent by hand carries no trace id, and a
+  /// payload composed from scratch belongs to no scenario. Both must still arrive.
+  static const reservedKeys = {
+    'id',
+    'title',
+    'body',
+    'sentAt',
+    'trace_id',
+    'scenario_id',
+  };
 
   /// Payload keys that must be present and non-blank.
   ///

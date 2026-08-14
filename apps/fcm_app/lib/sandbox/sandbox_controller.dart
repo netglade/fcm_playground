@@ -143,6 +143,10 @@ class SandboxController extends ChangeNotifier {
           target: target,
           message: message,
           validateOnly: _validateOnly,
+          // Named so telemetry can group by scenario. The payload alone does not
+          // identify which scenario produced it, so if the sender does not say,
+          // nothing downstream can — and the matrix loses its scenario axis.
+          scenarioId: _selectedScenario?.id,
         ),
       );
       _state = SandboxSent(response);

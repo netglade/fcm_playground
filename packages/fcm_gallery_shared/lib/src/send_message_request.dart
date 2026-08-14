@@ -11,6 +11,7 @@ class SendMessageRequest {
     required this.target,
     required this.message,
     this.validateOnly = false,
+    this.scenarioId,
   });
 
   /// Parses a request body, reading `message` by delegating to [FcmMessage.fromJson]
@@ -35,6 +36,7 @@ class SendMessageRequest {
     final validateOnly = json['validate_only'] as bool? ?? false;
 
     return SendMessageRequest(
+      scenarioId: json['scenario_id'] as String?,
       target: target,
       message: message,
       validateOnly: validateOnly,
@@ -46,6 +48,14 @@ class SendMessageRequest {
 
   /// The message content to send.
   final FcmMessage message;
+
+  /// Which catalogue scenario this payload came from, when it came from one.
+  ///
+  /// Sent so telemetry can group by scenario. It cannot be recovered any other
+  /// way: the payload a scenario produces does not identify the scenario, so
+  /// without this the `scenario × device` matrix has no scenario axis at all.
+  /// Null for a payload composed by hand, which is a real case and not an error.
+  final String? scenarioId;
 
   /// Whether to validate the request without actually delivering the message.
   ///
@@ -60,6 +70,7 @@ class SendMessageRequest {
   /// the shape FCM uses and every `curl` example in the README still applies.
   Map<String, Object?> toJson() => {
     ...target.toJson(),
+    'scenario_id': ?scenarioId,
     'validate_only': validateOnly,
     'message': message.toJson(),
   };
