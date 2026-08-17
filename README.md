@@ -406,6 +406,31 @@ something the server stamps. See [Message format](#message-format) above for
 why: the response no longer echoes an id, so the `id` in `data` is the only
 thing that ties a send to the row it produces in the inbox.
 
+Holding a send until the app is gone, which is what `b3_killed` needs:
+
+```bash
+curl -X POST http://127.0.0.1:8080/runs \
+  -H 'content-type: application/json' \
+  -d '{"delay_seconds":30,"spacing_seconds":0,
+       "items":[{"token":"<registration token>",
+                 "scenario_id":"b3_killed",
+                 "message":{"data":{"event":"killed_probe"},
+                            "android":{"priority":"HIGH"}}}]}'
+```
+
+It answers `201` with a `run_id` and a `due_at` per item, and sends nothing yet.
+Swipe the app away, then read the result back with
+`curl -s http://127.0.0.1:8080/runs/<run_id>` — each item carries its own
+telemetry, so `queued → sent → received_bg` is one response rather than a join you
+do by hand. `DELETE /runs/<run_id>` cancels whatever has not gone out; an item
+already on its way to FCM is past cancelling, and says so by staying `dispatching`
+or landing on `sent`.
+
+**A schedule survives the server being restarted.** Runs are stored in the same
+SQLite file as the telemetry, and the server sweeps them at startup: an item due
+within the last two minutes is sent immediately, and anything older is marked
+`missed` rather than delivered into a state nobody is watching.
+
 **The API is a development tool.** It has no authentication and binds loopback,
 so only the machine running it can reach it. Do not deploy it as is — bound to
 `0.0.0.0` it is an open relay to any token an attacker already holds.

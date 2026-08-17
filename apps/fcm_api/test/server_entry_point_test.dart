@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
+import '../bin/server.dart';
 import 'sqlite_availability.dart';
 
 void main() {
@@ -92,6 +93,12 @@ void _databaseWiring() {
     });
 
     expect(result, _refuses(databasePath));
+  });
+
+  test('the ticker interval is short enough for a countdown to look right', () {
+    // One second: the countdown on the phone is drawn per second, and a coarser
+    // tick would let the screen reach zero while the send is still queued.
+    expect(schedulerTickInterval, const Duration(seconds: 1));
   });
 }
 
