@@ -2,7 +2,9 @@ import 'package:fcm_app/di/service_locator.dart';
 import 'package:fcm_app/domains/push/data_sources/disabled_push_source.dart';
 import 'package:fcm_app/domains/push/entities/push_source.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/runs/data_sources/shared_preferences_active_run_store.dart';
 import 'package:fcm_app/domains/runs/data_sources/unavailable_run_scheduler.dart';
+import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/sandbox/data_sources/unavailable_notification_sender.dart';
 import 'package:fcm_app/domains/sandbox/entities/notification_sender.dart';
@@ -69,6 +71,7 @@ void main() {
     );
     expect(getIt<NotificationSender>(), isA<UnavailableNotificationSender>());
     expect(getIt<RunScheduler>(), isA<UnavailableRunScheduler>());
+    expect(getIt<ActiveRunStore>(), isA<SharedPreferencesActiveRunStore>());
   });
 
   test('the repository is one instance, whoever asks', () async {
