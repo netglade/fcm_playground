@@ -310,6 +310,18 @@ void main() {
       expect(sender.sent, isEmpty);
     });
 
+    test('dispatches an item overdue by exactly the grace period', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 30), createdAt);
+
+      await scheduler.recover(
+        run.items.single.dueAt.add(SendScheduler.graceOnRestart),
+      );
+
+      expect((await runs.find(run.id))!.items.single.state, RunItemState.sent);
+      expect(sender.sent, hasLength(1));
+    });
+
     test('leaves an item still in the future for the ticker', () async {
       final scheduler = schedulerWith(sender);
       final run = await scheduler.schedule(requestWith(delay: 300), createdAt);
@@ -403,6 +415,23 @@ void main() {
       final item = (await runs.find(run.id))!.items.single;
       expect(item.state, RunItemState.failed);
       expect(item.error, contains('UNREGISTERED'));
+    });
+
+    test('fails an interrupted dispatch that never got a trace id', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 0), createdAt);
+      // The state a crash before the trace id was minted leaves behind.
+      await runs.updateItem(
+        run.id,
+        run.items.single.copyWith(state: RunItemState.dispatching),
+      );
+
+      await scheduler.recover(createdAt.add(const Duration(seconds: 5)));
+
+      final item = (await runs.find(run.id))!.items.single;
+      expect(item.state, RunItemState.failed);
+      expect(item.error, contains('stopped before the send was recorded'));
+      expect(sender.sent, isEmpty);
     });
   });
 }
