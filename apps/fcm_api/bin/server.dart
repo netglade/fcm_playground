@@ -14,12 +14,14 @@ import 'package:shelf/shelf_io.dart';
 Future<void> main() async {
   final ServerConfig config;
   final TelemetryStore telemetry;
+  final RunStore runs;
   try {
     config = ServerConfig.fromEnvironment(
       Platform.environment,
       readFile: (path) => File(path).readAsStringSync(),
     );
     telemetry = _openTelemetry(config.databasePath);
+    runs = _openRuns(config.databasePath);
   } on StateError catch (error) {
     stderr.writeln(error.message);
     exitCode = 64;
@@ -27,7 +29,7 @@ Future<void> main() async {
     return;
   }
 
-  await _serve(config, telemetry);
+  await _serve(config, telemetry, runs);
 }
 
 /// Restates a `SqliteException` as a [StateError], so an unwritable database path
@@ -40,13 +42,29 @@ TelemetryStore _openTelemetry(String path) {
   }
 }
 
+/// Opens the run store at the same path as the telemetry — one database file to
+/// point at, one to back up — and restates whatever `SqliteRunStore.open` throws as
+/// a [StateError] naming the path, so it exits 64 like every other configuration
+/// mistake rather than as a stack trace.
+RunStore _openRuns(String path) {
+  try {
+    return SqliteRunStore.open(path);
+  } on Object catch (error) {
+    throw StateError('Could not open the run database at $path: $error');
+  }
+}
+
 /// Wires the sender, router and HTTP listener together and starts serving.
 ///
 /// [telemetry] is held for the life of the process and never closed: this function
 /// returns while the listener keeps the isolate alive, so serving has no end code
 /// here observes. Nothing is lost, because every `record` commits its own
 /// transaction.
-Future<void> _serve(ServerConfig config, TelemetryStore telemetry) async {
+Future<void> _serve(
+  ServerConfig config,
+  TelemetryStore telemetry,
+  RunStore runs,
+) async {
   final client = await clientViaServiceAccount(
     ServiceAccountCredentials.fromJson(config.serviceAccountJson),
     const [fcmMessagingScope],
@@ -58,8 +76,10 @@ Future<void> _serve(ServerConfig config, TelemetryStore telemetry) async {
     now: () => DateTime.now().toUtc(),
     newTraceId: newTraceId,
     telemetry: telemetry,
+    // Dispatch is not wired yet: nothing calls recover() and no ticker drives
+    // tick(), so a scheduled run is stored here and never sent until that lands.
     scheduler: SendScheduler(
-      runs: SqliteRunStore.open(config.databasePath),
+      runs: runs,
       telemetry: telemetry,
       sender: sender,
       newId: newTraceId,
