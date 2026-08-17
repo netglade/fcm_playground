@@ -4,6 +4,8 @@ import 'package:test/test.dart';
 
 import 'blocking_fcm_sender.dart';
 import 'fake_fcm_sender.dart';
+import 'flaky_run_store.dart';
+import 'unstable_fcm_sender.dart';
 
 void main() {
   final createdAt = DateTime.utc(2026, 8, 17, 9, 0);
@@ -30,12 +32,18 @@ void main() {
   late InMemoryTelemetryStore telemetry;
   late FakeFcmSender sender;
   late int minted;
+  // What `SendScheduler`'s injected clock answers. Most tests never look at a
+  // dispatched item's exact timestamp, so a fixed default is enough; the ones
+  // that do move it themselves, right before the `tick` or `recover` call whose
+  // outcome they check.
+  late DateTime sendClock;
 
   SendScheduler schedulerWith(FcmSender fcm) => SendScheduler(
     runs: runs,
     telemetry: telemetry,
     sender: fcm,
     newId: () => 'id-${++minted}',
+    now: () => sendClock,
   );
 
   setUp(() {
@@ -43,6 +51,7 @@ void main() {
     telemetry = InMemoryTelemetryStore();
     sender = FakeFcmSender();
     minted = 0;
+    sendClock = createdAt;
   });
 
   group('schedule', () {
@@ -82,6 +91,7 @@ void main() {
       final scheduler = schedulerWith(sender);
       final run = await scheduler.schedule(requestWith(delay: 30), createdAt);
       final at = createdAt.add(const Duration(seconds: 30));
+      sendClock = at;
 
       await scheduler.tick(at);
 
@@ -90,6 +100,34 @@ void main() {
       expect(item.messageId, 'projects/p/messages/0:17');
       expect(item.dispatchedAt, at);
       expect(item.traceId, isNotNull);
+    });
+
+    test('stamps each dispatched item with its own send time', () async {
+      // Two items due at exactly the same instant, so `claimDue` claims both
+      // in one tick and `_dispatch` runs for each one in turn.
+      final readings = [
+        createdAt.add(const Duration(milliseconds: 5)),
+        createdAt.add(const Duration(milliseconds: 9)),
+      ];
+      var reads = 0;
+      final scheduler = SendScheduler(
+        runs: runs,
+        telemetry: telemetry,
+        sender: sender,
+        newId: () => 'id-${++minted}',
+        now: () => readings[reads++],
+      );
+      final run = await scheduler.schedule(
+        requestWith(delay: 0, spacing: 0, count: 2),
+        createdAt,
+      );
+
+      await scheduler.tick(createdAt);
+
+      final items = (await runs.find(run.id))!.items;
+      expect(items[0].dispatchedAt, readings[0]);
+      expect(items[1].dispatchedAt, readings[1]);
+      expect(items[0].dispatchedAt, isNot(items[1].dispatchedAt));
     });
 
     test('sends through the same path an immediate send takes', () async {
@@ -192,27 +230,63 @@ void main() {
     });
 
     test(
-      'clears the guard even when a send throws something unexpected',
+      'an unexpected throw fails only that item, the rest of the batch still '
+      'goes out, and the guard is released for the next tick',
       () async {
-        final blocking = BlockingFcmSender()..failure = StateError('boom');
-        final scheduler = schedulerWith(blocking);
-        await scheduler.schedule(requestWith(delay: 0), createdAt);
+        final unstable = UnstableFcmSender(
+          failsAt: 0,
+          error: StateError('boom'),
+        );
+        final scheduler = schedulerWith(unstable);
+        final run = await scheduler.schedule(
+          requestWith(delay: 0, count: 2),
+          createdAt,
+        );
 
-        final firstTick = scheduler.tick(createdAt);
-        while (blocking.sent.isEmpty) {
-          await Future<void>.delayed(Duration.zero);
-        }
-        blocking.gate.complete();
+        await scheduler.tick(createdAt);
 
-        await expectLater(firstTick, throwsStateError);
+        final items = (await runs.find(run.id))!.items;
+        // Assertion 1: the item whose send threw is failed, with the throw's
+        // own text as the reason — not silently stuck in `dispatching`.
+        expect(items[0].state, RunItemState.failed);
+        expect(items[0].error, contains('boom'));
+        // Assertion 2: the second item, claimed in the same tick, was not
+        // abandoned because the first one blew up.
+        expect(items[1].state, RunItemState.sent);
 
-        // If `_ticking` were left latched shut by the throw, this tick would do
-        // nothing and `sent` would stay at 1.
-        blocking.failure = null;
+        // Assertion 3: `_ticking` was released, not left latched shut by the
+        // throw — a fresh item scheduled now is claimed and sent by the next
+        // tick rather than sitting `pending` forever.
         await scheduler.schedule(requestWith(delay: 0), createdAt);
         await scheduler.tick(createdAt);
 
-        expect(blocking.sent, hasLength(2));
+        expect(unstable.sent, hasLength(3));
+      },
+    );
+
+    test(
+      'a failing trace-id persist still gets the item marked failed once the '
+      'store recovers',
+      () async {
+        final flaky = FlakyRunStore(runs);
+        final scheduler = SendScheduler(
+          runs: flaky,
+          telemetry: telemetry,
+          sender: sender,
+          newId: () => 'id-${++minted}',
+          now: () => sendClock,
+        );
+        final run = await scheduler.schedule(requestWith(delay: 0), createdAt);
+
+        // The very first `updateItem` call inside `_dispatch` — the trace-id
+        // persist, before FCM is ever asked — is the one `FlakyRunStore` fails.
+        await scheduler.tick(createdAt);
+
+        final item = (await runs.find(run.id))!.items.single;
+        expect(item.state, RunItemState.failed);
+        expect(item.error, contains('unavailable'));
+        // FCM was never asked: the failure happened before the send.
+        expect(sender.sent, isEmpty);
       },
     );
   });

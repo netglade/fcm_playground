@@ -26,6 +26,7 @@ void main() {
       telemetry: telemetry,
       sender: sender,
       newId: () => 'id-${++minted}',
+      now: () => now,
     );
     handler = ApiRouter(
       sender: sender,

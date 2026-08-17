@@ -26,6 +26,7 @@ void main() {
         telemetry: store,
         sender: sender,
         newId: () => 'run-1',
+        now: () => DateTime.utc(2026, 8, 13, 9),
       ),
     ).handler;
   }

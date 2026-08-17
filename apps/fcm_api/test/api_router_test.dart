@@ -21,6 +21,7 @@ void main() {
       telemetry: InMemoryTelemetryStore(),
       sender: sender,
       newId: () => 'run-1',
+      now: () => sentAt,
     ),
   ).handler;
 
@@ -93,6 +94,7 @@ void main() {
           telemetry: store,
           sender: sender,
           newId: () => 'run-1',
+          now: () => sentAt,
         ),
       ).handler;
 

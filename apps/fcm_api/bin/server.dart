@@ -11,7 +11,8 @@ import 'package:shelf/shelf_io.dart';
 /// Exits 64 (`EX_USAGE`) on a configuration problem, so a wrong environment is
 /// distinguishable from a crash. An unopenable telemetry database counts as one: a
 /// server that starts and then silently records nothing is worse than one that
-/// refuses to start.
+/// refuses to start. So does a startup recovery sweep that cannot complete — see
+/// `_serve`.
 Future<void> main() async {
   final ServerConfig config;
   final TelemetryStore telemetry;
@@ -30,7 +31,12 @@ Future<void> main() async {
     return;
   }
 
-  await _serve(config, telemetry, runs);
+  try {
+    await _serve(config, telemetry, runs);
+  } on StateError catch (error) {
+    stderr.writeln(error.message);
+    exitCode = 64;
+  }
 }
 
 /// How often the scheduler is asked whether anything is due.
@@ -40,6 +46,25 @@ Future<void> main() async {
 /// timer — this is the only one in the process, and it is why the whole test suite
 /// creates none.
 const schedulerTickInterval = Duration(seconds: 1);
+
+/// Runs one scheduler tick and keeps whatever it throws from reaching the
+/// `unawaited` call in [_serve].
+///
+/// `SendScheduler._dispatch` already turns a failing send into a `failed` item
+/// rather than letting the throw escape, but this is the belt to that braces:
+/// an `unawaited` async callback inside `Timer.periodic` that *does* throw takes
+/// the whole isolate down with it — verified empirically, not assumed — because
+/// a bound listening socket does not keep a crashed isolate alive. Logging and
+/// moving on is correct here specifically because every path that matters for
+/// correctness already writes its own outcome to the run store before it could
+/// reach this point; what lands here is unexpected by definition.
+Future<void> _tick(SendScheduler scheduler) async {
+  try {
+    await scheduler.tick(DateTime.now().toUtc());
+  } on Object catch (error, stackTrace) {
+    stderr.writeln('scheduler tick failed: $error\n$stackTrace');
+  }
+}
 
 /// Restates a `SqliteException` as a [StateError], so an unwritable database path
 /// exits 64 like every other configuration mistake rather than as a stack trace.
@@ -87,15 +112,19 @@ Future<void> _serve(
     // Run ids and trace ids are the same kind of thing: unique across this server
     // and every other.
     newId: newTraceId,
+    now: () => DateTime.now().toUtc(),
   );
 
   // Before the listener, not after: a run that came due while the process was down
-  // must be settled before a client can ask what became of it.
-  await scheduler.recover(DateTime.now().toUtc());
-  Timer.periodic(
-    schedulerTickInterval,
-    (_) => unawaited(scheduler.tick(DateTime.now().toUtc())),
-  );
+  // must be settled before a client can ask what became of it. Restated as a
+  // `StateError` on failure so a corrupt sweep exits 64 like every other
+  // configuration mistake, rather than crashing `main` with a bare stack trace.
+  try {
+    await scheduler.recover(DateTime.now().toUtc());
+  } on Object catch (error) {
+    throw StateError('The startup recovery sweep failed: $error');
+  }
+  Timer.periodic(schedulerTickInterval, (_) => unawaited(_tick(scheduler)));
 
   final router = ApiRouter(
     sender: sender,

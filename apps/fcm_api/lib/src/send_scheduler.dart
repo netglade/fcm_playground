@@ -22,6 +22,7 @@ class SendScheduler {
     required this._telemetry,
     required this._sender,
     required this._newId,
+    required this._now,
   });
 
   /// How late a due item may be, when the server comes back up, and still be sent.
@@ -39,6 +40,15 @@ class SendScheduler {
   /// Mints run ids and trace ids alike — both are ids unique across every server,
   /// which is exactly what `newTraceId` produces.
   final String Function() _newId;
+
+  /// Read once per item actually dispatched, never once per [tick]. A batch
+  /// claimed together is still sent one item after another, and a single reading
+  /// shared across all of them would stamp every one with the instant the *tick*
+  /// happened rather than the instant each individual send did — turning the
+  /// server's own serialisation delay into what `GET /latency` reports as
+  /// delivery latency. [tick]'s own `now` parameter stays the due-time argument;
+  /// this is a separate reading for a separate question.
+  final DateTime Function() _now;
 
   /// Guards against a tick starting while the previous one is still awaiting FCM.
   /// A slow send must not have the next second's tick claim the same batch again.
@@ -78,7 +88,7 @@ class SendScheduler {
     _ticking = true;
     try {
       for (final (runId, item) in await _runs.claimDue(now)) {
-        await _dispatch(runId, item, now);
+        await _dispatch(runId, item);
       }
     } finally {
       _ticking = false;
@@ -135,7 +145,7 @@ class SendScheduler {
       return;
     }
 
-    await _dispatch(runId, item.copyWith(state: RunItemState.dispatching), now);
+    await _dispatch(runId, item.copyWith(state: RunItemState.dispatching));
   }
 
   /// Reads the outcome of an item the process died in the middle of.
@@ -191,35 +201,63 @@ class SendScheduler {
   /// The trace id is minted and **persisted before the send**, which is what makes an
   /// interrupted dispatch recoverable: without it, an item found in `dispatching`
   /// after a crash would name no trace to look up.
-  Future<void> _dispatch(
-    String runId,
-    ScheduledRunItem claimed,
-    DateTime now,
-  ) async {
+  ///
+  /// Everything from that persist onward sits inside one `try`. `sendMessage`
+  /// only ever throws when the transport itself failed — a socket fault, a
+  /// `HandshakeException`, the production client's own token refresh — because it
+  /// already catches `FcmSendException` and reports that as a normal
+  /// [SendRejected]; and `_runs.updateItem` can throw too, on a store that is
+  /// briefly unavailable. Either kind must still leave this item `failed` and let
+  /// the rest of the batch go out, exactly as a `SendRejected` already does — the
+  /// spec's "one item's failure does not stop a batch" draws no line between a
+  /// bad token and a dropped connection.
+  ///
+  /// The `try` starts at the trace-id persist itself, not at `sendMessage`,
+  /// deliberately: that first `updateItem` can throw too, and if it did and this
+  /// only wrapped the send, the item would stay `dispatching` in the store —
+  /// correct until the next restart's [recover] notices it, but silent for
+  /// however long that takes, and this method would have returned having
+  /// written nothing despite the batch supposedly continuing. Catching it here
+  /// means the *same* unexpected-failure handling covers both: the item is
+  /// written `failed` immediately, using [pending] so a trace id minted before
+  /// the failure is not thrown away.
+  Future<void> _dispatch(String runId, ScheduledRunItem claimed) async {
     final traceId = claimed.traceId ?? _newId();
     final pending = claimed.copyWith(traceId: traceId);
-    await _runs.updateItem(runId, pending);
+    try {
+      await _runs.updateItem(runId, pending);
 
-    final outcome = await sendMessage(
-      pending.request,
-      sender: _sender,
-      now: () => now,
-      newTraceId: () => traceId,
-      telemetry: _telemetry,
-    );
+      final now = _now();
+      final outcome = await sendMessage(
+        pending.request,
+        sender: _sender,
+        now: () => now,
+        newTraceId: () => traceId,
+        telemetry: _telemetry,
+      );
 
-    await _runs.updateItem(runId, switch (outcome) {
-      SendSucceeded(:final response) => pending.copyWith(
-        state: RunItemState.sent,
-        messageId: response.messageId,
-        dispatchedAt: now,
-      ),
-      SendRejected(:final error) => pending.copyWith(
-        state: RunItemState.failed,
-        error: error.message,
-        dispatchedAt: now,
-      ),
-    });
+      await _runs.updateItem(runId, switch (outcome) {
+        SendSucceeded(:final response) => pending.copyWith(
+          state: RunItemState.sent,
+          messageId: response.messageId,
+          dispatchedAt: now,
+        ),
+        SendRejected(:final error) => pending.copyWith(
+          state: RunItemState.failed,
+          error: error.message,
+          dispatchedAt: now,
+        ),
+      });
+    } on Object catch (error) {
+      await _runs.updateItem(
+        runId,
+        pending.copyWith(
+          state: RunItemState.failed,
+          error: 'The scheduler could not complete this send: $error',
+          dispatchedAt: _now(),
+        ),
+      );
+    }
   }
 }
 

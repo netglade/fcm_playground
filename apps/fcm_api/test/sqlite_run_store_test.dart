@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fcm_api/fcm_api.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
 import 'sqlite_availability.dart';
@@ -61,6 +62,24 @@ void _storeBehaviour() {
     expect(run.items, hasLength(2));
     expect(run.items.first.request.scenarioId, 'b3_killed');
     expect(run.items.last.dueAt, createdAt.add(const Duration(seconds: 60)));
+  });
+
+  test('skips a row it cannot parse rather than losing the whole run', () async {
+    await store.save(runOf('run-1', [30, 60]));
+
+    // A second connection to the same file, standing in for a hand-edited or
+    // partially-migrated row `ScheduledRunItem.fromJson` cannot make sense of.
+    final raw = sqlite3.open('${directory.path}/runs.sqlite');
+    raw.execute('UPDATE run_items SET item = ? WHERE run_id = ? AND idx = 0', [
+      'not json at all',
+      'run-1',
+    ]);
+    raw.dispose();
+
+    final run = (await store.find('run-1'))!;
+
+    expect(run.items, hasLength(1));
+    expect(run.items.single.dueAt, createdAt.add(const Duration(seconds: 60)));
   });
 
   test(

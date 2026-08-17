@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -180,20 +181,45 @@ CREATE TABLE IF NOT EXISTS run_items (
     ],
   );
 
-  ScheduledRun _runFrom(String id, int createdAtMicros) => ScheduledRun(
-    id: id,
-    createdAt: DateTime.fromMicrosecondsSinceEpoch(
-      createdAtMicros,
-      isUtc: true,
-    ),
-    items: [
-      for (final row in _db.select(
-        'SELECT item FROM run_items WHERE run_id = ? ORDER BY idx',
-        [id],
-      ))
-        _itemFrom(row['item'] as String),
-    ],
-  );
+  /// Reads a run's items, skipping any this store cannot parse rather than
+  /// failing the whole run — or the whole boot.
+  ///
+  /// This table has no migration story (`CREATE TABLE IF NOT EXISTS`) and stores
+  /// each item as its own JSON blob, so a future required field on
+  /// [ScheduledRunItem] would turn every existing row into a permanent
+  /// `FormatException` the moment it is read. That read happens inside
+  /// [unfinished], which `recover()` calls before the server ever starts
+  /// serving — so letting it throw would mean one bad row keeps the process from
+  /// booting at all, forever, until someone edits the database by hand. A
+  /// scheduling tool that starts and reports the row it could not read is worth
+  /// more than one that will not start. Nothing here writes to the database:
+  /// this is a read path, and a skip must not turn into a silent mutation of
+  /// data a human has not looked at yet.
+  ScheduledRun _runFrom(String id, int createdAtMicros) {
+    final items = <ScheduledRunItem>[];
+    for (final row in _db.select(
+      'SELECT idx, item FROM run_items WHERE run_id = ? ORDER BY idx',
+      [id],
+    )) {
+      final idx = row['idx'] as int;
+      try {
+        items.add(_itemFrom(row['item'] as String));
+      } on FormatException catch (error) {
+        stderr.writeln(
+          'run store: skipping unreadable item $idx of run $id: $error',
+        );
+      }
+    }
+
+    return ScheduledRun(
+      id: id,
+      createdAt: DateTime.fromMicrosecondsSinceEpoch(
+        createdAtMicros,
+        isUtc: true,
+      ),
+      items: items,
+    );
+  }
 }
 
 /// Through `fromJson` rather than a mapping of its own, so a hand-edited row is
