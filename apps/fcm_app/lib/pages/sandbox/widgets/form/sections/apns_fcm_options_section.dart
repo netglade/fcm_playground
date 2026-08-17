@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../sandbox/forms/apns_fcm_options_form.dart';
+import '../../../forms/apns_fcm_options_form.dart';
 import '../form_section.dart';
 
 /// Edits the APNs-specific `fcm_options` block.
@@ -9,11 +9,8 @@ import '../form_section.dart';
 /// block does not: one shared section would offer that field on platforms that
 /// reject it.
 class ApnsFcmOptionsSection extends StatelessWidget {
-  /// Renders [form]'s inputs inside a collapsible section.
   const ApnsFcmOptionsSection({required this.form, super.key});
 
-  /// The block this section edits. Read, never listened to: something above
-  /// listens to every model in the tree and rebuilds this.
   final ApnsFcmOptionsForm form;
 
   @override

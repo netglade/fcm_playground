@@ -1,32 +1,21 @@
-import 'dart:async';
-
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../sandbox/sandbox_cubit.dart';
-import '../sandbox/sandbox_state.dart';
+import '../cubit/sandbox_cubit.dart';
+import '../cubit/sandbox_state.dart';
 
-/// Chooses who a send goes to.
+/// Chooses who a send goes to: one dropdown and one text field, because the kinds
+/// are mutually exclusive and a form that lets two be filled at once invites the
+/// "only one delivery target is allowed" error [SendTarget.readFrom] rejects.
 ///
-/// One dropdown and one text field rather than four separate inputs: the kinds
-/// are mutually exclusive, and a form that lets two be filled at once invites
-/// exactly the "only one delivery target is allowed" error that
-/// [SendTarget.readFrom] exists to reject. *This device* and *All devices* need
-/// nothing typed, so the field is hidden for them rather than disabled — a box
-/// you cannot use is worse than no box.
-///
-/// Stateful, and it owns the text field's controller, because the target is
-/// also set from outside: applying a scenario writes one, and the page stays
-/// mounted in the shell's `IndexedStack` while the gallery does it. A
-/// [TextFormField] seeded with `initialValue` would keep showing whatever was
-/// typed before, so the box would name one audience while the send went to
-/// another.
+/// Stateful, and it owns the text field's controller, because the target is also
+/// set from outside — applying a scenario writes one while this page stays mounted
+/// in the shell's `IndexedStack`. A [TextFormField] seeded with `initialValue`
+/// would keep showing whatever was typed before, so the box would name one
+/// audience while the send went to another.
 class SendTargetField extends StatefulWidget {
-  /// Reads and sets [controller]'s target.
-  const SendTargetField({required this.controller, super.key});
-
-  /// The cubit whose target this chooses.
-  final SandboxCubit controller;
+  const SendTargetField({super.key});
 
   @override
   State<SendTargetField> createState() => _SendTargetFieldState();
@@ -35,64 +24,68 @@ class SendTargetField extends StatefulWidget {
 class _SendTargetFieldState extends State<SendTargetField> {
   final TextEditingController _value = TextEditingController();
 
-  /// The cubit's states, watched for a target set from elsewhere. Cancelled in
-  /// [dispose]: a subscription left on a page-scoped cubit outlives the box it
-  /// writes into.
-  late final StreamSubscription<SandboxState> _states;
-
   @override
   void initState() {
     super.initState();
-    _value.text = _valueOf(widget.controller.state.target);
-    _states = widget.controller.stream.listen((_) => _readTarget());
+    _value.text = _valueOf(context.read<SandboxCubit>().state.target);
   }
 
   @override
   void dispose() {
-    unawaited(_states.cancel());
     _value.dispose();
     super.dispose();
   }
 
+  /// A consumer rather than a builder, because a target set from elsewhere has to
+  /// reach the text box as well as the dropdown, and writing into a
+  /// [TextEditingController] is a side effect. The listener runs before the
+  /// builder, so the box and the dropdown never disagree within a frame.
   @override
-  Widget build(BuildContext context) {
-    final kind = _kindOf(widget.controller.state.target);
+  Widget build(
+    BuildContext context,
+  ) => BlocConsumer<SandboxCubit, SandboxState>(
+    listener: (_, state) => _readTarget(state),
+    builder: (context, state) {
+      final kind = _kindOf(state.target);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropdownButtonFormField<String>(
-          // Unkeyed: this one *does* follow `initialValue` across rebuilds —
-          // `_DropdownButtonFormFieldState.didUpdateWidget` calls `setValue`
-          // when it changes — so a target set from a scenario reselects it.
-          initialValue: kind,
-          decoration: const InputDecoration(labelText: 'Send to'),
-          items: [
-            for (final offered in _kinds)
-              DropdownMenuItem(value: offered, child: Text(offered)),
-          ],
-          onChanged: (chosen) => widget.controller.setTarget(_emptyFor(chosen)),
-        ),
-        if (_takesText(kind))
-          TextField(
-            controller: _value,
-            decoration: InputDecoration(labelText: kind.toLowerCase()),
-            onChanged: (text) =>
-                widget.controller.setTarget(_withValue(kind, text)),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            // Unkeyed: this one *does* follow `initialValue` across rebuilds —
+            // `_DropdownButtonFormFieldState.didUpdateWidget` calls `setValue`
+            // when it changes — so a target set from a scenario reselects it.
+            initialValue: kind,
+            decoration: const InputDecoration(labelText: 'Send to'),
+            items: [
+              for (final offered in _kinds)
+                DropdownMenuItem(value: offered, child: Text(offered)),
+            ],
+            onChanged: (chosen) =>
+                context.read<SandboxCubit>().setTarget(_emptyFor(chosen)),
           ),
-        if (kind == _allDevices) _allDevicesNote,
-      ],
-    );
-  }
+          if (_takesText(kind))
+            TextField(
+              controller: _value,
+              decoration: InputDecoration(labelText: kind.toLowerCase()),
+              onChanged: (text) => context.read<SandboxCubit>().setTarget(
+                _withValue(kind, text),
+              ),
+            ),
+          if (kind == _allDevices) _allDevicesNote,
+        ],
+      );
+    },
+  );
 
-  void _readTarget() => setState(() {
-    final value = _valueOf(widget.controller.state.target);
+  void _readTarget(SandboxState state) {
+    final value = _valueOf(state.target);
     // Assigning unconditionally would fight the keystroke that caused this
     // notification, so only a target set from elsewhere is taken.
     if (value != _value.text) {
       _value.text = value;
     }
-  });
+  }
 }
 
 const String _thisDevice = 'This device';
@@ -101,8 +94,8 @@ const String _topic = 'Topic';
 const String _condition = 'Condition';
 const String _allDevices = 'All devices';
 
-/// Every audience the dropdown offers, this device first because it is both the
-/// default and the only one that works without setup.
+/// This device first: it is both the default and the only one that works without
+/// setup.
 const List<String> _kinds = [
   _thisDevice,
   _token,
@@ -119,7 +112,6 @@ const Widget _allDevicesNote = Padding(
   ),
 );
 
-/// Which kind [target] is, as the dropdown spells it.
 String _kindOf(SendTarget? target) => switch (target) {
   null => _thisDevice,
   TokenTarget() => _token,
@@ -136,14 +128,12 @@ String _valueOf(SendTarget? target) => switch (target) {
   null || AllDevicesTarget() => '',
 };
 
-/// Whether [kind] needs something typed.
 bool _takesText(String kind) =>
     kind == _token || kind == _topic || kind == _condition;
 
-/// The target for a freshly chosen [kind], before anything is typed.
-///
-/// Deliberately blank rather than pre-filled: the cubit blocks Send while
-/// it is, which is better than guessing an audience on the user's behalf.
+/// The target for a freshly chosen [kind], deliberately blank rather than
+/// pre-filled: the cubit blocks Send while it is, which is better than guessing an
+/// audience on the user's behalf.
 SendTarget? _emptyFor(String? kind) => switch (kind) {
   _token => const TokenTarget(''),
   _topic => const TopicTarget(''),
@@ -152,7 +142,6 @@ SendTarget? _emptyFor(String? kind) => switch (kind) {
   _ => null,
 };
 
-/// [kind]'s target carrying [text].
 SendTarget _withValue(String kind, String text) => switch (kind) {
   _token => TokenTarget(text),
   _topic => TopicTarget(text),

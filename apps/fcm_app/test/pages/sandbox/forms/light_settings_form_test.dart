@@ -1,4 +1,4 @@
-import 'package:fcm_app/sandbox/forms/light_settings_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/light_settings_form.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';

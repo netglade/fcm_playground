@@ -71,11 +71,10 @@ const groupG = <Scenario>[
     payloadTemplate: {
       'apns': {
         'headers': {'apns-priority': '10'},
-        // apns.payload is forwarded to Apple verbatim, so it is free-form and
-        // its numbers stay numbers: `'badge': 7`, never `'7'`. This entry is
-        // also the source of the nested-APNs fixture the Sandbox's dotted-path
-        // form test reads, so the alert stays a nested object rather than the
-        // flat string APNs would also accept.
+        // apns.payload is forwarded to Apple verbatim, so its numbers stay
+        // numbers: `'badge': 7`, never `'7'`. It is also the nested-APNs fixture
+        // the Sandbox's dotted-path form test reads, so the alert must stay a
+        // nested object.
         'payload': {
           'aps': {
             'alert': {'title': 'Five waiting', 'body': 'Badge set to 7.'},

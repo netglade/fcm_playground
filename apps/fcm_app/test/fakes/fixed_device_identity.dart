@@ -1,4 +1,4 @@
-import 'package:fcm_app/telemetry/device_identity.dart';
+import 'package:fcm_app/domains/telemetry/entities/device_identity.dart';
 
 /// An identity that answers with one id, or refuses to answer at all.
 ///

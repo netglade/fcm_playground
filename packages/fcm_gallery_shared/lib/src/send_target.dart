@@ -1,19 +1,15 @@
 /// Where the API should deliver a message.
 ///
-/// FCM's `Message` carries a `oneof` of `token`, `topic` and `condition`, and
-/// the typed [FcmMessage] deliberately rejects all three: a payload template
-/// must not choose its own audience, or a template pasted from Google's docs
-/// could quietly broadcast. The target therefore lives in the *envelope*
-/// alongside `validate_only`, and this is that target as a closed set — so the
-/// API switches on it exhaustively rather than testing fields for null.
+/// The typed [FcmMessage] deliberately rejects FCM's `token`/`topic`/`condition`
+/// `oneof`: a payload template must not choose its own audience, or a template
+/// pasted from Google's docs could quietly broadcast. The target lives in the
+/// envelope instead, as a closed set the API switches on exhaustively.
 sealed class SendTarget {
   const SendTarget();
 
-  /// Reads the one target in [json], which sits at the request's top level.
-  ///
-  /// Throws when there is none or more than one. Neither is recoverable and
-  /// both are dangerous to guess at: defaulting a missing target to this device
-  /// would send a topic broadcast to a single phone and look like a success.
+  /// Reads the one target in [json], throwing when there is none or more than one.
+  /// Defaulting a missing target to this device would send a topic broadcast to a
+  /// single phone and look like a success.
   static SendTarget readFrom(Map<String, Object?> json) {
     const keys = ['token', 'topic', 'condition', 'all_devices'];
     final present = keys.where(json.containsKey).toList();
@@ -57,10 +53,8 @@ sealed class SendTarget {
 
 /// Deliver to one device's registration token.
 class TokenTarget extends SendTarget {
-  /// Targets the device holding [token].
   const TokenTarget(this.token);
 
-  /// The registration token to deliver to.
   final String token;
 
   @override
@@ -79,10 +73,9 @@ class TokenTarget extends SendTarget {
 
 /// Deliver to every device subscribed to a topic.
 class TopicTarget extends SendTarget {
-  /// Targets subscribers of [topic].
   const TopicTarget(this.topic);
 
-  /// The topic name, without the `/topics/` prefix FCM's older API used.
+  /// Without the `/topics/` prefix FCM's older API used.
   final String topic;
 
   @override
@@ -99,12 +92,11 @@ class TopicTarget extends SendTarget {
   String toString() => 'TopicTarget($topic)';
 }
 
-/// Deliver to the devices matching a boolean topic expression.
+/// Deliver to the devices matching a boolean topic expression such as
+/// `'news' in topics`.
 class ConditionTarget extends SendTarget {
-  /// Targets devices matching [condition], e.g. `'news' in topics`.
   const ConditionTarget(this.condition);
 
-  /// FCM's condition expression.
   final String condition;
 
   @override
@@ -123,12 +115,10 @@ class ConditionTarget extends SendTarget {
 
 /// Deliver to every device this project has ever registered.
 ///
-/// Not an FCM concept: FCM has no "all devices" audience, so honouring this
-/// means keeping a registry of tokens and sending to each. The API therefore
-/// refuses it with a stated reason until that registry exists, which is better
-/// than falling back to this device and reporting success.
+/// Not an FCM concept, so honouring it means keeping a registry of tokens. The API
+/// refuses it with a stated reason until that registry exists, which beats falling
+/// back to this device and reporting success.
 class AllDevicesTarget extends SendTarget {
-  /// Targets every registered device.
   const AllDevicesTarget();
 
   @override
@@ -137,8 +127,7 @@ class AllDevicesTarget extends SendTarget {
   @override
   bool operator ==(Object other) => other is AllDevicesTarget;
 
-  // There is no field to hash, so every instance is the same value and the type
-  // is the whole identity.
+  // No field to hash, so the type is the whole identity.
   @override
   int get hashCode => runtimeType.hashCode;
 

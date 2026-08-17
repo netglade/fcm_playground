@@ -1,5 +1,5 @@
-import 'package:fcm_app/sandbox/forms/apns_config_form.dart';
-import 'package:fcm_app/sandbox/forms/webpush_config_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/apns_config_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/webpush_config_form.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
@@ -10,10 +10,8 @@ void main() {
   group('ApnsConfigForm', () {
     /// Every field set, so the round-trip proves no field was forgotten.
     ///
-    /// An inlined copy of the contract package's own fixture: it is a `const`
-    /// local to that test's `main()`, and one package's `test/` directory is not
-    /// visible to another's. The `hasLength(3)` guard below is what stops the
-    /// copy drifting from the model.
+    /// An inlined copy of the contract package's own fixture, which is a `const`
+    /// local to that test's `main()` and so invisible here. `hasLength(3)` below guards the copy.
     const everyField = {
       'headers': {'apns-priority': '10', 'apns-push-type': 'alert'},
       'payload': {
@@ -32,8 +30,8 @@ void main() {
     ApnsConfigForm form() => ApnsConfigForm()..initialize();
 
     test('the fixture still covers every field', () {
-      // Guards the inlined copy: a fourth field on ApnsConfig fails here
-      // instead of silently narrowing the round-trip below.
+      // Guards the inlined copy: a fourth field on ApnsConfig fails here rather than
+      // silently narrowing the round-trip below.
       expect(everyField, hasLength(3));
     });
 
@@ -61,8 +59,7 @@ void main() {
     });
 
     test('carries the free-form payload through untouched', () {
-      // The whole point of holding the payload as one map: the form never
-      // reshapes what FCM forwards to Apple verbatim.
+      // The form never reshapes what FCM forwards to Apple verbatim.
       final subject = form()..readFrom(ApnsConfig.fromJson(everyField));
 
       final payload = subject.toModel()!.payload!;
@@ -73,9 +70,8 @@ void main() {
     });
 
     test('an emptied headers map is absent rather than an empty object', () {
-      // ApnsConfig.== compares headers with MapEquality, so {} is not null:
-      // deleting every row would otherwise leave "headers": {} in the payload
-      // and stop toModel() returning null for an otherwise-untouched block.
+      // ApnsConfig.== compares headers with MapEquality, so {} is not null: deleting
+      // every row would leave "headers": {} in the payload.
       final subject = form()
         ..readFrom(const ApnsConfig(headers: {'apns-priority': '10'}));
 
@@ -85,8 +81,7 @@ void main() {
     });
 
     test('an emptied payload map is absent rather than an empty object', () {
-      // Same trap in the free-form flavour: payload is compared with
-      // MapEquality<String, Object?>, so the helper is needed twice over.
+      // Same trap in the free-form flavour, so the helper is needed twice over.
       final subject = form()
         ..readFrom(
           const ApnsConfig(
@@ -102,8 +97,7 @@ void main() {
     });
 
     test('carries a nested fcm options block, with the APNs image', () {
-      // ApnsFcmOptions carries `image`, which the generic block does not: using
-      // the wrong subform here would drop it silently.
+      // ApnsFcmOptions carries `image`, which the generic block does not.
       const source = ApnsConfig(
         fcmOptions: ApnsFcmOptions(image: 'https://example.test/a.png'),
       );
@@ -133,12 +127,10 @@ void main() {
     });
 
     test('round-trips an alert payload read out of a whole message', () {
-      // The reason the dotted-path work exists: a real nested aps dictionary,
-      // reached the way the Sandbox reaches it — through FcmMessage.fromJson
-      // rather than ApnsConfig.fromJson, on a template a user can actually
-      // pick. g4_badge_ios is the catalogue's APNs entry, and group_g_test.dart
-      // pins its shape — nested alert, integer badge, sound — so the coverage
-      // here cannot be narrowed by a change over in the contract package.
+      // A real nested aps dictionary, reached the way the Sandbox reaches it —
+      // through FcmMessage.fromJson, on a template a user can pick.
+      // group_g_test.dart pins g4_badge_ios's shape, so the coverage here cannot be
+      // narrowed by a change in the contract package.
       final scenario = scenarioGallery.firstWhere(
         (s) => s.id == 'g4_badge_ios',
       );
@@ -154,8 +146,8 @@ void main() {
   group('WebpushConfigForm', () {
     /// Every field set, so the round-trip proves no field was forgotten.
     ///
-    /// An inlined copy of the contract package's own fixture, for the same
-    /// reason as the APNs one above; `hasLength(4)` guards the copy.
+    /// An inlined copy of the contract package's own fixture, which is a `const`
+    /// local to that test's `main()` and so invisible here. `hasLength(4)` below guards the copy.
     const everyField = {
       'headers': {'TTL': '60'},
       'data': {'event': 'build_finished'},
@@ -166,8 +158,8 @@ void main() {
     WebpushConfigForm form() => WebpushConfigForm()..initialize();
 
     test('the fixture still covers every field', () {
-      // Guards the inlined copy: a fifth field on WebpushConfig fails here
-      // instead of silently narrowing the round-trip below.
+      // Guards the inlined copy: a fifth field on WebpushConfig fails here rather than
+      // silently narrowing the round-trip below.
       expect(everyField, hasLength(4));
     });
 
@@ -195,8 +187,8 @@ void main() {
     });
 
     test('carries the free-form notification through untouched', () {
-      // Browser vendors add Notification API options faster than a typed model
-      // could follow, so a non-string value has to survive the form.
+      // A non-string value has to survive the form: browser vendors add options
+      // faster than a typed model could follow.
       final subject = form()..readFrom(WebpushConfig.fromJson(everyField));
 
       expect(subject.toModel()!.notification!['requireInteraction'], isTrue);
@@ -235,9 +227,8 @@ void main() {
     );
 
     test('carries a nested fcm options block, with the WebPush link', () {
-      // WebpushFcmOptions carries `link`, which neither the generic nor the
-      // APNs block does: the two options forms are deliberately not
-      // interchangeable.
+      // WebpushFcmOptions carries `link`, which neither the generic nor the APNs
+      // block does.
       const source = WebpushConfig(
         fcmOptions: WebpushFcmOptions(link: 'https://example.test/builds'),
       );

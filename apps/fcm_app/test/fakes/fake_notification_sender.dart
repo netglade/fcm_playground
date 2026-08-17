@@ -1,5 +1,5 @@
-import 'package:fcm_app/sandbox/notification_send_exception.dart';
-import 'package:fcm_app/sandbox/notification_sender.dart';
+import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
+import 'package:fcm_app/domains/sandbox/entities/notification_sender.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A [NotificationSender] driven by the test rather than by the API.
@@ -30,9 +30,8 @@ class FakeNotificationSender implements NotificationSender {
       throw failure;
     }
 
-    // A fresh trace id per send, because the API mints one per send. A constant
-    // would let a widget report against the *previous* send's trace id and still
-    // satisfy every assertion about it.
+    // A fresh trace id per send, as the API mints one per send: a constant would let
+    // a widget report against the *previous* send's id and still pass.
     final answer = SendMessageResponse(
       messageId: response.messageId,
       sentAt: response.sentAt,

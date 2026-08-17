@@ -1,22 +1,18 @@
 import 'dart:async';
 
 import 'package:core/core.dart';
-import 'package:fcm_app/notifications/notification_presenter.dart';
+import 'package:fcm_app/domains/notifications/entities/notification_presenter.dart';
 
 /// A [NotificationPresenter] that records instead of notifying.
 class RecordingNotificationPresenter implements NotificationPresenter {
-  /// A presenter whose [show] fails when [failing], and which does not return
-  /// until [gate] completes.
+  /// A presenter whose [show] fails when [failing], and which does not return until
+  /// [gate] completes.
   ///
-  /// Both exist for the `displayed` hook, which must fire after a banner was
-  /// drawn and not merely after one was asked for: [gate] holds `show` open so a
-  /// test can look at the moment in between, and [failing] is the case where
-  /// that moment never ends well. Reporting a notification that was never drawn
-  /// would make "displayed but not seen" a conclusion someone chases on the
-  /// device.
-  // `this._gate` rather than an initializer list: Dart strips the leading
-  // underscore from a private field's initializing-formal parameter name, so
-  // callers still pass the public `gate:`.
+  /// Both exist for the `displayed` hook, which must fire after a banner was drawn
+  /// and not merely after one was asked for.
+  // `this._gate` rather than an initializer list: Dart strips the leading underscore
+  // from a private field's initializing-formal parameter name, so callers still pass
+  // the public `gate:`.
   RecordingNotificationPresenter({this.failing = false, this._gate});
 
   /// Whether [show] throws, as a plugin without a channel does.
@@ -42,9 +38,8 @@ class RecordingNotificationPresenter implements NotificationPresenter {
 
   @override
   Future<void> show(PushMessage message) async {
-    // Recorded before the gate and before the failure, so `shown` means "a
-    // banner was attempted": a test asserting that nothing was reported needs
-    // to show the attempt happened at all.
+    // Recorded before the gate and before the failure, so `shown` means "a banner
+    // was attempted".
     shown.add(message);
     await _gate;
     if (failing) {

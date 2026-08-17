@@ -1,9 +1,8 @@
 import 'package:glade_forms/glade_forms.dart';
 
-/// A model exercising exactly the three input shapes this plan depends on,
-/// plus [convertedCount], which pins the converter Task 8 relies on to make
-/// clearing an optional int field mean "absent" rather than "keep the old
-/// value" (see `count`'s documented-defect test in the smoke test file).
+/// A model exercising the three input shapes this plan depends on, plus
+/// [convertedCount], which pins the converter that makes clearing an optional int
+/// field mean "absent" rather than "keep the old value".
 class SmokeModel extends GladeModel {
   late GladeStringInput text;
   late GladeInput<bool?> flag;

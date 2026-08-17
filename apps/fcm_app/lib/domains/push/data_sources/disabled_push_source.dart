@@ -1,10 +1,7 @@
-import 'push_source.dart';
+import '../entities/push_source.dart';
 
-/// A [PushSource] that never emits.
-///
-/// Substituted for `FirebasePushSource` when Firebase fails to start, so the
-/// rest of the app can be built and navigated without special-casing a null
-/// source.
+/// A [PushSource] that never emits, substituted for `FirebasePushSource` when
+/// Firebase fails to start.
 class DisabledPushSource implements PushSource {
   const DisabledPushSource();
 

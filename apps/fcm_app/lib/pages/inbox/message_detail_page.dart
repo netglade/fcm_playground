@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 class MessageDetailPage extends StatelessWidget {
   const MessageDetailPage(this.message, {super.key});
 
-  /// The message to show.
   final PushMessage message;
 
   @override

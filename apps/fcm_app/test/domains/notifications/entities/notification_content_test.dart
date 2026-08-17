@@ -1,4 +1,4 @@
-import 'package:fcm_app/notifications/notification_content.dart';
+import 'package:fcm_app/domains/notifications/entities/notification_content.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

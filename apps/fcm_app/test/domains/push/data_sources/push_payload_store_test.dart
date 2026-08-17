@@ -1,4 +1,4 @@
-import 'package:fcm_app/push/shared_preferences_push_payload_store.dart';
+import 'package:fcm_app/domains/push/data_sources/shared_preferences_push_payload_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';

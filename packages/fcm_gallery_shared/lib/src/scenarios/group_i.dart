@@ -60,11 +60,10 @@ const groupI = <Scenario>[
         // APNs accepts for a background one. apns.headers is a typed
         // map<string, string>, so the priority is '5' and never a bare 5.
         'headers': {'apns-priority': '5', 'apns-push-type': 'background'},
-        // apns.payload is forwarded to Apple verbatim and so is free-form: its
-        // numbers keep the type they are written with, and APNs defines
-        // content-available as the integer flag 1. Written 1.0 it would survive
-        // the round-trip unchanged and arrive as something APNs ignores. There
-        // is no alert and no sound — a background push carries neither.
+        // apns.payload is forwarded verbatim, so its numbers keep the type they
+        // are written with, and APNs defines content-available as the integer 1.
+        // Written 1.0 it would round-trip unchanged and arrive as something APNs
+        // ignores.
         'payload': {
           'aps': {'content-available': 1},
         },

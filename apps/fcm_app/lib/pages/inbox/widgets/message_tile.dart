@@ -5,13 +5,10 @@ import 'package:flutter/material.dart';
 class MessageTile extends StatelessWidget {
   const MessageTile(this.message, {this.onTap, super.key});
 
-  /// The message this row shows.
   final PushMessage message;
 
-  /// Called with [message] when the row is tapped, or null to make the row inert.
-  ///
-  /// It carries the message rather than an index, so nothing has to look the row
-  /// up in a list that may have changed since the build.
+  /// Carries the message rather than an index, so nothing has to look the row up in
+  /// a list that may have changed since the build.
   final ValueChanged<PushMessage>? onTap;
 
   @override

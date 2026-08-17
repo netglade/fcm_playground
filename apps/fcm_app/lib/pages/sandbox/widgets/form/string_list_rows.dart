@@ -1,14 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// Edits a `List<String>` as one row per item.
-///
-/// The row count is not known ahead of time, so there is no fixed
-/// [TextEditingController] to bind — this widget owns its rows' controllers as
-/// view state and reports the collapsed list through [onChanged] on every
-/// keystroke, the same way the map-row editor does for key/value pairs.
+/// Edits a `List<String>` as one row per item — see [StringMapRows] for why the
+/// controllers live here as view state.
 class StringListRows extends StatefulWidget {
-  /// Renders [value] as rows labelled [label], reporting edits to [onChanged].
   const StringListRows({
     required this.label,
     required this.value,
@@ -16,16 +11,10 @@ class StringListRows extends StatefulWidget {
     super.key,
   });
 
-  /// The heading shown above the rows.
   final String label;
 
-  /// The items this widget displays. Changes are reloaded into the rows when
-  /// the value differs from what the rows would collapse to, enabling the rows
-  /// to update from external changes while preventing rewinding during a user's
-  /// own edits.
   final List<String> value;
 
-  /// Called with the current list whenever a row is added, edited, or removed.
   final ValueChanged<List<String>> onChanged;
 
   @override
@@ -100,7 +89,6 @@ class _StringListRowsState extends State<StringListRows> {
     _push();
   }
 
-  /// Rebuilds the rows from [widget.value], disposing the existing controllers.
   void _reload() {
     for (final row in _rows) {
       row.dispose();
@@ -110,13 +98,11 @@ class _StringListRowsState extends State<StringListRows> {
     ];
   }
 
-  /// Returns the list that the current rows collapse to, dropping any row that
-  /// is blank so a half-typed row never produces an empty entry.
+  /// Drops any blank row, so a half-typed row never produces an empty entry.
   List<String> _collapsed() => [
     for (final row in _rows)
       if (row.text.trim().isNotEmpty) row.text,
   ];
 
-  /// Reports the rows as a list through [onChanged].
   void _push() => widget.onChanged(_collapsed());
 }

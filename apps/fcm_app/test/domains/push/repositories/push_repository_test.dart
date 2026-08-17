@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:fcm_app/push/inbox_state.dart';
-import 'package:fcm_app/push/push_repository.dart';
+import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/pages/inbox/cubit/inbox_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../fake_push_payload_store.dart';
-import '../fake_push_source.dart';
-import '../recording_notification_presenter.dart';
-import '../telemetry/recording_push_telemetry.dart';
-import '../telemetry/throwing_push_telemetry.dart';
+import '../../../fakes/fake_push_payload_store.dart';
+import '../../../fakes/fake_push_source.dart';
+import '../../../fakes/recording_notification_presenter.dart';
+import '../../../fakes/recording_push_telemetry.dart';
+import '../../../fakes/throwing_push_telemetry.dart';
 
 /// A received payload, optionally carrying the keys the send API injects.
 ///
@@ -211,8 +211,8 @@ void main() {
 
   group('PushRepository.drainPending', () {
     test('merges a payload that arrived while backgrounded', () async {
-      // A fresh source: `source` from setUp is already listened to by the
-      // repository built there, and payloads is single-subscription.
+      // Fresh: setUp's source is already listened to, and payloads is
+      // single-subscription.
       source = FakePushSource();
       final store = FakePushPayloadStore();
       repository = PushRepository(source, store: store)..listen();
@@ -246,8 +246,8 @@ void main() {
 
   group('PushRepository persistence of live messages', () {
     test('persists a payload that arrives on the stream', () async {
-      // A fresh source: `source` from setUp is already listened to by the
-      // repository built there, and payloads is single-subscription.
+      // Fresh: setUp's source is already listened to, and payloads is
+      // single-subscription.
       source = FakePushSource();
       final store = FakePushPayloadStore();
       repository = PushRepository(source, store: store)..listen();
@@ -261,8 +261,8 @@ void main() {
 
   group('PushRepository disposal', () {
     test('stops consuming the source, so a later payload is dropped', () async {
-      // A fresh source: `source` from setUp is already listened to by the
-      // repository built there, and payloads is single-subscription.
+      // Fresh: setUp's source is already listened to, and payloads is
+      // single-subscription.
       source = FakePushSource();
       repository = PushRepository(source, store: FakePushPayloadStore())
         ..listen();
@@ -286,8 +286,8 @@ void main() {
     test(
       'keeps only the newest maxStoredMessages and drops the oldest',
       () async {
-        // A fresh source: `source` from setUp is already listened to by the
-        // repository built there, and payloads is single-subscription.
+        // Fresh: setUp's source is already listened to, and payloads is
+        // single-subscription.
         source = FakePushSource();
         final store = FakePushPayloadStore();
         repository = PushRepository(source, store: store)..listen();
@@ -317,8 +317,8 @@ void main() {
     );
 
     test('persists the capped list, not the full history', () async {
-      // A fresh source: `source` from setUp is already listened to by the
-      // repository built there, and payloads is single-subscription.
+      // Fresh: setUp's source is already listened to, and payloads is
+      // single-subscription.
       source = FakePushSource();
       final store = FakePushPayloadStore();
       repository = PushRepository(source, store: store)..listen();
@@ -344,8 +344,8 @@ void main() {
     });
 
     test('shows a banner for a payload arriving on the stream', () async {
-      // A fresh source: `source` from setUp is already listened to by the
-      // repository built there, and payloads is single-subscription.
+      // Fresh: setUp's source is already listened to, and payloads is
+      // single-subscription.
       source = FakePushSource();
       repository = PushRepository(
         source,
@@ -392,8 +392,8 @@ void main() {
     );
 
     test('shows nothing for a payload that fails validation', () async {
-      // A fresh source: `source` from setUp is already listened to by the
-      // repository built there, and payloads is single-subscription.
+      // Fresh: setUp's source is already listened to, and payloads is
+      // single-subscription.
       source = FakePushSource();
       repository = PushRepository(
         source,
@@ -408,8 +408,8 @@ void main() {
     });
 
     test('shows a repeated id once, matching the inbox', () async {
-      // A fresh source: `source` from setUp is already listened to by the
-      // repository built there, and payloads is single-subscription.
+      // Fresh: setUp's source is already listened to, and payloads is
+      // single-subscription.
       source = FakePushSource();
       repository = PushRepository(
         source,
@@ -451,8 +451,8 @@ void main() {
     test(
       'resolves once the message arrives, whatever the stream order',
       () async {
-        // A fresh source: `source` from setUp is already listened to by the
-        // repository built there, and payloads is single-subscription.
+        // Fresh: setUp's source is already listened to, and payloads is
+        // single-subscription.
         source = FakePushSource();
         repository = PushRepository(source, store: FakePushPayloadStore())
           ..listen();
@@ -498,12 +498,9 @@ void main() {
     });
 
     test('publishes the clear, so no watcher keeps a stale tap', () async {
-      // The getters above would read false whether or not the clear published,
-      // because they read the fields directly. Every watcher reads the snapshot
-      // instead, where the tap is a field — so a silent clear would leave the
-      // shell's copy claiming a tap is outstanding until some unrelated push
-      // happened to publish one. That it used to work at all was timing: the
-      // shell navigates on the statement after the clear.
+      // The getters read the fields directly, so they would pass either way. Every
+      // watcher reads the snapshot instead, where a silent clear would leave the
+      // shell claiming a tap is still outstanding.
       repository = PushRepository(
         source,
         store: FakePushPayloadStore(inbox: [payload(id: 'msg-1')]),
@@ -526,8 +523,8 @@ void main() {
 
     setUp(() {
       telemetry = RecordingPushTelemetry();
-      // A fresh source: `source` from the outer setUp is already listened to by
-      // the repository built there, and payloads is single-subscription.
+      // Fresh: setUp's source is already listened to, and payloads is
+      // single-subscription.
       source = FakePushSource();
     });
 
@@ -606,10 +603,8 @@ void main() {
     });
 
     test('records both deliveries of a repeated message id', () async {
-      // FCM does not promise at-most-once delivery, and two deliveries are two
-      // arrivals: the inbox collapses them because it shows messages, while the
-      // matrix wants to know it happened. The server is idempotent on
-      // (trace, type, device), so the second row costs nothing there.
+      // Two deliveries are two arrivals: the inbox collapses them because it shows
+      // messages, while the matrix wants to know it happened.
       repository = PushRepository(
         source,
         store: FakePushPayloadStore(),
@@ -629,10 +624,8 @@ void main() {
     });
 
     test('records no arrival for a restored payload', () async {
-      // Restored pushes arrived earlier — the background handler recorded them
-      // as `received_bg` at the time. Recording them again on the next launch
-      // would report an arrival that is really a database read, and every
-      // restart would add one.
+      // The background handler already recorded these as `received_bg`. Recording
+      // them again would report a database read as an arrival.
       repository = PushRepository(
         source,
         store: FakePushPayloadStore(
@@ -649,9 +642,7 @@ void main() {
     });
 
     test('records displayed only after show() succeeds', () async {
-      // Before it, a presenter that threw would report a notification that was
-      // never drawn — and "displayed but not seen" is a conclusion someone would
-      // then chase on the device.
+      // A presenter that threw would otherwise report a notification never drawn.
       final drawing = Completer<void>();
       final presenter = RecordingNotificationPresenter(gate: drawing.future);
       addTearDown(presenter.dispose);
@@ -740,10 +731,9 @@ void main() {
     });
 
     test('delivers the push even when the reporter fails', () async {
-      // The hooks are called fire-and-forget from the stream handler, so a
-      // throw would arrive as an unhandled asynchronous error on the delivery
-      // path — which this test fails on. Telemetry must never cost the thing it
-      // observes.
+      // The hooks are fire-and-forget from the stream handler, so a throw would
+      // arrive as an unhandled async error on the delivery path — which fails this
+      // test.
       final failing = ThrowingPushTelemetry();
       repository = PushRepository(
         source,
@@ -765,12 +755,9 @@ void main() {
     });
 
     test('records the open once the tapped payload is drained', () async {
-      // The ordinary Android path, and the one the trace id makes awkward: FCM
-      // reports a tap on a tray entry it drew itself as the app resumes, while
-      // the payload it refers to is still in the queue the background isolate
-      // appended to. There is nothing to read a trace id from until it is
-      // drained — so the open waits for its payload rather than being dropped or
-      // recorded against an invented id.
+      // The Android warm-start path: FCM reports the tap as the app resumes, while
+      // the payload is still in the background isolate's queue. There is no trace
+      // id to read until it drains, so the open waits for it.
       repository = PushRepository(
         source,
         store: FakePushPayloadStore(
@@ -815,9 +802,8 @@ void main() {
       expect(repository.hasPendingOpen, isTrue);
       expect(telemetry.recorded, isEmpty);
 
-      // A different message arriving does not resolve that tap, and tapping
-      // this one does record — so the silence above is about the missing
-      // payload rather than about a hook that never fires.
+      // Tapping this one does record, so the silence above is about the missing
+      // payload rather than a hook that never fires.
       source.emit(payload(id: 'msg-1', traceId: 'tr-1'));
       await pumpEventQueue();
       repository.requestOpen('msg-1');

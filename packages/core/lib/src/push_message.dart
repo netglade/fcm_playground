@@ -1,8 +1,8 @@
 /// A push notification that has been received and validated.
 ///
 /// Instances are only created by `PushMessageParser`, so a `PushMessage` that
-/// exists is always well-formed — callers never have to null-check its fields.
-/// Fields are still never null, but `title` and `body` may be empty.
+/// exists is always well-formed. No field is null, but `title` and `body` may be
+/// empty.
 class PushMessage {
   const PushMessage({
     required this.id,
@@ -12,26 +12,19 @@ class PushMessage {
     this.data = const {},
   });
 
-  /// Identifier assigned by the sender. Used to drop duplicate deliveries,
-  /// which FCM does not guarantee against.
+  /// Used to drop duplicate deliveries, which FCM does not guarantee against.
   final String id;
 
-  /// Short headline, suitable for a notification title or list tile.
-  ///
-  /// Empty for a data-only push, which carries no notification block at all — so
-  /// a caller rendering this must handle a blank string.
+  /// Empty for a data-only push, so a caller rendering this must handle a blank
+  /// string. The same goes for [body].
   final String title;
 
-  /// The message text.
-  ///
-  /// Empty for a data-only push, which carries no notification block at all — so
-  /// a caller rendering this must handle a blank string.
   final String body;
 
   /// When the sender created the message, in UTC.
   final DateTime sentAt;
 
-  /// Payload keys beyond the four required ones, passed through untouched.
+  /// Payload keys beyond the reserved ones, passed through untouched.
   final Map<String, String> data;
 
   @override

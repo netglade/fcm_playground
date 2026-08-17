@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../sandbox/forms/webpush_fcm_options_form.dart';
+import '../../../forms/webpush_fcm_options_form.dart';
 import '../form_section.dart';
 
 /// Edits the WebPush-specific `fcm_options` block.
@@ -8,11 +8,8 @@ import '../form_section.dart';
 /// Separate from `FcmOptionsSection` because WebPush accepts the `link` a click
 /// opens, which neither the generic nor the APNs block has.
 class WebpushFcmOptionsSection extends StatelessWidget {
-  /// Renders [form]'s inputs inside a collapsible section.
   const WebpushFcmOptionsSection({required this.form, super.key});
 
-  /// The block this section edits. Read, never listened to: something above
-  /// listens to every model in the tree and rebuilds this.
   final WebpushFcmOptionsForm form;
 
   @override

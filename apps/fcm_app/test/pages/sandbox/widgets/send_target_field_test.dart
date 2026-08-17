@@ -1,11 +1,12 @@
-import 'package:fcm_app/sandbox/sandbox_cubit.dart';
-import 'package:fcm_app/ui/send_target_field.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
+import 'package:fcm_app/pages/sandbox/widgets/send_target_field.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import '../fake_notification_sender.dart';
+import '../../../fakes/fake_notification_sender.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
@@ -27,16 +28,20 @@ void main() {
   Future<void> pump(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: SendTargetField(controller: controller)),
+        home: Scaffold(
+          body: BlocProvider.value(
+            value: controller,
+            child: const SendTargetField(),
+          ),
+        ),
       ),
     );
     await tester.pumpAndSettle();
   }
 
-  // A closed DropdownButton keeps every item in the tree but hides the ones it
-  // is not showing, and the default finders skip those — so `findsOne` on a
-  // kind's label is a statement about what is *selected*, not merely offered.
-  // Verified: with nothing chosen, only the hint-selected entry is found.
+  // A closed DropdownButton keeps every item in the tree but hides the ones it is
+  // not showing, and the default finders skip those — so `findsOne` on a kind's
+  // label is a statement about what is *selected*, not merely offered.
 
   testWidgets('defaults to this device, with nothing to type', (tester) async {
     await pump(tester);
@@ -136,9 +141,9 @@ void main() {
   testWidgets('a scenario applied while on screen takes over the field', (
     tester,
   ) async {
-    // The app's real path: the Sandbox page stays mounted in the shell's
-    // IndexedStack while the gallery applies a scenario, so the selector has to
-    // follow the controller rather than only read it once when it was built.
+    // The app's real path: the page stays mounted in the shell's IndexedStack while
+    // the gallery applies a scenario, so the selector has to follow the controller
+    // rather than read it once at build time.
     await pump(tester);
 
     controller.applyScenario(scenario('j1_topic'));

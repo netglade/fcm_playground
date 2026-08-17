@@ -7,11 +7,9 @@ import 'fcm_options.dart';
 import 'json_object_reader.dart';
 import 'webpush_config.dart';
 
-/// A message ready to send through FCM's v1 `Message` model.
-///
-/// This mirrors FCM's `Message` minus the delivery target — `token`, `topic`
-/// and `condition`, which the server assigns, not a payload template — and
-/// minus the output-only `name`, which FCM returns but never accepts.
+/// FCM's v1 `Message`, minus the delivery target — `token`, `topic` and
+/// `condition`, which the server assigns rather than a payload template — and minus
+/// the output-only `name`.
 class FcmMessage {
   /// Creates a message, leaving unset fields for FCM and the client app to
   /// fall back on.
@@ -24,7 +22,6 @@ class FcmMessage {
     this.fcmOptions,
   });
 
-  /// Reads FCM's `Message` object.
   factory FcmMessage.fromJson(Map<String, Object?> json) =>
       read(JsonObjectReader(json, path: 'message'));
 
@@ -53,31 +50,22 @@ class FcmMessage {
     return message;
   }
 
-  /// The free-form data payload the app receives, as key–value pairs the
-  /// sender defines. Keys are the caller's own and travel to the client app
-  /// untouched; FCM never inspects them.
+  /// Travels to the client app untouched; FCM never inspects it.
   final Map<String, String>? data;
 
-  /// The cross-platform notification to render, before any platform-specific
-  /// overrides from [android], [webpush] or [apns] are applied.
+  /// Rendered unless [android], [webpush] or [apns] overrides it.
   final FcmNotification? notification;
 
-  /// Android-specific delivery and rendering options.
   final AndroidConfig? android;
 
-  /// WebPush-specific delivery and rendering options.
   final WebpushConfig? webpush;
 
-  /// APNs-specific delivery and rendering options, for iOS and macOS.
   final ApnsConfig? apns;
 
-  /// Delivery options FCM applies uniformly, regardless of the target platform.
   final FcmOptions? fcmOptions;
 
-  /// Serialises to FCM's `Message` shape, omitting unset fields.
-  ///
-  /// Never emits a delivery target: [FcmMessage] carries none, so one cannot
-  /// leak back out through a round-trip.
+  /// Never emits a delivery target: [FcmMessage] carries none, so one cannot leak
+  /// back out through a round-trip.
   Map<String, Object?> toJson() => {
     'data': ?data,
     'notification': ?notification?.toJson(),

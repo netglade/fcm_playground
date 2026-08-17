@@ -1,5 +1,5 @@
 import 'package:core/core.dart';
-import 'package:fcm_app/ui/message_detail_page.dart';
+import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

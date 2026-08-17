@@ -1,17 +1,12 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
-/// Says what the loaded scenario still needs before it demonstrates anything.
+/// Says what the loaded scenario still needs before it demonstrates anything, and
+/// nothing at all when there is nothing to say.
 ///
-/// Renders nothing when there is nothing to say — no scenario, or one that works
-/// today, which is 21 of the 66. A banner on every scenario would be noise, and
-/// noise trains people to stop reading banners.
-///
-/// It deliberately does **not** block Send. The push is genuine and valid; only
-/// the behaviour it is meant to show is missing, and watching a client with no
-/// action support receive an action payload is itself worth seeing.
+/// It deliberately does not block Send: the push is genuine and valid, only the
+/// behaviour it is meant to show is missing.
 class ScenarioNeedsBanner extends StatelessWidget {
-  /// Reports [scenario]'s unmet needs, if it has any.
   const ScenarioNeedsBanner({required this.scenario, super.key});
 
   /// The loaded scenario, or null when the form was filled in by hand.

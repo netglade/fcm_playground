@@ -11,20 +11,15 @@ void main() {
   // same verdict.
   final skipReason = sqliteAvailability();
 
-  // The same expectations `in_memory_telemetry_store_test.dart` pins, against a
-  // real database, plus the ones only a file can show. The pairing itself is
-  // shared code (`pairLatencies`), so what these latency tests actually check is
-  // that storage hands it back what it was given: both arrival types kept apart,
-  // timestamps undamaged, `sent` findable for its trace.
+  // The same expectations `in_memory_telemetry_store_test.dart` pins, against a real
+  // database, plus the ones only a file can show. The pairing is shared code, so what
+  // these latency tests check is that storage hands it back what it was given.
   group('SqliteTelemetryStore', _storeBehaviour, skip: skipReason);
 }
 
-/// Every behaviour of the store, hoisted out of the `group` call.
-///
-/// Only so that the call above fits on one line: `dart format` collapses a
-/// `group(name, () { … }, skip: …)` back onto the closing brace, and
-/// `prefer-trailing-comma` then objects to the multi-line argument list it has
-/// made — the two cannot both be satisfied while the body is written inline.
+/// Every behaviour of the store, hoisted out of the `group` call so it fits on one
+/// line: `dart format` and `prefer-trailing-comma` cannot both be satisfied while the
+/// body is written inline.
 void _storeBehaviour() {
   late Directory directory;
   late String databasePath;
@@ -73,22 +68,18 @@ void _storeBehaviour() {
       expect(await store.all(), [event]);
     });
 
-    test(
-      'reads events back in recorded order, not in timestamp order',
-      () async {
-        // A device that was offline flushes older events after a device that was
-        // not, so recorded order and time order genuinely differ. A store
-        // ordering by `at` — or by its primary key — would fail here.
-        await store.record([
-          arrivalAt('tr-1', 'dev-a', DateTime.utc(2026, 8, 13, 9, 5)),
-        ]);
-        await store.record([
-          arrivalAt('tr-2', 'dev-b', DateTime.utc(2026, 8, 13, 9, 1)),
-        ]);
+    test('reads events back in recorded order, not in timestamp order', () async {
+      // A device that was offline flushes older events after one that was not, so
+      // a store ordering by `at` — or by its primary key — fails here.
+      await store.record([
+        arrivalAt('tr-1', 'dev-a', DateTime.utc(2026, 8, 13, 9, 5)),
+      ]);
+      await store.record([
+        arrivalAt('tr-2', 'dev-b', DateTime.utc(2026, 8, 13, 9, 1)),
+      ]);
 
-        expect((await store.all()).map((e) => e.deviceId), ['dev-a', 'dev-b']);
-      },
-    );
+      expect((await store.all()).map((e) => e.deviceId), ['dev-a', 'dev-b']);
+    });
 
     test(
       'ignores a duplicate of the same event from the same device',
@@ -123,21 +114,17 @@ void _storeBehaviour() {
       expect(await store.all(), [event]);
     });
 
-    test(
-      'keeps the earliest when the duplicate is a microsecond later',
-      () async {
-        // Earliest-wins is decided in SQL, so the column's type decides whether
-        // the comparison is right. Written as ISO-8601 text these two compare
-        // backwards — '…02.000001Z' sorts *before* '…02.000Z', because '0' < 'Z'
-        // — and the later duplicate would silently replace the earlier row.
-        await store.record([arrivalAt('tr-1', 'dev', at9)]);
-        await store.record([
-          arrivalAt('tr-1', 'dev', at9.add(const Duration(microseconds: 1))),
-        ]);
+    test('keeps the earliest when the duplicate is a microsecond later', () async {
+      // Earliest-wins is decided in SQL, so the column's type decides whether the
+      // comparison is right: as ISO-8601 text these two compare backwards, because
+      // '…02.000001Z' sorts before '…02.000Z'.
+      await store.record([arrivalAt('tr-1', 'dev', at9)]);
+      await store.record([
+        arrivalAt('tr-1', 'dev', at9.add(const Duration(microseconds: 1))),
+      ]);
 
-        expect((await store.all()).single.at, at9);
-      },
-    );
+      expect((await store.all()).single.at, at9);
+    });
 
     test('keeps the same event type from two different devices', () async {
       // The matrix's whole point: two phones receiving one broadcast are two
@@ -173,9 +160,8 @@ void _storeBehaviour() {
     });
 
     test('round-trips every field, including the optional two', () async {
-      // The nullable columns are where a hand-written mapper goes wrong, and
-      // `''` read back where `null` was written would group a hand-made send
-      // with the gallery's own rows.
+      // `''` read back where `null` was written would group a hand-made send with the
+      // gallery's own rows.
       final full = TelemetryEvent(
         traceId: 'tr-1',
         type: TelemetryEventType.sendFailed,
@@ -206,8 +192,8 @@ void _storeBehaviour() {
         (await store.latencies())
             .map((row) => (row.deviceId, row.latency))
             .toSet(),
-        // Wrapped in `equals` so the formatter and `prefer-trailing-comma`
-        // agree on the layout; a Duration cannot be a constant set element.
+        // Wrapped in `equals` so the formatter and `prefer-trailing-comma` agree; a
+        // Duration cannot be a constant set element.
         equals({
           ('fast', const Duration(seconds: 1)),
           ('slow', const Duration(minutes: 4, seconds: 12)),
@@ -216,10 +202,9 @@ void _storeBehaviour() {
     });
 
     test('keeps one trace apart from another for the same device', () async {
-      // Two sends to one handset are two measurements. A primary key that
-      // dropped `trace_id` — or a pairing keyed on the device alone — would
-      // silently keep whichever was recorded last, and every test above would
-      // still pass because each of them uses one trace.
+      // Two sends to one handset are two measurements. A primary key that dropped
+      // `trace_id` would keep whichever was recorded last, and every test above uses
+      // one trace so none of them would notice.
       await store.record([
         sentAt('tr-1', DateTime.utc(2026, 8, 13, 9, 0, 0)),
         arrivalAt('tr-1', 'dev', DateTime.utc(2026, 8, 13, 9, 0, 1)),
@@ -251,50 +236,42 @@ void _storeBehaviour() {
       );
     });
 
-    test(
-      'takes the earlier of a foreground and a background arrival',
-      () async {
-        // Two different types, so both survive the idempotency key and the
-        // pairing has to compare across them — which it can only do if storage
-        // kept them as two rows. Asserted in both recording orders.
-        for (final order in [
-          [TelemetryEventType.receivedFg, TelemetryEventType.receivedBg],
-          [TelemetryEventType.receivedBg, TelemetryEventType.receivedFg],
-        ]) {
-          final subject = SqliteTelemetryStore.open(
-            '${directory.path}/${order.first.wireName}.sqlite',
-          );
-          await subject.record([
-            sentAt('tr-1', DateTime.utc(2026, 8, 13, 9, 0, 0)),
-            arrivalAt(
-              'tr-1',
-              'dev',
-              DateTime.utc(2026, 8, 13, 9, 0, 5),
-              type: order.first,
-            ),
-            arrivalAt(
-              'tr-1',
-              'dev',
-              DateTime.utc(2026, 8, 13, 9, 0, 2),
-              type: order.last,
-            ),
-          ]);
+    test('takes the earlier of a foreground and a background arrival', () async {
+      // Two different types, so both survive the idempotency key and the pairing
+      // has to compare across them. Asserted in both recording orders.
+      for (final order in [
+        [TelemetryEventType.receivedFg, TelemetryEventType.receivedBg],
+        [TelemetryEventType.receivedBg, TelemetryEventType.receivedFg],
+      ]) {
+        final subject = SqliteTelemetryStore.open(
+          '${directory.path}/${order.first.wireName}.sqlite',
+        );
+        await subject.record([
+          sentAt('tr-1', DateTime.utc(2026, 8, 13, 9, 0, 0)),
+          arrivalAt(
+            'tr-1',
+            'dev',
+            DateTime.utc(2026, 8, 13, 9, 0, 5),
+            type: order.first,
+          ),
+          arrivalAt(
+            'tr-1',
+            'dev',
+            DateTime.utc(2026, 8, 13, 9, 0, 2),
+            type: order.last,
+          ),
+        ]);
 
-          final rows = await subject.latencies();
-          expect(
-            rows,
-            hasLength(1),
-            reason: 'one row per device, not per event',
-          );
-          expect(
-            rows.single.latency,
-            const Duration(seconds: 2),
-            reason: 'recorded as ${order.map((t) => t.wireName)}',
-          );
-          await subject.close();
-        }
-      },
-    );
+        final rows = await subject.latencies();
+        expect(rows, hasLength(1), reason: 'one row per device, not per event');
+        expect(
+          rows.single.latency,
+          const Duration(seconds: 2),
+          reason: 'recorded as ${order.map((t) => t.wireName)}',
+        );
+        await subject.close();
+      }
+    });
 
     test('reports a backwards clock as skew rather than clamping it', () async {
       // Clamping would turn a measurement error into a false result, and a
@@ -392,8 +369,7 @@ void _storeBehaviour() {
   group('persistence', () {
     test('keeps events across closing and reopening the file', () async {
       // The one behaviour the in-memory store cannot have, and the reason the
-      // production store is SQLite at all: the server restarts, and a matrix
-      // that forgot every send before the restart is not a matrix.
+      // production store is SQLite at all.
       final full = TelemetryEvent(
         traceId: 'tr-1',
         type: TelemetryEventType.sent,
@@ -419,9 +395,8 @@ void _storeBehaviour() {
     });
 
     test('still suppresses a duplicate flushed after a restart', () async {
-      // The retry case across a restart: the acknowledgement was lost, the
-      // server was restarted, and the client sends the batch again. An
-      // idempotency held only in memory would double-count it.
+      // The retry case across a restart: an idempotency held only in memory would
+      // double-count it.
       await store.record([event]);
       await store.close();
 
@@ -432,9 +407,9 @@ void _storeBehaviour() {
     });
 
     test('leaves an existing file alone when it opens it', () async {
-      // `CREATE TABLE IF NOT EXISTS`, not `DROP TABLE`: a schema step that
-      // wiped the file would lose every send on every restart, and the tests
-      // above would still pass because each of them writes first.
+      // `CREATE TABLE IF NOT EXISTS`, not `DROP TABLE`: a schema step that wiped the
+      // file would lose every send on every restart, and every test above writes
+      // first so none would notice.
       await store.record([event]);
       await store.close();
 

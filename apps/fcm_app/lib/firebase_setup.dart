@@ -4,17 +4,11 @@
 /// CLI reads.
 const firebaseProjectId = 'fcm-sandbox-770fa';
 
-/// Marker for the placeholder credentials still present in
-/// `firebase_options.dart`.
+/// Marker for the placeholder credentials still in `firebase_options.dart`. The
+/// project id is real, so the API key carries the sentinel instead.
 ///
-/// The project id is real, so it cannot be used to detect an unconfigured
-/// checkout. The API key is the value that must come from Firebase itself, so it
-/// carries the sentinel instead.
-///
-/// This lives here rather than in `firebase_options.dart` so that overwriting
-/// that file with real `flutterfire configure` output does not delete the check
-/// — once the generated file carries a real key, the comparison in `main.dart`
-/// simply stops matching.
+/// It lives here rather than in the generated file so that overwriting that file
+/// with real `flutterfire configure` output does not delete the check.
 const unconfiguredApiKey = 'replace-me-with-flutterfire-configure';
 
 /// Shown in-app while the credentials are still placeholders.

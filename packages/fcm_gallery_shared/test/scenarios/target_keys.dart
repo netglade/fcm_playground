@@ -1,15 +1,12 @@
 /// Finds every delivery-target key anywhere inside a payload template.
 ///
-/// `payloadTemplate.containsKey('topic')` only sees the top level, and the top
-/// level is the one place already protected — `FcmMessage.read` rejects `token`,
-/// `topic` and `condition` there outright. A *nested* target slips past both:
-/// `data: {'topic': 'news'}` is a legal `map<string, string>` entry, and anything
-/// under `apns.payload` is forwarded to Apple verbatim, so the typed model has no
-/// opinion about either. This walks maps and lists to any depth instead.
+/// The top level is already protected — `FcmMessage.read` rejects `token`, `topic`
+/// and `condition` there — but a nested `data: {'topic': 'news'}` is a legal
+/// string-map entry and anything under `apns.payload` is forwarded verbatim, so this
+/// walks maps and lists to any depth.
 ///
-/// [path] prefixes what is reported, so a hit names *where* it is rather than
-/// only that there is one — which is the difference between a usable failure and
-/// a hunt through 66 templates.
+/// [path] prefixes what is reported, so a hit names *where* it is rather than only
+/// that there is one.
 library;
 
 Iterable<String> targetKeysIn(Object? node, String path) {

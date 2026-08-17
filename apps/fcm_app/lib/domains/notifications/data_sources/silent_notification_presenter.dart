@@ -1,12 +1,9 @@
 import 'package:core/core.dart';
 
-import 'notification_presenter.dart';
+import '../entities/notification_presenter.dart';
 
-/// A [NotificationPresenter] that never shows anything.
-///
-/// The default in widget tests, and the fallback when the notification plugin
-/// fails to initialise — a broken plugin should cost the banners, not the app.
-/// The same role `DisabledPushSource` plays on the receiving side.
+/// A [NotificationPresenter] that never shows anything — the default in widget
+/// tests, and the fallback when the notification plugin fails to initialise.
 class SilentNotificationPresenter implements NotificationPresenter {
   const SilentNotificationPresenter();
 

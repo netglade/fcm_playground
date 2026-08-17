@@ -3,13 +3,11 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// An [FcmSender] that reads a [TelemetryStore] at the moment it is called.
 ///
-/// The only way to show that `queued` was recorded *before* FCM was asked to
-/// deliver: afterwards, a store written to twice at the end looks exactly like
-/// one written to before and after the call, because the events are stamped from
-/// one clock reading and read back in the order they were written.
+/// The only way to show that `queued` was recorded *before* FCM was asked to deliver:
+/// afterwards, a store written to twice at the end is indistinguishable from one
+/// written to either side of the call.
 ///
-/// A file of its own because `prefer-match-file-name` is fatal here and applies
-/// to tests as well — `metrics-exclude` covers the metrics, not the rules.
+/// A file of its own because `prefer-match-file-name` applies to tests too.
 class StoreReadingFcmSender implements FcmSender {
   StoreReadingFcmSender(this._store);
 

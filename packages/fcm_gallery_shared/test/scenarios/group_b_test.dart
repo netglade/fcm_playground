@@ -23,10 +23,8 @@ void main() {
     });
 
     test('b5 expects NOT to arrive, and says so', () {
-      // A scenario whose success is a non-delivery has to state that, or it
-      // reads as a broken test. `contains('not')` would NOT do here: it is
-      // satisfied accidentally by the word "nothing", so it would pass on an
-      // expectation that never mentioned non-delivery at all.
+      // A scenario whose success is a non-delivery has to say so. `contains('not')`
+      // would not do: the word "nothing" satisfies it accidentally.
       final forceStopped = groupB.firstWhere((s) => s.id == 'b5_force_stopped');
 
       expect(forceStopped.expectation, contains('nothing'));

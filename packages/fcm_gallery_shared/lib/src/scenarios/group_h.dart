@@ -87,10 +87,9 @@ const groupH = <Scenario>[
     payloadTemplate: {
       'apns': {
         'headers': {'apns-priority': '10'},
-        // apns.payload is forwarded to Apple verbatim, so it is free-form and
-        // its numbers keep the type they are written with. APNs defines
-        // `critical` as the int flag 1 and `volume` as a double in 0.0–1.0, so
-        // the two differ deliberately: 1 and 1.0, not 1.0 and 1.
+        // apns.payload is forwarded verbatim, so its numbers keep the type they
+        // are written with. APNs defines `critical` as the int flag 1 and `volume`
+        // as a double, so the two differ deliberately: 1 and 1.0.
         'payload': {
           'aps': {
             'alert': {'title': 'Critical', 'body': 'Through the mute switch.'},

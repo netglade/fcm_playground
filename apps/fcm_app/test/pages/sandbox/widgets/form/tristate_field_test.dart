@@ -1,4 +1,4 @@
-import 'package:fcm_app/ui/form/tristate_field.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/tristate_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
@@ -48,11 +48,9 @@ void main() {
   ) async {
     await pump(tester);
 
-    // TristateField is a plain StatelessWidget with no listener of its own —
-    // an app rebuilds it when the bound GladeModel (a ChangeNotifier) fires,
-    // which this isolated test stands in for by re-pumping. Without that
-    // rebuild the checkbox's `value` prop never advances past its first
-    // build, and every tap recomputes the same null-to-false transition.
+    // TristateField has no listener of its own: an app rebuilds it when the bound
+    // GladeModel fires, which re-pumping stands in for. Without that, the checkbox's
+    // `value` never advances past its first build.
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
     final first = model.flag.value;

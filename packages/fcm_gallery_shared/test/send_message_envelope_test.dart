@@ -27,9 +27,8 @@ void main() {
     });
 
     test('carries the scenario id, which nothing else can recover', () {
-      // The payload a scenario produces does not identify the scenario, so if
-      // the sender does not name it the `scenario x device` matrix has no
-      // scenario axis on either side.
+      // The payload a scenario produces does not identify the scenario, so without
+      // the sender naming it the matrix has no scenario axis.
       const request = SendMessageRequest(
         target: TokenTarget('abc'),
         message: FcmMessage(),
@@ -44,8 +43,8 @@ void main() {
     });
 
     test('omits the scenario id for a payload composed by hand', () {
-      // A real case rather than an error, so absent rather than empty: an empty
-      // string would become a matrix row for a scenario that does not exist.
+      // Absent rather than empty: an empty string would become a matrix row for a
+      // scenario that does not exist.
       const request = SendMessageRequest(
         target: TokenTarget('abc'),
         message: FcmMessage(),
@@ -171,9 +170,8 @@ void main() {
     });
 
     test('writes exactly the three fields the caller needs', () {
-      // Pinned as a whole map rather than key by key: a fourth key appearing, or
-      // traceId written under the wire spelling `trace_id`, would both be a
-      // silent contract change for the app parsing this.
+      // Pinned as a whole map: a fourth key, or traceId written as `trace_id`, would
+      // be a silent contract change for the app parsing this.
       expect(response.toJson(), {
         'messageId': 'projects/p/messages/0:17',
         'sentAt': '2026-08-11T09:12:03.000Z',
@@ -200,9 +198,8 @@ void main() {
     });
 
     test('rejects a response with no trace id, rather than blanking it', () {
-      // Every response from this API carries one. An absent trace id means the
-      // app is talking to an older server, and a blank one would look like a
-      // send that simply never got correlated.
+      // An absent trace id means an older server, and a blank one would look like a
+      // send that never got correlated.
       expect(
         () => SendMessageResponse.fromJson({
           'messageId': 'm',

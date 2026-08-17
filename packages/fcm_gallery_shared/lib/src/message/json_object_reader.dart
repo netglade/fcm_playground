@@ -1,16 +1,13 @@
-/// Reads a JSON object strictly: every key must be claimed by a read, and
-/// anything left over is an error.
+/// Reads a JSON object strictly: every key must be claimed by a read, and anything
+/// left over is an error.
 ///
-/// Rejecting unknown fields is only useful if the error says *where*, so the
-/// reader carries the path it is reading and composes it for nested objects —
-/// producing `message.android.notification: unknown field "titel"` rather than a
-/// bare complaint. That message is the whole point of parsing strictly.
+/// The reader carries the path it is reading and composes it for nested objects, so
+/// the error says `message.android.notification: unknown field "titel"` rather than
+/// making a bare complaint — which is the whole point of parsing strictly.
 class JsonObjectReader {
   JsonObjectReader(this._json, {required this._path});
 
   /// Reads [value] as an object, or throws [FormatException] naming [path].
-  ///
-  /// Used for nested objects, where the value's type is not yet known.
   factory JsonObjectReader.of(Object? value, {required String path}) {
     if (value is! Map<String, Object?>) {
       throw FormatException('$path: expected an object, got ${_nameOf(value)}');
@@ -23,7 +20,6 @@ class JsonObjectReader {
   final String _path;
   final _claimed = <String>{};
 
-  /// An optional string.
   String? text(String key) =>
       _read(key, 'a string', (value) => value is String ? value : null);
 
@@ -45,7 +41,6 @@ class JsonObjectReader {
     return value is int ? value.toDouble() : null;
   });
 
-  /// An optional list of strings.
   List<String>? textList(String key) =>
       _read(key, 'a list of strings', (value) {
         if (value is! List<Object?>) {
@@ -63,7 +58,6 @@ class JsonObjectReader {
         return List.unmodifiable(items);
       });
 
-  /// An optional object of string values, whose keys are the caller's own.
   Map<String, String>? stringMap(String key) =>
       _read(key, 'an object of strings', (value) {
         if (value is! Map<String, Object?>) {
@@ -82,18 +76,16 @@ class JsonObjectReader {
         return Map.unmodifiable(entries);
       });
 
-  /// An optional object passed through without inspection.
-  ///
-  /// For the fields FCM itself defines as free-form — `apns.payload`,
-  /// `webpush.notification` — where an unknown key is the caller's business and
-  /// rejecting it would be wrong.
+  /// Passed through without inspection, for the fields FCM defines as free-form —
+  /// `apns.payload`, `webpush.notification` — where an unknown key is the caller's
+  /// business.
   Map<String, Object?>? freeForm(String key) => _read(
     key,
     'an object',
     (value) => value is Map<String, Object?> ? Map.unmodifiable(value) : null,
   );
 
-  /// An optional nested object, parsed by [parse] with the composed path.
+  /// Parsed by [parse] with the composed path.
   T? object<T>(String key, T Function(JsonObjectReader reader) parse) {
     _claimed.add(key);
     final value = _json[key];
@@ -159,8 +151,8 @@ class JsonObjectReader {
   }
 }
 
-/// A readable type name for an error message, since `runtimeType` on a decoded
-/// map reads as `_Map<String, dynamic>` and helps nobody.
+/// `runtimeType` on a decoded map reads as `_Map<String, dynamic>` and helps
+/// nobody.
 String _nameOf(Object? value) => switch (value) {
   null => 'null',
   String() => 'a string',

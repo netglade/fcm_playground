@@ -55,8 +55,8 @@ void main() {
     'device_id': '',
   };
 
-  // The plainest well-formed event, for the tests that are about the batch
-  // rather than about any one event's contents.
+  // The plainest well-formed event, for the tests about the batch rather than about
+  // any one event's contents.
   Map<String, Object?> eventJson(String trace) => arrivalJson(trace, 'dev-a');
 
   group('POST /events', () {
@@ -99,8 +99,8 @@ void main() {
     });
 
     test('reports zero new on a replayed batch, without failing it', () async {
-      // The retry path. A 4xx here would make a client that already succeeded
-      // retry forever, and a silent 200 with no count would hide a lost flush.
+      // The retry path: a 4xx would make a client that already succeeded retry
+      // forever, and a 200 with no count would hide a lost flush.
       await post({
         'events': [eventJson('tr-1')],
       });
@@ -153,8 +153,8 @@ void main() {
     });
 
     test('answers 400, not 500, when a member is not an object', () async {
-      // A blind cast of the list would raise a TypeError here, which reaches
-      // the client as a 500 and reads as a server fault rather than a bad body.
+      // A blind cast would raise a TypeError, which reaches the client as a 500 and
+      // reads as a server fault rather than a bad body.
       final response = await post({
         'events': [1, 2],
       });
@@ -170,8 +170,8 @@ void main() {
     });
 
     test('accepts an event whose trace was never queued here', () async {
-      // A curl send by hand produces no `queued` row. Refusing its arrival would
-      // hide a real delivery, and the store has no foreign key for this reason.
+      // A curl send by hand produces no `queued` row, and refusing its arrival would
+      // hide a real delivery — which is why the store has no foreign key.
       final response = await post({
         'events': [eventJson('never-seen')],
       });
@@ -194,9 +194,9 @@ void main() {
     });
 
     test('a batch is all-or-nothing on a malformed member', () async {
-      // Half-storing a batch would leave the client unable to say what to retry.
-      // The two good members are a complete latency pair, so a partial store
-      // shows up in both assertions below rather than only in the store.
+      // Half-storing a batch would leave the client unable to say what to retry. The
+      // two good members are a complete latency pair, so a partial store shows up in
+      // both assertions below.
       final response = await post({
         'events': [
           sentJson('tr-good'),
@@ -259,8 +259,7 @@ void main() {
     });
 
     test('answers an empty list rather than 404 when nothing paired', () async {
-      // A send with no arrival is the interesting case this pipeline exists for,
-      // and it must read as "no measurements yet" rather than as an error.
+      // A send with no arrival must read as "no measurements yet", not as an error.
       await post({
         'events': [sentJson('tr-1')],
       });

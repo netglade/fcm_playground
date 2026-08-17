@@ -1,18 +1,13 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
-import 'notification_send_exception.dart';
-import 'notification_sender.dart';
+import '../entities/notification_send_exception.dart';
+import '../entities/notification_sender.dart';
 
-/// A [NotificationSender] that always fails with the reason it cannot work.
-///
-/// Used when Firebase failed to start: there will be no registration token, so
-/// there is nowhere to send. The reason travels to the UI instead of the app
-/// special-casing a null sender — exactly as `DisabledPushSource` does on the
-/// receiving side.
+/// A [NotificationSender] used when Firebase failed to start: it always fails
+/// with the reason, so the app never special-cases a null sender.
 class UnavailableNotificationSender implements NotificationSender {
   const UnavailableNotificationSender(this.reason);
 
-  /// Why sending is unavailable.
   final String reason;
 
   @override

@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 /// Edits a `Map<String, String>` as one key/value row per entry.
 ///
 /// The row count is not known ahead of time, so there is no fixed
-/// [TextEditingController] to bind — this widget owns its rows' controllers as
-/// view state and reports the collapsed map through [onChanged] on every
-/// keystroke, the same way the deleted `SandboxForm` handled its data rows.
+/// [TextEditingController] to bind — this widget owns its rows' controllers as view
+/// state and reports the collapsed map through [onChanged] on every keystroke.
 class StringMapRows extends StatefulWidget {
-  /// Renders [value] as rows labelled [label], reporting edits to [onChanged].
   const StringMapRows({
     required this.label,
     required this.value,
@@ -16,16 +14,10 @@ class StringMapRows extends StatefulWidget {
     super.key,
   });
 
-  /// The heading shown above the rows.
   final String label;
 
-  /// The entries this widget displays. Changes are reloaded into the rows when
-  /// the value differs from what the rows would collapse to, enabling the rows
-  /// to update from external changes while preventing rewinding during a user's
-  /// own edits.
   final Map<String, String> value;
 
-  /// Called with the current map whenever a row is added, edited, or removed.
   final ValueChanged<Map<String, String>> onChanged;
 
   @override
@@ -112,7 +104,6 @@ class _StringMapRowsState extends State<StringMapRows> {
     _push();
   }
 
-  /// Rebuilds the rows from [widget.value], disposing the existing controllers.
   void _reload() {
     for (final row in _rows) {
       row.dispose();
@@ -122,18 +113,16 @@ class _StringMapRowsState extends State<StringMapRows> {
     ];
   }
 
-  /// Returns the map that the current rows collapse to, dropping any row whose
-  /// key is blank so a half-typed row never produces an empty key.
+  /// Drops any row whose key is blank, so a half-typed row never produces an
+  /// empty key.
   Map<String, String> _collapsed() => {
     for (final row in _rows)
       if (row.key.text.trim().isNotEmpty) row.key.text: row.value.text,
   };
 
-  /// Reports the rows as a map through [onChanged].
   void _push() => widget.onChanged(_collapsed());
 }
 
-/// The two controllers behind one key/value row.
 class _MapRowControllers {
   _MapRowControllers({required this.key, required this.value});
 

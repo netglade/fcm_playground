@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fcm_app/push/push_source.dart';
+import 'package:fcm_app/domains/push/entities/push_source.dart';
 
 /// A [PushSource] driven by the test rather than by Firebase.
 class FakePushSource implements PushSource {
@@ -43,10 +43,9 @@ class FakePushSource implements PushSource {
 
   @override
   Future<void> dispose() async {
-    // Not awaited: a single-subscription controller's close() future only
-    // completes once a listener has received the done event, and most tests
-    // dispose a source that nothing ever subscribed to (taps, in particular).
-    // Closing still stops further adds either way.
+    // Not awaited: a single-subscription controller's close() future only completes
+    // once a listener has taken the done event, and most tests dispose a source
+    // nothing subscribed to.
     unawaited(_controller.close());
     unawaited(_taps.close());
   }

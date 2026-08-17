@@ -35,8 +35,7 @@ void main() {
     );
 
     test('accepts a payload key the model has never heard of', () {
-      // The escape hatch that makes an untyped aps acceptable: anything Apple
-      // adds is writable today, without a model change.
+      // The escape hatch that makes an untyped aps acceptable.
       final config = ApnsConfig.fromJson({
         'payload': {
           'aps': {'interruption-level': 'time-sensitive'},

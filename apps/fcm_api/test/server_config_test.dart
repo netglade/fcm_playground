@@ -74,10 +74,8 @@ void main() {
     });
 
     test('follows the key wherever it lives, rather than one fixed place', () {
-      // The test above alone would also pass if the default ignored the key
-      // entirely and named a literal; no single literal satisfies all four of
-      // these. The last two pin that a relative key stays relative — the key
-      // is given as a path from the working directory often enough.
+      // No single literal satisfies all four of these, which the test above alone
+      // would allow. The last two pin that a relative key stays relative.
       final expected = {
         keyPath: '/keys/fcm-telemetry.sqlite',
         '/home/martin/secrets/fcm-key.json':

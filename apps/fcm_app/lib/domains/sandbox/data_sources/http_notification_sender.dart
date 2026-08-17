@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
 
-import 'notification_send_exception.dart';
-import 'notification_sender.dart';
+import '../entities/notification_send_exception.dart';
+import '../entities/notification_sender.dart';
 
 /// Where the send API is expected to be.
 ///
@@ -33,9 +33,8 @@ class HttpNotificationSender implements NotificationSender {
         body: jsonEncode(request.toJson()),
       );
     } catch (error) {
-      // Every transport failure means one thing to the user — nothing is
-      // listening — and the usual cause is a forgotten port forward, so the
-      // remedy goes in the message rather than the exception type.
+      // The usual cause is a forgotten port forward, so the remedy goes in the
+      // message rather than the exception type.
       throw NotificationSendException(
         'Could not reach $_baseUrl — is the API running?\n'
         'On a physical device, run: adb reverse tcp:8080 tcp:8080\n'

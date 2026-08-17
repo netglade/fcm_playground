@@ -6,9 +6,7 @@ import 'smoke_model.dart';
 void main() {
   late SmokeModel model;
 
-  // glade_forms requires this once before any GladeModel is created; it
-  // wires up its DevTools inspector and is unrelated to the three
-  // assumptions this smoke test exists to check.
+  // Required once before any GladeModel is created.
   setUpAll(() {
     GladeForms.initialize();
   });
@@ -18,9 +16,8 @@ void main() {
   });
 
   test('an optional string starts empty and leaves the model valid', () {
-    // GladeStringInput defaults isRequired: true. If that default leaked
-    // through, the model would be invalid here and ~50 FCM fields would each
-    // need to be filled before anything could be sent.
+    // GladeStringInput defaults isRequired: true, and if that leaked through, ~50
+    // FCM fields would each need filling before anything could be sent.
     expect(model.text.value, isEmpty);
     expect(model.isValid, isTrue);
   });
@@ -54,16 +51,12 @@ void main() {
   test(
     'the default int converter keeps the old value when cleared (documented defect)',
     () async {
-      // FINDING (not the documented microtask wrinkle — confirmed present
-      // even after an extra event-loop turn below): GladeTypeConverters
-      // .intConverterNullable treats '' as an unparseable value, not as "no
-      // value" (it calls cantConvert(), which throws ConvertError). The
-      // controller-change listener swallows that error without calling
-      // _setValue, so the model silently keeps the last good value instead
-      // of resetting to null. Asserted here as the actual, verified
-      // behaviour of glade_forms 6.0.0 — see task-1-report.md. This is the
-      // default we do NOT want; see the converter-backed test below for the
-      // behaviour Task 8 actually depends on.
+      // FINDING, verified against glade_forms 6.0.0:
+      // GladeTypeConverters.intConverterNullable treats '' as unparseable rather
+      // than as "no value", and the controller-change listener swallows the error
+      // without calling _setValue — so the model keeps the last good value instead
+      // of resetting to null. This is the default we do NOT want; the
+      // converter-backed test below pins the behaviour we depend on.
       model.count.controller!.text = '42';
       model.count.controller!.text = '';
 
@@ -88,8 +81,8 @@ void main() {
   });
 
   test('a string input exposes a controller by default', () {
-    // GladeStringInput defaults useTextEditingController: true, unlike the
-    // int input. Confirming rather than trusting the docs.
+    // GladeStringInput defaults useTextEditingController: true, unlike the int
+    // input. Confirming rather than trusting the docs.
     expect(model.text.controller, isNotNull);
   });
 

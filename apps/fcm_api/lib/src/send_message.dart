@@ -7,21 +7,15 @@ import 'fcm_sender.dart';
 import 'send_outcome.dart';
 import 'telemetry_store.dart';
 
-/// Injects the delivery target and a trace id into the message and forwards it
-/// to FCM.
+/// Injects the delivery target and a trace id into the message and forwards it to
+/// FCM, recording `queued` before FCM is asked and then `sent` or `send_failed`.
 ///
-/// The payload is otherwise the caller's: nothing here invents a notification
-/// block or a data key of its own — [request.message] is forwarded untouched
-/// apart from the [request.target] injected as the delivery target and the
-/// trace id injected into `data`. Takes its clock, its id generator and its
-/// [TelemetryStore] as parameters rather than reading any of them from the
-/// environment, so its tests assert exact values instead of matching patterns —
-/// and it depends on no `Request`, no credential and no socket.
+/// The payload is otherwise the caller's. The clock, the id generator and the
+/// [TelemetryStore] are parameters rather than read from the environment, so the
+/// tests assert exact values and this depends on no `Request`, credential or socket.
 ///
-/// It records the send side of the pipeline as it goes: `queued` before FCM is
-/// asked, then `sent` or `send_failed`. **These five parameters are the limit**
-/// — `number-of-parameters: 5` is fatal here — so a sixth needs the arguments
-/// gathered into an object rather than appended.
+/// Five parameters is the limit here — `number-of-parameters: 5` is fatal — so a
+/// sixth needs them gathered into an object.
 Future<SendOutcome> sendMessage(
   SendMessageRequest request, {
   required FcmSender sender,
@@ -30,19 +24,16 @@ Future<SendOutcome> sendMessage(
   required TelemetryStore telemetry,
 }) async {
   if (request.target case AllDevicesTarget()) {
-    // Nothing is recorded, deliberately: the refusal happens before anything is
-    // queued, and a `queued` row with no `sent` or `send_failed` beside it would
-    // read as a message lost in flight rather than one never accepted.
+    // Nothing is recorded: a `queued` row with no `sent` or `send_failed` beside
+    // it would read as a message lost in flight rather than one never accepted.
     return _allDevicesUnsupported;
   }
 
   // Minted once, so the id on the wire and the id returned are the same one.
   final traceId = newTraceId();
-  // One clock reading stamps every event of this send, which is why
-  // `TelemetryStore.all` is specified in recorded order: two readings would
-  // separate `queued` from `sent` by however long FCM took, and nothing here
-  // wants to measure that — the figure this pipeline exists for is
-  // `sent → received`.
+  // One clock reading stamps every event of this send — two would separate
+  // `queued` from `sent` by however long FCM took, which nobody wants to measure.
+  // Hence `TelemetryStore.all` being specified in recorded order.
   final at = now();
   final scenarioId = request.scenarioId;
   await _record(
@@ -52,8 +43,7 @@ Future<SendOutcome> sendMessage(
 
   try {
     final messageId = await sender.send(_bodyFor(request, traceId));
-    // FCM's own name for the message, which is what ties this trace to Google's
-    // record of the same send.
+    // FCM's own name for the message, which ties this trace to Google's record.
     await _record(
       telemetry,
       _event(
@@ -89,13 +79,9 @@ Future<SendOutcome> sendMessage(
   }
 }
 
-/// Stores one event, swallowing whatever the store does about it.
-///
-/// Telemetry observes something more important than itself. Losing a row is a
-/// nuisance; failing a push because the event store was unavailable would be a
-/// bug in a tool whose only purpose is sending pushes. The reason goes to
-/// `stderr` rather than nowhere, so a store that is quietly failing is still
-/// visible to whoever is watching the server.
+/// Stores one event, swallowing whatever the store does about it: losing a row is a
+/// nuisance, failing a push because the event store was unavailable is a bug in a
+/// tool whose only purpose is sending pushes.
 Future<void> _record(TelemetryStore telemetry, TelemetryEvent event) async {
   try {
     await telemetry.record([event]);
@@ -106,13 +92,9 @@ Future<void> _record(TelemetryStore telemetry, TelemetryEvent event) async {
   }
 }
 
-/// One of the three send-side events.
-///
-/// `deviceId` is empty because these happen on the server, with no device
-/// involved yet. `scenarioId` comes off the request, which is the only way it can
-/// be known here: the payload a scenario produces does not identify the scenario,
-/// so without the sender naming it the `scenario × device` matrix would have no
-/// scenario axis on either side.
+/// One of the three send-side events. `deviceId` is empty because these happen on
+/// the server; `scenarioId` comes off the request, which is the only way it can be
+/// known here — the payload a scenario produces does not identify the scenario.
 TelemetryEvent _event(
   String traceId,
   TelemetryEventType type,
@@ -130,11 +112,9 @@ TelemetryEvent _event(
 
 /// Builds FCM's request body, merging the trace and scenario ids into `data`.
 ///
-/// The merge builds a **new** map. `FcmMessage.toJson` returns a fresh outer map
-/// but passes `data` through by reference, so writing into that map in place
-/// would rewrite the caller's own — and for the `const` scenario templates, or
-/// the unmodifiable map `FcmMessage.fromJson` produces, it would throw instead.
-/// Neither is a way to send a push.
+/// The merge builds a new map: `FcmMessage.toJson` passes `data` through by
+/// reference, so writing into it in place would rewrite the caller's own — and for
+/// a `const` scenario template it would throw.
 Map<String, Object?> _bodyFor(SendMessageRequest request, String traceId) {
   final message = request.message.toJson();
 
@@ -145,10 +125,8 @@ Map<String, Object?> _bodyFor(SendMessageRequest request, String traceId) {
       'data': {
         ...?message['data'] as Map<String, String>?,
         'trace_id': traceId,
-        // Injected as well as recorded, so the DEVICE knows which scenario it is
-        // holding. Its arrival events carry no scenario otherwise, and a matrix
-        // whose rows come only from the send side could not tell which handset
-        // received which scenario.
+        // Injected as well as recorded, so the device knows which scenario it is
+        // holding — its arrival events carry no scenario otherwise.
         'scenario_id': ?request.scenarioId,
       },
       ...request.target.toJson(),

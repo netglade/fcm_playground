@@ -1,18 +1,14 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'device_identity.dart';
-import 'new_device_id.dart';
+import '../entities/device_identity.dart';
+import '../new_device_id.dart';
 
 /// A [DeviceIdentity] over `shared_preferences`.
 ///
-/// Two scalars, so `shared_preferences` rather than a database: Drift earns its
-/// place for the event buffer, which is a queue, and would be ceremony here.
-///
-/// Uses [SharedPreferencesAsync] rather than the legacy `SharedPreferences` for
-/// the same load-bearing reason as `SharedPreferencesPushPayloadStore`: the
-/// legacy API caches per isolate, and the background message handler runs in its
-/// own engine. A background-recorded event must stamp the same device id as a
-/// foreground one, which only holds if every read goes to platform storage.
+/// [SharedPreferencesAsync] rather than the legacy `SharedPreferences` for the
+/// same reason as `SharedPreferencesPushPayloadStore`: the legacy API caches per
+/// isolate, and a background-recorded event must stamp the same device id as a
+/// foreground one.
 class SharedPreferencesDeviceIdentity implements DeviceIdentity {
   SharedPreferencesDeviceIdentity({SharedPreferencesAsync? preferences})
     : _preferences = preferences ?? SharedPreferencesAsync();

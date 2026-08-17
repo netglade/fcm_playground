@@ -9,17 +9,13 @@ import 'push_message_format_exception.dart';
 class PushMessageParser {
   const PushMessageParser();
 
-  /// Keys this parser reads itself. Anything else is passed through in
+  /// Keys this parser reads itself; anything else is passed through in
   /// [PushMessage.data].
   ///
-  /// `trace_id` and `scenario_id` are here because they are plumbing rather than
-  /// payload. The send API injects both — the first so telemetry can correlate a
-  /// send with its arrival, the second so the device knows which catalogue
-  /// scenario it is holding — and showing either as an "extra data" row would
-  /// present a detail of ours as something the sender chose.
-  ///
-  /// Neither is in [requiredKeys]: a push sent by hand carries no trace id, and a
-  /// payload composed from scratch belongs to no scenario. Both must still arrive.
+  /// `trace_id` and `scenario_id` are plumbing the send API injects, so showing
+  /// either as an "extra data" row would present a detail of ours as something the
+  /// sender chose. Neither is in [requiredKeys] — a push sent by hand has no trace
+  /// id, and a hand-composed payload belongs to no scenario.
   static const reservedKeys = {
     'id',
     'title',
@@ -29,12 +25,9 @@ class PushMessageParser {
     'scenario_id',
   };
 
-  /// Payload keys that must be present and non-blank.
-  ///
-  /// A subset of [reservedKeys]: `id` de-duplicates repeat deliveries and
-  /// `sentAt` orders the inbox, so neither can be inferred. `title` and `body`
-  /// are absent from a data-only push, which is a payload worth being able to
-  /// send, so they are read as optional.
+  /// `id` de-duplicates repeat deliveries and `sentAt` orders the inbox, so neither
+  /// can be inferred. `title` and `body` are absent from a data-only push, so they
+  /// are read as optional.
   static const requiredKeys = {'id', 'sentAt'};
 
   /// Parses [payload], or throws [PushMessageFormatException] if a required
@@ -74,11 +67,8 @@ class PushMessageParser {
     return value;
   }
 
-  /// Reads a field that may be absent or blank.
-  ///
-  /// A data-only push carries no title and no body, and sending exactly those is
-  /// the point of the playground — so an empty headline is a value, not a fault.
-  /// A *wrong-typed* value is still a fault.
+  /// A data-only push carries no title and no body, so an empty headline is a value
+  /// rather than a fault. A wrong-typed value still is one.
   String _optionalText(Map<String, Object?> payload, String field) {
     final value = payload[field];
     if (value == null) {

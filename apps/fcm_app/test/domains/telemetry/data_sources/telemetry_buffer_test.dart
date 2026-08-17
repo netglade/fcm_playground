@@ -1,10 +1,10 @@
 import 'package:drift/native.dart';
-import 'package:fcm_app/telemetry/drift_telemetry_buffer.dart';
-import 'package:fcm_app/telemetry/telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/data_sources/drift_telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'system_sqlite.dart';
+import '../system_sqlite.dart';
 
 void main() {
   late DriftTelemetryBuffer database;
@@ -16,8 +16,7 @@ void main() {
 
   setUp(() {
     database = DriftTelemetryBuffer(NativeDatabase.memory());
-    // Assigned through the interface so the suite exercises what Task 12's
-    // reporter depends on, and so the assignment itself pins that the Drift
+    // Assigned through the interface, so the assignment itself pins that the Drift
     // implementation satisfies it.
     buffer = database;
   });
@@ -44,8 +43,7 @@ void main() {
   });
 
   test('forgets only what it is given', () async {
-    // A blanket clear after a partial flush loses whatever arrived meanwhile,
-    // and events that arrive during a flush are the common case.
+    // A blanket clear after a partial flush loses whatever arrived meanwhile.
     await buffer.add(first);
     await buffer.add(second);
 
@@ -55,8 +53,7 @@ void main() {
   });
 
   test('forgets the newest event when that is the one it is given', () async {
-    // The mirror of the test above, and the one that fails an implementation
-    // which ignores its argument and drops the oldest n rows instead.
+    // Fails an implementation that ignores its argument and drops the oldest n.
     await buffer.add(first);
     await buffer.add(second);
 
@@ -66,9 +63,8 @@ void main() {
   });
 
   test('forgets one of two identical events, not both', () async {
-    // This buffer does not deduplicate, so two byte-identical rows are two
-    // things that happened and the server is what collapses them. An
-    // implementation that deleted by matching columns would take both here.
+    // Two byte-identical rows are two things that happened, so an implementation
+    // deleting by matching columns would take both.
     await buffer.add(first);
     await buffer.add(first);
 
@@ -89,8 +85,8 @@ void main() {
   test(
     'keeps the events past the limit when a bounded flush is forgotten',
     () async {
-      // The two features meeting: a flush sends `limit` events and forgets those,
-      // so anything the limit excluded — identical rows included — must survive.
+      // A flush sends `limit` events and forgets those, so anything the limit
+      // excluded — identical rows included — must survive.
       await buffer.add(first);
       await buffer.add(first);
       await buffer.add(first);
@@ -170,8 +166,7 @@ void main() {
   test(
     'round-trips every field, including a null scenario and detail',
     () async {
-      // The nullable columns are where a hand-written mapper goes wrong, and a
-      // dropped trace_id would make the event uncorrelatable.
+      // The nullable columns are where a hand-written mapper goes wrong.
       final full = TelemetryEvent(
         traceId: 'tr-7',
         type: TelemetryEventType.notReceived,
@@ -228,8 +223,7 @@ void main() {
   );
 }
 
-/// An arrival stamped at [at], with everything else held constant so a test can
-/// vary one thing at a time.
+/// An arrival stamped at [at], with everything else held constant.
 TelemetryEvent _eventAt(DateTime at, {String detail = 'fcm-message-1'}) =>
     TelemetryEvent(
       traceId: 'tr-1',
@@ -239,7 +233,7 @@ TelemetryEvent _eventAt(DateTime at, {String detail = 'fcm-message-1'}) =>
       detail: detail,
     );
 
-/// A distinct event per [index], one second apart, for the bounding test.
+/// A distinct event per [index], one second apart.
 TelemetryEvent _eventNumbered(int index) => TelemetryEvent(
   traceId: 'tr-$index',
   type: TelemetryEventType.receivedFg,
@@ -247,8 +241,6 @@ TelemetryEvent _eventNumbered(int index) => TelemetryEvent(
   deviceId: 'device-1',
 );
 
-/// The wire models inside [pending], for the assertions that are about content
-/// rather than about which row is which.
 List<TelemetryEvent> _eventsOf(List<PendingEvent> pending) => [
   for (final entry in pending) entry.event,
 ];

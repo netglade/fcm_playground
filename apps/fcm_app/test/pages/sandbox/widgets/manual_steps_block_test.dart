@@ -1,4 +1,4 @@
-import 'package:fcm_app/ui/manual_steps_block.dart';
+import 'package:fcm_app/pages/sandbox/widgets/manual_steps_block.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -17,11 +17,9 @@ void main() {
     );
 
     expect(find.byType(SelectableText), findsOne);
-    // `find.textContaining` matches an `EditableText` as readily as a `Text`,
-    // and `SelectableText` builds one — so on its own the finder below could
-    // be satisfied by a plain `Text` sitting beside an empty `SelectableText`.
-    // Scoping it to the selectable subtree is what proves the command itself
-    // is the copyable part.
+    // `find.textContaining` matches an `EditableText` as readily as a `Text`, so
+    // scoping to the selectable subtree is what proves the command is the copyable
+    // part.
     expect(
       find.descendant(
         of: find.byType(SelectableText),

@@ -1,4 +1,4 @@
-import 'package:fcm_app/ui/scenario_needs_banner.dart';
+import 'package:fcm_app/pages/sandbox/widgets/scenario_needs_banner.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,16 +18,13 @@ void main() {
     await pump(tester, null);
 
     expect(find.byType(Text), findsNothing);
-    // `findsNothing` on its own would also hold for a wordless but visible
-    // decoration — an empty `Card`, a `Padding` — which is the thing that must
-    // not appear. Scaffold lays its body out loosely, so a zero size is proof
-    // the banner took no vertical space at all.
+    // `findsNothing` alone would hold for a wordless but visible decoration. Scaffold
+    // lays its body out loosely, so a zero size proves the banner took no space.
     expect(tester.getSize(find.byType(ScenarioNeedsBanner)), Size.zero);
   });
 
   testWidgets('renders nothing for a scenario that works', (tester) async {
-    // The common case: 21 of 66 have no needs, and a banner on each would be
-    // noise that trains the user to ignore it.
+    // The common case, and a banner on each would train the user to ignore it.
     await pump(tester, scenario('a1_notification_only'));
 
     expect(find.byType(Text), findsNothing);
@@ -39,10 +36,9 @@ void main() {
 
     expect(find.textContaining('notification actions'), findsOne);
     expect(find.textContaining('external approval'), findsOne);
-    // Both labels differ from their enum names (`interaction`,
-    // `externalApproval`), so the two finders above already rule out a banner
-    // that printed `need.name`. This pins the rest: that both needs land in one
-    // sentence, comma-separated, in declaration order.
+    // Both labels differ from their enum names, so the finders above already rule out
+    // a banner printing `need.name`. This pins the rest: one sentence,
+    // comma-separated, in declaration order.
     expect(
       find.text(
         'Needs notification actions, external approval. The push will still be '

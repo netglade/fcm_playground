@@ -67,7 +67,7 @@ dart_code_metrics:
     # Form models mirroring the same API. AndroidNotificationForm declares 27
     # inputs, so number-of-parameters and source-lines-of-code cannot apply for
     # the same reason they cannot apply to the typed model above.
-    - apps/fcm_app/lib/sandbox/forms/**
+    - apps/fcm_app/lib/pages/sandbox/forms/**
   rules:
     # Dart
     - avoid-collection-methods-with-unrelated-types

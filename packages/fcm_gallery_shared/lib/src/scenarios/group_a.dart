@@ -1,13 +1,12 @@
 import 'scenario.dart';
 
-/// **A — Basic delivery.** The four shapes an FCM message can take, and which
-/// layer draws each one.
+/// **A — Basic delivery.** The four shapes an FCM message can take, and which layer
+/// draws each one.
 ///
-/// The whole catalogue rests on telling these apart: a `notification` payload is
-/// drawn by the system while the app is backgrounded and by the app itself while
-/// it is foregrounded, and a `data` payload is never drawn by anyone unless the
-/// app does it. Most confusion about "the push did not arrive" is really one of
-/// these four being mistaken for another.
+/// A `notification` payload is drawn by the system while the app is backgrounded and
+/// by the app while it is foregrounded; a `data` payload is never drawn by anyone
+/// unless the app does it. Most "the push did not arrive" confusion is one of these
+/// four mistaken for another.
 const groupA = <Scenario>[
   Scenario(
     id: 'a1_notification_only',
@@ -36,12 +35,9 @@ const groupA = <Scenario>[
     payloadTemplate: {
       'data': {'event': 'sync', 'build_number': '128'},
     },
-    // Deliberately NOT requiresKilledApp, despite the description asking about
-    // the killed case. That flag means "meaningless unless the app is killed",
-    // which implies the scenario needs delayed sending to be arranged at all —
-    // and a data-only push is observable in every app state, so this one is
-    // sendable today. b3_killed is the scenario that is only about the killed
-    // state, and it carries the flag and the need together.
+    // Deliberately NOT requiresKilledApp: that flag means "meaningless unless the
+    // app is killed", which implies the scenario needs delayed sending. A data-only
+    // push is observable in every state, so this one is sendable today.
   ),
   Scenario(
     id: 'a3_hybrid',

@@ -1,4 +1,4 @@
-import 'package:fcm_app/sandbox/forms/android_notification_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/android_notification_form.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
@@ -8,10 +8,8 @@ void main() {
 
   /// Every field set, so the round-trip proves no field was forgotten.
   ///
-  /// An inlined copy of the contract package's own fixture: it is a `const`
-  /// local to that test's `main()`, and one package's `test/` directory is not
-  /// visible to another's. The `hasLength(27)` guard below is what stops the
-  /// copy drifting from the model.
+  /// An inlined copy of the contract package's own fixture, which is a `const`
+  /// local to that test's `main()` and so invisible here. `hasLength(27)` below guards the copy.
   const everyField = {
     'title': 'Build finished',
     'body': 'Release 1.0.0 is ready.',
@@ -50,8 +48,8 @@ void main() {
 
   group('AndroidNotificationForm', () {
     test('the fixture still covers every field', () {
-      // Guards the inlined copy: a 28th field on AndroidNotification fails here
-      // instead of silently narrowing the round-trip below.
+      // Guards the inlined copy: a 28th field on AndroidNotification fails here rather than
+      // silently narrowing the round-trip below.
       expect(everyField, hasLength(27));
     });
 
@@ -139,9 +137,8 @@ void main() {
     });
 
     test('clears a cleared notification count instead of keeping the old one', () {
-      // glade's own nullable-int converter treats '' as unparseable and retains
-      // the last number, so a user who typed 3 and cleared it would still send
-      // notification_count: 3.
+      // glade's own nullable-int converter treats '' as unparseable and keeps the
+      // last number, so clearing the field would still send notification_count: 3.
       final subject = form()
         ..readFrom(const AndroidNotification(notificationCount: 3));
 
@@ -177,10 +174,8 @@ void main() {
     });
 
     test('is invalid when the nested light settings block is invalid', () {
-      // The nested form's inputs are not in `inputs`, so the inherited
-      // `isValid` cannot see them. Validity has to compose at every level or
-      // Task 12's section badge lies: green on android.notification while a red
-      // one hides inside a closed light_settings section.
+      // The nested inputs are not in `inputs`, so the inherited `isValid` cannot see
+      // them. Validity has to compose at every level or the section badge lies.
       final subject = form();
 
       subject.lightSettings.red.controller!.text = '2.5';

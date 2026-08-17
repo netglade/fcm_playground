@@ -1,4 +1,4 @@
-import 'package:fcm_app/push/remote_message_payload.dart';
+import 'package:fcm_app/domains/push/entities/remote_message_payload.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_test/flutter_test.dart';
 

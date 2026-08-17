@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-import 'push_source.dart';
-import 'remote_message_payload.dart';
+import '../entities/push_source.dart';
+import '../entities/remote_message_payload.dart';
 
 /// A [PushSource] backed by `firebase_messaging`.
 class FirebasePushSource implements PushSource {
@@ -25,18 +25,14 @@ class FirebasePushSource implements PushSource {
   @override
   Stream<String> get taps => _taps.stream;
 
-  /// Subscribes to foreground messages and notification taps, asks iOS to show
-  /// banners while the app is in use, and replays the message that launched the
-  /// app, if there was one.
   Future<void> start() async {
     _subscription = FirebaseMessaging.onMessage.listen(_emit);
     _openedSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
       _onOpened,
     );
 
-    // Android shows nothing for a foreground message, which is what
-    // LocalNotificationPresenter is for. iOS suppresses the banner unless asked,
-    // and this one call is all it needs — no plugin involved.
+    // iOS suppresses the foreground banner unless asked. Android shows nothing
+    // either way, which is what LocalNotificationPresenter is for.
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
@@ -68,9 +64,8 @@ class FirebasePushSource implements PushSource {
     await _openedSubscription?.cancel();
 
     // Not awaited: a single-subscription controller's close() future only
-    // completes once a listener has received the done event, and dispose can
-    // run before anything ever subscribes (taps in particular, until a later
-    // task wires a consumer for it). Closing still stops further adds either way.
+    // completes once a listener has received the done event, and dispose can run
+    // before anything ever subscribes. Closing still stops further adds.
     unawaited(_controller.close());
     unawaited(_taps.close());
   }

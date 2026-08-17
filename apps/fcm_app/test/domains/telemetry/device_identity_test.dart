@@ -1,5 +1,5 @@
-import 'package:fcm_app/telemetry/new_device_id.dart';
-import 'package:fcm_app/telemetry/shared_preferences_device_identity.dart';
+import 'package:fcm_app/domains/telemetry/data_sources/shared_preferences_device_identity.dart';
+import 'package:fcm_app/domains/telemetry/new_device_id.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
@@ -36,17 +36,15 @@ void main() {
     });
 
     test('is written to preferences, not merely held in memory', () async {
-      // The key name is spelled out rather than imported: it is the address the
-      // id lives at across upgrades, and renaming it would hand every existing
-      // install a new identity and split its matrix column in two.
+      // Spelled out rather than imported: it is the address the id lives at across
+      // upgrades, and renaming it would split every install's matrix column in two.
       final minted = await identity.id();
 
       expect(await preferences.getString('telemetry.device_id'), minted);
     });
 
     test('survives a new instance over the same preferences', () async {
-      // The id is only useful if it outlives a restart; otherwise every launch
-      // is a new device and the matrix grows a column a day.
+      // Otherwise every launch is a new device and the matrix grows a column a day.
       final first = await identity.id();
 
       expect(
@@ -88,9 +86,8 @@ void main() {
   });
 
   group('minting an id', () {
-    // These pin the property the store cannot demonstrate on its own: that the
-    // difference between two ids comes from randomness rather than from the
-    // clock having moved between the two calls.
+    // The difference between two ids has to come from randomness rather than from
+    // the clock having moved between the calls.
     final instant = DateTime.utc(2026, 8, 14, 9, 30);
 
     test('differs for two ids minted at the very same instant', () {
@@ -128,8 +125,8 @@ void main() {
 
   group('the label', () {
     test('starts with an empty label and keeps what is set', () async {
-      // Empty rather than a guess: no automatic value is as useful as
-      // "Xiaomi 13" typed by someone who knows which handset is on the desk.
+      // Empty rather than a guess: no automatic value beats "Xiaomi 13" typed by
+      // someone who knows which handset is on the desk.
       expect(await identity.label(), isEmpty);
 
       await identity.setLabel('Xiaomi 13');

@@ -1,6 +1,6 @@
-import 'package:fcm_app/ui/form/path_rows_field.dart';
-import 'package:fcm_app/ui/form/string_list_rows.dart';
-import 'package:fcm_app/ui/form/string_map_rows.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/path_rows_field.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/string_list_rows.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/string_map_rows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

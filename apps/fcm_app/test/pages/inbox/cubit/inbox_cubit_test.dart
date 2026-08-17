@@ -1,10 +1,10 @@
-import 'package:fcm_app/push/inbox_cubit.dart';
-import 'package:fcm_app/push/inbox_state.dart';
-import 'package:fcm_app/push/push_repository.dart';
+import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
+import 'package:fcm_app/pages/inbox/cubit/inbox_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../fake_push_payload_store.dart';
-import '../fake_push_source.dart';
+import '../../../fakes/fake_push_payload_store.dart';
+import '../../../fakes/fake_push_source.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
   'id': id,
@@ -32,10 +32,9 @@ void main() {
   });
 
   test('starts from what the repository already holds', () async {
-    // The repository is app-scoped and older than the page: `main()` restores
-    // and fetches the token before the first frame, and a setup error is set in
-    // the constructor and never published at all. A blank initial state would
-    // blank the banner and the token until the next push happened to arrive.
+    // The repository is older than the page: `main()` restores and fetches the token
+    // before the first frame, and a setup error is never published at all. A blank
+    // initial state would blank the banner and the token until the next push.
     final started = PushRepository(
       FakePushSource(),
       store: FakePushPayloadStore(inbox: [payload(id: 'restored')]),
@@ -94,12 +93,9 @@ void main() {
   });
 
   test('publishes a cleared tap rather than clearing it silently', () async {
-    // The assertion above reads the cubit's own state, which it can only have
-    // learned from the repository's stream — so a `clearPendingOpen` that
-    // mutated and stayed silent would leave it claiming a tap is outstanding
-    // until some unrelated push published. This says so as its own guard, with
-    // the emission counted, because that silence used to work by accident: the
-    // shell navigates on the very next statement.
+    // Its own guard, with the emission counted: a `clearPendingOpen` that mutated
+    // and stayed silent would leave the cubit claiming a tap is outstanding until
+    // some unrelated push published.
     final seen = <InboxState>[];
     final watching = inbox.stream.listen(seen.add);
     addTearDown(watching.cancel);

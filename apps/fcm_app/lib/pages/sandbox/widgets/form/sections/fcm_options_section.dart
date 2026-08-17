@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../sandbox/forms/fcm_options_form.dart';
+import '../../../forms/fcm_options_form.dart';
 import '../form_section.dart';
 
-/// Edits the platform-independent `fcm_options` block.
-///
-/// One field, so no loop earns its keep here. The APNs and WebPush blocks carry
-/// extra fields FCM rejects on the generic one, so they have sections of their
-/// own rather than a shared parameterised widget — which `prefer-single-widget-
-/// per-file` would forbid anyway.
+/// Edits the platform-independent `fcm_options` block. The APNs and WebPush
+/// blocks carry extra fields FCM rejects here, so they have sections of their own.
 class FcmOptionsSection extends StatelessWidget {
-  /// Renders [form]'s single input inside a collapsible section.
   const FcmOptionsSection({required this.form, super.key});
 
-  /// The block this section edits. Read, never listened to: something above
-  /// listens to every model in the tree and rebuilds this.
   final FcmOptionsForm form;
 
   @override

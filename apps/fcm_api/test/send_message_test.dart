@@ -116,9 +116,8 @@ void main() {
     });
 
     test('the id it puts on the wire is the id it returns', () async {
-      // Minting twice — once for the body, once for the response — would put one
-      // id in FCM's data map and a different one in the caller's hand, and
-      // nothing downstream would ever correlate.
+      // Minting twice would put one id in FCM's data map and a different one in the
+      // caller's hand, and nothing downstream would correlate.
       final sender = FakeFcmSender();
       var minted = 0;
 
@@ -138,10 +137,9 @@ void main() {
     });
 
     test('leaves the caller\'s own data map alone', () async {
-      // Verified: FcmMessage.toJson() builds a fresh outer map but passes `data`
-      // through by reference, so `toJson()['data']` *is* the caller's map. A
-      // careless `data['trace_id'] = id` would rewrite this one in place — and
-      // for a mutable map that corrupts silently rather than throwing.
+      // FcmMessage.toJson() builds a fresh outer map but passes `data` through by
+      // reference, so a careless `data['trace_id'] = id` would rewrite the caller's
+      // own map — silently, for a mutable one.
       final callerData = <String, String>{'event': 'sync'};
 
       await run(request(message: FcmMessage(data: callerData)));
@@ -154,11 +152,9 @@ void main() {
     });
 
     test('sends every catalogue template without disturbing it', () async {
-      // The templates are const, and FcmMessage.fromJson copies `data` into an
-      // unmodifiable map, so an in-place injection throws here rather than
-      // corrupting the gallery for the rest of the process. Either failure mode
-      // fails this test, which is the point. The injection really happens: every
-      // template goes through sendMessage before it is re-checked.
+      // The templates are const and `fromJson` copies `data` into an unmodifiable
+      // map, so an in-place injection throws here rather than corrupting the gallery
+      // for the rest of the process.
       for (final scenario in scenarioGallery) {
         final raw = Map<String, Object?>.from(scenario.payloadTemplate);
         final message = FcmMessage.fromJson(raw);
@@ -267,30 +263,32 @@ void main() {
       expect(outcome.error.message, contains('QUOTA_EXCEEDED'));
     });
 
-    test('sends the scenario id on to the device, not only to telemetry', () async {
-      // Recorded AND injected. The device's own arrival events carry no scenario
-      // otherwise, so a matrix built only from send-side rows could not say which
-      // handset received which scenario.
-      final sender = FakeFcmSender();
-      await run(
-        const SendMessageRequest(
-          target: TokenTarget('abc'),
-          message: FcmMessage(data: {'event': 'sync'}),
-          scenarioId: 'c1_priority_high',
-        ),
-        sender: sender,
-      );
+    test(
+      'sends the scenario id on to the device, not only to telemetry',
+      () async {
+        // Recorded AND injected: the device's own arrival events carry no scenario
+        // otherwise.
+        final sender = FakeFcmSender();
+        await run(
+          const SendMessageRequest(
+            target: TokenTarget('abc'),
+            message: FcmMessage(data: {'event': 'sync'}),
+            scenarioId: 'c1_priority_high',
+          ),
+          sender: sender,
+        );
 
-      expect(dataIn(sender), {
-        'event': 'sync',
-        'trace_id': 'tr-1',
-        'scenario_id': 'c1_priority_high',
-      });
-    });
+        expect(dataIn(sender), {
+          'event': 'sync',
+          'trace_id': 'tr-1',
+          'scenario_id': 'c1_priority_high',
+        });
+      },
+    );
 
     test('omits scenario_id from data when there is no scenario', () async {
       // Absent rather than empty: an empty string would reach the device as a
-      // scenario that does not exist, and its arrival would join a phantom row.
+      // scenario that does not exist.
       final sender = FakeFcmSender();
       await run(
         const SendMessageRequest(
@@ -305,9 +303,8 @@ void main() {
 
     group('telemetry', () {
       test('records the scenario id on every send-side event', () async {
-        // Both halves of the matrix need it: the send side names the scenario, and
-        // pairLatencies reads it from here first. Without it the scenario axis is
-        // empty however many events arrive.
+        // Both halves of the matrix need it: pairLatencies reads it from here first,
+        // so without it the scenario axis is empty however many events arrive.
         final store = InMemoryTelemetryStore();
         await run(
           const SendMessageRequest(
@@ -356,12 +353,9 @@ void main() {
 
       test('has queued stored before FCM is called at all', () async {
         // The order in `all()` cannot tell "queued before the send" from "both
-        // recorded after it returned" — the store's order is the order it was
-        // written in, and one clock reading stamps both, so neither the sequence
-        // nor the timestamps distinguish those two implementations. What the
-        // store holds at the moment the sender runs does, and that is the whole
-        // point of `queued`: a request that never reached FCM has to be
-        // distinguishable from one that was never made.
+        // recorded afterwards": one clock reading stamps both. What the store holds
+        // at the moment the sender runs can, and that is the point of `queued` — a
+        // request that never reached FCM must differ from one never made.
         final sender = StoreReadingFcmSender(store);
 
         await run(request(), sender: sender, telemetry: store);
@@ -372,10 +366,9 @@ void main() {
       });
 
       test('records the FCM message id on the sent event', () async {
-        // What ties our trace to Google's own record of the send. Asserted
-        // against a literal distinct from the fake's default, so a detail that
-        // came from anywhere but FCM's answer — a constant, the trace id, an
-        // empty string — fails here instead of matching by coincidence.
+        // What ties our trace to Google's own record. Asserted against a literal
+        // distinct from the fake's default, so a detail from anywhere but FCM's
+        // answer fails rather than matching by coincidence.
         await run(
           request(),
           sender: FakeFcmSender(messageId: 'projects/p/messages/0:99'),
@@ -433,8 +426,8 @@ void main() {
       });
 
       test('a telemetry failure does not fail the send', () async {
-        // This tool exists to send pushes. Failing one because the event store
-        // was unavailable would be the wrong trade every time.
+        // Failing a push because the event store was unavailable would be the wrong
+        // trade every time.
         final telemetry = ThrowingTelemetryStore();
         final sender = FakeFcmSender();
 
@@ -444,9 +437,8 @@ void main() {
           telemetry: telemetry,
         );
 
-        // `isA<SendSucceeded>` alone would also pass for an implementation that
-        // swallowed the store error and skipped the send, so the push itself and
-        // the answer built from FCM's reply are checked too.
+        // `isA<SendSucceeded>` alone would pass for an implementation that swallowed
+        // the store error and skipped the send.
         expect(sender.sent, hasLength(1), reason: 'the push must still go out');
         final response = (outcome as SendSucceeded).response;
         expect(response.messageId, 'projects/p/messages/0:17');
@@ -459,9 +451,8 @@ void main() {
       });
 
       test('records nothing at all for a refused all-devices target', () async {
-        // The 501 happens before anything is queued, so a queued event with no
-        // matching sent or send_failed row would look like a message lost in
-        // flight rather than one never accepted.
+        // The 501 happens before anything is queued, and a `queued` row with no
+        // `sent` beside it would read as a message lost in flight.
         await run(request(target: const AllDevicesTarget()), telemetry: store);
 
         expect(await store.all(), isEmpty);

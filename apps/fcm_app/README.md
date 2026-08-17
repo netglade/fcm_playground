@@ -14,10 +14,14 @@ cd apps/fcm_app && fvm flutter run  # run on a device
 
 Structure:
 
-- `lib/push/` — `PushSource` interface plus its Firebase and disabled
-  implementations, `PushRepository`, the app-scoped owner of everything received,
-  and `InboxCubit`, the page-scoped projection the UI watches
-- `lib/ui/` — one widget per file
+- `lib/pages/<page>/` — one directory per destination (`inbox`, `scenarios`,
+  `sandbox`, plus `shell`), each holding its page widget, its `cubit/`, and the
+  `widgets/` only that page uses. `lib/app.dart` is the root that provides the
+  cubits
+- `lib/domains/<domain>/` — `entities/` for the interfaces and value types,
+  `repositories/` for the app-scoped owners such as `PushRepository`, and
+  `data_sources/` for the implementations that reach Firebase, Drift, HTTP or
+  `shared_preferences`
 - `lib/firebase_options.dart` — project id is real (`fcm-sandbox-770fa`), but
   `apiKey`, `appId` and `messagingSenderId` are **still placeholders**; see the
   root README for how to fetch them

@@ -2,13 +2,9 @@
 ///
 /// Two collections rather than one, because two isolates write here: the UI
 /// isolate owns the inbox, and the background message handler only ever appends
-/// to the pending list. Neither reads-modifies-writes the other's collection, so
-/// a push arriving mid-write cannot be lost.
-///
-/// Raw payload maps are stored rather than parsed messages, so there is one
-/// format on disk and `PushMessageParser` stays the only thing that validates.
+/// to the pending list. Neither read-modify-writes the other's collection, so a
+/// push arriving mid-write cannot be lost.
 abstract interface class PushPayloadStore {
-  /// Payloads kept from earlier sessions, in the order they were saved.
   Future<List<Map<String, Object?>>> loadInbox();
 
   /// Replaces the kept payloads. The caller has already applied the cap.

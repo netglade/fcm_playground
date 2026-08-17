@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../push/inbox_cubit.dart';
-import '../push/inbox_state.dart';
+import 'cubit/inbox_cubit.dart';
+import 'cubit/inbox_state.dart';
 import 'message_detail_page.dart';
-import 'message_tile.dart';
-import 'setup_error_banner.dart';
+import 'widgets/message_tile.dart';
+import 'widgets/setup_error_banner.dart';
 
 /// Lists every push received this session, newest first.
 ///
-/// A body rather than a page: the `Scaffold` and the `AppBar` belong to
-/// `AppShell`, so each destination is one widget with no chrome of its own.
+/// A body rather than a page: the `Scaffold` and the `AppBar` belong to `AppShell`,
+/// so each destination is one widget with no chrome of its own.
 class InboxView extends StatelessWidget {
-  const InboxView({required this.inbox, super.key});
-
-  final InboxCubit inbox;
+  const InboxView({super.key});
 
   @override
   Widget build(BuildContext context) => BlocBuilder<InboxCubit, InboxState>(
-    bloc: inbox,
     builder: (context, state) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

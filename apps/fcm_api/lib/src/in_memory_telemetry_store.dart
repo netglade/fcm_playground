@@ -2,19 +2,15 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 import 'telemetry_store.dart';
 
-/// A [TelemetryStore] that keeps events in a map, for tests and for a server
-/// started without a database.
+/// A [TelemetryStore] that keeps events in a map, for tests and for a server started
+/// without a database.
 ///
-/// It is the implementation every test in the telemetry work uses, so the whole
-/// contract — idempotency, first-arrival pairing, skew — is verified in pure
-/// Dart and the gate never needs a native SQLite. That makes it the definition
-/// of the behaviour rather than a convenience: the SQLite store is checked
-/// against these same expectations.
+/// Every telemetry test uses it, so the whole contract is verified in pure Dart and
+/// the gate never needs a native SQLite — which makes this the definition of the
+/// behaviour rather than a convenience.
 class InMemoryTelemetryStore implements TelemetryStore {
-  /// Events by idempotency key. A `Map` rather than a list because the key *is*
-  /// the deduplication, and an insertion-ordered map keeps [all] in recorded
-  /// order for free — re-recording an existing key updates the value in place
-  /// and leaves its position alone.
+  /// A `Map` rather than a list because the key *is* the deduplication, and an
+  /// insertion-ordered map keeps [all] in recorded order for free.
   final Map<_EventKey, TelemetryEvent> _events = {};
 
   @override
@@ -23,9 +19,8 @@ class InMemoryTelemetryStore implements TelemetryStore {
     for (final event in events) {
       final key = _keyOf(event);
       final kept = _events[key];
-      // Counted only when the key is new. Re-stamping an event this store already
-      // holds is not a new event, so a retry reports zero rather than claiming to
-      // have stored what it merely refreshed.
+      // Counted only when the key is new, so a retry reports zero rather than
+      // claiming to have stored what it merely refreshed.
       if (kept == null) {
         stored++;
       }

@@ -8,104 +8,72 @@ import 'light_settings_form.dart';
 /// Edits `android.notification` — everything Android's notification tray
 /// understands on top of, or in place of, the cross-platform block.
 ///
-/// The largest form in the set: 27 fields, mirroring [AndroidNotification]
-/// one-for-one so the mapping in both directions stays mechanical and testable
-/// without pumping a widget.
-///
-/// FCM requires nothing here, so every input is optional and [toModel] returns
-/// null while the whole block is untouched — the payload then omits
-/// `"notification": {}` rather than sending it.
+/// Mirrors [AndroidNotification] one-for-one. FCM requires nothing here, so every
+/// input is optional and [toModel] returns null while the whole block is
+/// untouched.
 class AndroidNotificationForm extends GladeModel {
-  /// The notification's headline, shown in the tray.
   late GladeStringInput title;
 
-  /// The notification's text, shown below the title.
   late GladeStringInput body;
 
-  /// Names a drawable resource in the app; unset falls back to the app icon.
   late GladeStringInput icon;
 
-  /// The accent colour Android tints the notification with, as `#rrggbb`.
   late GladeStringInput color;
 
-  /// Names a sound resource in the app for Android to play on delivery.
   late GladeStringInput sound;
 
   /// Reusing a tag replaces the existing notification instead of stacking a
   /// second one beside it.
   late GladeStringInput tag;
 
-  /// The action bundled into the tap intent, letting the app route to a screen.
   late GladeStringInput clickAction;
 
   /// A key into the app's string resources, so the device localises the body
   /// rather than the sender shipping translated text.
   late GladeStringInput bodyLocKey;
 
-  /// The arguments substituted into [bodyLocKey]'s format string.
   late GladeInput<List<String>?> bodyLocArgs;
 
-  /// A key into the app's string resources, localising the title on device.
   late GladeStringInput titleLocKey;
 
-  /// The arguments substituted into [titleLocKey]'s format string.
   late GladeInput<List<String>?> titleLocArgs;
 
-  /// The channel the app registered, which decides the user-facing sound,
-  /// importance and lock-screen behaviour Android applies.
   late GladeStringInput channelId;
 
-  /// Text read aloud by accessibility services as the notification arrives.
   late GladeStringInput ticker;
 
-  /// Whether the notification stays until the user acts, rather than being
-  /// swipeable away.
   late GladeInput<bool?> sticky;
 
-  /// When the triggering event happened, as a proto timestamp — text, because
-  /// round-trip fidelity matters more than a parsed representation.
+  /// A proto timestamp — text, because round-trip fidelity matters more than a
+  /// parsed representation.
   late GladeStringInput eventTime;
 
-  /// Whether to keep the notification off wearables and other devices on the
-  /// same account.
   late GladeInput<bool?> localOnly;
 
-  /// How prominently Android displays the notification once delivered.
   late GladeInput<AndroidNotificationPriority?> notificationPriority;
 
-  /// Whether to use the channel's default sound rather than [sound].
   late GladeInput<bool?> defaultSound;
 
-  /// Whether to use the channel's default vibration rather than
-  /// [vibrateTimings].
   late GladeInput<bool?> defaultVibrateTimings;
 
-  /// Whether to use the channel's default LED settings rather than
-  /// [lightSettings].
   late GladeInput<bool?> defaultLightSettings;
 
-  /// The vibration pattern, as proto durations alternating vibrate and pause.
+  /// Proto durations alternating vibrate and pause.
   late GladeInput<List<String>?> vibrateTimings;
 
-  /// How much of the notification a locked screen shows.
   late GladeInput<NotificationVisibility?> visibility;
 
-  /// The number Android shows as the launcher icon's badge count.
   late GladeInput<int?> notificationCount;
 
-  /// How Android should flash the device's notification LED.
-  ///
-  /// A nested model rather than four more inputs, because FCM requires every
-  /// one of its fields once the block is present — see [LightSettingsForm].
+  /// A nested model rather than four more inputs, because FCM requires every one
+  /// of its fields once the block is present — see [LightSettingsForm].
   late LightSettingsForm lightSettings;
 
-  /// URL of an image for FCM to download and display — a URL, never bytes.
+  /// A URL for FCM to download, never bytes.
   late GladeStringInput image;
 
-  /// Whether to bypass FCM's own proxying, taking [proxy] out of consideration.
   late GladeInput<bool?> bypassProxyNotification;
 
-  /// Whether Android may proxy the notification.
   late GladeInput<NotificationProxy?> proxy;
 
   @override
@@ -138,28 +106,18 @@ class AndroidNotificationForm extends GladeModel {
     proxy,
   ];
 
-  /// This form and every model beneath it.
-  ///
-  /// Composed per level, exactly as [isValid] is, so a form added under
-  /// [lightSettings] later is picked up here without anyone remembering to
-  /// register it at the root as well. See `FcmMessageForm.allModels` for why the
-  /// whole tree has to be listened to rather than just the root.
+  /// This form and every model beneath it — see `FcmMessageForm.allModels` for
+  /// why the whole tree has to be listened to rather than just the root.
   List<GladeModelBase> get allModels => [this, ...lightSettings.allModels];
 
-  /// Whether every input here **and in the nested block** is valid.
+  /// Whether every input here and in the nested block is valid.
   ///
-  /// `GladeModel.isValid` is `inputs.every(...)`, and [lightSettings]' inputs are
-  /// deliberately absent from [inputs] — `initialize()` binds everything in that
-  /// list to *this* model, which would tear the light-settings inputs away from
-  /// the model that owns them. So the nested block escapes the inherited getter
-  /// and has to be folded back in here.
-  ///
-  /// It is folded in at this level rather than left to the page, because
-  /// `FormSection`'s badge is per section: a green badge on `android.notification`
-  /// while a red one hides inside a closed `light_settings` is the "invalid field
-  /// the user cannot see" that the badge exists to prevent. Validity has to
-  /// compose at every level for the badges to mean anything, so each form owning
-  /// a subform overrides this the same way.
+  /// [lightSettings]' inputs are deliberately absent from [inputs] —
+  /// `initialize()` would bind them to *this* model — so the nested block escapes
+  /// the inherited getter and has to be folded back in. It composes at every
+  /// level because `FormSection`'s badge is per section: a green badge on
+  /// `android.notification` hiding a red one inside a closed `light_settings` is
+  /// exactly what the badge exists to prevent.
   @override
   bool get isValid => super.isValid && lightSettings.isValid;
 
@@ -269,11 +227,9 @@ class AndroidNotificationForm extends GladeModel {
 
   /// The block as FCM's own model, or null when nothing is set.
   ///
-  /// Null rather than an empty object, so an untouched block is omitted from the
-  /// payload instead of being sent as `"notification": {}`. "Is anything set?"
-  /// is asked by comparing against the empty instance, which cannot drift out of
-  /// step as fields are added — the typed classes have value equality precisely
-  /// so this works.
+  /// "Is anything set?" is asked by comparing against the empty instance, which
+  /// cannot drift out of step as fields are added — the typed classes have value
+  /// equality precisely so this works.
   AndroidNotification? toModel() {
     final result = AndroidNotification(
       title: emptyMeansAbsent(title.value),
@@ -309,8 +265,6 @@ class AndroidNotificationForm extends GladeModel {
   }
 }
 
-/// One of FCM's optional strings in this block, none of which it requires.
-///
 /// `isRequired: false` on every one — `GladeStringInput` defaults to required,
 /// and missing this on a single input would leave the whole form invalid until
 /// that field was filled.
@@ -319,26 +273,21 @@ GladeStringInput _text(String name) =>
 
 /// One of FCM's optional flags, which needs three states rather than two.
 ///
-/// `GladeBoolInput` is a `GladeInput<bool>` and cannot hold null, so it could
-/// not tell "the user chose false" from "the user chose nothing" — and a form
-/// that cannot say "absent" would send fields nobody set.
+/// `GladeBoolInput` is a `GladeInput<bool>` and cannot hold null, so it could not
+/// tell "the user chose false" from "the user chose nothing".
 GladeInput<bool?> _flag(String name) => GladeInput<bool?>.optional(
   inputKey: 'android.notification.$name',
   value: null,
 );
 
-/// One of FCM's optional enums, held nullable so "not set" stays expressible.
 GladeInput<E?> _choice<E extends Enum>(String name) => GladeInput<E?>.optional(
   inputKey: 'android.notification.$name',
   value: null,
 );
 
-/// One of FCM's optional string lists, with no rule beyond being a list.
-///
 /// Typed over the whole collection so the row editor can hand back a list and
 /// `updateValue` takes it like any other value. Holding these outside `inputs`
-/// would put them outside glade's validity and dirty tracking, leaving
-/// `toModel` the only thing that knew they existed.
+/// would put them outside glade's validity and dirty tracking.
 GladeInput<List<String>?> _stringList(String name) =>
     GladeInput<List<String>?>.optional(
       inputKey: 'android.notification.$name',

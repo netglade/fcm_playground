@@ -3,15 +3,12 @@ import 'dart:async';
 import 'package:core/core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import 'notification_content.dart';
-import 'notification_presenter.dart';
+import '../entities/notification_content.dart';
+import '../entities/notification_presenter.dart';
 
-/// A [NotificationPresenter] over `flutter_local_notifications`.
-///
-/// Needed only for the foreground: while the app is backgrounded, FCM's own SDK
-/// draws the tray entry, and on iOS a single presentation-options call is enough.
-/// This exists because Android shows nothing for a message that arrives while
-/// the app is in use.
+/// A [NotificationPresenter] over `flutter_local_notifications`, needed only
+/// because Android shows nothing for a message that arrives while the app is in
+/// use.
 class LocalNotificationPresenter implements NotificationPresenter {
   LocalNotificationPresenter({FlutterLocalNotificationsPlugin? plugin})
     : _plugin = plugin ?? FlutterLocalNotificationsPlugin();

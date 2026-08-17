@@ -1,4 +1,4 @@
-import 'package:fcm_app/push/push_payload_store.dart';
+import 'package:fcm_app/domains/push/entities/push_payload_store.dart';
 
 /// A [PushPayloadStore] held in memory, so no test touches platform channels.
 class FakePushPayloadStore implements PushPayloadStore {

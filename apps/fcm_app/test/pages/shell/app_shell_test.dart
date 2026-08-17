@@ -1,16 +1,18 @@
-import 'package:fcm_app/push/inbox_cubit.dart';
-import 'package:fcm_app/push/push_repository.dart';
-import 'package:fcm_app/sandbox/sandbox_cubit.dart';
-import 'package:fcm_app/ui/fcm_sample_app.dart';
-import 'package:fcm_app/ui/message_detail_page.dart';
+import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
+import 'package:fcm_app/pages/inbox/message_detail_page.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
+import 'package:fcm_app/pages/shell/app_shell.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import 'fake_notification_sender.dart';
-import 'fake_push_payload_store.dart';
-import 'fake_push_source.dart';
+import '../../fakes/fake_notification_sender.dart';
+import '../../fakes/fake_push_payload_store.dart';
+import '../../fakes/fake_push_source.dart';
+import '../../fakes/recording_navigator_observer.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
   'id': id,
@@ -27,31 +29,40 @@ void main() {
   late InboxCubit inbox;
   late SandboxCubit sandbox;
 
-  // Everything but the source is built here rather than in `setUp`, and the
-  // reason is a zone, not a preference.
+  // The shell under providers of the test's own, rather than `App`: that
+  // widget's `BlocProvider`s pull their collaborators out of `getIt`, which no test
+  // here configures.
   //
-  // `PushRepository.changes` is a *synchronous* broadcast controller, so it
-  // hands each event to `InboxCubit` inside the `add` call — but through
-  // `_zone.runUnaryGuarded`, meaning the cubit's `emit` executes in whatever
-  // zone the cubit *subscribed* in. A cubit's own state stream is an ordinary
-  // asynchronous broadcast controller, which schedules its delivery with
-  // `Zone.current.scheduleMicrotask`. Built in `setUp`, that is the outer test
-  // zone, which `testWidgets` does not drive: the microtask is queued somewhere
-  // `pumpAndSettle` never flushes and the shell hears nothing however long the
-  // test pumps. Measured — the four notification-tap tests below go silent.
-  //
-  // Built here, the subscription lives in the zone the tester drives, which is
-  // also where it will live for real once `AppShell` creates the cubit through
-  // `BlocProvider(create: …)`.
-  Future<void> pumpApp(WidgetTester tester) async {
-    repository = PushRepository(source, store: FakePushPayloadStore())
+  // Everything but the source is built here rather than in `setUp`, because of a
+  // zone. A cubit's state stream schedules delivery with
+  // `Zone.current.scheduleMicrotask`, so a cubit built in `setUp` subscribes in the
+  // outer test zone — which `testWidgets` does not drive, leaving the microtask
+  // somewhere `pumpAndSettle` never flushes. Measured: the notification-tap tests
+  // below go silent.
+  Future<void> pumpApp(
+    WidgetTester tester, {
+    FakePushPayloadStore? store,
+    NavigatorObserver? observer,
+  }) async {
+    repository = PushRepository(source, store: store ?? FakePushPayloadStore())
       ..listen();
     inbox = InboxCubit(repository);
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.state.token,
     );
-    await tester.pumpWidget(FcmSampleApp(inbox: inbox, sandbox: sandbox));
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: [if (observer != null) observer],
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: inbox),
+            BlocProvider.value(value: sandbox),
+          ],
+          child: const AppShell(),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
   }
 
@@ -60,10 +71,8 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  // The outermost stack, which is the shell's: a closed `DropdownButton` builds
-  // an `IndexedStack` of its items, so the Sandbox page's target selector
-  // contributes a second one whenever that page is the visible destination.
-  // Finders walk the tree from the root, so the shell's comes first.
+  // The outermost stack is the shell's: a closed `DropdownButton` builds an
+  // `IndexedStack` of its items too, and finders walk the tree from the root.
   int? selectedDestination(WidgetTester tester) =>
       tester.widget<IndexedStack>(find.byType(IndexedStack).first).index;
 
@@ -162,8 +171,7 @@ void main() {
     final dataOnly = scenarioGallery.firstWhere((s) => s.id == 'a2_data_only');
 
     // Reaching a scenario below the first is a scroll within the gallery's own
-    // page, unrelated to the bug this change fixes: that was the editor on the
-    // *Sandbox* page sitting below the fold with nothing above it.
+    // page, unrelated to the Sandbox-page fold this change fixed.
     await scrollIntoView(tester, find.text(dataOnly.title));
     await tester.tap(find.text(dataOnly.title));
     await tester.pumpAndSettle();
@@ -233,20 +241,36 @@ void main() {
     expect(find.byType(MessageDetailPage), findsOne);
   });
 
-  testWidgets('drains pending payloads when the app resumes', (tester) async {
-    // Built here rather than through `pumpApp` only because this test needs to
-    // hold on to the store it puts a pending payload into. The zone note on
-    // `pumpApp` applies just the same, which is why it is still built inside the
-    // test body.
-    final store = FakePushPayloadStore();
-    repository = PushRepository(source, store: store)..listen();
-    inbox = InboxCubit(repository);
-    sandbox = SandboxCubit(
-      sender: FakeNotificationSender(),
-      token: () => inbox.state.token,
+  testWidgets('clears the pending open before it navigates', (tester) async {
+    // The ordering, observed at the only moment it is observable: by the time
+    // `pumpAndSettle` returns, both orderings have cleared and navigated exactly
+    // once. A `NavigatorObserver`'s `didPush` runs *inside* the push, so this is
+    // where clearing first is distinguishable — and it matters because the clear
+    // publishes, so a watcher woken between the two would route the tap twice.
+    final pendingAtPush = <bool>[];
+    await pumpApp(
+      tester,
+      observer: RecordingNavigatorObserver(
+        (_) => pendingAtPush.add(inbox.state.hasPendingOpen),
+      ),
     );
-    await tester.pumpWidget(FcmSampleApp(inbox: inbox, sandbox: sandbox));
+    source.emit(payload(id: 'tapped'));
     await tester.pumpAndSettle();
+
+    inbox.requestOpen('tapped');
+    await tester.pumpAndSettle();
+
+    // The last push is the detail route — the one before it is the shell itself,
+    // pushed before any tap existed.
+    expect(find.byType(MessageDetailPage), findsOne);
+    expect(pendingAtPush.last, isFalse);
+  });
+
+  testWidgets('drains pending payloads when the app resumes', (tester) async {
+    // The store is handed in because this test keeps hold of the one it puts a
+    // pending payload into. The zone note above applies here too.
+    final store = FakePushPayloadStore();
+    await pumpApp(tester, store: store);
     store.pending.add(payload(id: 'while-away'));
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);

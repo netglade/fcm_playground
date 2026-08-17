@@ -21,8 +21,8 @@ void main() {
     });
 
     test('the two payload-level failures work today, and only those two', () {
-      // hasLength(5) is what makes "only those two" true of the group rather
-      // than of whichever entries happen to be present.
+      // hasLength(5) makes "only those two" true of the group rather than of
+      // whichever entries happen to be present.
       expect(groupK, hasLength(5));
       expect(groupK.where((s) => s.isSupported).map((s) => s.id), [
         'k1_payload_oversize',
@@ -42,13 +42,9 @@ void main() {
 
       expect(characters, greaterThan(4096));
 
-      // ...but that sum is not what FCM measures. String.length counts UTF-16
-      // code units while FCM counts bytes of the serialised message, so the two
-      // agree only while the text stays ASCII — a chunk rewritten with an em
-      // dash or an accent would make the character count an over-estimate. The
-      // bytes of the JSON that actually goes on the wire are asserted beside it,
-      // and must be at least the character sum, since JSON only adds quotes,
-      // colons and commas on top.
+      // ...but that sum is not what FCM measures: String.length counts UTF-16 code
+      // units while FCM counts bytes, so the two agree only while the text is ASCII.
+      // The bytes of the JSON that goes on the wire are asserted beside it.
       final bytes = utf8.encode(jsonEncode(data)).length;
 
       expect(bytes, greaterThan(4096));
@@ -58,12 +54,9 @@ void main() {
         reason: 'serialising can only add to the size',
       );
 
-      // The strictest reading of the limit, and the reason the chunks are as
-      // long as they are: even counting the value bytes *alone* — no keys, no
-      // JSON punctuation, the smallest number anyone could call the payload
-      // size — this is over 4 KB. The first draft cleared 4096 only once keys
-      // and quoting were counted, which made the scenario's whole point depend
-      // on whose definition FCM uses.
+      // The strictest reading of the limit, and why the chunks are as long as they
+      // are: even the value bytes alone are over 4 KB. The first draft cleared 4096
+      // only once keys and quoting were counted.
       final valueBytes = data.values
           .map((v) => utf8.encode(v! as String).length)
           .reduce((a, b) => a + b);
@@ -77,19 +70,17 @@ void main() {
 
       expect(target, isA<TokenTarget>());
       expect((target! as TokenTarget).token, isNot(isEmpty));
-      // The token has to stay obviously fake. Someone debugging this scenario
-      // will be tempted to paste their own device token in and commit it, which
-      // turns a guaranteed UNREGISTERED into a real delivery and quietly stops
-      // testing the error path. Pinning the marker text fails that build.
+      // The token has to stay obviously fake: pasting a real device token in turns a
+      // guaranteed UNREGISTERED into a real delivery and stops testing the error
+      // path.
       expect((target as TokenTarget).token, contains('never-real'));
       expect(target.toJson().keys.single, 'token');
       expect(dead.expectation, contains('UNREGISTERED'));
     });
 
     test('k2 is the catalogue\'s only supported scenario with an audience', () {
-      // The three group-J targets are all blocked, so k2 is the one entry that
-      // both carries a target and can be sent today — which makes it the only
-      // scenario exercising the envelope's target end to end.
+      // The group-J targets are all blocked, so k2 is the only entry that both
+      // carries a target and can be sent today.
       expect(
         scenarioGallery
             .where((s) => s.isSupported && s.target != null)
@@ -99,9 +90,8 @@ void main() {
     });
 
     test('both supported failures say which error they should produce', () {
-      // These two exist to be reproduced on demand, so an entry that did not
-      // name its expected error would leave the user unable to tell a working
-      // scenario from a broken one.
+      // An entry that did not name its expected error would leave the user unable to
+      // tell a working scenario from a broken one.
       expect(
         scenarioK('k1_payload_oversize').expectation,
         contains('INVALID_ARGUMENT'),
@@ -155,10 +145,8 @@ void main() {
     });
 
     test('nothing in this group is about the killed app', () {
-      // Errors and device states are observable in every app state, so the flag
-      // — which means "meaningless unless the app is killed" and drags in
-      // delayed sending — is off across the group. Pinned here rather than left
-      // to the gallery-wide invariant, which only checks entries that set it.
+      // Errors and device states are observable in every app state, so the flag is
+      // off across the group and does not drag in delayed sending.
       for (final scenario in groupK) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);
@@ -166,10 +154,9 @@ void main() {
     });
 
     test('no template names an audience at any depth', () {
-      // k2 is the one supported scenario with a target, so this is the group
-      // where the audience is most likely to leak into the payload. A nested
-      // `data: {'token': …}` would pass FcmMessage and a top-level containsKey
-      // check alike.
+      // k2 is the one supported scenario with a target, so this is where the audience
+      // is most likely to leak: a nested `data: {'token': …}` passes FcmMessage and a
+      // top-level containsKey check alike.
       for (final scenario in groupK) {
         expect(
           targetKeysIn(scenario.payloadTemplate, scenario.id),

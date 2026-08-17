@@ -1,7 +1,7 @@
-import 'package:fcm_app/sandbox/forms/apns_fcm_options_form.dart';
-import 'package:fcm_app/sandbox/forms/fcm_notification_form.dart';
-import 'package:fcm_app/sandbox/forms/fcm_options_form.dart';
-import 'package:fcm_app/sandbox/forms/webpush_fcm_options_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/apns_fcm_options_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/fcm_notification_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/fcm_options_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/webpush_fcm_options_form.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
@@ -150,9 +150,9 @@ void main() {
 
   group('the three options forms are not interchangeable', () {
     test('each carries only the fields its platform accepts', () {
-      // The generic block accepts analytics_label alone; APNs adds image and
-      // WebPush adds link. One shared form would let a field through on a
-      // platform that rejects it, which is why the typed model has three.
+      // The generic block accepts analytics_label alone; APNs adds image and WebPush
+      // adds link. One shared form would let a field through on a platform that
+      // rejects it.
       final apns = ApnsFcmOptionsForm()..initialize();
       final webpush = WebpushFcmOptionsForm()..initialize();
 

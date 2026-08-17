@@ -9,9 +9,8 @@ Scenario scenarioJ(String id) => groupJ.firstWhere((s) => s.id == id);
 void main() {
   group('group J', () {
     test('every blocked scenario states why, not just that it is blocked', () {
-      // j2 originally had no expectation while j1 and j3 both explained
-      // themselves, so a user looking at j2 alone saw a blocked scenario with no
-      // stated cause. Uniform across the group now.
+      // j2 originally had no expectation, so a user looking at it alone saw a
+      // blocked scenario with no stated cause.
       for (final scenario in groupJ) {
         expect(scenario.expectation, isNotNull, reason: scenario.id);
         expect(scenario.expectation!.trim(), isNotEmpty, reason: scenario.id);
@@ -27,11 +26,8 @@ void main() {
     });
 
     test('none of the targeting scenarios works yet', () {
-      // hasLength(3) is what backs the word "none": without it a fourth entry
-      // could be appended and this loop would still only be about the three
-      // that happen to be here. `needs` is pinned exactly rather than merely
-      // non-empty, so "which scenarios does the targeting work unblock?" stays
-      // a truthful filter.
+      // hasLength(3) backs the word "none", and `needs` is pinned exactly rather than
+      // merely non-empty so the need stays a truthful filter.
       expect(groupJ, hasLength(3));
 
       for (final scenario in groupJ) {
@@ -41,13 +37,9 @@ void main() {
     });
 
     test('each declares its audience through target, not the payload', () {
-      // The equality does discriminate the variant — every SendTarget's
-      // operator== type-tests `other` first, so a ConditionTarget never equals
-      // a TopicTarget of the same string. What equality alone does NOT pin is
-      // the key that reaches the wire, and that key is the audience:
-      // AllDevicesTarget in particular has no field at all, so its whole value
-      // is its type and `expect(target, AllDevicesTarget())` says nothing about
-      // what gets sent. toJson() is asserted beside each one for that reason.
+      // Equality discriminates the variant but not the key that reaches the wire, and
+      // that key is the audience. AllDevicesTarget has no field at all, so its whole
+      // value is its type — hence toJson() asserted beside each one.
       final topic = scenarioJ('j1_topic').target;
       expect(topic, const TopicTarget('news'));
       expect(topic?.toJson(), {'topic': 'news'});
@@ -67,10 +59,8 @@ void main() {
     });
 
     test('every target survives the envelope reader it will be sent through', () {
-      // These three are the only scenarios that put anything in the envelope,
-      // so they are the only data that can break SendTarget.readFrom. A target
-      // that does not round-trip would be a 400 from our own API at send time,
-      // discovered on a device rather than here.
+      // The only scenarios that put anything in the envelope, so the only data that
+      // can break SendTarget.readFrom — otherwise a 400 discovered on a device.
       for (final scenario in groupJ) {
         final target = scenario.target;
         expect(target, isNotNull, reason: scenario.id);
@@ -85,11 +75,9 @@ void main() {
     test(
       'two of the three are blocked on subscribing, the third on a registry',
       () {
-        // The distinction is why all three are blocked and it is not the same
-        // reason. topic and condition are FCM's own oneof keys, so j1 and j2 are
-        // sent and answered 200 today — and nothing arrives, because this device
-        // has never subscribed. all_devices is ours, not FCM's, so j3 cannot be
-        // sent at all and the API refuses it outright.
+        // All three are blocked, for two reasons: topic and condition are FCM's own
+        // oneof keys, so j1 and j2 are answered 200 while nothing arrives, whereas
+        // all_devices is ours and the API refuses it outright.
         expect(
           groupJ
               .where((s) => s.target?.toJson().keys.single != 'all_devices')
@@ -108,13 +96,9 @@ void main() {
     );
 
     test('no template names an audience at any depth', () {
-      // The gallery-wide check tests containsKey on the top level only, and
-      // this is the group with an audience to smuggle. A nested
-      // `data: {'topic': 'news'}` or a key under the free-form `apns.payload`
-      // would pass that check untouched — FcmMessage cannot object either,
-      // because both blocks are opaque to it — while reading to anyone scanning
-      // the JSON as the scenario's audience. The audience lives in
-      // Scenario.target and nowhere else.
+      // The gallery-wide check tests containsKey on the top level only, and this is
+      // the group with an audience to smuggle: a nested `data: {'topic': 'news'}`
+      // passes it untouched, and FcmMessage cannot object either.
       for (final scenario in groupJ) {
         expect(
           targetKeysIn(scenario.payloadTemplate, scenario.id),
@@ -125,9 +109,8 @@ void main() {
     });
 
     test('the recursive scan would really catch a nested target', () {
-      // Guards the guard: an isEmpty assertion passes exactly as happily
-      // against a scanner that never finds anything at all, which is the one
-      // way the test above could be green while the data was wrong.
+      // Guards the guard: an isEmpty assertion passes just as happily against a
+      // scanner that never finds anything.
       const nestedInData = {
         'notification': {'title': 'Topic push'},
         'data': {'topic': 'news'},
@@ -145,11 +128,8 @@ void main() {
     });
 
     test('nothing in this group is about the killed app', () {
-      // Targeting is about who receives a push, not what state they are in, so
-      // the flag would be false on all three. It means "meaningless unless the
-      // app is killed" and drags in delayed sending, so it is pinned off across
-      // the group rather than left to the gallery-wide invariant, which only
-      // checks the entries that set it.
+      // Targeting is about who receives a push, not what state they are in, so the
+      // flag would be false on all three and would drag in delayed sending.
       for (final scenario in groupJ) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);

@@ -19,10 +19,9 @@ void main() {
     );
 
     test('the priority pair sends the two values FCM accepts', () {
-      // NOT "differ only in priority" — they also differ in title and body, so
-      // that name would be false. What matters is that the two spellings FCM
-      // accepts are both present and correctly cased: 'high' or 'Normal' is a
-      // 400 from Google, and nothing local would catch it.
+      // NOT "differ only in priority": they also differ in title and body. What
+      // matters is that both spellings FCM accepts are present and correctly cased —
+      // 'high' or 'Normal' is a 400 nothing local would catch.
       final high = groupC.firstWhere((s) => s.id == 'c1_priority_high');
       final normal = groupC.firstWhere((s) => s.id == 'c2_priority_normal');
 
@@ -31,11 +30,8 @@ void main() {
     });
 
     test('both ttl scenarios use a proto duration, not a number', () {
-      // FCM wants "0s", not 0. A bare number is a 400 from Google.
-      //
-      // Matched against the full duration shape rather than endsWith('s'):
-      // '86400 seconds', '0 s' and even 'abcs' all end in s, so that check
-      // would pass on three spellings FCM rejects.
+      // FCM wants "0s", not 0. Matched against the full duration shape rather than
+      // endsWith('s'), which '86400 seconds', '0 s' and 'abcs' all satisfy.
       final duration = RegExp(r'^\d+(\.\d+)?s$');
 
       for (final id in const ['c3_ttl_zero', 'c4_ttl_long']) {
@@ -48,9 +44,7 @@ void main() {
     });
 
     test('the adb scenarios carry a runnable command, not just a keyword', () {
-      // contains('force-idle') alone would pass on prose that merely mentioned
-      // the flag. These are commands a user copies verbatim, so the assertion
-      // pins the whole invocation.
+      // These are commands a user copies verbatim, so the whole invocation is pinned.
       expect(
         groupC.firstWhere((s) => s.id == 'c6_doze_test').manualSteps,
         contains('adb shell dumpsys deviceidle force-idle'),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import '../../../sandbox/forms/light_settings_form.dart';
+import '../../../forms/light_settings_form.dart';
 import '../form_section.dart';
 
 /// Edits `android.notification.light_settings` — the LED's colour and blink
@@ -11,11 +11,8 @@ import '../form_section.dart';
 /// fold exists for: a component outside 0.0–1.0 has to show up on `android` and
 /// on the message root, not only three levels down where nobody has expanded.
 class LightSettingsSection extends StatelessWidget {
-  /// Renders [form]'s inputs inside a collapsible section.
   const LightSettingsSection({required this.form, super.key});
 
-  /// The block this section edits. Read, never listened to: something above
-  /// listens to every model in the tree and rebuilds this.
   final LightSettingsForm form;
 
   @override
@@ -41,10 +38,7 @@ class LightSettingsSection extends StatelessWidget {
   );
 }
 
-/// The colour components, each a fraction of full intensity.
-///
-/// A numeric keyboard, because every one of them is a decimal between 0.0 and
-/// 1.0 and a phone offering letters here would only be in the way.
+/// The colour components, each a decimal between 0.0 and 1.0.
 List<(String, GladeInput<Object?>)> _numbers(LightSettingsForm form) => [
   ('color.red', form.red),
   ('color.green', form.green),

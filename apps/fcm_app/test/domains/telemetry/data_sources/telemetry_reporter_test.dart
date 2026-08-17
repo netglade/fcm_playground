@@ -2,33 +2,31 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/native.dart';
-import 'package:fcm_app/telemetry/drift_telemetry_buffer.dart';
-import 'package:fcm_app/telemetry/push_telemetry.dart';
-import 'package:fcm_app/telemetry/telemetry_buffer.dart';
-import 'package:fcm_app/telemetry/telemetry_reporter.dart';
+import 'package:fcm_app/domains/telemetry/data_sources/drift_telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/data_sources/telemetry_reporter.dart';
+import 'package:fcm_app/domains/telemetry/entities/push_telemetry.dart';
+import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-import 'fixed_device_identity.dart';
-import 'system_sqlite.dart';
-import 'throwing_buffer.dart';
+import '../../../fakes/fixed_device_identity.dart';
+import '../../../fakes/throwing_buffer.dart';
+import '../system_sqlite.dart';
 
 void main() {
   late DriftTelemetryBuffer database;
   late TelemetryBuffer buffer;
 
-  /// Every request the reporter made, transport failures included, so a test can
-  /// assert a flush was *attempted* and not only that the buffer looks right.
+  /// Transport failures included, so a test can assert a flush was *attempted*.
   late List<http.Request> requests;
 
   /// What the API answers, and whether anything is listening at all.
   late int status;
   late bool transportFails;
 
-  /// Runs inside the in-flight request, which is where an event arriving during
-  /// a flush arrives.
+  /// Runs inside the in-flight request, where an event arriving mid-flush arrives.
   late Future<void> Function()? whileFlushing;
 
   const identity = FixedDeviceIdentity('device-42');
@@ -60,8 +58,7 @@ void main() {
 
   setUp(() {
     database = DriftTelemetryBuffer(NativeDatabase.memory());
-    // Held as the interface the reporter depends on, so nothing here can lean
-    // on a Drift-only method the reporter could not have called.
+    // Held as the interface, so nothing here leans on a Drift-only method.
     buffer = database;
     requests = [];
     status = 200;
@@ -73,15 +70,14 @@ void main() {
   tearDown(() => database.close());
 
   test('is a PushTelemetry, which is what the hooks depend on', () {
-    // The four hooks take the interface so each can default to silence; this is
-    // what keeps the real reporter substitutable for that default.
+    // The hooks take the interface so each can default to silence.
     expect(reporter, isA<PushTelemetry>());
   });
 
   group('record', () {
     test('stamps the device id and the time, so no hook has to', () async {
-      // Stamped centrally so no hook has to remember either, and so a hook
-      // cannot record a local-time event that reads as hours of latency.
+      // Stamped centrally, so no hook can record a local time that reads as hours
+      // of latency.
       final before = DateTime.now().toUtc();
 
       await reporter.record(TelemetryEventType.receivedFg, traceId: 'tr-1');
@@ -94,9 +90,8 @@ void main() {
         await identity.id(),
         reason: 'the id comes from the identity, not from a constant',
       );
-      // The bracket is the load-bearing part: `isUtc` below is guaranteed by
-      // TelemetryEvent's constructor whatever is passed in, so on its own it
-      // would pass for an epoch or a hard-coded stamp.
+      // The bracket is the load-bearing part: `isUtc` is guaranteed by
+      // TelemetryEvent's constructor, so on its own it would pass for an epoch.
       expect(recorded.at.isBefore(before), isFalse);
       expect(
         recorded.at.isAfter(after),
@@ -122,8 +117,8 @@ void main() {
     });
 
     test('leaves an absent scenario absent rather than empty', () async {
-      // A send made by hand has no scenario, and `''` is a different answer to
-      // "which scenario produced this?" than "not from the gallery".
+      // `''` is a different answer to "which scenario produced this?" than "not
+      // from the gallery".
       await reporter.record(TelemetryEventType.receivedBg, traceId: 'tr-1');
 
       final recorded = (await buffer.pending()).single.event;
@@ -132,10 +127,8 @@ void main() {
     });
 
     test('does not send by itself', () async {
-      // Whether a flush is safe here is the caller's knowledge, not the
-      // reporter's: the background isolate can be killed mid-request, and the
-      // event it was flushing would die with it. So recording only stores, and
-      // the hooks that know they are in the foreground call flush().
+      // Whether a flush is safe is the caller's knowledge: the background isolate
+      // can be killed mid-request, and the event it was flushing would die with it.
       await reporter.record(TelemetryEventType.receivedFg, traceId: 'tr-1');
 
       expect(requests, isEmpty);
@@ -143,9 +136,8 @@ void main() {
     });
 
     test('never throws, whatever the buffer does', () async {
-      // record() is called from inside push handlers. A throw there would take
-      // down delivery itself, which is a strictly worse outcome than lost
-      // telemetry.
+      // record() runs inside push handlers, where a throw would take down delivery
+      // itself.
       final failing = ThrowingBuffer();
 
       await expectLater(
@@ -164,8 +156,8 @@ void main() {
     });
 
     test('never throws when the device id cannot be read', () async {
-      // The other half of the same promise: the id is read from the platform
-      // store, which fails as readily as the database does.
+      // The id is read from the platform store, which fails as readily as the
+      // database.
       final reporter = TelemetryReporter(
         buffer: buffer,
         identity: const FixedDeviceIdentity.failing(),
@@ -208,9 +200,7 @@ void main() {
     });
 
     test('keeps events when the flush fails, and retries them later', () async {
-      // The whole reason for a buffer. Silently dropping telemetry is worse
-      // than sending it late, because the missing row looks like a missing
-      // delivery.
+      // The whole reason for a buffer: a dropped row looks like a missing delivery.
       await reporter.record(TelemetryEventType.receivedFg, traceId: 'tr-1');
       transportFails = true;
 
@@ -245,8 +235,8 @@ void main() {
         reason: 'a rejected batch is no evidence that it was stored',
       );
 
-      // `POST /events` answers 200 with `{"recorded": n}` and nothing else, so
-      // any other code is a proxy or a crash rather than an acknowledgement.
+      // `POST /events` answers 200 and nothing else, so any other code is a proxy
+      // or a crash rather than an acknowledgement.
       status = 202;
       await reporter.flush();
 
@@ -259,8 +249,7 @@ void main() {
     });
 
     test('keeps an event that arrives during a flush', () async {
-      // The race `forget(events)` exists to survive: a blanket clear would lose
-      // it, and so would forgetting whatever is pending once the reply is in.
+      // The race `forget(events)` exists to survive.
       await reporter.record(TelemetryEventType.receivedFg, traceId: 'tr-1');
       final sent = (await buffer.pending()).single.event;
       final arriving = TelemetryEvent(
@@ -288,10 +277,8 @@ void main() {
     });
 
     test('keeps a duplicate that arrives during a flush', () async {
-      // The sharper version of the test above: byte-identical rows are two
-      // things that happened, because the buffer deliberately does not
-      // deduplicate, so a forget that matched on columns would delete the
-      // arrival along with the row that was acknowledged.
+      // Byte-identical rows are two things that happened, so a forget matching on
+      // columns would delete the unacknowledged one too.
       await reporter.record(TelemetryEventType.receivedFg, traceId: 'tr-1');
       final sent = (await buffer.pending()).single;
       whileFlushing = () => buffer.add(sent.event);
@@ -334,8 +321,6 @@ void main() {
   });
 }
 
-/// How many events the request body carries, for the `recorded` count the API
-/// answers with.
 int _eventCountIn(http.Request request) {
   final decoded = jsonDecode(request.body);
   if (decoded is! Map<String, Object?>) {

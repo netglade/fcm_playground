@@ -1,5 +1,5 @@
-import 'package:fcm_app/sandbox/forms/fcm_message_form.dart';
-import 'package:fcm_app/ui/form/sections/message_section.dart';
+import 'package:fcm_app/pages/sandbox/forms/fcm_message_form.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/sections/message_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
@@ -13,9 +13,8 @@ void main() {
     form = FcmMessageForm()..initialize();
   });
 
-  // The sections nest four levels deep, so an expanded `android.notification`
-  // is far taller than the test surface. A scroll view is what lets
-  // `ensureVisible` bring a nested header into reach before it is tapped.
+  // An expanded `android.notification` is far taller than the test surface, so a
+  // scroll view is what lets `ensureVisible` reach a nested header.
   Future<void> pump(WidgetTester tester) => tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
@@ -40,9 +39,8 @@ void main() {
   testWidgets("shows FCM's five blocks on arrival, with no field revealed", (
     tester,
   ) async {
-    // The root starts open and its children start closed. Both halves matter:
-    // a wall of fields was the original defect, and one closed tile hiding the
-    // whole payload would be no better and would hide its shape too.
+    // Both halves matter: a wall of fields was the original defect, and one closed
+    // tile hiding the whole payload would be no better.
     await pump(tester);
 
     expect(find.text('message'), findsOne);
@@ -57,9 +55,7 @@ void main() {
   testWidgets('the blocks are reachable without scrolling the page', (
     tester,
   ) async {
-    // The defect that started this line of work was an editor sitting below the
-    // fold and never mounting, so a scroll helper was needed to reach it. Every
-    // top-level block must be hit-testable straight after a pump.
+    // Every top-level block must be hit-testable straight after a pump.
     await pump(tester);
 
     for (final block in const [
@@ -101,9 +97,8 @@ void main() {
   testWidgets('badges an invalid field on its section and every ancestor', (
     tester,
   ) async {
-    // 'blue' is not #rrggbb. The root's badge is the one that matters: without
-    // it the error hides behind a collapsed section while Send sits disabled
-    // for a reason nothing on screen explains.
+    // 'blue' is not #rrggbb. Without the root's badge the error hides behind a
+    // collapsed section while Send sits disabled for an unexplained reason.
     form.android.notification.color.updateValue('blue');
 
     await pump(tester);

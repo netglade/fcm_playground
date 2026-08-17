@@ -1,4 +1,4 @@
-import 'package:fcm_app/ui/scenario_card.dart';
+import 'package:fcm_app/pages/scenarios/widgets/scenario_card.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,9 +36,7 @@ void main() {
   testWidgets('shows the id, which is how every other surface names it', (
     tester,
   ) async {
-    // The source catalogue is organised by id, the validate-only sweep reports
-    // by id, and the tests name ids. A card that cannot be tied back to the
-    // document is harder to act on.
+    // The source catalogue, the validate-only sweep and the tests all name ids.
     await pump(tester, scenario('c7_standby_bucket'));
 
     expect(find.text('c7_standby_bucket'), findsOne);
@@ -91,9 +89,8 @@ void main() {
   testWidgets('the whole card is the tap target, not just the title', (
     tester,
   ) async {
-    // Tapping a card-shaped thing anywhere is what a user expects, and the
-    // description is the largest part of it — a title-only target would make
-    // most of the card dead.
+    // The description is the largest part of the card, so a title-only tap target
+    // would leave most of it dead.
     var taps = 0;
     await tester.pumpWidget(
       MaterialApp(

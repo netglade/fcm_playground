@@ -4,20 +4,15 @@ import 'dart:io';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
 
-/// Sends every catalogue scenario through the local API with `validate_only`,
-/// and reports which ones Google refuses.
+/// Sends every catalogue scenario through the local API with `validate_only`, and
+/// reports which ones Google refuses.
 ///
-/// This is the one check the test suite cannot make. The gallery round-trip test
-/// proves each template agrees with our *typed model*; nothing local can prove it
-/// agrees with *FCM*, because only Google knows which field combinations it
-/// rejects. A template can be perfectly well-formed by our rules and still earn a
-/// 400 on a real send.
+/// The one check the test suite cannot make: the gallery round-trip test proves each
+/// template agrees with our typed model, but only Google knows which field
+/// combinations it rejects.
 ///
-/// Two scenarios are expected NOT to return 200, and that is the point of them:
-/// `j3_multicast` asks for an audience FCM has no concept of, and
-/// `k2_invalid_token` carries a token that was never real. They are reported as
-/// EXPECTED rather than counted as failures. Anything else that is not a 200 is a
-/// FAIL and names a template to fix.
+/// The two scenarios in [_expectedFailures] are reported as EXPECTED rather than
+/// counted as failures. Anything else that is not a 200 names a template to fix.
 ///
 /// Usage, with the API already running:
 ///
@@ -51,7 +46,6 @@ Future<void> main(List<String> arguments) async {
   }
 }
 
-/// Runs the sweep and returns the process exit code: 0 when nothing failed.
 Future<int> _sweep(
   http.Client client, {
   required String baseUrl,
@@ -90,7 +84,7 @@ Future<int> _sweep(
   );
   if (unreachable) {
     // Saying "FCM refused these" when nothing reached FCM would send someone
-    // hunting through templates for a problem that is a stopped server.
+    // hunting through templates for what is a stopped server.
     stdout.writeln(
       'The API was unreachable, so nothing was actually validated. Start it '
       'with melos run api:serve and check http://127.0.0.1:8080/health.',

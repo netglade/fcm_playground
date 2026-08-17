@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fcm_app/sandbox/http_notification_sender.dart';
-import 'package:fcm_app/sandbox/notification_send_exception.dart';
-import 'package:fcm_app/sandbox/unavailable_notification_sender.dart';
+import 'package:fcm_app/domains/sandbox/data_sources/http_notification_sender.dart';
+import 'package:fcm_app/domains/sandbox/data_sources/unavailable_notification_sender.dart';
+import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;

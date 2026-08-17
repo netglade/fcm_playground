@@ -1,5 +1,5 @@
-import 'package:fcm_app/sandbox/sandbox_send_state.dart';
-import 'package:fcm_app/ui/send_result_card.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_send_state.dart';
+import 'package:fcm_app/pages/sandbox/widgets/send_result_card.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,13 +27,11 @@ void main() {
     ),
   );
 
-  /// The result line. First rather than only: a real send also carries the
-  /// not-received button, and that has a label of its own.
+  /// First rather than only: a real send also carries the not-received button.
   String textOf(WidgetTester tester) =>
       tester.widget<Text>(find.byType(Text).first).data!;
 
   testWidgets('shows the trace id after a real send', (tester) async {
-    // The handle a user needs to find their own message in the telemetry later.
     // Without it on screen the id exists only in the server's database, and the
     // person holding the phone cannot say which row is theirs.
     await pump(tester, SandboxSent(response));

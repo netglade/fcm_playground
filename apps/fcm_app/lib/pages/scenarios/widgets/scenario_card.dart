@@ -3,24 +3,14 @@ import 'package:flutter/material.dart';
 
 /// One scenario in the gallery, as a card.
 ///
-/// Cards rather than plain rows because a scenario carries four separate things —
-/// a title, what to watch for, a platform caveat and sometimes a killed-app
-/// note — and as an undivided list those wrap into each other until it stops
-/// being clear where one scenario ends and the next begins. Eleven groups of them
-/// makes that worse, not better.
-///
-/// The id is shown, quietly, because it is how every *other* surface refers to
-/// this scenario: the source catalogue is organised by id, the validate-only
-/// sweep reports by id, and the tests name ids. A card you cannot tie back to the
-/// document is harder to act on than one you can.
+/// The id is shown, quietly, because it is how every *other* surface refers to this
+/// scenario: the source catalogue, the validate-only sweep and the tests all name
+/// ids.
 class ScenarioCard extends StatelessWidget {
-  /// Creates a card for [scenario], calling [onTap] when it is chosen.
   const ScenarioCard({required this.scenario, required this.onTap, super.key});
 
-  /// The scenario this card describes.
   final Scenario scenario;
 
-  /// Called when the card is tapped.
   final VoidCallback onTap;
 
   @override
@@ -33,10 +23,8 @@ class ScenarioCard extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         title: Text(scenario.title),
-        // The chip says only *that* work is outstanding, not which — a row
-        // carrying five labels would be unreadable, and which needs they are
-        // matters once the scenario is loaded, where ScenarioNeedsBanner names
-        // them.
+        // Only *that* work is outstanding, not which: ScenarioNeedsBanner names
+        // them once the scenario is loaded.
         trailing: scenario.isSupported
             ? null
             : const Chip(label: Text('needs work')),

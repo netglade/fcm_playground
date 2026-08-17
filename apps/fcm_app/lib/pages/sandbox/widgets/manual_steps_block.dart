@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 
 /// The step a scenario needs a human to perform.
 ///
-/// `SelectableText` in a monospace face, because most of these are adb commands
-/// and a command that cannot be copied is a command that will be mistyped —
-/// `set-standby-bucket` in particular.
+/// `SelectableText` in a monospace face, because most of these are adb commands and
+/// a command that cannot be copied is a command that will be mistyped.
 class ManualStepsBlock extends StatelessWidget {
-  /// Shows [steps] as copyable text.
   const ManualStepsBlock({required this.steps, super.key});
 
-  /// The instruction, verbatim from the scenario.
   final String steps;
 
   @override

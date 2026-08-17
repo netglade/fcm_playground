@@ -1,5 +1,5 @@
-import 'package:fcm_app/sandbox/sandbox_send_state.dart';
-import 'package:fcm_app/sandbox/sandbox_state.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_send_state.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,9 +7,8 @@ void main() {
   final first = scenarioGallery.first;
   final second = scenarioGallery[1];
 
-  // Every field holds something other than its default, and the two booleans
-  // hold *different* values: a copyWith that read one of them from the other
-  // would round-trip perfectly against a base where both were true.
+  // The two booleans hold *different* values: a copyWith that read one of them from
+  // the other would round-trip perfectly against a base where both were true.
   final base = SandboxState(
     validateOnly: true,
     selectedScenario: first,
@@ -83,8 +82,8 @@ void main() {
     });
 
     test('copyWith clears the target, because applying a scenario must', () {
-      // A target the previous scenario chose would silently broadcast the next
-      // one, so null has to mean "clear" rather than "leave alone".
+      // Null has to mean "clear" rather than "leave alone", or a target the previous
+      // scenario chose would silently broadcast the next one.
       expectOnly(base.copyWith(target: null), target: null);
     });
 
@@ -93,12 +92,10 @@ void main() {
     });
 
     test('copyWith always returns a state Cubit.emit will publish', () {
-      // Load-bearing, not pedantry: the cubit republishes every form change as
-      // a state, and a form edit usually leaves all five scalars alone.
-      // `Cubit.emit` drops a state equal to the current one, so value equality
-      // here would stop those edits from ever reaching the form controls —
-      // which are stateless readers of `input.value` and redraw on nothing
-      // else.
+      // Load-bearing: the cubit republishes every form change as a state, and an
+      // edit usually leaves all five scalars alone. `Cubit.emit` drops a state equal
+      // to the current one, so value equality here would stop those edits reaching
+      // the form controls.
       final copy = base.copyWith();
 
       expect(copy, isNot(same(base)));

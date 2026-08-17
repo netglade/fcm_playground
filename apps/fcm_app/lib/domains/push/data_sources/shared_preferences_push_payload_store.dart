@@ -3,16 +3,14 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'push_payload_store.dart';
+import '../entities/push_payload_store.dart';
 
 /// A [PushPayloadStore] over `shared_preferences`.
 ///
-/// Uses [SharedPreferencesAsync] rather than the legacy `SharedPreferences` for
-/// a reason that is load-bearing, not stylistic: the legacy API keeps an
-/// in-memory cache per isolate, and the background message handler runs in its
-/// own engine instance. A cached UI-side snapshot would never see what the
-/// background isolate appended, so every untapped background push would be
-/// silently lost. This API holds no cache and reads platform storage each call.
+/// [SharedPreferencesAsync] rather than the legacy `SharedPreferences`: the
+/// legacy API caches per isolate, and the background message handler runs in its
+/// own engine instance, so a cached UI-side snapshot would never see what the
+/// background isolate appended.
 class SharedPreferencesPushPayloadStore implements PushPayloadStore {
   SharedPreferencesPushPayloadStore({SharedPreferencesAsync? preferences})
     : _preferences = preferences ?? SharedPreferencesAsync();
@@ -59,14 +57,11 @@ class SharedPreferencesPushPayloadStore implements PushPayloadStore {
   }
 }
 
-/// Namespaced so a future preference cannot collide with them.
 const _inboxKey = 'push.inbox';
 const _pendingKey = 'push.pending';
 
-/// Decodes one stored entry, or null when it is not a JSON object.
-///
-/// One corrupt entry must not cost the whole inbox, so it is skipped and logged
-/// rather than thrown.
+/// Decodes one stored entry, or null when it is not a JSON object — one corrupt
+/// entry must not cost the whole inbox.
 Map<String, Object?>? _decodePayload(String entry) {
   try {
     final decoded = jsonDecode(entry);

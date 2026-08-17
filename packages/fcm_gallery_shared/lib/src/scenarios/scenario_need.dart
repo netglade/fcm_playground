@@ -1,10 +1,8 @@
 /// What a scenario needs, beyond a payload, before it demonstrates anything.
 ///
-/// Every value is a planned sub-project, which is the point: "which scenarios
-/// does the channels work unblock?" is a filter rather than a search through
-/// prose, and a scenario cannot be marked as needing something no plan will
-/// deliver. [externalApproval] is the one exception — it is permanently outside
-/// this project's control.
+/// Every value is a planned sub-project, so "which scenarios does the channels work
+/// unblock?" is a filter rather than a search through prose. [externalApproval] is
+/// the one exception — it is permanently outside this project's control.
 enum ScenarioNeed {
   /// Several notification channels, their importance, and a screen that reads
   /// that importance back from the system.
@@ -37,6 +35,6 @@ enum ScenarioNeed {
 
   const ScenarioNeed(this.label);
 
-  /// Shown to the user, verbatim, wherever an unmet need is reported.
+  /// Shown to the user verbatim.
   final String label;
 }

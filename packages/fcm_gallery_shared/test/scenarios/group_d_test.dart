@@ -38,10 +38,8 @@ void main() {
     });
 
     test('each names a distinct, non-blank channel — that is the variable', () {
-      // Uniqueness alone would pass for the wrong reason: an entry that omitted
-      // channel_id contributes null, and a single null is as "distinct" as any
-      // string. Each id is therefore pinned as a non-blank String first, so the
-      // set comparison can only ever be comparing real channel names.
+      // Uniqueness alone would pass for the wrong reason: an omitted channel_id
+      // contributes null, and a single null is as "distinct" as any string.
       final channelIds = <Object?>[];
       for (final scenario in groupD) {
         final channelId = channelIdOf(scenario);
@@ -54,18 +52,16 @@ void main() {
     });
 
     test('d6 opts out of the channel default before setting a pattern', () {
-      // Setting vibrate_timings without clearing default_vibrate_timings is the
-      // classic way to get the channel's own buzz and conclude the payload was
-      // ignored, so both fields are pinned together.
+      // Setting vibrate_timings without clearing default_vibrate_timings gets the
+      // channel's own buzz and reads as the payload being ignored.
       final pattern = groupD.firstWhere((s) => s.id == 'd6_vibration_pattern');
       final notification =
           (pattern.payloadTemplate['android']! as Map)['notification']! as Map;
 
       expect(notification['default_vibrate_timings'], isFalse);
 
-      // Proto durations, never numbers: 400 would be a 400 from Google. Matched
-      // on the whole shape rather than endsWith('s'), which '0.4 seconds' and
-      // 'abcs' would both satisfy.
+      // Proto durations, never numbers. Matched on the whole shape rather than
+      // endsWith('s'), which '0.4 seconds' and 'abcs' both satisfy.
       final duration = RegExp(r'^\d+(\.\d+)?s$');
       final timings = notification['vibrate_timings']! as List;
       expect(timings, isNotEmpty);
@@ -85,11 +81,9 @@ void main() {
     });
 
     test('d7 states that Android ignores the change, and names the fix', () {
-      // NOT "the immutability scenario is versioned": its own channel is
-      // chat_v1, so that name would be false. And contains('ignore') alone
-      // would be satisfied by prose saying the opposite ("do not ignore"),
-      // while contains('_v2') is satisfied by any token ending in _v2 — both
-      // are pinned to the phrase that carries the meaning.
+      // NOT "the immutability scenario is versioned": its own channel is chat_v1. And
+      // contains('ignore') would be satisfied by "do not ignore", so both halves are
+      // pinned to the phrase that carries the meaning.
       final immutable = groupD.firstWhere(
         (s) => s.id == 'd7_channel_immutability',
       );

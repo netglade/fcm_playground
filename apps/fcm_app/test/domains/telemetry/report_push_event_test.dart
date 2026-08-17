@@ -1,9 +1,9 @@
-import 'package:fcm_app/telemetry/report_push_event.dart';
+import 'package:fcm_app/domains/telemetry/report_push_event.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'recording_push_telemetry.dart';
-import 'throwing_push_telemetry.dart';
+import '../../fakes/recording_push_telemetry.dart';
+import '../../fakes/throwing_push_telemetry.dart';
 
 /// A received push as the pipeline sees it: the flat map `remoteMessageToPayload`
 /// builds, with `data` spread over it — which is where the send API's injected
@@ -46,8 +46,8 @@ void main() {
     });
 
     test('leaves an absent scenario absent rather than empty', () async {
-      // A push composed by hand belongs to no scenario, and `''` is a different
-      // answer to "which scenario produced this?" than "not from the gallery".
+      // `''` is a different answer to "which scenario produced this?" than "not
+      // from the gallery".
       await reportAndFlush(telemetry, TelemetryEventType.opened, arrival());
 
       expect(telemetry.recorded.single.scenarioId, isNull);
@@ -55,8 +55,8 @@ void main() {
     });
 
     test('records nothing, and does not flush, without a trace id', () async {
-      // A `curl` send by hand carries none. Inventing one would put a message
-      // nobody sent into the matrix, which is worse than a gap.
+      // A `curl` send by hand carries none, and inventing one would put a message
+      // nobody sent into the matrix.
       await reportAndFlush(
         telemetry,
         TelemetryEventType.receivedFg,
@@ -83,9 +83,7 @@ void main() {
     });
 
     test('records nothing for a blank or wrong-typed trace id', () async {
-      // FCM data values are strings on the wire, but the plugin surfaces them as
-      // `Object?`, and a blank id correlates to nothing just as an absent one
-      // does.
+      // A blank id correlates to nothing, just as an absent one does.
       for (final value in const [' ', '', 7]) {
         await reportAndFlush(telemetry, TelemetryEventType.receivedFg, {
           ...arrival(traceId: null),
@@ -113,8 +111,7 @@ void main() {
   group('reportWithoutFlushing', () {
     test('records the arrival and deliberately does not send it', () async {
       // For the background isolate, which can be killed at any moment: a
-      // half-completed request there loses the event it was trying to save,
-      // whereas a buffered row is picked up by the next foreground flush.
+      // half-completed request loses the event, a buffered row does not.
       await reportWithoutFlushing(
         telemetry,
         TelemetryEventType.receivedBg,
@@ -167,11 +164,9 @@ void main() {
   });
 
   group('a failing reporter', () {
-    // Every hook is called fire-and-forget from a push handler, so a throw here
-    // would surface as an unhandled asynchronous error on the delivery path —
-    // telemetry breaking the thing it exists to observe. The reporter's own
-    // promise covers `record`; a `flush` that cannot read its database is the
-    // half left over, and it is the half these hooks introduced.
+    // The hooks are fire-and-forget from a push handler, so a throw would surface as
+    // an unhandled async error on the delivery path. The reporter's own promise
+    // covers `record`; a failing `flush` is the half these hooks introduced.
     test('does not escape reportAndFlush', () async {
       final failing = ThrowingPushTelemetry();
 

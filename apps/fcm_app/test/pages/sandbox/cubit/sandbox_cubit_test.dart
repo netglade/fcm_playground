@@ -1,12 +1,12 @@
-import 'package:fcm_app/sandbox/notification_send_exception.dart';
-import 'package:fcm_app/sandbox/sandbox_cubit.dart';
-import 'package:fcm_app/sandbox/sandbox_send_state.dart';
+import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_send_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import 'fake_notification_sender.dart';
+import '../../../fakes/fake_notification_sender.dart';
 
 void main() {
   // The cubit builds a GladeModel in its constructor, so the library has to be
@@ -137,8 +137,7 @@ void main() {
         ),
       );
 
-      // A target left behind by the previous scenario would broadcast the next
-      // one, which is the failure `FcmMessage` refuses to make possible.
+      // A target left behind by the previous scenario would broadcast the next one.
       expect(cubit.state.target, isNull);
     });
 
@@ -170,9 +169,8 @@ void main() {
     );
 
     test('sends what was edited after a scenario was applied', () async {
-      // The behaviour the whole form exists for: a scenario is a starting point,
-      // not the payload. Asserted on the posted JSON, because that is the only
-      // place where a field lost between the input and the wire would show.
+      // A scenario is a starting point, not the payload. Asserted on the posted
+      // JSON, the only place a field lost between the input and the wire shows.
       final cubit = cubitWith();
 
       cubit.form.notification.title.updateValue('Edited by hand');
@@ -237,13 +235,11 @@ void main() {
 
     test('re-notifies for a change three levels down', () async {
       // What proves the allModels wiring is live: android.notification.color is
-      // owned by AndroidNotificationForm, whose notification never reaches the
-      // root, so a listener on the root form alone would miss this entirely.
+      // owned by AndroidNotificationForm, whose notification never reaches the root.
       //
-      // A valid colour on purpose: it moves none of the five scalars in
-      // SandboxState, so this is also what pins the state's identity equality.
-      // Were the state value-equal, `Cubit.emit` would drop this edit and the
-      // form controls — stateless readers of `input.value` — would never redraw.
+      // A valid colour on purpose: it moves none of SandboxState's scalars, so this
+      // also pins the state's identity equality — value equality would make
+      // `Cubit.emit` drop the edit and the controls would never redraw.
       final cubit = cubitWith();
       var notifications = 0;
       final states = cubit.stream.listen((_) => notifications++);
@@ -257,10 +253,9 @@ void main() {
     });
 
     test('stops listening to every model on close', () async {
-      // Eleven models, one listener each. A listener left behind emits on a
-      // closed cubit, which throws — but ChangeNotifier catches what a listener
-      // throws and reports it to FlutterError instead of rethrowing, so the
-      // reported errors are what has to be watched rather than the call.
+      // A listener left behind emits on a closed cubit, which throws — but
+      // ChangeNotifier reports what a listener throws to FlutterError instead of
+      // rethrowing, so the reported errors are what has to be watched.
       final cubit = SandboxCubit(
         sender: FakeNotificationSender(),
         token: () => 'device-token',

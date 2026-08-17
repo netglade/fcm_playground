@@ -35,18 +35,15 @@ List<MapEntry<String, String>> flattenPaths(Map<String, Object?> source) {
 
 /// Reads a row's text as the JSON scalar it looks like.
 ///
-/// `badge` is a number and `content-available` is 0 or 1, so treating every
-/// value as text would produce payloads APNs rejects or misreads. Only the JSON
-/// spellings of true and false convert; everything else stays text, including
-/// decimals, which Apple does not use here and which would otherwise lose their
-/// exact form.
+/// `badge` is a number and `content-available` is 0 or 1, so treating every value
+/// as text would produce payloads APNs rejects or misreads. Decimals stay text —
+/// Apple does not use them here and they would lose their exact form.
 Object? _scalarOf(String value) => switch (value) {
   'true' => true,
   'false' => false,
   _ => int.tryParse(value) ?? value,
 };
 
-/// Whether [segment] addresses a list index rather than a map key.
 bool _isIndex(String segment) => int.tryParse(segment) != null;
 
 void _place(Map<String, Object?> root, List<String> segments, Object? value) {
@@ -59,10 +56,8 @@ void _place(Map<String, Object?> root, List<String> segments, Object? value) {
   _set(node, segments.last, value);
 }
 
-/// Returns the container at [segment], creating it when absent.
-///
-/// [nextIsIndex] decides whether a missing container becomes a list or a map,
-/// which is the only place the numeric-segment rule takes effect.
+/// Returns the container at [segment], creating it when absent. [nextIsIndex] is
+/// the only place the numeric-segment rule takes effect.
 Object? _childOf(Object? node, String segment, bool nextIsIndex) {
   final existing = _get(node, segment);
   if (existing is Map<String, Object?> || existing is List<Object?>) {

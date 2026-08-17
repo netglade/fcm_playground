@@ -1,36 +1,20 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../sandbox/sandbox_cubit.dart';
+import '../../sandbox/cubit/sandbox_cubit.dart';
 import 'scenario_card.dart';
 
-/// The gallery of message-payload templates, grouped by the facet of FCM
-/// each one demonstrates.
+/// The gallery of message-payload templates, grouped by the facet of FCM each one
+/// demonstrates.
 ///
-/// One [ExpansionTile] per group keeps every template reachable from a
-/// single page; only the first group starts open, so the page is still short
-/// on arrival — eleven groups holding 66 scenarios would otherwise be a wall.
-/// A scenario is a starting point rather than a fixed payload, so tapping its
-/// card applies it to [controller] and the fields stay editable afterwards;
-/// [onScenarioSelected] fires once that application is done, so this widget owns
-/// applying the template and its caller owns whatever happens next — currently,
-/// moving to the Sandbox to show it.
-///
-/// Each scenario is a [ScenarioCard] rather than a bare row, because a scenario
-/// carries several lines of its own and an undivided list of them runs together.
+/// Only the first group starts open — eleven groups holding 66 scenarios would
+/// otherwise be a wall. A scenario is a starting point rather than a fixed payload,
+/// so tapping its card applies it to the [SandboxCubit] `context` provides and the
+/// fields stay editable afterwards.
 class ScenarioGroupList extends StatelessWidget {
-  /// Creates the gallery. Tapping a scenario applies it to [controller], then
-  /// calls [onScenarioSelected].
-  const ScenarioGroupList({
-    required this.controller,
-    required this.onScenarioSelected,
-    super.key,
-  });
+  const ScenarioGroupList({required this.onScenarioSelected, super.key});
 
-  /// The controller a tapped scenario is applied to.
-  final SandboxCubit controller;
-
-  /// Called after a tapped scenario has been applied to [controller].
   final VoidCallback onScenarioSelected;
 
   @override
@@ -54,7 +38,7 @@ class ScenarioGroupList extends StatelessWidget {
                 ScenarioCard(
                   scenario: scenario,
                   onTap: () {
-                    controller.applyScenario(scenario);
+                    context.read<SandboxCubit>().applyScenario(scenario);
                     onScenarioSelected();
                   },
                 ),

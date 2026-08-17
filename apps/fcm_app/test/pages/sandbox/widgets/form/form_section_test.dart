@@ -1,4 +1,4 @@
-import 'package:fcm_app/ui/form/form_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/form_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -67,11 +67,9 @@ void main() {
     testWidgets('dims a closed section and brightens it when opened', (
       tester,
     ) async {
-      // What the user asked for, and asserted on the rendered title rather than
-      // on the tile's collapsedTextColor: the theme bakes a colour into
-      // titleMedium, and an explicit colour on the Text beats the tile's pair —
-      // so setting those properties alone would change nothing visible. This
-      // test caught exactly that.
+      // Asserted on the rendered title rather than the tile's collapsedTextColor:
+      // the theme bakes a colour into titleMedium and an explicit colour on the Text
+      // beats the tile's pair, so setting those alone changes nothing visible.
       await pump(tester, isValid: true);
       final closed = titleColour(tester);
 
@@ -106,8 +104,7 @@ void main() {
     });
 
     testWidgets('a section that starts open reads as open', (tester) async {
-      // The root section is the one that starts expanded, and it must not look
-      // closed on arrival — the state has to be seeded, not merely toggled.
+      // The root starts expanded, so its state has to be seeded, not merely toggled.
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -185,9 +182,8 @@ void main() {
     testWidgets('draws one rail per open level', (tester) async {
       await pumpNested(tester, 2);
 
-      // Three open sections, three rails — the guide that ties a field back to
-      // the object it belongs to. Material puts its own ShapeDecoration boxes in
-      // the tree, so match on a left-only border rather than on the type alone.
+      // Three open sections, three rails. Material puts its own ShapeDecoration
+      // boxes in the tree, so match on a left-only border rather than the type.
       final rails = tester
           .widgetList<DecoratedBox>(find.byType(DecoratedBox))
           .map((box) => box.decoration)
@@ -198,8 +194,8 @@ void main() {
           .toList();
 
       expect(rails, hasLength(3));
-      // Each rail is a different colour, which is what makes two open siblings
-      // at different depths distinguishable rather than merely both railed.
+      // A different colour per rail, which is what tells two open siblings at
+      // different depths apart.
       expect(rails.map((rail) => rail.left.color).toSet(), hasLength(3));
     });
   });

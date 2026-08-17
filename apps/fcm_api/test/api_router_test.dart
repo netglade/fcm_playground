@@ -62,8 +62,8 @@ void main() {
     });
 
     test('sends the trace id on to FCM inside data', () async {
-      // The route is the only path a real send takes, so the injection has to
-      // hold end to end and not just in sendMessage's own unit tests.
+      // The route is the only path a real send takes, so the injection has to hold
+      // end to end.
       final sender = FakeFcmSender();
 
       await post(validBody(), sender: sender);
@@ -73,9 +73,8 @@ void main() {
     });
 
     test('records the send into the store the router was given', () async {
-      // The route has to reach the *same* store `GET /latency` reads from. A
-      // router that recorded into a store of its own would compile, pass every
-      // send-side unit test, and answer an empty latency page forever.
+      // The route has to reach the *same* store `GET /latency` reads from: one that
+      // recorded into a store of its own would answer an empty latency page forever.
       final store = InMemoryTelemetryStore();
       final handler = ApiRouter(
         sender: FakeFcmSender(),

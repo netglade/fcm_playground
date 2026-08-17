@@ -1,15 +1,16 @@
-import 'package:fcm_app/push/inbox_cubit.dart';
-import 'package:fcm_app/push/push_repository.dart';
-import 'package:fcm_app/sandbox/sandbox_cubit.dart';
-import 'package:fcm_app/ui/fcm_sample_app.dart';
-import 'package:fcm_app/ui/message_detail_page.dart';
+import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
+import 'package:fcm_app/pages/inbox/message_detail_page.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
+import 'package:fcm_app/pages/shell/app_shell.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import 'fake_notification_sender.dart';
-import 'fake_push_payload_store.dart';
-import 'fake_push_source.dart';
+import '../../fakes/fake_notification_sender.dart';
+import '../../fakes/fake_push_payload_store.dart';
+import '../../fakes/fake_push_source.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
   'id': id,
@@ -27,12 +28,25 @@ void main() {
   late InboxCubit inbox;
   late SandboxCubit sandbox;
 
+  // The shell under this test's own cubits: `App`'s providers build theirs
+  // out of `getIt`, which no widget test configures. The shell rather than
+  // `InboxView` alone because two tests below assert on the app bar it owns.
   Future<void> pumpApp(WidgetTester tester) async {
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.state.token,
     );
-    await tester.pumpWidget(FcmSampleApp(inbox: inbox, sandbox: sandbox));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: inbox),
+            BlocProvider.value(value: sandbox),
+          ],
+          child: const AppShell(),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
   }
 

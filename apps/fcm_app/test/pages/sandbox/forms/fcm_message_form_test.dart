@@ -1,4 +1,4 @@
-import 'package:fcm_app/sandbox/forms/fcm_message_form.dart';
+import 'package:fcm_app/pages/sandbox/forms/fcm_message_form.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
@@ -8,10 +8,8 @@ void main() {
 
   /// Every field set, so the round-trip proves no field was forgotten.
   ///
-  /// One field per block and nothing more: each block's own fields are covered
-  /// by that block's test, and what this fixture has to prove is that the root
-  /// carries all six of them. The `hasLength(6)` guard below is what stops the
-  /// fixture drifting from the model.
+  /// An inlined copy of the contract package's own fixture, which is a `const`
+  /// local to that test's `main()` and so invisible here. `hasLength(6)` below guards the copy.
   const everyField = {
     'data': {'event': 'build_finished'},
     'notification': {'title': 'Build finished'},
@@ -81,10 +79,8 @@ void main() {
     });
 
     test('is invalid when a nested block is invalid', () {
-      // The subforms' inputs are not in `inputs`, so the inherited `isValid`
-      // cannot see them. Validity has to compose at every level or Task 12's
-      // section badge lies: green on the message while a red one hides inside a
-      // closed android section.
+      // The nested inputs are not in `inputs`, so the inherited `isValid` cannot see
+      // them. Validity has to compose at every level or the section badge lies.
       final subject = form();
 
       subject.android.ttl.updateValue('later');
@@ -103,9 +99,8 @@ void main() {
     });
 
     test('allModels reaches light_settings, three levels down', () {
-      // The traversal has to be composed per level; a level that forgot to pass
-      // its children up would be invisible except as an on-screen value that
-      // never changes.
+      // A level that forgot to pass its children up would be invisible except as an
+      // on-screen value that never changes.
       final subject = form();
 
       expect(
@@ -137,9 +132,9 @@ void main() {
     });
 
     test('a nested change does not notify the root', () {
-      // This is why allModels exists at all, recorded as a test rather than a
-      // comment: if a future glade_forms did propagate a child's notification,
-      // this fails and the page could stop holding eleven listeners.
+      // Why allModels exists at all, recorded as a test: if a future glade_forms did
+      // propagate a child's notification, this fails and the page could stop holding
+      // eleven listeners.
       final subject = form();
       var notifications = 0;
       subject.addListener(() => notifications++);

@@ -1,11 +1,12 @@
-import 'package:fcm_app/sandbox/sandbox_cubit.dart';
-import 'package:fcm_app/ui/scenarios_view.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
+import 'package:fcm_app/pages/scenarios/scenarios_view.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import 'fake_notification_sender.dart';
+import '../../fakes/fake_notification_sender.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
@@ -25,9 +26,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: ScenariosView(
-            controller: controller,
-            onScenarioSelected: () => selectedCount++,
+          body: BlocProvider.value(
+            value: controller,
+            child: ScenariosView(onScenarioSelected: () => selectedCount++),
           ),
         ),
       ),
@@ -82,9 +83,8 @@ void main() {
   });
 
   testWidgets('flags the rows that cannot be demonstrated yet', (tester) async {
-    // Group A is the one open on arrival and every one of its scenarios works,
-    // so a chip visible here would mean the flag is on every row and says
-    // nothing. Group D's first row is the nearest one that should carry it.
+    // Every scenario in group A works, so a chip visible there would say nothing.
+    // Group D's first row is the nearest one that should carry it.
     build();
     await pump(tester);
     expect(
@@ -119,9 +119,7 @@ void main() {
     final dataOnly = scenarioGallery.firstWhere((s) => s.id == 'a2_data_only');
 
     // Reaching a scenario below the first is a scroll within the gallery's own
-    // page, which is unrelated to the bug this change fixes: that was the
-    // editor on the *Sandbox* page sitting below the fold with nothing above
-    // it.
+    // page, unrelated to the Sandbox-page fold this change fixed.
     await scrollIntoView(tester, find.text(dataOnly.title));
     await tester.tap(find.text(dataOnly.title));
     await tester.pumpAndSettle();

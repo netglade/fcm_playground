@@ -9,21 +9,16 @@ sealed class SendOutcome {
   const SendOutcome();
 }
 
-/// FCM accepted the message.
 final class SendSucceeded extends SendOutcome {
   const SendSucceeded(this.response);
 
-  /// The 200 body.
   final SendMessageResponse response;
 }
 
-/// The send did not happen, or FCM refused it.
 final class SendRejected extends SendOutcome {
   const SendRejected({required this.statusCode, required this.error});
 
-  /// The HTTP status to answer with.
   final int statusCode;
 
-  /// The body to answer with.
   final ApiError error;
 }

@@ -6,33 +6,23 @@ import 'fcm_notification_form.dart';
 /// Edits `android.notification.light_settings` — the notification LED's colour
 /// and blink timings.
 ///
-/// The only form in this set whose fields FCM **requires**. `LightSettings` and
-/// `LightColor` are the sole non-nullable types in the typed model: if the block
-/// is present at all, FCM demands a colour with all four components and both
-/// durations.
-///
-/// So [toModel] cannot ask "is anything set?" by comparing against an empty
-/// instance the way the other forms do — there is no empty instance. It returns
-/// a value only when *every* field is set, and null otherwise. A half-filled
-/// block is not a valid payload, and sending one would earn an opaque 400 from
-/// FCM instead of a local error the user can see and fix.
+/// The only form in this set whose fields FCM *requires*: if the block is present
+/// at all, FCM demands a colour with all four components and both durations. So
+/// [toModel] cannot compare against an empty instance the way the other forms do
+/// — there is none. It returns a value only when every field is set.
 class LightSettingsForm extends GladeModel {
   /// Red component, 0.0–1.0.
   late GladeInput<double?> red;
 
-  /// Green component, 0.0–1.0.
   late GladeInput<double?> green;
 
-  /// Blue component, 0.0–1.0.
   late GladeInput<double?> blue;
 
-  /// Alpha component, 0.0–1.0.
   late GladeInput<double?> alpha;
 
-  /// How long the LED stays lit, as a proto duration such as `1s`.
+  /// A proto duration such as `1s`.
   late GladeStringInput lightOnDuration;
 
-  /// How long it stays dark between blinks, as a proto duration such as `0.5s`.
   late GladeStringInput lightOffDuration;
 
   @override
@@ -45,13 +35,7 @@ class LightSettingsForm extends GladeModel {
     lightOffDuration,
   ];
 
-  /// This form alone — it owns no subform.
-  ///
-  /// The deepest leaf of the traversal `FcmMessageForm.allModels` composes,
-  /// three levels below the root. It exists because a nested model's
-  /// notification never reaches its parent, so whoever renders the tree has to
-  /// listen to every model in it — and this is the one a missed level would
-  /// drop.
+  /// This form alone — see `FcmMessageForm.allModels`.
   List<GladeModelBase> get allModels => [this];
 
   @override
@@ -114,13 +98,10 @@ class LightSettingsForm extends GladeModel {
 
 /// One colour component, read from text and bounded to FCM's 0.0–1.0 range.
 ///
-/// The converter maps empty or unparseable text to **null** rather than keeping
-/// the previous value. `glade_forms`' own nullable-int converter does the
-/// opposite — it treats `''` as unparseable and silently retains the last good
-/// number — which would mean a cleared component still reached the payload.
-/// `.create` rather than `.optional`, because `.optional` accepts no validator —
-/// it is documented as being for inputs that allow null *without* additional
-/// validation, and the 0.0–1.0 bound is exactly such a validation.
+/// The converter maps empty or unparseable text to null rather than keeping the
+/// previous value, which glade's own nullable converter does — a cleared
+/// component would otherwise still reach the payload. `.create` rather than
+/// `.optional`, because `.optional` accepts no validator.
 GladeInput<double?> _component(String name) => GladeInput<double?>.create(
   inputKey: 'android.notification.light_settings.color.$name',
   value: null,

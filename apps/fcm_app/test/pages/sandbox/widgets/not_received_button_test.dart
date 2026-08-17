@@ -1,15 +1,16 @@
-import 'package:fcm_app/sandbox/notification_send_exception.dart';
-import 'package:fcm_app/sandbox/sandbox_cubit.dart';
-import 'package:fcm_app/ui/not_received_button.dart';
-import 'package:fcm_app/ui/sandbox_view.dart';
-import 'package:fcm_app/ui/send_result_card.dart';
+import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
+import 'package:fcm_app/pages/sandbox/sandbox_view.dart';
+import 'package:fcm_app/pages/sandbox/widgets/not_received_button.dart';
+import 'package:fcm_app/pages/sandbox/widgets/send_result_card.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import '../fake_notification_sender.dart';
-import '../telemetry/recording_push_telemetry.dart';
+import '../../../fakes/fake_notification_sender.dart';
+import '../../../fakes/recording_push_telemetry.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
@@ -31,7 +32,12 @@ void main() {
   Future<void> pump(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: SandboxView(controller: controller)),
+        home: Scaffold(
+          body: BlocProvider.value(
+            value: controller,
+            child: const SandboxView(),
+          ),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -66,13 +72,12 @@ void main() {
   tearDown(() => controller.close());
 
   testWidgets('appears only after a send', (tester) async {
-    // Before a send there is no trace id to report against, and a button that
-    // records nothing is worse than no button.
+    // Before a send there is no trace id to report against.
     build();
     await pump(tester);
 
-    // A positive control: the page is built and Send is on it, so "no button"
-    // below means the button was withheld rather than that nothing rendered.
+    // A positive control, so "no button" below means it was withheld rather than
+    // that nothing rendered.
     expect(find.byType(FilledButton), findsOne);
     expect(find.byType(NotReceivedButton), findsNothing);
 
@@ -82,8 +87,8 @@ void main() {
   });
 
   testWidgets('sits with the result rather than beside Send', (tester) async {
-    // It reports against *that send's* trace id, so it belongs to the outcome.
-    // Confusing it with Send would cost a push nobody meant to send.
+    // It reports against *that send's* trace id, so it belongs to the outcome —
+    // confusing it with Send would cost a push nobody meant to send.
     build();
     await pump(tester);
     await send(tester);
@@ -119,9 +124,8 @@ void main() {
       controller.state.selectedScenario!.id,
       reason: 'the matrix groups not-received by scenario',
     );
-    // Record *then* flush: the value stored at the flush proves the flush
-    // carried the event rather than running before it was recorded. This is a
-    // foreground action, so the user is entitled to assume it was reported.
+    // Record *then* flush: the value stored at the flush proves the flush carried
+    // the event rather than running before it was recorded.
     expect(reporter.recordedAtFlush, [1]);
   });
 
@@ -132,15 +136,15 @@ void main() {
     await send(tester);
 
     // Pressable to begin with, or "one press per send" would be satisfied by a
-    // button nobody could ever press.
+    // button nobody could press at all.
     expect(onPressed(tester), isNotNull);
     expect(find.text('It never arrived'), findsOne);
 
     await report(tester);
 
     expect(onPressed(tester), isNull);
-    // It says so rather than merely going quiet, or the user cannot tell a
-    // report that landed from a button that ignored them.
+    // It says so rather than going quiet, or the user cannot tell a report that
+    // landed from a button that ignored them.
     expect(find.text('It never arrived'), findsNothing);
     expect(find.textContaining('Reported'), findsOne);
 
@@ -153,9 +157,7 @@ void main() {
   testWidgets('a second send of the same scenario can be reported again', (
     tester,
   ) async {
-    // A different message, so a stale "already reported" would lose a real
-    // report — and reporting it against the first send's id would file it
-    // against a message that did arrive.
+    // A different message: a stale "already reported" would lose a real report.
     build();
     await pump(tester);
     await send(tester);
@@ -177,7 +179,7 @@ void main() {
   });
 
   testWidgets('offers nothing to report when the send failed', (tester) async {
-    // No response means no trace id. A report against a message that never
+    // No response means no trace id, and a report against a message that never
     // left would show up as a delivery failure.
     build(failure: const NotificationSendException('The API is unreachable'));
     await pump(tester);
@@ -189,8 +191,7 @@ void main() {
 
   testWidgets('offers nothing to report for a validated send', (tester) async {
     // The API records `sent` for a validate-only send too, so a `not_received`
-    // beside it is indistinguishable from a genuine drop — while nothing was
-    // ever delivered, which makes the report both guaranteed and meaningless.
+    // beside it is indistinguishable from a genuine drop.
     build();
     await pump(tester);
 
@@ -209,16 +210,12 @@ void main() {
   testWidgets('forgets a report when the trace id changes under it', (
     tester,
   ) async {
-    // A card that rendered `SandboxSending` between the two sends would unmount
-    // this button and reset it by accident, but nothing guarantees that frame —
-    // in the test above there is none, and the element is updated in place. So
-    // the reset has to be the button's own business, and this is the test that
-    // holds it there: removing `didUpdateWidget` fails this *and* the two-sends
-    // test above.
+    // Nothing guarantees a `SandboxSending` frame between two sends — in the test
+    // above there is none, and the element is updated in place — so the reset has to
+    // be the button's own business. Removing `didUpdateWidget` fails this and the
+    // two-sends test above.
     //
-    // Built without a page: the shared `tearDown` closes whatever the last
-    // `build` made, so this makes one for it to dispose rather than reaching
-    // into the previous test's.
+    // Built without a page, so the shared `tearDown` has one of its own to dispose.
     build();
     final reported = <String>[];
     Future<void> pumpFor(String traceId) => tester.pumpWidget(
