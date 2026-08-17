@@ -21,6 +21,8 @@ export 'src/message/notification_proxy.dart';
 export 'src/message/notification_visibility.dart';
 export 'src/message/webpush_config.dart';
 export 'src/message/webpush_fcm_options.dart';
+export 'src/runs/run_item_state.dart';
+export 'src/runs/scheduled_run_item.dart';
 export 'src/scenarios/group_a.dart';
 export 'src/scenarios/group_b.dart';
 export 'src/scenarios/group_c.dart';
