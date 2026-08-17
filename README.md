@@ -430,6 +430,12 @@ do by hand. `DELETE /runs/<run_id>` cancels whatever has not gone out; an item
 already on its way to FCM is past cancelling, and says so by staying `dispatching`
 or landing on `sent`.
 
+**`POST /runs` has no idempotency key.** A response lost on the way back to the
+caller and retried creates a second run and a second set of pushes — the server has
+no way to tell "the same schedule again" from "a new one that happens to match".
+Every other write in this feature is safely repeatable; this is the one at-least-once
+path in it, worth knowing before retrying a call that might already have landed.
+
 **A schedule survives the server being restarted.** Runs are stored in the same
 SQLite file as the telemetry, and the server sweeps them at startup: an item due
 within the last two minutes is sent immediately, and anything older is marked
@@ -514,12 +520,11 @@ and nothing else — the inbox still fills.
 
 ## Verified on this machine
 
-`melos run ci` passes clean — 24 `core` tests, 231 `fcm_gallery_shared` tests, 201
-`fcm_api` tests and 480 `fcm_app` tests. `fvm flutter build apk --debug`
-and `fvm flutter build web --release` both succeed (compile checks only: the web
-build cannot receive FCM pushes without a VAPID key, and an apk build is not the
-same as running on a device). The iOS build has **not** been verified here —
-there is no Xcode on this machine.
+`melos run ci` passes clean — 24 `core` tests, 231 `fcm_gallery_shared` tests, 204
+`fcm_api` tests and 487 `fcm_app` tests. `fvm flutter build web --release` succeeds
+(a compile check only: the web build cannot receive FCM pushes without a VAPID
+key). `fvm flutter build apk --debug` currently **fails** — see below. The iOS
+build has **not** been verified here either; there is no Xcode on this machine.
 
 The Android build needs one thing that is easy to miss:
 `flutter_local_notifications` requires **core library desugaring**, and without
@@ -531,7 +536,21 @@ enabled for :app`. `android/app/build.gradle.kts` therefore sets
 needed even though the app only ever shows notifications immediately and never
 schedules one.
 
-Three things remain explicitly **not verified** on this machine:
+**The debug APK build is broken today by a second plugin, in the same family of
+failure.** `app_settings` — added for the "Battery settings" link on the
+countdown screen — pulls in `androidx.fragment:fragment:1.7.1`,
+`androidx.window:window:1.2.0`, `androidx.lifecycle:lifecycle-runtime:2.7.0` and
+twelve more transitive dependencies that all require compiling against API 34 or
+later. This project's `compileSdk` is 33, so `fvm flutter build apk --debug`
+fails at `:app_settings:checkDebugAarMetadata` with fifteen AAR-metadata errors,
+each recommending the same fix: raise `compileSdk` to at least 34. That change
+was deliberately **not** made here — it affects what every plugin in the app
+compiles against, not only this one, and deciding that is a separate piece of
+work from the review that found it. Until `compileSdk` is raised,
+`fvm flutter build apk --debug` cannot be used to verify this branch on Android;
+`fvm flutter build web --release` is unaffected and remains a valid check.
+
+Seven things remain explicitly **not verified** on this machine:
 
 - **The `validate_only` sweep over the catalogue** — opening each of the 66
   scenarios in the Sandbox and sending it with validate-only on, expecting a 200
@@ -547,6 +566,15 @@ Three things remain explicitly **not verified** on this machine:
   `direct_boot_ok` sends `false` when set to false and omits the key when left
   unset. That last one is the only real-world proof of the tristate design; a
   widget test can show the three states cycling but not what leaves the device.
+- **The telemetry round trip on a real device.** Send a scenario, then read
+  `GET /latency` and confirm the figure is plausible; repeat with the app
+  backgrounded and killed. The killed case is the one that matters and the one that
+  needs `b3_killed`'s delayed send to arrange properly. *Partly verified here:* the
+  pipeline was driven end to end against the real router and the real SQLite file
+  with a stubbed FCM sender — a send, an arrival, `{"recorded":1}` then
+  `{"recorded":0}` on replay, and one latency row carrying the right device and
+  scenario. What is **not** verified is the FCM leg, a real handset, or the entry
+  point's own socket, none of which can run without a service-account key.
 - **The delayed send on a real handset.** Schedule `b3_killed`, swipe the app out of
   recents, and confirm on relaunch that the timeline holds `queued → sent →
   received_bg`. *Verified here:* a run is scheduled, claimed, dispatched through a
