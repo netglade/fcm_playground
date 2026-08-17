@@ -151,4 +151,120 @@ void main() {
     expect((await bodyOf(response))['field'], 'all_devices');
     expect(await runs.recent(), isEmpty);
   });
+
+  Future<Response> get(String path) => Future.value(
+    handler(Request('GET', Uri.parse('http://localhost:8080$path'))),
+  );
+
+  Future<Response> delete(String path) => Future.value(
+    handler(Request('DELETE', Uri.parse('http://localhost:8080$path'))),
+  );
+
+  Future<List<Object?>> listOf(Response response) async =>
+      jsonDecode(await response.readAsString()) as List<Object?>;
+
+  group('GET /runs', () {
+    test('answers an empty list before anything is scheduled', () async {
+      expect(await listOf(await get('/runs')), isEmpty);
+    });
+
+    test('summarises each run without carrying its messages', () async {
+      await post({
+        'delay_seconds': 30,
+        'items': [item(), item()],
+      });
+
+      final rows = await listOf(await get('/runs'));
+      final row = rows.single! as Map<String, Object?>;
+      expect(row['run_id'], 'id-1');
+      expect(row['item_count'], 2);
+      expect(row['states'], {'pending': 2});
+      expect(row['next_due_at'], '2026-08-17T09:00:30.000Z');
+      expect(row, isNot(contains('items')));
+    });
+  });
+
+  group('GET /runs/<id>', () {
+    test('answers 404 for a run that does not exist', () async {
+      expect((await get('/runs/nope')).statusCode, 404);
+    });
+
+    test('carries each item\'s telemetry, which is the timeline', () async {
+      await post({
+        'delay_seconds': 0,
+        'items': [item()],
+      });
+      await scheduler.tick(now);
+
+      final body = await bodyOf(await get('/runs/id-1'));
+      final items = body['items']! as List<Object?>;
+      final only = items.single! as Map<String, Object?>;
+      expect(only['state'], 'sent');
+      expect(
+        (only['events']! as List<Object?>).map(
+          (e) => (e! as Map<String, Object?>)['type'],
+        ),
+        ['queued', 'sent'],
+      );
+    });
+
+    test('carries an empty timeline as no events at all', () async {
+      await post({
+        'delay_seconds': 30,
+        'items': [item()],
+      });
+
+      final body = await bodyOf(await get('/runs/id-1'));
+      final only =
+          (body['items']! as List<Object?>).single! as Map<String, Object?>;
+      expect(only, isNot(contains('events')));
+    });
+  });
+
+  group('DELETE /runs/<id>', () {
+    test('cancels what is pending and reports the count', () async {
+      await post({
+        'delay_seconds': 30,
+        'spacing_seconds': 30,
+        'items': [item(), item()],
+      });
+
+      final response = await delete('/runs/id-1');
+
+      expect(response.statusCode, 200);
+      expect(await bodyOf(response), {'cancelled': 2});
+    });
+
+    test('answers 404 for a run that does not exist', () async {
+      expect((await delete('/runs/nope')).statusCode, 404);
+    });
+
+    test(
+      'reports zero rather than failing when it is already too late',
+      () async {
+        await post({
+          'delay_seconds': 0,
+          'items': [item()],
+        });
+        await scheduler.tick(now);
+
+        final response = await delete('/runs/id-1');
+
+        expect(response.statusCode, 200);
+        expect(await bodyOf(response), {'cancelled': 0});
+      },
+    );
+
+    test('a cancelled run never sends', () async {
+      await post({
+        'delay_seconds': 30,
+        'items': [item()],
+      });
+      await delete('/runs/id-1');
+
+      await scheduler.tick(now.add(const Duration(minutes: 1)));
+
+      expect(sender.sent, isEmpty);
+    });
+  });
 }
