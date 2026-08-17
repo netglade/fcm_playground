@@ -76,6 +76,12 @@ void main() {
 
     expect(find.text('queued'), findsOneWidget);
     expect(find.text('received_bg'), findsOneWidget);
+    // Position, not just presence: reversed or sorted, both would still be
+    // found once each.
+    expect(
+      tester.getTopLeft(find.text('queued')).dy,
+      lessThan(tester.getTopLeft(find.text('received_bg')).dy),
+    );
   });
 
   testWidgets('says an item is still waiting rather than showing nothing', (
