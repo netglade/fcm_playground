@@ -19,7 +19,11 @@ class InMemoryRunStore implements RunStore {
   @override
   Future<List<ScheduledRun>> recent({int limit = 50}) async {
     final sorted = _runs.values.toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      ..sort((a, b) {
+        final byCreatedAt = b.createdAt.compareTo(a.createdAt);
+
+        return byCreatedAt != 0 ? byCreatedAt : b.id.compareTo(a.id);
+      });
 
     return sorted.take(limit).toList();
   }
@@ -31,6 +35,10 @@ class InMemoryRunStore implements RunStore {
   /// Synchronous from the first line to the last: nothing between reading an item
   /// and writing it back suspends, so a cancel cannot land in the middle. That is
   /// the contract, not an accident of this implementation.
+  ///
+  /// The sort at the end is synchronous too, so it does not reopen that window; it
+  /// exists to agree with `SqliteRunStore`'s `ORDER BY due_at, run_id, idx`, which
+  /// [RunStore.claimDue] requires of both.
   @override
   Future<List<ClaimedItem>> claimDue(DateTime now) async {
     final claimed = <ClaimedItem>[];
@@ -46,6 +54,16 @@ class InMemoryRunStore implements RunStore {
       }
       _runs[run.id] = updated;
     }
+
+    claimed.sort((a, b) {
+      final byDueAt = a.$2.dueAt.compareTo(b.$2.dueAt);
+      if (byDueAt != 0) {
+        return byDueAt;
+      }
+      final byRunId = a.$1.compareTo(b.$1);
+
+      return byRunId != 0 ? byRunId : a.$2.index.compareTo(b.$2.index);
+    });
 
     return claimed;
   }

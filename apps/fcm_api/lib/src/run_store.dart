@@ -19,7 +19,10 @@ abstract interface class RunStore {
 
   Future<ScheduledRun?> find(String id);
 
-  /// The newest [limit] runs, newest first.
+  /// The newest [limit] runs, newest first. Ties in `createdAt` are broken by
+  /// descending id, so two runs made in the same instant still come back in a
+  /// fixed order rather than whichever order the implementation happens to hold
+  /// them in.
   Future<List<ScheduledRun>> recent({int limit = 50});
 
   /// Every run still holding a `pending` or `dispatching` item, for the sweep at
@@ -28,6 +31,13 @@ abstract interface class RunStore {
 
   /// Moves every `pending` item due at or before [now] to `dispatching` and returns
   /// them.
+  ///
+  /// The claimed items come back in due order, ties broken by run id then item
+  /// index — never save or creation order. The caller dispatches this list
+  /// sequentially, so the order here is the order pushes leave for FCM and the
+  /// order their telemetry timestamps land in, which is the thing this project
+  /// exists to measure; an arbitrary order would make that measurement arbitrary
+  /// too.
   ///
   /// **One call on purpose.** Reading the due items and then writing them back would
   /// leave an `await` between the two, and a `DELETE /runs/{id}` landing in that gap

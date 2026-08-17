@@ -50,6 +50,13 @@ void main() {
     expect(await store.recent(limit: 1), hasLength(1));
   });
 
+  test('recent breaks a createdAt tie by descending id', () async {
+    await store.save(runOf('run-a', [30]));
+    await store.save(runOf('run-b', [30]));
+
+    expect((await store.recent()).map((r) => r.id), ['run-b', 'run-a']);
+  });
+
   test(
     'claims every item due now, and leaves the ones still to come',
     () async {
@@ -62,6 +69,23 @@ void main() {
       expect(claimed.map((c) => c.$2.index), [0]);
       expect(claimed.single.$1, 'run-1');
       expect(claimed.single.$2.state, RunItemState.dispatching);
+    },
+  );
+
+  test(
+    'claimDue returns items in due order across runs, not save order',
+    () async {
+      await store.save(runOf('later-saved-first', [60]));
+      await store.save(runOf('sooner-saved-second', [30]));
+
+      final claimed = await store.claimDue(
+        createdAt.add(const Duration(seconds: 60)),
+      );
+
+      expect(claimed.map((c) => c.$1), [
+        'sooner-saved-second',
+        'later-saved-first',
+      ]);
     },
   );
 

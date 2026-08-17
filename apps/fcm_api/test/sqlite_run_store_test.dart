@@ -86,6 +86,13 @@ void _storeBehaviour() {
     expect(await store.recent(limit: 1), hasLength(1));
   });
 
+  test('recent breaks a createdAt tie by descending id', () async {
+    await store.save(runOf('run-a', [30]));
+    await store.save(runOf('run-b', [30]));
+
+    expect((await store.recent()).map((r) => r.id), ['run-b', 'run-a']);
+  });
+
   test('claims due items once and persists the claim', () async {
     await store.save(runOf('run-1', [30, 60]));
     final at = createdAt.add(const Duration(seconds: 30));
@@ -96,6 +103,23 @@ void _storeBehaviour() {
     expect(claimed.single.$2.state, RunItemState.dispatching);
     expect(await store.claimDue(at), isEmpty);
   });
+
+  test(
+    'claimDue returns items in due order across runs, not save order',
+    () async {
+      await store.save(runOf('later-saved-first', [60]));
+      await store.save(runOf('sooner-saved-second', [30]));
+
+      final claimed = await store.claimDue(
+        createdAt.add(const Duration(seconds: 60)),
+      );
+
+      expect(claimed.map((c) => c.$1), [
+        'sooner-saved-second',
+        'later-saved-first',
+      ]);
+    },
+  );
 
   test('cancels only pending items and reports the count', () async {
     await store.save(runOf('run-1', [30, 60]));
