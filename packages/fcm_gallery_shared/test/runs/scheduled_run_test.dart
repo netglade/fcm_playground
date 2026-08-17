@@ -49,6 +49,23 @@ void main() {
       ]);
       expect(updated.items[1].traceId, 'tr-2');
     });
+
+    test('refuses a member of items that is not an object', () {
+      expect(
+        () => ScheduledRun.fromJson({
+          'run_id': 'run-1',
+          'created_at': createdAt.toIso8601String(),
+          'items': [runOf(1).items.first.toJson(), 'not-an-object'],
+        }),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('items[1]'),
+          ),
+        ),
+      );
+    });
   });
 
   group('RunSummary', () {
@@ -80,6 +97,41 @@ void main() {
       expect(restored.itemCount, 2);
       expect(restored.states[RunItemState.pending], 2);
       expect(restored.nextDueAt, createdAt.add(const Duration(seconds: 30)));
+    });
+
+    test('refuses a states value that is not an integer', () {
+      expect(
+        () => RunSummary.fromJson({
+          'run_id': 'run-1',
+          'created_at': createdAt.toIso8601String(),
+          'item_count': 1,
+          'states': {'sent': 'not-an-int'},
+        }),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('states["sent"]'),
+          ),
+        ),
+      );
+    });
+
+    test('refuses a missing item_count', () {
+      expect(
+        () => RunSummary.fromJson({
+          'run_id': 'run-1',
+          'created_at': createdAt.toIso8601String(),
+          'states': {'pending': 1},
+        }),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('item_count'),
+          ),
+        ),
+      );
     });
   });
 }

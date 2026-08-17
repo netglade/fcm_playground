@@ -24,8 +24,8 @@ class ScheduledRun {
       id: requireText(json['run_id'], 'run_id'),
       createdAt: requireTimestamp(json['created_at'], 'created_at'),
       items: [
-        for (final item in items)
-          ScheduledRunItem.fromJson(_object(item, 'items')),
+        for (final (index, item) in items.indexed)
+          ScheduledRunItem.fromJson(requireObject(item, 'items[$index]')),
       ],
     );
   }
@@ -58,14 +58,4 @@ class ScheduledRun {
 
   @override
   String toString() => 'ScheduledRun($id, ${items.length} items)';
-}
-
-Map<String, Object?> _object(Object? value, String field) {
-  if (value is! Map<String, Object?>) {
-    throw FormatException(
-      'every member of "$field" must be an object, got ${value.runtimeType}',
-    );
-  }
-
-  return value;
 }

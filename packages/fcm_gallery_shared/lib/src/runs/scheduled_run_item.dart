@@ -25,25 +25,28 @@ class ScheduledRunItem {
   }) : dueAt = dueAt.toUtc(),
        dispatchedAt = dispatchedAt?.toUtc();
 
-  factory ScheduledRunItem.fromJson(Map<String, Object?> json) =>
-      ScheduledRunItem(
-        index: _requireInt(json['index'], 'index'),
-        request: SendMessageRequest.fromJson(
-          _object(json['request'], 'request'),
-        ),
-        dueAt: requireTimestamp(json['due_at'], 'due_at'),
-        state: RunItemState.fromWireName(requireText(json['state'], 'state')),
-        traceId: _text(json['trace_id']),
-        messageId: _text(json['message_id']),
-        error: _text(json['error']),
-        dispatchedAt: json['dispatched_at'] == null
-            ? null
-            : requireTimestamp(json['dispatched_at'], 'dispatched_at'),
-        events: [
-          for (final event in json['events'] as List<Object?>? ?? const [])
-            TelemetryEvent.fromJson(_object(event, 'events')),
-        ],
-      );
+  factory ScheduledRunItem.fromJson(Map<String, Object?> json) {
+    final events = json['events'] as List<Object?>? ?? const [];
+
+    return ScheduledRunItem(
+      index: requireInt(json['index'], 'index'),
+      request: SendMessageRequest.fromJson(
+        requireObject(json['request'], 'request'),
+      ),
+      dueAt: requireTimestamp(json['due_at'], 'due_at'),
+      state: RunItemState.fromWireName(requireText(json['state'], 'state')),
+      traceId: _text(json['trace_id']),
+      messageId: _text(json['message_id']),
+      error: _text(json['error']),
+      dispatchedAt: json['dispatched_at'] == null
+          ? null
+          : requireTimestamp(json['dispatched_at'], 'dispatched_at'),
+      events: [
+        for (final (index, event) in events.indexed)
+          TelemetryEvent.fromJson(requireObject(event, 'events[$index]')),
+      ],
+    );
+  }
 
   /// Position within the run, which is also the order the items come due in.
   final int index;
@@ -113,26 +116,6 @@ class ScheduledRunItem {
 
   @override
   String toString() => 'ScheduledRunItem($index ${state.wireName} due $dueAt)';
-}
-
-int _requireInt(Object? value, String field) {
-  if (value is! int) {
-    throw FormatException(
-      '"$field" must be an integer, got ${value.runtimeType}',
-    );
-  }
-
-  return value;
-}
-
-Map<String, Object?> _object(Object? value, String field) {
-  if (value is! Map<String, Object?>) {
-    throw FormatException(
-      '"$field" must be an object, got ${value.runtimeType}',
-    );
-  }
-
-  return value;
 }
 
 String? _text(Object? value) =>

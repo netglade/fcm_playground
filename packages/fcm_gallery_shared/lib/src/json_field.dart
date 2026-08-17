@@ -57,3 +57,31 @@ Map<String, String> readStringMap(Object? value, String field) {
 
   return Map.unmodifiable(result);
 }
+
+/// Missing is an error, non-integer is an error.
+int requireInt(Object? value, String field) {
+  if (value == null) {
+    throw FormatException('"$field" is missing');
+  }
+  if (value is! int) {
+    throw FormatException(
+      '"$field" must be an integer, got ${value.runtimeType}',
+    );
+  }
+
+  return value;
+}
+
+/// Missing is an error, non-object is an error.
+Map<String, Object?> requireObject(Object? value, String field) {
+  if (value == null) {
+    throw FormatException('"$field" is missing');
+  }
+  if (value is! Map<String, Object?>) {
+    throw FormatException(
+      '"$field" must be an object, got ${value.runtimeType}',
+    );
+  }
+
+  return value;
+}

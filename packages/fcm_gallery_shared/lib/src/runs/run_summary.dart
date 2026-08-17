@@ -42,20 +42,18 @@ class RunSummary {
   }
 
   factory RunSummary.fromJson(Map<String, Object?> json) {
-    final states = json['states'];
-    if (states is! Map<String, Object?>) {
-      throw FormatException(
-        '"states" must be an object, got ${states.runtimeType}',
-      );
-    }
+    final states = requireObject(json['states'], 'states');
 
     return RunSummary(
       runId: requireText(json['run_id'], 'run_id'),
       createdAt: requireTimestamp(json['created_at'], 'created_at'),
-      itemCount: json['item_count'] as int? ?? 0,
+      itemCount: requireInt(json['item_count'], 'item_count'),
       states: {
         for (final entry in states.entries)
-          RunItemState.fromWireName(entry.key): entry.value as int? ?? 0,
+          RunItemState.fromWireName(entry.key): requireInt(
+            entry.value,
+            'states["${entry.key}"]',
+          ),
       },
       nextDueAt: json['next_due_at'] == null
           ? null

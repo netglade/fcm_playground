@@ -1,3 +1,4 @@
+import '../json_field.dart';
 import '../send_message_request.dart';
 
 /// The most items one run may hold. The catalogue has 66, so selecting all of them
@@ -61,14 +62,8 @@ class ScheduleRunRequest {
 /// Prefixes the item's position onto whatever `SendMessageRequest` reports, so a
 /// bad payload in a batch of sixty-six is findable rather than merely named.
 SendMessageRequest _item(Object? value, int index) {
-  if (value is! Map<String, Object?>) {
-    throw FormatException(
-      'items[$index] must be an object, got ${value.runtimeType}',
-    );
-  }
-
   try {
-    return SendMessageRequest.fromJson(value);
+    return SendMessageRequest.fromJson(requireObject(value, 'items[$index]'));
   } on FormatException catch (error) {
     throw FormatException('items[$index]: ${error.message}');
   }
