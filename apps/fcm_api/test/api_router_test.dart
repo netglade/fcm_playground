@@ -16,6 +16,12 @@ void main() {
     now: () => sentAt,
     newTraceId: () => 'tr-1',
     telemetry: InMemoryTelemetryStore(),
+    scheduler: SendScheduler(
+      runs: InMemoryRunStore(),
+      telemetry: InMemoryTelemetryStore(),
+      sender: sender,
+      newId: () => 'run-1',
+    ),
   ).handler;
 
   FutureOr<Response> post(Object? body, {FakeFcmSender? sender}) =>
@@ -76,11 +82,18 @@ void main() {
       // The route has to reach the *same* store `GET /latency` reads from: one that
       // recorded into a store of its own would answer an empty latency page forever.
       final store = InMemoryTelemetryStore();
+      final sender = FakeFcmSender();
       final handler = ApiRouter(
-        sender: FakeFcmSender(),
+        sender: sender,
         now: () => sentAt,
         newTraceId: () => 'tr-1',
         telemetry: store,
+        scheduler: SendScheduler(
+          runs: InMemoryRunStore(),
+          telemetry: store,
+          sender: sender,
+          newId: () => 'run-1',
+        ),
       ).handler;
 
       await handler(

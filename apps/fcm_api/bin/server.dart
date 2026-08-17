@@ -52,11 +52,18 @@ Future<void> _serve(ServerConfig config, TelemetryStore telemetry) async {
     const [fcmMessagingScope],
   );
 
+  final sender = HttpV1FcmSender(client: client, projectId: config.projectId);
   final router = ApiRouter(
-    sender: HttpV1FcmSender(client: client, projectId: config.projectId),
+    sender: sender,
     now: () => DateTime.now().toUtc(),
     newTraceId: newTraceId,
     telemetry: telemetry,
+    scheduler: SendScheduler(
+      runs: SqliteRunStore.open(config.databasePath),
+      telemetry: telemetry,
+      sender: sender,
+      newId: newTraceId,
+    ),
   );
 
   final server = await serve(

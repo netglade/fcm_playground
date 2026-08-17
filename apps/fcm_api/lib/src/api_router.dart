@@ -8,9 +8,10 @@ import 'events_handler.dart';
 import 'fcm_sender.dart';
 import 'send_message.dart';
 import 'send_outcome.dart';
+import 'send_scheduler.dart';
 import 'telemetry_store.dart';
 
-/// The HTTP surface: four routes, JSON in and JSON out.
+/// The HTTP surface: eight routes, JSON in and JSON out.
 ///
 /// It decides nothing about a send — [sendMessage] returns the status and
 /// the body, and this class only translates between that and `shelf`.
@@ -23,17 +24,20 @@ class ApiRouter {
     required this._now,
     required this._newTraceId,
     required this._telemetry,
+    required this._scheduler,
   });
 
   final FcmSender _sender;
   final DateTime Function() _now;
   final String Function() _newTraceId;
   final TelemetryStore _telemetry;
+  final SendScheduler _scheduler;
 
   Handler get handler {
     final router = Router(notFoundHandler: _notFound)
       ..get('/health', _health)
       ..post('/send', _send)
+      ..post('/runs', _createRun)
       ..post('/events', _events)
       ..get('/latency', _latency);
 
@@ -61,6 +65,25 @@ class ApiRouter {
         error.toJson(),
       ),
     };
+  }
+
+  Future<Response> _createRun(Request request) =>
+      _parsedBody(request, ScheduleRunRequest.fromJson, _scheduled);
+
+  /// The "every device" check runs before anything is stored, so a run never holds
+  /// an item that cannot possibly send — and the wording is `sendMessage`'s own
+  /// rather than a second copy that could drift from it.
+  Future<Response> _scheduled(ScheduleRunRequest request) async {
+    if (request.items.any((item) => item.target is AllDevicesTarget)) {
+      return _json(
+        allDevicesUnsupported.statusCode,
+        allDevicesUnsupported.error.toJson(),
+      );
+    }
+
+    final run = await _scheduler.schedule(request, _now());
+
+    return _json(201, run.toJson());
   }
 
   /// The count comes from the store rather than from the request: a replay answers
