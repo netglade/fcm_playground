@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'di/service_locator.dart';
 import 'domains/push/repositories/push_repository.dart';
+import 'domains/runs/entities/active_run_store.dart';
 import 'domains/runs/entities/run_scheduler.dart';
 import 'domains/runs/start_run.dart';
 import 'domains/sandbox/entities/notification_sender.dart';
@@ -20,10 +21,11 @@ import 'pages/shell/app_shell.dart';
 ///
 /// Nothing below this widget reads the locator, so widget tests wrap the widget
 /// under test in `BlocProvider.value` and never configure it at all. The
-/// `MultiRepositoryProvider` below supplies the [RunScheduler] and [StartRun] the
-/// same way: each is looked up here, once, and every page that needs one — the Runs
-/// pages for the scheduler, the Sandbox's footer for `StartRun` — reads it from
-/// `context` instead of from the locator.
+/// `MultiRepositoryProvider` below supplies the [RunScheduler], [StartRun] and
+/// [ActiveRunStore] the same way: each is looked up here, once, and every page
+/// that needs one — the Runs pages for the scheduler, the Sandbox's footer for
+/// `StartRun`, the shell itself for the id of the run it may need to reopen —
+/// reads it from `context` instead of from the locator.
 class App extends StatelessWidget {
   const App({super.key});
 
@@ -35,6 +37,9 @@ class App extends StatelessWidget {
     providers: [
       RepositoryProvider<RunScheduler>(create: (_) => getIt<RunScheduler>()),
       RepositoryProvider<StartRun>(create: (_) => getIt<StartRun>()),
+      RepositoryProvider<ActiveRunStore>(
+        create: (_) => getIt<ActiveRunStore>(),
+      ),
     ],
     child: MultiBlocProvider(
       providers: [

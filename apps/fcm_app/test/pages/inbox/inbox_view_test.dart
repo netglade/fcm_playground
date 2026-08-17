@@ -1,4 +1,5 @@
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
@@ -46,8 +47,13 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
-        home: RepositoryProvider<RunScheduler>.value(
-          value: FakeRunScheduler(),
+        home: MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<RunScheduler>.value(value: FakeRunScheduler()),
+            RepositoryProvider<ActiveRunStore>.value(
+              value: InMemoryActiveRunStore(),
+            ),
+          ],
           child: MultiBlocProvider(
             providers: [
               BlocProvider.value(value: inbox),

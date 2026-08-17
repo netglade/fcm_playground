@@ -1,8 +1,11 @@
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
+import 'package:fcm_app/pages/runs/run_timeline_page.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/shell/app_shell.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
@@ -47,6 +50,8 @@ void main() {
     WidgetTester tester, {
     FakePushPayloadStore? store,
     NavigatorObserver? observer,
+    ActiveRunStore? active,
+    FakeRunScheduler? scheduler,
   }) async {
     repository = PushRepository(source, store: store ?? FakePushPayloadStore())
       ..listen();
@@ -62,8 +67,15 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         navigatorObservers: [?observer],
-        home: RepositoryProvider<RunScheduler>.value(
-          value: FakeRunScheduler(),
+        home: MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<RunScheduler>.value(
+              value: scheduler ?? FakeRunScheduler(),
+            ),
+            RepositoryProvider<ActiveRunStore>.value(
+              value: active ?? InMemoryActiveRunStore(),
+            ),
+          ],
           child: MultiBlocProvider(
             providers: [
               BlocProvider.value(value: inbox),
@@ -289,5 +301,82 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(inbox.state.messages.single.id, 'while-away');
+  });
+
+  group('coming back to a scheduled run', () {
+    ScheduledRun runWith(RunItemState state) => ScheduledRun(
+      id: 'run-1',
+      createdAt: FakeRunScheduler.createdAt,
+      items: [
+        ScheduledRunItem(
+          index: 0,
+          request: SendMessageRequest(
+            target: const TokenTarget('device-token'),
+            message: const FcmMessage(),
+            scenarioId: 'b3_killed',
+          ),
+          dueAt: FakeRunScheduler.createdAt.add(const Duration(seconds: 30)),
+          state: state,
+        ),
+      ],
+    );
+
+    testWidgets('opens the timeline of a run that has finished', (
+      tester,
+    ) async {
+      final active = InMemoryActiveRunStore();
+      await active.setActiveRunId('run-1');
+      final scheduler = FakeRunScheduler()
+        ..runs['run-1'] = runWith(RunItemState.sent);
+
+      await pumpApp(tester, active: active, scheduler: scheduler);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RunTimelinePage), findsOneWidget);
+      // Cleared, so a second launch does not reopen it.
+      expect(await active.activeRunId(), isNull);
+    });
+
+    testWidgets('leaves a run that is still outstanding alone', (tester) async {
+      final active = InMemoryActiveRunStore();
+      await active.setActiveRunId('run-1');
+      final scheduler = FakeRunScheduler()
+        ..runs['run-1'] = runWith(RunItemState.pending);
+
+      await pumpApp(tester, active: active, scheduler: scheduler);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RunTimelinePage), findsNothing);
+      expect(await active.activeRunId(), 'run-1');
+    });
+
+    testWidgets('opens nothing when no run is awaited', (tester) async {
+      await pumpApp(
+        tester,
+        active: InMemoryActiveRunStore(),
+        scheduler: FakeRunScheduler(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RunTimelinePage), findsNothing);
+    });
+
+    testWidgets('keeps the id when the API cannot be reached', (tester) async {
+      final active = InMemoryActiveRunStore();
+      await active.setActiveRunId('run-1');
+
+      await pumpApp(
+        tester,
+        active: active,
+        scheduler: FakeRunScheduler(
+          failure: const RunSchedulerException('Could not reach the API'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Not cleared: the run is still out there, and the next launch should try
+      // again rather than lose it.
+      expect(await active.activeRunId(), 'run-1');
+    });
   });
 }

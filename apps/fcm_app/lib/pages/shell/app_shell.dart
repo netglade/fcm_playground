@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domains/runs/entities/active_run_store.dart';
 import '../../domains/runs/entities/run_scheduler.dart';
+import '../../domains/runs/entities/run_scheduler_exception.dart';
 import '../inbox/cubit/inbox_cubit.dart';
 import '../inbox/cubit/inbox_state.dart';
 import '../inbox/inbox_view.dart';
@@ -32,9 +35,6 @@ class _AppShellState extends State<AppShell> {
   static const _titles = ['Push inbox', 'Scenarios', 'Sandbox', 'Runs'];
   static const _inboxDestination = 0;
   static const _sandboxDestination = 2;
-  // No `_runsDestination` constant yet: nothing in this file reads one, and an
-  // unread private field is `unused_field`, fatal here. Whichever change first
-  // switches to this destination adds the constant back alongside that switch.
 
   late final AppLifecycleListener _lifecycle;
 
@@ -46,6 +46,11 @@ class _AppShellState extends State<AppShell> {
     // A push that arrived while the app was merely backgrounded sits in the
     // pending key until something drains it, and resuming is that something.
     _lifecycle = AppLifecycleListener(onResume: _onResume);
+    // After the first frame, because this pushes a route and there is no navigator
+    // to push onto until the tree is built.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(_openAwaitedRun()),
+    );
   }
 
   @override
@@ -120,6 +125,47 @@ class _AppShellState extends State<AppShell> {
 
   void _onResume() => unawaited(context.read<InboxCubit>().drainPending());
 
+  /// Opens the timeline of the run the user was waiting on, if it has finished.
+  ///
+  /// This is the far end of the countdown: it told the user to swipe the app away,
+  /// so by the time there is a result there is no cubit left holding it — only the
+  /// id in [ActiveRunStore].
+  ///
+  /// A run still outstanding is left alone, and so is the stored id when the API
+  /// cannot be reached: losing it would lose the only pointer back to the result.
+  /// The timing works out for the killed case in particular — `received_bg` is
+  /// buffered by the background isolate and flushed at the next launch, which is
+  /// this moment.
+  Future<void> _openAwaitedRun() async {
+    final active = context.read<ActiveRunStore>();
+    final runId = await active.activeRunId();
+    if (runId == null || !mounted) {
+      return;
+    }
+
+    final scheduler = context.read<RunScheduler>();
+    final ScheduledRun run;
+    try {
+      run = await scheduler.fetch(runId);
+    } on RunSchedulerException {
+      return;
+    }
+    if (run.items.any(_isOutstanding) || !mounted) {
+      return;
+    }
+
+    await active.clear();
+    if (!mounted) {
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RunTimelinePage(scheduler: scheduler, runId: runId),
+      ),
+    );
+  }
+
   /// Pushes the timeline for [runId], reached only by tapping a run — never a
   /// drawer choice, so there is no destination index to set.
   void _openRun(BuildContext context, String runId) => unawaited(
@@ -163,3 +209,7 @@ class _AppShellState extends State<AppShell> {
     );
   }
 }
+
+bool _isOutstanding(ScheduledRunItem item) =>
+    item.state == RunItemState.pending ||
+    item.state == RunItemState.dispatching;
