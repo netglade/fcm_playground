@@ -381,4 +381,41 @@ void main() {
       );
     });
   });
+
+  group('eventsForTraces', () {
+    TelemetryEvent event(String traceId, TelemetryEventType type) =>
+        TelemetryEvent(
+          traceId: traceId,
+          type: type,
+          at: DateTime.utc(2026, 8, 17, 9, 0),
+          deviceId: '',
+        );
+
+    test('returns only the traces asked for, in recorded order', () async {
+      final store = InMemoryTelemetryStore();
+      await store.record([
+        event('tr-1', TelemetryEventType.queued),
+        event('tr-2', TelemetryEventType.queued),
+        event('tr-1', TelemetryEventType.sent),
+      ]);
+
+      final events = await store.eventsForTraces(['tr-1']);
+
+      expect(events.map((e) => e.type), [
+        TelemetryEventType.queued,
+        TelemetryEventType.sent,
+      ]);
+    });
+
+    test('answers empty for a trace it has never seen', () async {
+      expect(await InMemoryTelemetryStore().eventsForTraces(['tr-9']), isEmpty);
+    });
+
+    test('answers empty for an empty request rather than everything', () async {
+      final store = InMemoryTelemetryStore();
+      await store.record([event('tr-1', TelemetryEventType.queued)]);
+
+      expect(await store.eventsForTraces([]), isEmpty);
+    });
+  });
 }

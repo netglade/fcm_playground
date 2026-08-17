@@ -39,6 +39,16 @@ class InMemoryTelemetryStore implements TelemetryStore {
       List<TelemetryEvent>.unmodifiable(_events.values);
 
   @override
+  Future<List<TelemetryEvent>> eventsForTraces(List<String> traceIds) async {
+    final wanted = traceIds.toSet();
+
+    return [
+      for (final event in _events.values)
+        if (wanted.contains(event.traceId)) event,
+    ];
+  }
+
+  @override
   Future<List<LatencyRow>> latencies() async => pairLatencies(_events.values);
 
   @override

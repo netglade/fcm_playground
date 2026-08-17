@@ -24,6 +24,10 @@ class ThrowingTelemetryStore implements TelemetryStore {
   Future<List<TelemetryEvent>> all() async => attempts;
 
   @override
+  Future<List<TelemetryEvent>> eventsForTraces(List<String> traceIds) async =>
+      const [];
+
+  @override
   Future<List<LatencyRow>> latencies() async => const [];
 
   @override
