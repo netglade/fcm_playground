@@ -8,32 +8,40 @@ import 'events_handler.dart';
 import 'fcm_sender.dart';
 import 'send_message.dart';
 import 'send_outcome.dart';
+import 'send_scheduler.dart';
 import 'telemetry_store.dart';
 
-/// The HTTP surface: four routes, JSON in and JSON out.
+/// The HTTP surface: eight routes, JSON in and JSON out.
 ///
 /// It decides nothing about a send — [sendMessage] returns the status and
 /// the body, and this class only translates between that and `shelf`.
 class ApiRouter {
   /// [now] and [newTraceId] are injected rather than read from the environment, so
   /// a test asserts exact values instead of matching patterns. One [telemetry] store
-  /// serves all three routes, since a latency pairs a device's row with a send's.
+  /// serves every route that touches telemetry, since a latency pairs a device's row
+  /// with a send's.
   ApiRouter({
     required this._sender,
     required this._now,
     required this._newTraceId,
     required this._telemetry,
+    required this._scheduler,
   });
 
   final FcmSender _sender;
   final DateTime Function() _now;
   final String Function() _newTraceId;
   final TelemetryStore _telemetry;
+  final SendScheduler _scheduler;
 
   Handler get handler {
     final router = Router(notFoundHandler: _notFound)
       ..get('/health', _health)
       ..post('/send', _send)
+      ..post('/runs', _createRun)
+      ..get('/runs', _runs)
+      ..get('/runs/<id>', _run)
+      ..delete('/runs/<id>', _cancelRun)
       ..post('/events', _events)
       ..get('/latency', _latency);
 
@@ -61,6 +69,78 @@ class ApiRouter {
         error.toJson(),
       ),
     };
+  }
+
+  Future<Response> _createRun(Request request) =>
+      _parsedBody(request, ScheduleRunRequest.fromJson, _scheduled);
+
+  /// The "every device" check runs before anything is stored, so a run never holds
+  /// an item that cannot possibly send — and the wording is `sendMessage`'s own
+  /// rather than a second copy that could drift from it.
+  Future<Response> _scheduled(ScheduleRunRequest request) async {
+    if (request.items.any((item) => item.target is AllDevicesTarget)) {
+      return _json(
+        allDevicesUnsupported.statusCode,
+        allDevicesUnsupported.error.toJson(),
+      );
+    }
+
+    final run = await _scheduler.schedule(request, _now());
+
+    return _json(201, run.toJson());
+  }
+
+  /// Summaries only. A list of runs does not need sixty-six payloads per row, and
+  /// the detail route is one tap away.
+  Future<Response> _runs(Request request) async => _json(200, [
+    for (final summary in await _scheduler.recent()) summary.toJson(),
+  ]);
+
+  Future<Response> _run(Request request, String id) async {
+    final run = await _scheduler.find(id);
+    if (run == null) {
+      return _json(404, ApiError('There is no run "$id".').toJson());
+    }
+
+    return _json(200, (await _withEvents(run)).toJson());
+  }
+
+  /// 404 distinguishes "no such run" from "nothing left to cancel", which answers
+  /// 200 with zero — someone who pressed Cancel a moment too late should not get an
+  /// error for having missed by a hair.
+  Future<Response> _cancelRun(Request request, String id) async {
+    final cancelled = await _scheduler.cancel(id);
+    if (cancelled == null) {
+      return _json(404, ApiError('There is no run "$id".').toJson());
+    }
+
+    return _json(200, {'cancelled': cancelled});
+  }
+
+  /// Attaches each item's telemetry, in one query for the whole run.
+  ///
+  /// The events live in the telemetry store rather than on the item, so this is the
+  /// only place the two are joined — a second copy in the run store would be one
+  /// that could disagree.
+  Future<ScheduledRun> _withEvents(ScheduledRun run) async {
+    final traceIds = [for (final item in run.items) ?item.traceId];
+    if (traceIds.isEmpty) {
+      return run;
+    }
+
+    final byTrace = <String, List<TelemetryEvent>>{};
+    for (final event in await _telemetry.eventsForTraces(traceIds)) {
+      (byTrace[event.traceId] ??= []).add(event);
+    }
+
+    return ScheduledRun(
+      id: run.id,
+      createdAt: run.createdAt,
+      items: [
+        for (final item in run.items)
+          item.copyWith(events: byTrace[item.traceId] ?? const []),
+      ],
+    );
   }
 
   /// The count comes from the store rather than from the request: a replay answers
@@ -99,7 +179,8 @@ class ApiRouter {
   Response _notFound(Request request) => _json(
     404,
     const ApiError(
-      'No such route. The API has POST /send, POST /events, GET /latency and '
+      'No such route. The API has POST /send, POST /runs, GET /runs, '
+      'GET /runs/<id>, DELETE /runs/<id>, POST /events, GET /latency and '
       'GET /health.',
     ).toJson(),
   );

@@ -37,11 +37,14 @@ class Scenario {
   /// format, so a template can be pasted straight out of Google's REST reference.
   final Map<String, dynamic> payloadTemplate;
 
-  /// Carried but not acted on yet: Spec 2 turns this into a delayed send. The Sandbox
-  /// shows it as a hint so the field is not silently meaningless.
+  /// Whether the scenario is meaningless unless the app has been killed first.
+  ///
+  /// Shown on the card and used as the hint that this is one to schedule rather
+  /// than send.
   final bool requiresKilledApp;
 
-  /// Seconds to hold the send for, once Spec 2 implements delaying.
+  /// The delay the schedule sheet opens on. Zero means "no opinion", and the sheet
+  /// falls back to its own default.
   final int defaultDelaySeconds;
 
   /// Empty when the scenario works today.

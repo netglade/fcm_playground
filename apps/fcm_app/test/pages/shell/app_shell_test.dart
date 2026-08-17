@@ -1,6 +1,11 @@
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
+import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
+import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
+import 'package:fcm_app/pages/runs/run_timeline_page.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/shell/app_shell.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
@@ -12,6 +17,8 @@ import 'package:glade_forms/glade_forms.dart';
 import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
 import '../../fakes/fake_push_source.dart';
+import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_navigator_observer.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
@@ -43,23 +50,47 @@ void main() {
     WidgetTester tester, {
     FakePushPayloadStore? store,
     NavigatorObserver? observer,
+    ActiveRunStore? active,
+    FakeRunScheduler? scheduler,
+    // Set before the first frame, so it is already outstanding by the time
+    // `_openAwaitedRun`'s post-frame callback checks for one — unlike the other
+    // notification-tap tests below, which fire `requestOpen` after settling to
+    // exercise `_onInboxChanged` reacting to a later state change instead.
+    String? pendingTapId,
   }) async {
     repository = PushRepository(source, store: store ?? FakePushPayloadStore())
       ..listen();
     inbox = InboxCubit(repository);
+    if (pendingTapId != null) {
+      inbox.requestOpen(pendingTapId);
+    }
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.state.token,
+      startRun: StartRun(
+        scheduler: FakeRunScheduler(),
+        active: InMemoryActiveRunStore(),
+      ),
     );
     await tester.pumpWidget(
       MaterialApp(
         navigatorObservers: [?observer],
-        home: MultiBlocProvider(
+        home: MultiRepositoryProvider(
           providers: [
-            BlocProvider.value(value: inbox),
-            BlocProvider.value(value: sandbox),
+            RepositoryProvider<RunScheduler>.value(
+              value: scheduler ?? FakeRunScheduler(),
+            ),
+            RepositoryProvider<ActiveRunStore>.value(
+              value: active ?? InMemoryActiveRunStore(),
+            ),
           ],
-          child: const AppShell(),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: inbox),
+              BlocProvider.value(value: sandbox),
+            ],
+            child: const AppShell(),
+          ),
         ),
       ),
     );
@@ -160,6 +191,46 @@ void main() {
     expect(selectedDestination(tester), 0);
     expect(find.widgetWithText(AppBar, 'Push inbox'), findsOne);
   });
+
+  testWidgets(
+    'reloads the Runs page each time it is chosen, not just at launch',
+    (tester) async {
+      // Growable, and held onto by the test: `FakeRunScheduler.list` answers
+      // whatever is in here at the moment it is called, so mutating it between
+      // two visits stands in for a run appearing on the server in between —
+      // exactly what happens after scheduling one from another tab.
+      final summaries = <RunSummary>[];
+      await pumpApp(tester, scheduler: FakeRunScheduler(summaries: summaries));
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Runs'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nothing scheduled yet'), findsOneWidget);
+
+      summaries.add(
+        RunSummary(
+          runId: 'run-1',
+          createdAt: FakeRunScheduler.createdAt,
+          itemCount: 1,
+          states: const {RunItemState.pending: 1},
+          nextDueAt: FakeRunScheduler.createdAt.add(
+            const Duration(seconds: 30),
+          ),
+        ),
+      );
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Inbox'));
+      await tester.pumpAndSettle();
+      await openDrawer(tester);
+      await tester.tap(find.text('Runs'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nothing scheduled yet'), findsNothing);
+      expect(find.byKey(const Key('run-run-1')), findsOneWidget);
+    },
+  );
 
   testWidgets('tapping a scenario switches to the sandbox with it loaded', (
     tester,
@@ -278,5 +349,122 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(inbox.state.messages.single.id, 'while-away');
+  });
+
+  group('coming back to a scheduled run', () {
+    ScheduledRun runWith(RunItemState state) => ScheduledRun(
+      id: 'run-1',
+      createdAt: FakeRunScheduler.createdAt,
+      items: [
+        ScheduledRunItem(
+          index: 0,
+          request: SendMessageRequest(
+            target: const TokenTarget('device-token'),
+            message: const FcmMessage(),
+            scenarioId: 'b3_killed',
+          ),
+          dueAt: FakeRunScheduler.createdAt.add(const Duration(seconds: 30)),
+          state: state,
+        ),
+      ],
+    );
+
+    testWidgets('opens the timeline of a run that has finished', (
+      tester,
+    ) async {
+      final active = InMemoryActiveRunStore();
+      await active.setActiveRunId('run-1');
+      final scheduler = FakeRunScheduler()
+        ..runs['run-1'] = runWith(RunItemState.sent);
+
+      await pumpApp(tester, active: active, scheduler: scheduler);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RunTimelinePage), findsOneWidget);
+      // Cleared, so a second launch does not reopen it.
+      expect(await active.activeRunId(), isNull);
+    });
+
+    testWidgets('leaves a run that is still outstanding alone', (tester) async {
+      final active = InMemoryActiveRunStore();
+      await active.setActiveRunId('run-1');
+      final scheduler = FakeRunScheduler()
+        ..runs['run-1'] = runWith(RunItemState.pending);
+
+      await pumpApp(tester, active: active, scheduler: scheduler);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RunTimelinePage), findsNothing);
+      expect(await active.activeRunId(), 'run-1');
+    });
+
+    testWidgets('leaves a dispatching run alone too, not just a pending one', (
+      tester,
+    ) async {
+      final active = InMemoryActiveRunStore();
+      await active.setActiveRunId('run-1');
+      final scheduler = FakeRunScheduler()
+        ..runs['run-1'] = runWith(RunItemState.dispatching);
+
+      await pumpApp(tester, active: active, scheduler: scheduler);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RunTimelinePage), findsNothing);
+      expect(await active.activeRunId(), 'run-1');
+    });
+
+    testWidgets(
+      "defers to the user's own navigation: an outstanding notification tap "
+      'wins over reopening a finished run',
+      (tester) async {
+        final active = InMemoryActiveRunStore();
+        await active.setActiveRunId('run-1');
+        final scheduler = FakeRunScheduler()
+          ..runs['run-1'] = runWith(RunItemState.sent);
+
+        await pumpApp(
+          tester,
+          active: active,
+          scheduler: scheduler,
+          pendingTapId: 'tapped',
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(RunTimelinePage), findsNothing);
+        // Still cleared: the id did its job the moment the user tapped their way
+        // back in, even though this launch shows them the notification instead of
+        // the timeline.
+        expect(await active.activeRunId(), isNull);
+      },
+    );
+
+    testWidgets('opens nothing when no run is awaited', (tester) async {
+      await pumpApp(
+        tester,
+        active: InMemoryActiveRunStore(),
+        scheduler: FakeRunScheduler(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RunTimelinePage), findsNothing);
+    });
+
+    testWidgets('keeps the id when the API cannot be reached', (tester) async {
+      final active = InMemoryActiveRunStore();
+      await active.setActiveRunId('run-1');
+
+      await pumpApp(
+        tester,
+        active: active,
+        scheduler: FakeRunScheduler(
+          failure: const RunSchedulerException('Could not reach the API'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Not cleared: the run is still out there, and the next launch should try
+      // again rather than lose it.
+      expect(await active.activeRunId(), 'run-1');
+    });
   });
 }

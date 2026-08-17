@@ -1,13 +1,19 @@
 # fcm_api
 
-One endpoint that sends a push through FCM, so the Sandbox page in `fcm_app` has
-something to talk to — plus the two that collect what became of it.
+A local HTTP server so the app in `fcm_app` has something to talk to: one route
+that sends a push through FCM, four that schedule and manage a delayed run of
+sends, and three that collect what became of any of them.
 
 ```
-POST /send   {<target>, validate_only, message}  →  200 {messageId, sentAt}
-POST /events {"events": [<event>, …]}            →  200 {"recorded": <n>}
-GET  /latency                                    →  200 [<latency row>, …]
-GET  /health                                     →  200 {"status": "ok"}
+POST /send        {<target>, validate_only, message}   →  200 {messageId, sentAt}
+POST /runs        {delay_seconds, spacing_seconds,
+                    items: [{<target>, message}, …]}    →  201 {run_id, created_at, items}
+GET  /runs                                              →  200 [{run_id, item_count, states, …}, …]
+GET  /runs/<id>                                         →  200 {run_id, created_at, items}
+DELETE /runs/<id>                                       →  200 {"cancelled": <n>}
+POST /events      {"events": [<event>, …]}              →  200 {"recorded": <n>}
+GET  /latency                                           →  200 [<latency row>, …]
+GET  /health                                            →  200 {"status": "ok"}
 ```
 
 `message` is FCM's own v1 `Message` object, parsed by `FcmMessage.fromJson` and

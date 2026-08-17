@@ -82,6 +82,26 @@ CREATE TABLE IF NOT EXISTS events (
       _eventFrom(row),
   ];
 
+  /// `rowid` order is recorded order, as in [all]. The placeholders are built from
+  /// the list's length rather than interpolated, so a trace id can never be SQL.
+  @override
+  Future<List<TelemetryEvent>> eventsForTraces(List<String> traceIds) async {
+    if (traceIds.isEmpty) {
+      return const [];
+    }
+
+    final placeholders = List.filled(traceIds.length, '?').join(', ');
+
+    return [
+      for (final row in _db.select(
+        'SELECT trace_id, type, device_id, at, scenario_id, detail '
+        'FROM events WHERE trace_id IN ($placeholders) ORDER BY rowid',
+        traceIds,
+      ))
+        _eventFrom(row),
+    ];
+  }
+
   @override
   Future<List<LatencyRow>> latencies() async => pairLatencies(await all());
 

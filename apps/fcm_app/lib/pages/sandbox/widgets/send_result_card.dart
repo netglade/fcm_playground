@@ -66,6 +66,14 @@ class SendResultCard extends StatelessWidget {
           ],
         ),
       ),
+      SandboxScheduled(:final run) => Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: Text(
+          '✓ Scheduled · run ${run.id} · ${run.items.length} message'
+          '${run.items.length == 1 ? '' : 's'} · nothing has been sent yet',
+          style: TextStyle(color: colors.primary),
+        ),
+      ),
       SandboxFailed(:final message) => Padding(
         padding: const EdgeInsets.only(top: 16),
         child: ColoredBox(

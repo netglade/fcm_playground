@@ -1,4 +1,7 @@
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
+import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
@@ -11,6 +14,8 @@ import 'package:glade_forms/glade_forms.dart';
 import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
 import '../../fakes/fake_push_source.dart';
+import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/in_memory_active_run_store.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
   'id': id,
@@ -35,15 +40,27 @@ void main() {
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.state.token,
+      startRun: StartRun(
+        scheduler: FakeRunScheduler(),
+        active: InMemoryActiveRunStore(),
+      ),
     );
     await tester.pumpWidget(
       MaterialApp(
-        home: MultiBlocProvider(
+        home: MultiRepositoryProvider(
           providers: [
-            BlocProvider.value(value: inbox),
-            BlocProvider.value(value: sandbox),
+            RepositoryProvider<RunScheduler>.value(value: FakeRunScheduler()),
+            RepositoryProvider<ActiveRunStore>.value(
+              value: InMemoryActiveRunStore(),
+            ),
           ],
-          child: const AppShell(),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: inbox),
+              BlocProvider.value(value: sandbox),
+            ],
+            child: const AppShell(),
+          ),
         ),
       ),
     );

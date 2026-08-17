@@ -13,12 +13,23 @@ void main() {
 
   // Built per request rather than once, because `store` is replaced by `setUp`
   // and a router captured earlier would hold the previous test's store.
-  Handler handler() => ApiRouter(
-    sender: FakeFcmSender(),
-    now: () => DateTime.utc(2026, 8, 13, 9),
-    newTraceId: () => 'tr-1',
-    telemetry: store,
-  ).handler;
+  Handler handler() {
+    final sender = FakeFcmSender();
+
+    return ApiRouter(
+      sender: sender,
+      now: () => DateTime.utc(2026, 8, 13, 9),
+      newTraceId: () => 'tr-1',
+      telemetry: store,
+      scheduler: SendScheduler(
+        runs: InMemoryRunStore(),
+        telemetry: store,
+        sender: sender,
+        newId: () => 'run-1',
+        now: () => DateTime.utc(2026, 8, 13, 9),
+      ),
+    ).handler;
+  }
 
   Future<Response> post(Object? body) async => handler()(
     Request(

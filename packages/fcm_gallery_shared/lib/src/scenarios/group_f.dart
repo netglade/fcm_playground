@@ -74,10 +74,9 @@ const groupF = <Scenario>[
       'notification': {'title': 'Open build 126', 'body': 'Tap to route.'},
       'data': {'deep_link': '/builds/126'},
     },
-    // delayedSend as well as interaction: requiresKilledApp means the scenario
-    // is meaningless in any other state, and arranging that means holding the
-    // send until the app is gone.
-    needs: [ScenarioNeed.interaction, ScenarioNeed.delayedSend],
+    // Blocked on interaction alone: the send can now be held until the app is
+    // gone, but there is no three-state routing to observe when it arrives.
+    needs: [ScenarioNeed.interaction],
     requiresKilledApp: true,
     defaultDelaySeconds: 20,
   ),

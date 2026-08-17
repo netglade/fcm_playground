@@ -36,8 +36,9 @@ const groupA = <Scenario>[
       'data': {'event': 'sync', 'build_number': '128'},
     },
     // Deliberately NOT requiresKilledApp: that flag means "meaningless unless the
-    // app is killed", which implies the scenario needs delayed sending. A data-only
-    // push is observable in every state, so this one is sendable today.
+    // app is killed", and a data-only push is observable in every state, so it does
+    // not apply here. It says nothing about needing delayed sending — that is
+    // arranged for every scenario without asking.
   ),
   Scenario(
     id: 'a3_hybrid',

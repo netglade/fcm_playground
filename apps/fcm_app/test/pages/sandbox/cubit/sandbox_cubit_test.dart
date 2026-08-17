@@ -1,3 +1,5 @@
+import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
+import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_send_state.dart';
@@ -7,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
 import '../../../fakes/fake_notification_sender.dart';
+import '../../../fakes/fake_run_scheduler.dart';
+import '../../../fakes/in_memory_active_run_store.dart';
 
 void main() {
   // The cubit builds a GladeModel in its constructor, so the library has to be
@@ -20,7 +24,14 @@ void main() {
     FakeNotificationSender? withSender,
   }) {
     sender = withSender ?? FakeNotificationSender();
-    final cubit = SandboxCubit(sender: sender, token: () => token);
+    final cubit = SandboxCubit(
+      sender: sender,
+      token: () => token,
+      startRun: StartRun(
+        scheduler: FakeRunScheduler(),
+        active: InMemoryActiveRunStore(),
+      ),
+    );
     addTearDown(cubit.close);
 
     return cubit;
@@ -259,6 +270,10 @@ void main() {
       final cubit = SandboxCubit(
         sender: FakeNotificationSender(),
         token: () => 'device-token',
+        startRun: StartRun(
+          scheduler: FakeRunScheduler(),
+          active: InMemoryActiveRunStore(),
+        ),
       );
       final form = cubit.form;
       await cubit.close();
@@ -271,6 +286,120 @@ void main() {
       form.android.notification.color.updateValue('#123456');
 
       expect(reported, isEmpty);
+    });
+  });
+
+  group('schedule', () {
+    test('posts one item carrying the payload and the scenario', () async {
+      final runs = FakeRunScheduler();
+      final cubit = SandboxCubit(
+        sender: FakeNotificationSender(),
+        token: () => 'device-token',
+        startRun: StartRun(scheduler: runs, active: InMemoryActiveRunStore()),
+      )..applyScenario(scenarioGallery.firstWhere((s) => s.id == 'b3_killed'));
+      cubit.form.notification.title.updateValue('Killed-app probe');
+
+      final run = await cubit.schedule(30);
+
+      expect(run, isNotNull);
+      final request = runs.scheduled.single;
+      expect(request.delaySeconds, 30);
+      expect(request.items.single.scenarioId, 'b3_killed');
+      expect(request.items.single.target, const TokenTarget('device-token'));
+      // The gap this test used to leave: it named "the payload" but never read it
+      // back, so a message dropped between the form and the request would have
+      // passed unnoticed.
+      expect(request.items.single.message, cubit.form.toModel());
+      expect(
+        request.items.single.message.notification?.title,
+        'Killed-app probe',
+      );
+    });
+
+    test('reads the form at the press, not once the run comes back', () async {
+      // Mirrors `send`'s own guarantee, and the comment in `schedule` that
+      // makes it: the read has to happen before the request is handed to
+      // the scheduler, or an edit made while the call is in flight would
+      // travel instead of what was on screen at the press.
+      final runs = FakeRunScheduler();
+      final cubit = SandboxCubit(
+        sender: FakeNotificationSender(),
+        token: () => 'device-token',
+        startRun: StartRun(scheduler: runs, active: InMemoryActiveRunStore()),
+      )..applyScenario(scenarioGallery.firstWhere((s) => s.id == 'b3_killed'));
+      cubit.form.notification.title.updateValue('At the press');
+
+      // Not awaited yet: `schedule` runs synchronously up to its first
+      // `await`, so the read below happens either before this line
+      // (correct) or after it (if it were moved past an `await`) — which
+      // is exactly what this proves.
+      final pending = cubit.schedule(30);
+      cubit.form.notification.title.updateValue('After the press');
+      await pending;
+
+      expect(
+        runs.scheduled.single.items.single.message.notification?.title,
+        'At the press',
+      );
+    });
+
+    test('remembers the run, so a killed app can reopen it', () async {
+      final active = InMemoryActiveRunStore();
+      final cubit = SandboxCubit(
+        sender: FakeNotificationSender(),
+        token: () => 'device-token',
+        startRun: StartRun(scheduler: FakeRunScheduler(), active: active),
+      );
+
+      await cubit.schedule(30);
+
+      expect(await active.activeRunId(), 'run-1');
+    });
+
+    test('publishes the scheduled run so the card can name it', () async {
+      final cubit = SandboxCubit(
+        sender: FakeNotificationSender(),
+        token: () => 'device-token',
+        startRun: StartRun(
+          scheduler: FakeRunScheduler(),
+          active: InMemoryActiveRunStore(),
+        ),
+      );
+
+      await cubit.schedule(30);
+
+      expect(cubit.state.sendState, isA<SandboxScheduled>());
+    });
+
+    test(
+      'reports a refusal without pretending anything was scheduled',
+      () async {
+        final cubit = SandboxCubit(
+          sender: FakeNotificationSender(),
+          token: () => 'device-token',
+          startRun: StartRun(
+            scheduler: FakeRunScheduler(
+              failure: const RunSchedulerException('Could not reach the API'),
+            ),
+            active: InMemoryActiveRunStore(),
+          ),
+        );
+
+        expect(await cubit.schedule(30), isNull);
+        expect(cubit.state.sendState, isA<SandboxFailed>());
+      },
+    );
+
+    test('schedules nothing when there is nowhere to send', () async {
+      final runs = FakeRunScheduler();
+      final cubit = SandboxCubit(
+        sender: FakeNotificationSender(),
+        token: () => null,
+        startRun: StartRun(scheduler: runs, active: InMemoryActiveRunStore()),
+      );
+
+      expect(await cubit.schedule(30), isNull);
+      expect(runs.scheduled, isEmpty);
     });
   });
 }

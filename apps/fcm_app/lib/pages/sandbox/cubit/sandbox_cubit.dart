@@ -2,6 +2,8 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../domains/runs/entities/run_scheduler_exception.dart';
+import '../../../domains/runs/start_run.dart';
 import '../../../domains/sandbox/entities/notification_send_exception.dart';
 import '../../../domains/sandbox/entities/notification_sender.dart';
 import '../../../domains/telemetry/data_sources/silent_push_telemetry.dart';
@@ -23,6 +25,7 @@ class SandboxCubit extends Cubit<SandboxState> {
   SandboxCubit({
     required this._sender,
     required this._token,
+    required this._startRun,
     this._telemetry = const SilentPushTelemetry(),
   }) : super(const SandboxState()) {
     for (final model in _form.allModels) {
@@ -33,6 +36,7 @@ class SandboxCubit extends Cubit<SandboxState> {
 
   final NotificationSender _sender;
   final String? Function() _token;
+  final StartRun _startRun;
   final PushTelemetry _telemetry;
   final FcmMessageForm _form = FcmMessageForm();
 
@@ -66,6 +70,12 @@ class SandboxCubit extends Cubit<SandboxState> {
   }
 
   bool get canSend => sendBlockedReason == null;
+
+  /// This device's registration token, or null before one exists.
+  ///
+  /// Exposed because the gallery's batch needs the same token this page sends to,
+  /// and both pages already share this cubit.
+  String? get deviceToken => _token();
 
   void setValidateOnly(bool value) => emit(state.copyWith(validateOnly: value));
 
@@ -117,6 +127,41 @@ class SandboxCubit extends Cubit<SandboxState> {
       emit(state.copyWith(sendState: SandboxSent(response)));
     } on NotificationSendException catch (error) {
       emit(state.copyWith(sendState: SandboxFailed(error.message)));
+    }
+  }
+
+  /// Schedules the composed payload as a run of one, [delaySeconds] from now.
+  ///
+  /// It answers the run so the caller can open a countdown on it, and null when
+  /// there was nothing to schedule or the API refused — the state says which.
+  Future<ScheduledRun?> schedule(int delaySeconds) async {
+    final token = _token();
+    final target = state.target ?? (token == null ? null : TokenTarget(token));
+    if (target == null || !canSend) {
+      return null;
+    }
+
+    // Read before the await, as `send` does: what gets scheduled must be what the
+    // form held at the press, not whatever it holds when the response lands.
+    final request = SendMessageRequest(
+      target: target,
+      message: _form.toModel(),
+      validateOnly: state.validateOnly,
+      scenarioId: state.selectedScenario?.id,
+    );
+    emit(state.copyWith(sendState: const SandboxSending()));
+
+    try {
+      final run = await _startRun(
+        ScheduleRunRequest(delaySeconds: delaySeconds, items: [request]),
+      );
+      emit(state.copyWith(sendState: SandboxScheduled(run)));
+
+      return run;
+    } on RunSchedulerException catch (error) {
+      emit(state.copyWith(sendState: SandboxFailed(error.message)));
+
+      return null;
     }
   }
 

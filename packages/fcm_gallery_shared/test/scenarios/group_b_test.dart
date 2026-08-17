@@ -14,10 +14,10 @@ void main() {
       ]);
     });
 
-    test('b3 is the one that drives the delayed-send work', () {
+    test('b3 works today, now that delayed sending is arranged', () {
       final killed = groupB.firstWhere((s) => s.id == 'b3_killed');
 
-      expect(killed.needs, contains(ScenarioNeed.delayedSend));
+      expect(killed.needs, isEmpty);
       expect(killed.requiresKilledApp, isTrue);
       expect(killed.defaultDelaySeconds, greaterThan(0));
     });

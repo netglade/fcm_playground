@@ -146,7 +146,7 @@ void main() {
 
     test('nothing in this group is about the killed app', () {
       // Errors and device states are observable in every app state, so the flag is
-      // off across the group and does not drag in delayed sending.
+      // off across the group.
       for (final scenario in groupK) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);

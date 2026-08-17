@@ -5,6 +5,7 @@
 library;
 
 export 'src/api_error.dart';
+export 'src/json_field.dart';
 export 'src/message/android_config.dart';
 export 'src/message/android_message_priority.dart';
 export 'src/message/android_notification.dart';
@@ -21,6 +22,11 @@ export 'src/message/notification_proxy.dart';
 export 'src/message/notification_visibility.dart';
 export 'src/message/webpush_config.dart';
 export 'src/message/webpush_fcm_options.dart';
+export 'src/runs/run_item_state.dart';
+export 'src/runs/scheduled_run_item.dart';
+export 'src/runs/run_summary.dart';
+export 'src/runs/schedule_run_request.dart';
+export 'src/runs/scheduled_run.dart';
 export 'src/scenarios/group_a.dart';
 export 'src/scenarios/group_b.dart';
 export 'src/scenarios/group_c.dart';

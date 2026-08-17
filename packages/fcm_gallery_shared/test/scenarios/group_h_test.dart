@@ -158,16 +158,11 @@ void main() {
 
     test('nothing in this group is about the killed app', () {
       // The question here is whether the system lets the alert through, not what
-      // state the app was in, so every entry is observable in the foreground. The
-      // flag would drag in delayed sending.
+      // state the app was in, so every entry is observable in the foreground and
+      // none of them needs the flag.
       for (final scenario in groupH) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);
-        expect(
-          scenario.needs,
-          isNot(contains(ScenarioNeed.delayedSend)),
-          reason: scenario.id,
-        );
       }
     });
 

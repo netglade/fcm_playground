@@ -23,6 +23,13 @@ abstract interface class TelemetryStore {
   /// the API stamps `queued` and `sent` from one clock reading.
   Future<List<TelemetryEvent>> all();
 
+  /// Every stored event belonging to one of [traceIds], in recorded order.
+  ///
+  /// Narrower than [all] because a run's timeline asks about six traces and reading
+  /// an entire database to answer that is not a query. An empty [traceIds] answers
+  /// empty rather than everything — the caller asked about nothing.
+  Future<List<TelemetryEvent>> eventsForTraces(List<String> traceIds);
+
   /// One row per trace and device where both a send and an arrival are stored,
   /// pairing `sent` with the *first* arrival. A trace with no arrival is omitted
   /// rather than reported as zero.

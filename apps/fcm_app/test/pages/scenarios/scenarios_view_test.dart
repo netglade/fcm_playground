@@ -1,3 +1,6 @@
+import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
+import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/scenarios/scenarios_view.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
@@ -7,17 +10,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
 import '../../fakes/fake_notification_sender.dart';
+import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/in_memory_active_run_store.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
 
   late SandboxCubit controller;
+  late FakeRunScheduler runs;
+  late InMemoryActiveRunStore active;
   late int selectedCount;
 
-  void build() {
+  void build({String? token = 'device-token'}) {
+    runs = FakeRunScheduler();
+    active = InMemoryActiveRunStore();
     controller = SandboxCubit(
       sender: FakeNotificationSender(),
-      token: () => 'device-token',
+      token: () => token,
+      startRun: StartRun(scheduler: runs, active: active),
     );
     selectedCount = 0;
   }
@@ -25,10 +35,19 @@ void main() {
   Future<void> pump(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          body: BlocProvider.value(
-            value: controller,
-            child: ScenariosView(onScenarioSelected: () => selectedCount++),
+        home: MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<RunScheduler>.value(value: runs),
+            RepositoryProvider<ActiveRunStore>.value(value: active),
+            RepositoryProvider<StartRun>.value(
+              value: StartRun(scheduler: runs, active: active),
+            ),
+          ],
+          child: Scaffold(
+            body: BlocProvider.value(
+              value: controller,
+              child: ScenariosView(onScenarioSelected: () => selectedCount++),
+            ),
           ),
         ),
       ),
@@ -138,5 +157,156 @@ void main() {
 
     expect(selectedCount, 1);
     expect(controller.state.selectedScenario?.id, first.id);
+  });
+
+  group('choosing a batch', () {
+    Future<void> startSelecting(WidgetTester tester) async {
+      await tester.tap(find.text('Select for a batch'));
+      await tester.pump();
+    }
+
+    Future<void> tick(WidgetTester tester, String id) async {
+      final tile = find.byKey(Key('scenario-$id'));
+      await scrollIntoView(tester, tile);
+      await tester.tap(tile);
+      await tester.pump();
+    }
+
+    testWidgets('offers a selection mode, with nothing selected', (
+      tester,
+    ) async {
+      build();
+      await pump(tester);
+
+      expect(find.text('Select for a batch'), findsOne);
+      expect(find.byType(Checkbox), findsNothing);
+    });
+
+    testWidgets('shows a checkbox per scenario once selecting', (tester) async {
+      build();
+      await pump(tester);
+
+      await startSelecting(tester);
+
+      expect(find.byType(Checkbox), findsWidgets);
+    });
+
+    testWidgets('a tap ticks the box instead of loading the scenario', (
+      tester,
+    ) async {
+      build();
+      await pump(tester);
+      await startSelecting(tester);
+      // SandboxCubit's constructor already applies the catalogue's first
+      // scenario, so the state to compare against is whatever it was before the
+      // tick rather than a hardcoded id. That id must also differ from the one
+      // ticked below — a1_notification_only would not, since it is that same
+      // default — or a wrongly-applied scenario could not move it and this
+      // assertion could never fail.
+      final beforeTick = controller.state.selectedScenario?.id;
+
+      await tick(tester, 'a3_hybrid');
+
+      expect(find.text('1 selected'), findsOne);
+      // Neither the Sandbox handoff nor the form ran, which is what a tap does
+      // outside selection mode.
+      expect(selectedCount, 0);
+      expect(controller.state.selectedScenario?.id, beforeTick);
+    });
+
+    testWidgets('schedules every ticked scenario as one run', (tester) async {
+      build();
+      await pump(tester);
+      await startSelecting(tester);
+      await tick(tester, 'a1_notification_only');
+      await tick(tester, 'a3_hybrid');
+
+      await tester.tap(find.text('Schedule…'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Schedule'));
+      await tester.pumpAndSettle();
+
+      final request = runs.scheduled.single;
+      expect(request.items.map((i) => i.scenarioId), [
+        'a1_notification_only',
+        'a3_hybrid',
+      ]);
+      expect(request.items.first.target, const TokenTarget('device-token'));
+    });
+
+    testWidgets('orders the batch by the catalogue, not by tap order', (
+      tester,
+    ) async {
+      build();
+      await pump(tester);
+      await startSelecting(tester);
+      await tick(tester, 'a3_hybrid');
+      await tick(tester, 'a1_notification_only');
+
+      await tester.tap(find.text('Schedule…'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Schedule'));
+      await tester.pumpAndSettle();
+
+      expect(runs.scheduled.single.items.map((i) => i.scenarioId), [
+        'a1_notification_only',
+        'a3_hybrid',
+      ]);
+    });
+
+    testWidgets('clears the selection and leaves the mode', (tester) async {
+      build();
+      await pump(tester);
+      await startSelecting(tester);
+      await tick(tester, 'a1_notification_only');
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pump();
+
+      expect(find.byType(Checkbox), findsNothing);
+      expect(find.text('Select for a batch'), findsOne);
+    });
+
+    testWidgets('says why it cannot schedule with no token yet', (
+      tester,
+    ) async {
+      build(token: null);
+      await pump(tester);
+      await startSelecting(tester);
+      await tick(tester, 'a1_notification_only');
+
+      await tester.tap(find.text('Schedule…'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('No registration token'), findsOne);
+      expect(runs.scheduled, isEmpty);
+    });
+
+    testWidgets(
+      'schedules a batch of only targeted scenarios with no token at all',
+      (tester) async {
+        // j1_topic names its own audience (a topic), so it needs no device
+        // token — this is the positive case the refusal's narrower condition
+        // (`token == null && scenarios.any((s) => s.target == null)`) exists
+        // for, and a regression to plain `token == null` would refuse it.
+        build(token: null);
+        await pump(tester);
+        await startSelecting(tester);
+        // Group J starts collapsed — only the first group opens on arrival —
+        // so its scenarios are not in the tree until the group is expanded.
+        await scrollIntoView(tester, find.text('J — Targeting'));
+        await tester.tap(find.text('J — Targeting'));
+        await tester.pumpAndSettle();
+        await tick(tester, 'j1_topic');
+
+        await tester.tap(find.text('Schedule…'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Schedule'));
+        await tester.pumpAndSettle();
+
+        expect(runs.scheduled, hasLength(1));
+        expect(find.textContaining('No registration token'), findsNothing);
+      },
+    );
   });
 }

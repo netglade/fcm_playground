@@ -13,9 +13,19 @@ import 'scenario_card.dart';
 /// so tapping its card applies it to the [SandboxCubit] `context` provides and the
 /// fields stay editable afterwards.
 class ScenarioGroupList extends StatelessWidget {
-  const ScenarioGroupList({required this.onScenarioSelected, super.key});
+  const ScenarioGroupList({
+    required this.onScenarioSelected,
+    this.selectedIds,
+    this.onSelectionChanged,
+    super.key,
+  });
 
   final VoidCallback onScenarioSelected;
+
+  /// Null outside selection mode.
+  final Set<String>? selectedIds;
+
+  final void Function(String id, bool isSelected)? onSelectionChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +47,9 @@ class ScenarioGroupList extends StatelessWidget {
               ))
                 ScenarioCard(
                   scenario: scenario,
+                  isSelected: selectedIds?.contains(scenario.id),
+                  onSelectionChanged: (isSelected) =>
+                      onSelectionChanged?.call(scenario.id, isSelected),
                   onTap: () {
                     context.read<SandboxCubit>().applyScenario(scenario);
                     onScenarioSelected();

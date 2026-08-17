@@ -26,7 +26,7 @@ Future<SendOutcome> sendMessage(
   if (request.target case AllDevicesTarget()) {
     // Nothing is recorded: a `queued` row with no `sent` or `send_failed` beside
     // it would read as a message lost in flight rather than one never accepted.
-    return _allDevicesUnsupported;
+    return allDevicesUnsupported;
   }
 
   // Minted once, so the id on the wire and the id returned are the same one.
@@ -135,9 +135,12 @@ Map<String, Object?> _bodyFor(SendMessageRequest request, String traceId) {
 }
 
 /// AllDevices is the one target FCM cannot express: it has no such audience, so
-/// honouring it needs a registry of tokens this app does not keep. Refusing with
-/// a reason beats sending to one device and calling it a broadcast.
-const _allDevicesUnsupported = SendRejected(
+/// honouring it means keeping a registry of tokens this app does not keep. Refusing
+/// with a reason beats sending to one device and calling it a broadcast.
+///
+/// Public because `POST /runs` refuses it at scheduling time with the same wording:
+/// a run must never hold an item that cannot possibly send.
+const allDevicesUnsupported = SendRejected(
   statusCode: 501,
   error: ApiError(
     'sending to all devices needs a token registry, which this API does not '

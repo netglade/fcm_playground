@@ -64,6 +64,10 @@ dart_code_metrics:
     # six fields, so number-of-parameters cannot apply: the count is the shape of
     # the event both sides exchange, not a design smell.
     - packages/fcm_gallery_shared/lib/src/telemetry/**
+    # Data classes mirroring the run wire format. ScheduledRunItem declares nine
+    # fields, so number-of-parameters cannot apply: the count is the shape of the
+    # format being mirrored, not a design smell.
+    - packages/fcm_gallery_shared/lib/src/runs/**
     # Form models mirroring the same API. AndroidNotificationForm declares 27
     # inputs, so number-of-parameters and source-lines-of-code cannot apply for
     # the same reason they cannot apply to the typed model above.
