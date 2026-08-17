@@ -34,6 +34,15 @@ void main() {
         throwsA(isA<FormatException>()),
       );
     });
+
+    test('is outstanding only while pending or dispatching', () {
+      expect(RunItemState.pending.isOutstanding, isTrue);
+      expect(RunItemState.dispatching.isOutstanding, isTrue);
+      expect(RunItemState.sent.isOutstanding, isFalse);
+      expect(RunItemState.failed.isOutstanding, isFalse);
+      expect(RunItemState.cancelled.isOutstanding, isFalse);
+      expect(RunItemState.missed.isOutstanding, isFalse);
+    });
   });
 
   group('ScheduledRunItem', () {

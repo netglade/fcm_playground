@@ -58,8 +58,3 @@ abstract interface class RunStore {
 
   Future<void> close();
 }
-
-/// Whether an item is still waiting for something to happen to it.
-bool isOutstanding(ScheduledRunItem item) =>
-    item.state == RunItemState.pending ||
-    item.state == RunItemState.dispatching;

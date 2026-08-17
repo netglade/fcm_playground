@@ -29,8 +29,9 @@ class InMemoryRunStore implements RunStore {
   }
 
   @override
-  Future<List<ScheduledRun>> unfinished() async =>
-      _runs.values.where((run) => run.items.any(isOutstanding)).toList();
+  Future<List<ScheduledRun>> unfinished() async => _runs.values
+      .where((run) => run.items.any((item) => item.state.isOutstanding))
+      .toList();
 
   /// Synchronous from the first line to the last: nothing between reading an item
   /// and writing it back suspends, so a cancel cannot land in the middle. That is

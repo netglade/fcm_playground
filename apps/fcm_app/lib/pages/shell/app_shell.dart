@@ -136,6 +136,10 @@ class _AppShellState extends State<AppShell> {
   /// The timing works out for the killed case in particular — `received_bg` is
   /// buffered by the background isolate and flushed at the next launch, which is
   /// this moment.
+  ///
+  /// A notification tap outstanding at the same launch wins over this: the user
+  /// already asked to go somewhere, and this must not push a page on top of that
+  /// unasked for. See the check before the push below.
   Future<void> _openAwaitedRun() async {
     final active = context.read<ActiveRunStore>();
     final runId = await active.activeRunId();
@@ -150,12 +154,25 @@ class _AppShellState extends State<AppShell> {
     } on RunSchedulerException {
       return;
     }
-    if (run.items.any(_isOutstanding) || !mounted) {
+    if (run.items.any((item) => item.state.isOutstanding) || !mounted) {
       return;
     }
 
     await active.clear();
     if (!mounted) {
+      return;
+    }
+
+    // The user's own navigation wins. `b3_killed` is exactly this: the push
+    // arrives while the app is dead, the user taps it, the app starts — and by
+    // the time this method's two awaits are done, `_onInboxChanged` has already
+    // pushed `MessageDetailPage` for that tap. Pushing the timeline on top of it
+    // would ambush the user with a page they did not ask for. The id is cleared
+    // above regardless: it existed to get the user back to the result, and
+    // tapping the notification did that. The timeline stays one tap away on the
+    // Runs page — deferring this push to the next launch would just move the
+    // ambush to a later start rather than remove it.
+    if (context.read<InboxCubit>().state.hasPendingOpen) {
       return;
     }
 
@@ -209,7 +226,3 @@ class _AppShellState extends State<AppShell> {
     );
   }
 }
-
-bool _isOutstanding(ScheduledRunItem item) =>
-    item.state == RunItemState.pending ||
-    item.state == RunItemState.dispatching;

@@ -40,4 +40,14 @@ enum RunItemState {
 
     throw FormatException('"state" has unknown value "$wireName"');
   }
+
+  /// Whether an item in this state is still waiting for something to happen to it.
+  ///
+  /// Lives here rather than beside any one caller: the server asks it to find the
+  /// runs worth sweeping, the app asks it to decide whether a run is done, and a
+  /// shared summary asks it to find the next due time — three packages, one of
+  /// them the server, all needing the same answer. Written once so they cannot
+  /// drift apart.
+  bool get isOutstanding =>
+      this == RunItemState.pending || this == RunItemState.dispatching;
 }

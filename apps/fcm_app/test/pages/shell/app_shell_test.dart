@@ -52,10 +52,18 @@ void main() {
     NavigatorObserver? observer,
     ActiveRunStore? active,
     FakeRunScheduler? scheduler,
+    // Set before the first frame, so it is already outstanding by the time
+    // `_openAwaitedRun`'s post-frame callback checks for one — unlike the other
+    // notification-tap tests below, which fire `requestOpen` after settling to
+    // exercise `_onInboxChanged` reacting to a later state change instead.
+    String? pendingTapId,
   }) async {
     repository = PushRepository(source, store: store ?? FakePushPayloadStore())
       ..listen();
     inbox = InboxCubit(repository);
+    if (pendingTapId != null) {
+      inbox.requestOpen(pendingTapId);
+    }
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.state.token,
@@ -349,6 +357,46 @@ void main() {
       expect(find.byType(RunTimelinePage), findsNothing);
       expect(await active.activeRunId(), 'run-1');
     });
+
+    testWidgets('leaves a dispatching run alone too, not just a pending one', (
+      tester,
+    ) async {
+      final active = InMemoryActiveRunStore();
+      await active.setActiveRunId('run-1');
+      final scheduler = FakeRunScheduler()
+        ..runs['run-1'] = runWith(RunItemState.dispatching);
+
+      await pumpApp(tester, active: active, scheduler: scheduler);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RunTimelinePage), findsNothing);
+      expect(await active.activeRunId(), 'run-1');
+    });
+
+    testWidgets(
+      "defers to the user's own navigation: an outstanding notification tap "
+      'wins over reopening a finished run',
+      (tester) async {
+        final active = InMemoryActiveRunStore();
+        await active.setActiveRunId('run-1');
+        final scheduler = FakeRunScheduler()
+          ..runs['run-1'] = runWith(RunItemState.sent);
+
+        await pumpApp(
+          tester,
+          active: active,
+          scheduler: scheduler,
+          pendingTapId: 'tapped',
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(RunTimelinePage), findsNothing);
+        // Still cleared: the id did its job the moment the user tapped their way
+        // back in, even though this launch shows them the notification instead of
+        // the timeline.
+        expect(await active.activeRunId(), isNull);
+      },
+    );
 
     testWidgets('opens nothing when no run is awaited', (tester) async {
       await pumpApp(

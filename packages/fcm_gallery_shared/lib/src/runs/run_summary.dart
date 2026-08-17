@@ -23,10 +23,7 @@ class RunSummary {
     DateTime? nextDueAt;
     for (final item in run.items) {
       states[item.state] = (states[item.state] ?? 0) + 1;
-      final outstanding =
-          item.state == RunItemState.pending ||
-          item.state == RunItemState.dispatching;
-      if (outstanding &&
+      if (item.state.isOutstanding &&
           (nextDueAt == null || item.dueAt.isBefore(nextDueAt))) {
         nextDueAt = item.dueAt;
       }
