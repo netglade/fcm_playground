@@ -5,21 +5,16 @@ import 'package:http/http.dart' as http;
 import 'fcm_send_exception.dart';
 import 'fcm_sender.dart';
 
-/// The one OAuth2 scope this server needs.
-///
-/// FCM's HTTP v1 API only requires this single scope to send; requesting
-/// more would violate least privilege for a server that does nothing else.
+/// The one OAuth2 scope this server needs — FCM's HTTP v1 API requires no more to
+/// send.
 const fcmMessagingScope = 'https://www.googleapis.com/auth/firebase.messaging';
 
 /// Sends through the FCM HTTP v1 REST API.
 ///
-/// The client is injected because in production it is an
-/// `AutoRefreshingAuthClient` from `googleapis_auth`, which adds and refreshes
-/// the bearer token itself — and because that leaves the tests able to drive
-/// this with a `MockClient` and no credential.
+/// The client is injected because in production it is an `AutoRefreshingAuthClient`
+/// that adds and refreshes the bearer token itself, and because that leaves the
+/// tests able to drive this with a `MockClient` and no credential.
 class HttpV1FcmSender implements FcmSender {
-  /// Creates a sender that POSTs through `client` to the `messages:send`
-  /// endpoint of the FCM project identified by `projectId`.
   HttpV1FcmSender({required this._client, required this._projectId});
 
   final http.Client _client;
@@ -51,12 +46,9 @@ class HttpV1FcmSender implements FcmSender {
   }
 }
 
-/// Reads FCM's error body.
-///
-/// The code worth acting on lives in `error.details[].errorCode` —
-/// `UNREGISTERED` for a dead token — while `error.status` only carries the
-/// generic gRPC name (`NOT_FOUND`). Reading `status` alone would mis-map the
-/// most common failure there is, so the detail wins when it is present.
+/// The code worth acting on lives in `error.details[].errorCode` — `UNREGISTERED`
+/// for a dead token — while `error.status` only carries the generic gRPC name, so
+/// the detail wins when it is present.
 FcmSendException _exceptionFrom(http.Response response) {
   final error = _decode(response.body)?['error'];
   if (error is! Map<String, Object?>) {

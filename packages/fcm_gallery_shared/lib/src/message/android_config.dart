@@ -5,11 +5,8 @@ import 'android_notification.dart';
 import 'fcm_options.dart';
 import 'json_object_reader.dart';
 
-/// The Android-specific delivery and rendering options for a message.
-///
-/// FCM's `AndroidConfig`, nested under `Message.android`. Controls priority,
-/// TTL, wake-lock retention, data payload, and platform-specific rendering
-/// via the nested notification.
+/// FCM's `AndroidConfig`, nested under `Message.android`: priority, TTL, data
+/// payload and Android's own notification rendering.
 class AndroidConfig {
   /// Creates an Android configuration, leaving unset fields for FCM and the
   /// client app to fall back on.
@@ -24,12 +21,9 @@ class AndroidConfig {
     this.directBootOk,
   });
 
-  /// Reads FCM's `AndroidConfig` object.
   factory AndroidConfig.fromJson(Map<String, Object?> json) =>
       read(JsonObjectReader(json, path: 'android'));
 
-  /// Reads from an existing reader, so a parent composes the path rather than
-  /// each class inventing its own.
   static AndroidConfig read(JsonObjectReader reader) {
     final config = AndroidConfig(
       collapseKey: reader.text('collapse_key'),
@@ -50,43 +44,33 @@ class AndroidConfig {
     return config;
   }
 
-  /// Groups messages so that only the last one is delivered to a device that
-  /// was offline. When set, all messages with the same key replace earlier ones.
+  /// Groups messages so a device that was offline receives only the last one.
   final String? collapseKey;
 
-  /// How eagerly FCM should deliver the message to the Android device: HIGH
-  /// wakes a sleeping device, NORMAL may wait until the next maintenance window.
+  /// HIGH wakes a sleeping device, NORMAL may wait for the next maintenance
+  /// window.
   final AndroidMessagePriority? priority;
 
-  /// The time-to-live for the message on Google's servers, as a proto duration
-  /// like `"3600s"` (one hour). After this time, if the device has not yet
-  /// received it, FCM discards the message.
-  ///
-  /// Kept as text rather than parsed to a Duration: this model's contract is
-  /// round-trip fidelity, not a particular duration representation.
+  /// A proto duration like `"3600s"`, after which FCM discards an undelivered
+  /// message. Kept as text rather than parsed: this model's contract is round-trip
+  /// fidelity.
   final String? ttl;
 
-  /// Restricts delivery to apps with this package name on the Android device,
-  /// useful when multiple versions of an app are installed.
+  /// Useful when several builds of the app are installed.
   final String? restrictedPackageName;
 
-  /// The free-form data payload the app receives, as key–value pairs the
-  /// sender defines. Keys are never validated by FCM, only by the app.
+  /// Overrides the message's own `data` for Android clients.
   final Map<String, String>? data;
 
-  /// The Android-specific notification rendering, nested under this block to
-  /// distinguish it from generic notification fields in the message root.
+  /// Android's own rendering, distinct from the message root's notification.
   final AndroidNotification? notification;
 
-  /// Delivery options FCM applies uniformly, regardless of the target platform.
   final FcmOptions? fcmOptions;
 
-  /// Whether to deliver the message before the user unlocks the device after
-  /// a reboot, when the device is in direct-boot mode and only system apps
-  /// can run. Most apps must wait for unlock and must leave this unset.
+  /// Whether to deliver before the user unlocks a freshly rebooted device, while
+  /// only system apps can run. Most apps must leave this unset.
   final bool? directBootOk;
 
-  /// Serialises to FCM's `AndroidConfig` shape, omitting unset fields.
   Map<String, Object?> toJson() => {
     'collapse_key': ?collapseKey,
     'priority': ?priority?.wireName,

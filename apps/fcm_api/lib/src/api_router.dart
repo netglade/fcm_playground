@@ -15,15 +15,9 @@ import 'telemetry_store.dart';
 /// It decides nothing about a send — [sendMessage] returns the status and
 /// the body, and this class only translates between that and `shelf`.
 class ApiRouter {
-  /// Creates the router. [sender] delivers through FCM; [now] supplies the
-  /// clock used to stamp a successful send, and [newTraceId] the id each send is
-  /// traced by — both injected rather than read from the environment, so a test
-  /// asserts exact values instead of matching patterns. [telemetry] is where
-  /// `POST /events` puts what devices report, where a send records its own
-  /// `queued`/`sent`/`send_failed`, and where `GET /latency` reads from — one
-  /// store for all three, since a latency pairs a row from the first with a row
-  /// from the second. Injected for the same reason as the rest: every test uses
-  /// the in-memory store, so the gate never needs a native SQLite.
+  /// [now] and [newTraceId] are injected rather than read from the environment, so
+  /// a test asserts exact values instead of matching patterns. One [telemetry] store
+  /// serves all three routes, since a latency pairs a device's row with a send's.
   ApiRouter({
     required this._sender,
     required this._now,
@@ -36,7 +30,6 @@ class ApiRouter {
   final String Function() _newTraceId;
   final TelemetryStore _telemetry;
 
-  /// The handler to serve.
   Handler get handler {
     final router = Router(notFoundHandler: _notFound)
       ..get('/health', _health)
@@ -70,12 +63,9 @@ class ApiRouter {
     };
   }
 
-  /// Stores a flushed batch and answers how many of it was new.
-  ///
-  /// The count comes from the store rather than from the request, because it is
-  /// the one thing that tells a client whose acknowledgement was lost from a
-  /// client whose flush never arrived: a replay answers 200 with zero, and a
-  /// 4xx there would make a client that already succeeded retry forever.
+  /// The count comes from the store rather than from the request: a replay answers
+  /// 200 with zero, and a 4xx there would make a client that already succeeded retry
+  /// forever.
   Future<Response> _events(Request request) => _parsedBody(
     request,
     readEventBatch,
@@ -85,12 +75,11 @@ class ApiRouter {
   Future<Response> _latency(Request request) async =>
       _json(200, latencyBody(await _telemetry.latencies()));
 
-  /// Reads the body with [parse] and hands the result to [respond], answering
-  /// 400 with the message of any [FormatException] the parse throws.
+  /// Reads the body with [parse] and hands the result to [respond], answering 400
+  /// with the message of any [FormatException] the parse throws.
   ///
-  /// Both `POST` routes go through here so that mapping exists once. [respond]
-  /// runs outside the `catch` on purpose: a [FormatException] from deeper in a
-  /// send is a server-side surprise, and reporting it as a bad request would
+  /// [respond] runs outside the `catch` on purpose: a [FormatException] from deeper
+  /// in a send is a server-side surprise, and reporting it as a bad request would
   /// blame the caller for it.
   Future<Response> _parsedBody<T>(
     Request request,
@@ -116,10 +105,8 @@ class ApiRouter {
   );
 }
 
-/// Decodes a request body that must be a JSON object.
-///
-/// A JSON array or a bare value is as malformed as broken JSON, and both must
-/// reach the caller as a 400 rather than as a cast failure.
+/// A JSON array or a bare value is as malformed as broken JSON, and both must reach
+/// the caller as a 400 rather than as a cast failure.
 Map<String, dynamic> _decodeObject(String body) {
   final decoded = jsonDecode(body);
   if (decoded is! Map<String, dynamic>) {

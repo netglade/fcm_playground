@@ -24,9 +24,8 @@ void main() {
   });
 
   test('every template round-trips through the typed model', () {
-    // 66 hand-written templates is exactly where a `titel` typo or a camelCase
-    // key slips in. The strict parser plus this assertion turns that into a
-    // failed build rather than an opaque 400 from Google on a device.
+    // 66 hand-written templates is where a `titel` typo slips in. The strict parser
+    // plus this assertion makes it a failed build rather than an opaque 400.
     for (final scenario in scenarioGallery) {
       final raw = Map<String, Object?>.from(scenario.payloadTemplate);
       expect(FcmMessage.fromJson(raw).toJson(), raw, reason: scenario.id);
@@ -34,10 +33,8 @@ void main() {
   });
 
   test('no template sets its own delivery target, at any depth', () {
-    // Deep, not containsKey: the top level is already protected by
-    // FcmMessage.read, but `data: {'topic': 'news'}` is a legal string-map entry
-    // and anything under `apns.payload` is forwarded verbatim, so a nested target
-    // slips past both the model and a top-level check.
+    // Deep, not containsKey: the top level is already protected by FcmMessage.read,
+    // but a nested `data: {'topic': 'news'}` slips past both it and a shallow check.
     for (final scenario in scenarioGallery) {
       expect(
         targetKeysIn(scenario.payloadTemplate, scenario.id),
@@ -49,7 +46,7 @@ void main() {
 
   test('the deep scan would really catch a nested target', () {
     // The assertion above is isEmpty, which a scanner that never finds anything
-    // satisfies just as happily. Two positive fixtures keep it honest.
+    // satisfies too. Two positive fixtures keep it honest.
     const inData = {
       'data': {'topic': 'news'},
     };
@@ -73,11 +70,9 @@ void main() {
   });
 
   test('a killed-app scenario needs delayed sending to be arranged', () {
-    // The invariant that gives requiresKilledApp exactly one meaning:
-    // "meaningless unless the app is killed". Arranging that means holding the
-    // send until the app is gone, so the flag and the need go together. Without
-    // this, the flag drifts into meaning "the killed case is the interesting
-    // one", which is true of far more scenarios and tells the Sandbox nothing.
+    // Gives requiresKilledApp exactly one meaning: "meaningless unless the app is
+    // killed". Arranging that means holding the send, so the flag and the need go
+    // together — otherwise it drifts into "the killed case is interesting".
     for (final scenario in scenarioGallery) {
       if (scenario.requiresKilledApp) {
         expect(
@@ -136,12 +131,9 @@ void main() {
       );
     }
 
-    // isNotEmpty is weakest exactly where it matters most. A need carried by a
-    // single scenario is a need whose entire justification is that one entry, so
-    // the loop above stays green if that entry is renamed, re-marked or swapped
-    // for a different one — the enum survives while the claim behind it moves.
-    // Pin the sole users by id, and pin *which* needs are sole-use, so a second
-    // one cannot appear unnoticed.
+    // A need carried by a single scenario is one whose whole justification is that
+    // entry, so the loop above stays green if it is renamed or swapped. The sole
+    // users are pinned by id, and so is *which* needs are sole-use.
     final soleUse = {
       for (final entry in usedBy.entries)
         if (entry.value.length == 1) entry.key.name: entry.value.single,
@@ -155,13 +147,9 @@ void main() {
         .map((s) => s.group.substring(0, 1))
         .toList();
 
-    // Comparing `letters.toSet().toList()` alone rests on two things, and only
-    // the first holds: `toSet()` does keep insertion order, because the default
-    // Set is a LinkedHashSet — but deduplication is not harmless. A, B, A
-    // collapses to [A, B] and would pass while group A was split across two
-    // places in the gallery. So the distinct letters are compared *and* the raw
-    // sequence is required never to go backwards, which is what "each group
-    // appears once, in order" actually means.
+    // `toSet()` keeps insertion order, but deduplication is not harmless: A, B, A
+    // collapses to [A, B] and would pass while group A was split in two. So the
+    // distinct letters are compared *and* the raw sequence must never go backwards.
     expect(letters.toSet().toList(), const [
       'A',
       'B',

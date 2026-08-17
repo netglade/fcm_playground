@@ -1,7 +1,4 @@
-/// Whether the notification content shows on a locked screen.
-///
-/// Android's `NotificationCompat.Visibility`. Controls how much of the
-/// notification is visible to the user when the device is locked.
+/// How much of the notification a locked screen shows.
 enum NotificationVisibility {
   unspecified('VISIBILITY_UNSPECIFIED'),
   private('PRIVATE'),
@@ -10,6 +7,5 @@ enum NotificationVisibility {
 
   const NotificationVisibility(this.wireName);
 
-  /// The spelling FCM uses on the wire.
   final String wireName;
 }

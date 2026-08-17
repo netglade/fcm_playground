@@ -6,10 +6,8 @@
 class FcmSendException implements Exception {
   const FcmSendException({required this.status, required this.message});
 
-  /// FCM's error code.
   final String status;
 
-  /// FCM's own explanation.
   final String message;
 
   @override

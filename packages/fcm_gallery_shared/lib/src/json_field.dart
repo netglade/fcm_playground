@@ -5,11 +5,9 @@
 /// nothing a caller could act on.
 library;
 
-/// Reads an optional string, treating absence as `''`.
-///
-/// Blankness is deliberately not an error here: the validator reports it against
-/// the field, which produces a message a user can read, whereas a parse failure
-/// would only produce a generic 400.
+/// Absence becomes `''`, and blankness is deliberately not an error: the validator
+/// reports it against the field, which produces a message a user can read, whereas a
+/// parse failure would only produce a generic 400.
 String readOptionalText(Object? value, String field) {
   if (value == null) {
     return '';
@@ -23,7 +21,6 @@ String readOptionalText(Object? value, String field) {
   return value;
 }
 
-/// Reads a required string.
 String requireText(Object? value, String field) {
   if (value == null) {
     throw FormatException('"$field" is missing');
@@ -32,7 +29,7 @@ String requireText(Object? value, String field) {
   return readOptionalText(value, field);
 }
 
-/// Reads a required ISO-8601 timestamp, normalised to UTC.
+/// Normalised to UTC.
 DateTime requireTimestamp(Object? value, String field) {
   final raw = requireText(value, field);
   final parsed = DateTime.tryParse(raw);
@@ -43,7 +40,6 @@ DateTime requireTimestamp(Object? value, String field) {
   return parsed.toUtc();
 }
 
-/// Reads an optional object of string values, treating absence as empty.
 Map<String, String> readStringMap(Object? value, String field) {
   if (value == null) {
     return const {};

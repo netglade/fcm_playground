@@ -9,11 +9,10 @@ import 'scenario_need.dart';
 /// pasted out of Google's docs cannot quietly broadcast. The API reads the target
 /// from the send envelope instead.
 ///
-/// All three are blocked, and for two different reasons. j1 and j2 can be *sent*
-/// today — FCM answers 200 — but nothing is delivered, because this device has
-/// never called `subscribeToTopic`. A send that succeeds while nothing arrives is
-/// worse than no scenario at all, so they wait for subscription support. j3 needs
-/// a registry of tokens, which FCM does not provide and this app does not keep.
+/// All three are blocked, for two reasons. j1 and j2 can be *sent* today — FCM
+/// answers 200 — but nothing is delivered, because this device never called
+/// `subscribeToTopic`, and a send that succeeds while nothing arrives is worse than
+/// no scenario. j3 needs a registry of tokens this app does not keep.
 const groupJ = <Scenario>[
   Scenario(
     id: 'j1_topic',

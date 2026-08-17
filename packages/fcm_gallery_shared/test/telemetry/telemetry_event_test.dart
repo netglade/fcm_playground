@@ -2,11 +2,7 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:test/test.dart';
 
 /// The one event every test here is about, with a hook for changing exactly one
-/// field.
-///
-/// The defaults are the single source of truth for that event, so a variant used
-/// to prove `==` discriminates cannot silently drift away from the baseline it
-/// is compared against.
+/// field — so a variant proving `==` discriminates cannot drift from its baseline.
 TelemetryEvent eventWith({
   String traceId = 'tr-1',
   TelemetryEventType type = TelemetryEventType.receivedFg,
@@ -32,9 +28,8 @@ void main() {
     expect(decoded, event);
     expect(decoded.hashCode, event.hashCode);
 
-    // Field by field as well as by value equality: the equality below is what
-    // makes the comparison above mean anything, so a field it forgot would
-    // otherwise let a toJson that dropped that field still "round-trip".
+    // Field by field as well as by value equality: a field `==` forgot would let a
+    // toJson that dropped it still "round-trip".
     expect(decoded.traceId, 'tr-1');
     expect(decoded.type, TelemetryEventType.receivedFg);
     expect(decoded.at, DateTime.utc(2026, 8, 13, 9, 30));
@@ -45,8 +40,8 @@ void main() {
   });
 
   test('two events differing in exactly one field are not equal', () {
-    // Directly what the round-trip above leans on. An `==` blind to `detail`
-    // would make that test pass over a toJson that never wrote it.
+    // What the round-trip above leans on: an `==` blind to `detail` would make it
+    // pass over a toJson that never wrote it.
     final variants = <String, TelemetryEvent>{
       'traceId': eventWith(traceId: 'tr-2'),
       'type': eventWith(type: TelemetryEventType.receivedBg),
@@ -73,9 +68,7 @@ void main() {
       'detail': 'foreground',
     });
 
-    // Key *order* is not a wire requirement — both sides read by name. This is
-    // the strictest way to say "exactly these six keys, no more and no fewer",
-    // which is the part that matters.
+    // Key *order* is not a wire requirement; "exactly these six keys" is.
     expect(event.toJson().keys, [
       'trace_id',
       'type',
@@ -87,9 +80,8 @@ void main() {
   });
 
   test('every type has a distinct wire name, pinned to its literal', () {
-    // Pinned to literals on purpose: both sides agree on these strings, and a
-    // renamed enum value that silently changed the wire format would only show
-    // up as telemetry that stops correlating.
+    // Pinned to literals: a renamed enum value that changed the wire format would
+    // only show up as telemetry that stops correlating.
     expect(
       {for (final t in TelemetryEventType.values) t: t.wireName},
       {
@@ -125,18 +117,13 @@ void main() {
     expect(local.at.isUtc, isTrue);
     expect(local.toJson()['at'], endsWith('Z'));
 
-    // And it is the same INSTANT, not the same wall clock. Reinterpreting 09:30
-    // local as 09:30 UTC satisfies both assertions above — measured: both are
-    // isUtc, both serialise with Z, and they are two hours apart on a CEST
-    // machine — which is exactly the error this field exists to prevent.
-    //
-    // Compared as epoch milliseconds because that states the invariant directly:
-    // toUtc() changes the representation and preserves the instant, while a
+    // The same INSTANT, not the same wall clock: reinterpreting 09:30 local as 09:30
+    // UTC satisfies both assertions above, and is exactly the error this prevents.
+    // Compared as epoch milliseconds because toUtc() preserves the instant while a
     // wall-clock reinterpretation does the opposite.
     //
-    // Inherent limit, stated rather than hidden: at offset zero the two are the
-    // same value, so this cannot discriminate in a UTC environment. Nothing can —
-    // the bug is unobservable there. The isUtc and Z assertions carry it instead.
+    // Inherent limit: at offset zero the two are the same value, so this cannot
+    // discriminate in a UTC environment. The isUtc and Z assertions carry it there.
     final input = DateTime(2026, 8, 13, 9, 30);
     expect(local.at.millisecondsSinceEpoch, input.millisecondsSinceEpoch);
   });
@@ -152,8 +139,7 @@ void main() {
     expect(bare.toJson().containsKey('scenario_id'), isFalse);
     expect(bare.toJson().containsKey('detail'), isFalse);
 
-    // The required four are still there: an implementation that wrote nothing
-    // at all would pass the two assertions above.
+    // An implementation that wrote nothing at all would pass the assertions above.
     expect(bare.toJson(), {
       'trace_id': 'tr-1',
       'type': 'queued',
@@ -182,9 +168,8 @@ void main() {
       ),
     );
 
-    // The control: the same body with a known type parses. Without it the
-    // assertion above would be satisfied by a FormatException thrown for some
-    // unrelated reason, and the type check could be missing entirely.
+    // The control: without it, the assertion above would be satisfied by a
+    // FormatException thrown for some unrelated reason.
     expect(
       TelemetryEvent.fromJson({...json, 'type': 'sent'}).type,
       TelemetryEventType.sent,

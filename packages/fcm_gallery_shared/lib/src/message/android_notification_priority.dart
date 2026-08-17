@@ -13,6 +13,5 @@ enum AndroidNotificationPriority {
 
   const AndroidNotificationPriority(this.wireName);
 
-  /// The spelling FCM uses on the wire.
   final String wireName;
 }

@@ -1,10 +1,8 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:test/test.dart';
 
-/// The `apns` block of [scenario]'s template.
-///
-/// Reaches through with `!`, so an entry missing the block fails the test
-/// rather than reading as null.
+/// The `apns` block of [scenario]'s template. Reaches through with `!`, so a missing
+/// block fails the test rather than reading as null.
 Map<Object?, Object?> apnsOf(Scenario scenario) =>
     scenario.payloadTemplate['apns']! as Map<Object?, Object?>;
 
@@ -42,14 +40,9 @@ void main() {
     });
 
     test('only the two safe iOS interruption levels work today', () {
-      // hasLength(5) is what backs the word "two": without it a sixth entry
-      // could be appended and the filtered list below would still be about the
-      // five checked here. And `where(isSupported)` alone is too weak to carry
-      // the name — isSupported is just `needs.isEmpty`, so it passes for any
-      // three blocked entries carrying any non-empty needs at all, including
-      // three filed under the wrong sub-project. Each entry's needs are pinned
-      // exactly, so "which scenarios does the channels work unblock?" answers
-      // truthfully.
+      // hasLength(5) backs the word "two". `isSupported` is just `needs.isEmpty`, so
+      // it passes for any blocked entries carrying any needs at all, including ones
+      // filed under the wrong sub-project — hence needs pinned exactly.
       expect(groupH, hasLength(5));
 
       const expected = {
@@ -76,12 +69,9 @@ void main() {
       expect(critical.needs, [ScenarioNeed.externalApproval]);
       expect(critical.isSupported, isFalse);
 
-      // `contains('entitlement')` alone passes on prose that says the opposite —
-      // "needs no entitlement" contains the word too — and it would also pass
-      // if the blocker were pinned on work this project could schedule. The
-      // expectation is therefore checked to attribute the block to Apple and to
-      // say the entry is listed rather than scheduled, which is the one thing
-      // that distinguishes externalApproval from every other need.
+      // `contains('entitlement')` passes on prose saying the opposite. The expectation
+      // is checked to attribute the block to Apple and to say the entry is listed
+      // rather than scheduled — the one thing that distinguishes externalApproval.
       final expectation = critical.expectation;
       expect(expectation, isNotNull);
       expect(expectation, contains('critical-alert entitlement'));
@@ -90,15 +80,12 @@ void main() {
     });
 
     test('the interruption level rides in the free-form aps dictionary', () {
-      // FCM has no field for it, which is exactly why apns.payload is untyped.
+      // FCM has no field for it, which is why apns.payload is untyped.
       //
-      // The level alone is not the whole contract: APNs requires priority 10
-      // for a level that alerts and rejects nothing for one that does not, so a
-      // time-sensitive push sent at 5 would be held exactly like the ordinary
-      // notification it is meant to break past. The accompanying header is
-      // pinned beside each level, as a String — apns.headers is a typed
-      // map<string, string>, so a bare 10 is a parse failure rather than a
-      // silent success, and asserting the type here documents that.
+      // The level alone is not the whole contract: APNs needs priority 10 for a level
+      // that alerts, so a time-sensitive push sent at 5 is held like the ordinary
+      // notification it means to break past. The header is pinned beside each level
+      // as a String, apns.headers being a typed map<string, string>.
       for (final (id, level, priority) in const [
         ('h3_ios_time_sensitive', 'time-sensitive', '10'),
         ('h4_ios_critical', 'critical', '10'),
@@ -115,13 +102,9 @@ void main() {
     });
 
     test('h4 asks for a critical sound with the two types APNs defines', () {
-      // The only guard on these two. apns.payload is free-form, so the typed
-      // model forwards whatever it is given and the gallery-wide round-trip
-      // preserves it unchanged — and `expect(x, 1)` is satisfied by 1.0, since
-      // Dart's `1.0 == 1` is true. APNs wants `critical` as the int flag 1 and
-      // `volume` as a double in 0.0–1.0, so the two deliberately differ and
-      // isA<int>() / isA<double>() sit beside the values rather than instead of
-      // them.
+      // The only guard on these two: apns.payload is free-form, so the round-trip
+      // preserves whatever it is given, and `expect(x, 1)` is satisfied by 1.0. APNs
+      // wants `critical` as the int 1 and `volume` as a double, so the two differ.
       final sound = apsOf(scenarioH('h4_ios_critical'))['sound'];
       expect(sound, isA<Map<Object?, Object?>>());
 
@@ -134,10 +117,8 @@ void main() {
     });
 
     test('the two working levels differ in whether they alert at all', () {
-      // The pair is only worth two entries while they are observably different
-      // on the device: h3 must sound to prove it broke through Focus, and h5
-      // must not, since "no sound, no wake" is the entire claim of passive. A
-      // sound key on h5 would make it indistinguishable from h3 in the hand.
+      // The pair is only worth two entries while they differ on the device: h3 must
+      // sound to prove it broke through Focus, and h5 must not.
       final timeSensitive = apsOf(scenarioH('h3_ios_time_sensitive'));
       expect(timeSensitive['sound'], 'default');
 
@@ -147,10 +128,8 @@ void main() {
     });
 
     test('the Android half breaks through by channel, not by payload', () {
-      // Android has no per-message interruption level: the power to bypass DND
-      // is a channel property, so both Android entries must name a channel and
-      // ask for HIGH message priority, and neither may smuggle an iOS
-      // interruption level in through an apns block it does not own.
+      // Android has no per-message interruption level — bypassing DND is a channel
+      // property — so both Android entries must name a channel and ask for HIGH.
       for (final id in const ['h1_dnd_bypass', 'h2_category_alarm']) {
         final scenario = scenarioH(id);
         final android =
@@ -178,12 +157,9 @@ void main() {
     });
 
     test('nothing in this group is about the killed app', () {
-      // Every entry here is observable with the app in the foreground: the
-      // question is whether the system lets the alert through, not what state
-      // the app was in. The flag means "meaningless unless the app is killed"
-      // and would drag in delayed sending, so it is pinned off across the group
-      // rather than left to the gallery-wide invariant, which only checks
-      // entries that set it.
+      // The question here is whether the system lets the alert through, not what
+      // state the app was in, so every entry is observable in the foreground. The
+      // flag would drag in delayed sending.
       for (final scenario in groupH) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);

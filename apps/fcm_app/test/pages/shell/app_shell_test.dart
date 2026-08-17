@@ -1,0 +1,282 @@
+import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
+import 'package:fcm_app/pages/inbox/message_detail_page.dart';
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
+import 'package:fcm_app/pages/shell/app_shell.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:glade_forms/glade_forms.dart';
+
+import '../../fakes/fake_notification_sender.dart';
+import '../../fakes/fake_push_payload_store.dart';
+import '../../fakes/fake_push_source.dart';
+import '../../fakes/recording_navigator_observer.dart';
+
+Map<String, Object?> payload({String id = 'msg-1'}) => {
+  'id': id,
+  'title': 'Build finished',
+  'body': 'Release 1.0.0 is ready.',
+  'sentAt': '2026-08-11T09:30:00Z',
+};
+
+void main() {
+  setUpAll(GladeForms.initialize);
+
+  late FakePushSource source;
+  late PushRepository repository;
+  late InboxCubit inbox;
+  late SandboxCubit sandbox;
+
+  // The shell under providers of the test's own, rather than `App`: that
+  // widget's `BlocProvider`s pull their collaborators out of `getIt`, which no test
+  // here configures.
+  //
+  // Everything but the source is built here rather than in `setUp`, because of a
+  // zone. A cubit's state stream schedules delivery with
+  // `Zone.current.scheduleMicrotask`, so a cubit built in `setUp` subscribes in the
+  // outer test zone — which `testWidgets` does not drive, leaving the microtask
+  // somewhere `pumpAndSettle` never flushes. Measured: the notification-tap tests
+  // below go silent.
+  Future<void> pumpApp(
+    WidgetTester tester, {
+    FakePushPayloadStore? store,
+    NavigatorObserver? observer,
+  }) async {
+    repository = PushRepository(source, store: store ?? FakePushPayloadStore())
+      ..listen();
+    inbox = InboxCubit(repository);
+    sandbox = SandboxCubit(
+      sender: FakeNotificationSender(),
+      token: () => inbox.state.token,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: [if (observer != null) observer],
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: inbox),
+            BlocProvider.value(value: sandbox),
+          ],
+          child: const AppShell(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> openDrawer(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+  }
+
+  // The outermost stack is the shell's: a closed `DropdownButton` builds an
+  // `IndexedStack` of its items too, and finders walk the tree from the root.
+  int? selectedDestination(WidgetTester tester) =>
+      tester.widget<IndexedStack>(find.byType(IndexedStack).first).index;
+
+  Future<void> scrollIntoView(WidgetTester tester, Finder finder) async {
+    await tester.scrollUntilVisible(
+      finder,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+  }
+
+  setUp(() {
+    source = FakePushSource();
+  });
+
+  tearDown(() async {
+    await sandbox.close();
+    await inbox.close();
+    repository.dispose();
+    await source.dispose();
+  });
+
+  testWidgets('opens on the inbox', (tester) async {
+    await pumpApp(tester);
+
+    expect(find.widgetWithText(AppBar, 'Push inbox'), findsOne);
+    expect(selectedDestination(tester), 0);
+  });
+
+  testWidgets('offers all three destinations in the drawer', (tester) async {
+    await pumpApp(tester);
+
+    await openDrawer(tester);
+
+    expect(find.text('Inbox'), findsOne);
+    expect(find.text('Scenarios'), findsOne);
+    expect(find.text('Sandbox'), findsOne);
+  });
+
+  testWidgets('switches to the scenarios page and retitles the bar', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await openDrawer(tester);
+
+    await tester.tap(find.text('Scenarios'));
+    await tester.pumpAndSettle();
+
+    expect(selectedDestination(tester), 1);
+    expect(find.widgetWithText(AppBar, 'Scenarios'), findsOne);
+  });
+
+  testWidgets('switches to the sandbox and retitles the bar', (tester) async {
+    await pumpApp(tester);
+    await openDrawer(tester);
+
+    await tester.tap(find.text('Sandbox'));
+    await tester.pumpAndSettle();
+
+    expect(selectedDestination(tester), 2);
+    expect(find.widgetWithText(AppBar, 'Sandbox'), findsOne);
+  });
+
+  testWidgets('closes the drawer once a destination is chosen', (tester) async {
+    await pumpApp(tester);
+    await openDrawer(tester);
+
+    await tester.tap(find.text('Sandbox'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationDrawer), findsNothing);
+  });
+
+  testWidgets('switches back to the inbox', (tester) async {
+    await pumpApp(tester);
+    await openDrawer(tester);
+    await tester.tap(find.text('Sandbox'));
+    await tester.pumpAndSettle();
+
+    await openDrawer(tester);
+    await tester.tap(find.text('Inbox'));
+    await tester.pumpAndSettle();
+
+    expect(selectedDestination(tester), 0);
+    expect(find.widgetWithText(AppBar, 'Push inbox'), findsOne);
+  });
+
+  testWidgets('tapping a scenario switches to the sandbox with it loaded', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await openDrawer(tester);
+    await tester.tap(find.text('Scenarios'));
+    await tester.pumpAndSettle();
+    final dataOnly = scenarioGallery.firstWhere((s) => s.id == 'a2_data_only');
+
+    // Reaching a scenario below the first is a scroll within the gallery's own
+    // page, unrelated to the Sandbox-page fold this change fixed.
+    await scrollIntoView(tester, find.text(dataOnly.title));
+    await tester.tap(find.text(dataOnly.title));
+    await tester.pumpAndSettle();
+
+    expect(selectedDestination(tester), 2);
+    expect(find.widgetWithText(AppBar, 'Sandbox'), findsOne);
+    expect(sandbox.state.selectedScenario?.id, dataOnly.id);
+    expect(sandbox.form.data.value, dataOnly.payloadTemplate['data']);
+  });
+
+  Future<void> openSandbox(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sandbox'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('opens the detail page for a tapped notification', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    source.emit(payload(id: 'tapped'));
+    await tester.pumpAndSettle();
+
+    inbox.requestOpen('tapped');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MessageDetailPage), findsOne);
+    expect(inbox.state.hasPendingOpen, isFalse);
+  });
+
+  testWidgets('leaves the sandbox for the inbox when a tap arrives', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await openSandbox(tester);
+
+    inbox.requestOpen('never-seen');
+    await tester.pumpAndSettle();
+
+    expect(selectedDestination(tester), 0);
+    expect(find.byType(MessageDetailPage), findsNothing);
+  });
+
+  testWidgets('opens the page once the message catches up', (tester) async {
+    await pumpApp(tester);
+
+    inbox.requestOpen('late');
+    await tester.pumpAndSettle();
+    expect(find.byType(MessageDetailPage), findsNothing);
+    source.emit(payload(id: 'late'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MessageDetailPage), findsOne);
+  });
+
+  testWidgets('does not open the page twice for one tap', (tester) async {
+    await pumpApp(tester);
+    source.emit(payload(id: 'tapped'));
+    await tester.pumpAndSettle();
+
+    inbox.requestOpen('tapped');
+    await tester.pumpAndSettle();
+    source.emit(payload(id: 'unrelated'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MessageDetailPage), findsOne);
+  });
+
+  testWidgets('clears the pending open before it navigates', (tester) async {
+    // The ordering, observed at the only moment it is observable: by the time
+    // `pumpAndSettle` returns, both orderings have cleared and navigated exactly
+    // once. A `NavigatorObserver`'s `didPush` runs *inside* the push, so this is
+    // where clearing first is distinguishable — and it matters because the clear
+    // publishes, so a watcher woken between the two would route the tap twice.
+    final pendingAtPush = <bool>[];
+    await pumpApp(
+      tester,
+      observer: RecordingNavigatorObserver(
+        (_) => pendingAtPush.add(inbox.state.hasPendingOpen),
+      ),
+    );
+    source.emit(payload(id: 'tapped'));
+    await tester.pumpAndSettle();
+
+    inbox.requestOpen('tapped');
+    await tester.pumpAndSettle();
+
+    // The last push is the detail route — the one before it is the shell itself,
+    // pushed before any tap existed.
+    expect(find.byType(MessageDetailPage), findsOne);
+    expect(pendingAtPush.last, isFalse);
+  });
+
+  testWidgets('drains pending payloads when the app resumes', (tester) async {
+    // The store is handed in because this test keeps hold of the one it puts a
+    // pending payload into. The zone note above applies here too.
+    final store = FakePushPayloadStore();
+    await pumpApp(tester, store: store);
+    store.pending.add(payload(id: 'while-away'));
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(inbox.state.messages.single.id, 'while-away');
+  });
+}

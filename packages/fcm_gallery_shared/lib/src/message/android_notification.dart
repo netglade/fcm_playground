@@ -6,15 +6,10 @@ import 'light_settings.dart';
 import 'notification_proxy.dart';
 import 'notification_visibility.dart';
 
-/// The Android-specific rendering of a notification.
-///
-/// FCM's `AndroidNotification`, nested under `Message.android.notification`.
-/// Everything here is Android's own on top of, or in place of, the generic
-/// `Message.notification` — icon, colour, channel, priority and the rest of
-/// what the platform's notification tray understands.
+/// FCM's `AndroidNotification`, nested under `Message.android.notification` —
+/// everything Android's tray understands on top of, or in place of, the generic
+/// `Message.notification`.
 class AndroidNotification {
-  /// Creates an Android notification, leaving unset fields for FCM and the
-  /// client app to fall back on.
   const AndroidNotification({
     this.title,
     this.body,
@@ -45,12 +40,9 @@ class AndroidNotification {
     this.proxy,
   });
 
-  /// Reads FCM's `AndroidNotification` object.
   factory AndroidNotification.fromJson(Map<String, Object?> json) =>
       read(JsonObjectReader(json, path: 'notification'));
 
-  /// Reads from an existing reader, so a parent composes the path rather than
-  /// each class inventing its own.
   static AndroidNotification read(JsonObjectReader reader) {
     final notification = AndroidNotification(
       title: reader.text('title'),
@@ -98,109 +90,82 @@ class AndroidNotification {
     return notification;
   }
 
-  /// The notification's headline, shown in the tray.
   final String? title;
 
-  /// The notification's text, shown below the title.
   final String? body;
 
-  /// The name of a drawable resource in the app to use as the small icon,
-  /// falling back to the app's own icon when unset.
+  /// Names a drawable resource in the app, falling back to the app's own icon.
   final String? icon;
 
-  /// The notification's accent colour, as a `#rrggbb` string.
+  /// `#rrggbb`.
   final String? color;
 
-  /// The name of a sound resource in the app to play on delivery.
+  /// Names a sound resource in the app.
   final String? sound;
 
-  /// A tag that, when reused, replaces an existing notification rather than
-  /// showing a second one alongside it.
+  /// Reusing a tag replaces an existing notification rather than showing a second
+  /// one alongside it.
   final String? tag;
 
-  /// The action bundled into the intent fired when the user taps the
-  /// notification, letting the app route to a specific screen.
+  /// The action bundled into the tap intent, letting the app route to a screen.
   final String? clickAction;
 
-  /// A key into the app's string resources, used to localise [body] on the
-  /// device instead of shipping pre-translated text.
+  /// A key into the app's string resources, used to localise [body] on the device
+  /// instead of shipping pre-translated text. The same goes for [titleLocKey].
   final String? bodyLocKey;
 
-  /// The arguments substituted into [bodyLocKey]'s format string.
   final List<String>? bodyLocArgs;
 
-  /// A key into the app's string resources, used to localise [title] on the
-  /// device instead of shipping pre-translated text.
   final String? titleLocKey;
 
-  /// The arguments substituted into [titleLocKey]'s format string.
   final List<String>? titleLocArgs;
 
-  /// The notification channel the app registered to receive this
-  /// notification, controlling the user-facing settings — sound, importance,
-  /// visibility — that Android applies to it.
+  /// The channel the app registered, which controls the user-facing sound,
+  /// importance and visibility Android applies.
   final String? channelId;
 
-  /// Text read aloud by accessibility services and shown in the status bar
-  /// as the notification arrives.
+  /// Read aloud by accessibility services as the notification arrives.
   final String? ticker;
 
-  /// Whether the notification stays in the tray until the user acts on it,
-  /// rather than being dismissable with a swipe.
+  /// Whether the notification stays until the user acts, rather than being
+  /// swipeable away.
   final bool? sticky;
 
-  /// When the event that triggered the notification occurred, as a proto
-  /// timestamp like `"2026-08-11T09:30:00Z"`.
-  ///
-  /// Kept as text rather than parsed to [DateTime]: this model's contract is
-  /// round-trip fidelity, not a particular timestamp representation.
+  /// A proto timestamp like `"2026-08-11T09:30:00Z"`, kept as text rather than
+  /// parsed to [DateTime]: this model's contract is round-trip fidelity.
   final String? eventTime;
 
-  /// Whether the notification is only relevant to this device, hiding it
-  /// from wearables and other devices signed into the same account.
+  /// Whether to hide the notification from wearables and other devices on the same
+  /// account.
   final bool? localOnly;
 
-  /// How prominently Android displays the notification once delivered.
   final AndroidNotificationPriority? notificationPriority;
 
-  /// Whether to use the notification channel's default sound rather than
-  /// [sound].
   final bool? defaultSound;
 
-  /// Whether to use the notification channel's default vibration pattern
-  /// rather than [vibrateTimings].
   final bool? defaultVibrateTimings;
 
-  /// Whether to use the notification channel's default LED settings rather
-  /// than [lightSettings].
   final bool? defaultLightSettings;
 
-  /// The vibration pattern, as proto durations like `["0.5s", "0.5s"]`
-  /// alternating vibrate and pause.
-  ///
-  /// Kept as text for the same reason as [eventTime].
+  /// Proto durations like `["0.5s", "0.5s"]` alternating vibrate and pause, kept as
+  /// text for the same reason as [eventTime].
   final List<String>? vibrateTimings;
 
-  /// Whether the notification content shows on a locked screen.
   final NotificationVisibility? visibility;
 
-  /// The number shown as the launcher icon's badge count.
+  /// The launcher icon's badge count.
   final int? notificationCount;
 
-  /// How Android should flash the device's notification LED.
   final LightSettings? lightSettings;
 
-  /// URL of an image for FCM to download and display — a URL, never bytes.
+  /// A URL for FCM to download, never bytes.
   final String? image;
 
-  /// Whether to bypass FCM's own proxying of the notification, taking
-  /// [proxy] out of consideration.
+  /// Whether to bypass FCM's own proxying, taking [proxy] out of consideration.
   final bool? bypassProxyNotification;
 
-  /// Whether Android may proxy the notification.
   final NotificationProxy? proxy;
 
-  /// Serialises to FCM's `AndroidNotification` shape, omitting unset fields.
   Map<String, Object?> toJson() => {
     'title': ?title,
     'body': ?body,

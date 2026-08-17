@@ -12,9 +12,8 @@ void main() {
     });
 
     test('is safe to carry in an FCM data value', () {
-      // It travels as a `data` string to the handset and comes back in a JSON
-      // event body, so anything needing escaping is a liability rather than a
-      // feature. Hex and dashes only.
+      // It travels as a `data` string and comes back in a JSON event body, so
+      // anything needing escaping is a liability. Hex and dashes only.
       expect(newTraceId(), matches(RegExp(r'^[0-9a-f]+-[0-9a-f]{8}$')));
     });
   });

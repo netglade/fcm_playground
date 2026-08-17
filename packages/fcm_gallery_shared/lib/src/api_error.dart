@@ -1,15 +1,12 @@
 import 'json_field.dart';
 
-/// The body of every non-2xx answer from the send API.
-///
-/// Shared so the app parses failures with the same type the server produced them
-/// with, rather than guessing at a shape at the moment things are already wrong.
+/// The body of every non-2xx answer from the send API, shared so the app parses
+/// failures with the same type the server produced them with.
 class ApiError {
   const ApiError(this.message, {this.field});
 
-  /// Parses an error response body, preserving the message even if the field is
-  /// malformed — a parsing failure in the field must not prevent showing the
-  /// error that the user needs to know.
+  /// Preserves the message even if the field is malformed: a parse failure there
+  /// must not stop the error the user needs from being shown.
   factory ApiError.fromJson(Map<String, dynamic> json) {
     final field = json['field'];
 
@@ -22,11 +19,8 @@ class ApiError {
   /// Human-readable, and safe to show as-is.
   final String message;
 
-  /// The request field at fault, when there is one — the JSON path of the
-  /// unknown or invalid field in the send request.
+  /// The JSON path of the unknown or invalid field, when there is one.
   final String? field;
 
-  /// Serialises to the wire shape `{error, field?}`, omitting the field key
-  /// when null.
   Map<String, dynamic> toJson() => {'error': message, 'field': ?field};
 }

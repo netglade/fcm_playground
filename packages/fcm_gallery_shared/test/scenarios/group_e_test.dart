@@ -1,10 +1,8 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:test/test.dart';
 
-/// The `notification` block of [scenario]'s template.
-///
-/// Reaches through with `!`, so a template that carries no notification block
-/// fails the test rather than silently reading as null.
+/// The `notification` block of [scenario]'s template. Reaches through with `!`, so a
+/// missing block fails the test rather than reading as null.
 Map<Object?, Object?> notificationOf(Scenario scenario) =>
     scenario.payloadTemplate['notification']! as Map<Object?, Object?>;
 
@@ -37,13 +35,9 @@ void main() {
     });
 
     test('exactly five of the eleven work today; the six others need styles', () {
-      // Two halves of one claim, because either alone passes for the wrong
-      // reason. The supported list is compared in order and in full, so
-      // quietly unmarking an entry to look supported fails the build — but
-      // `isSupported` only reads "needs is empty", so an entry marked with the
-      // wrong need (channels, interaction) would still be absent from this list
-      // and look correct. Every unsupported entry therefore has its needs
-      // pinned to exactly [styles], which is the one thing this group waits on.
+      // Two halves of one claim: `isSupported` only reads "needs is empty", so an
+      // entry filed under the wrong need would still be absent from this list and
+      // look correct. Hence every unsupported entry's needs pinned to [styles].
       expect(groupE, hasLength(11));
       expect(groupE.where((s) => s.isSupported).map((s) => s.id), [
         'e2_image_remote',
@@ -59,9 +53,8 @@ void main() {
     });
 
     test('nothing here is about the killed app', () {
-      // Appearance is observed in the tray with the app in any state, so the
-      // flag would only mislead — and the gallery-wide invariant would then
-      // demand delayedSend and a delay this group has no use for.
+      // Appearance is observable in any app state, so the flag would only mislead —
+      // and would drag in the delayedSend this group has no use for.
       for (final scenario in groupE) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.needs, isNot(contains(ScenarioNeed.delayedSend)));
@@ -76,9 +69,8 @@ void main() {
     });
 
     test('e2 says Android renders the image and iOS needs an extension', () {
-      // contains('Notification Service Extension') alone would pass on prose
-      // that named the wrong platform, or denied the requirement outright, so
-      // both halves are pinned to the phrase that carries the direction.
+      // contains('Notification Service Extension') alone would pass on prose that
+      // denied the requirement, so both halves of the phrase are pinned.
       final remote = scenarioE('e2_image_remote');
 
       expect(remote.expectation, contains('Android does this natively'));
@@ -92,10 +84,8 @@ void main() {
     test(
       'e5 points at a host that cannot resolve, not just a URL naming one',
       () {
-        // contains('example.test') is satisfied by
-        // https://picsum.photos/x?ref=example.test, which resolves perfectly well
-        // and would demonstrate nothing. The host itself is what must be
-        // unresolvable, so the URL is parsed and the authority compared.
+        // contains('example.test') is satisfied by a resolvable URL carrying it as a
+        // query parameter, so the authority itself is parsed and compared.
         final image =
             notificationOf(scenarioE('e5_image_404'))['image']! as String;
         final url = Uri.parse(image);
@@ -115,9 +105,8 @@ void main() {
 
       expect(notification['color'], matches(RegExp(r'^#[0-9a-fA-F]{6}$')));
 
-      // A drawable resource name, and by the ic_stat_ convention a flat
-      // monochrome one — pointing this at the full-colour launcher icon is
-      // exactly what produces the Xiaomi white square this scenario is about.
+      // A drawable resource name, and by the ic_stat_ convention a flat monochrome
+      // one — the full-colour launcher icon is what produces the Xiaomi white square.
       final icon = notification['icon']! as String;
       expect(icon, matches(RegExp(r'^[a-z][a-z0-9_]*$')));
       expect(icon, startsWith('ic_stat_'));
@@ -128,9 +117,8 @@ void main() {
     });
 
     test('the client-rendered styles pass their numbers as strings', () {
-      // FCM's data map is map<string, string>, so 40 is a parse failure rather
-      // than a rounding problem. The gallery round-trip would catch it too;
-      // this names the group that is most tempted to write a bare number.
+      // FCM's data map is map<string, string>, so 40 is a parse failure rather than a
+      // rounding problem.
       for (final scenario in groupE) {
         final data = scenario.payloadTemplate['data'];
         if (data == null) continue;

@@ -8,8 +8,6 @@ import 'package:path/path.dart' as p;
 /// entry point refuses to serve — a missing credential must surface as "the
 /// server would not start" rather than as a 500 on somebody's first send.
 class ServerConfig {
-  /// Creates a config directly. Prefer [ServerConfig.fromEnvironment]; this is
-  /// mainly for tests that already have a resolved value.
   const ServerConfig({
     required this.serviceAccountJson,
     required this.projectId,
@@ -17,12 +15,8 @@ class ServerConfig {
     required this.databasePath,
   });
 
-  /// Reads the config from [environment], using [readFile] to load the service
-  /// account key.
-  ///
   /// [readFile] is a parameter rather than a direct `File(...).readAsStringSync`
-  /// so the rules here are testable without touching a disk or holding a real
-  /// key.
+  /// so the rules here are testable without touching a disk or holding a real key.
   factory ServerConfig.fromEnvironment(
     Map<String, String> environment, {
     required String Function(String path) readFile,
@@ -53,34 +47,23 @@ class ServerConfig {
     );
   }
 
-  /// The service account key, as loaded. Passed straight to
-  /// `ServiceAccountCredentials.fromJson`.
   final Map<String, dynamic> serviceAccountJson;
 
-  /// The Firebase project to send through.
   final String projectId;
 
-  /// The loopback port to listen on.
   final int port;
 
-  /// Where the telemetry database lives. Handed to `SqliteTelemetryStore.open`.
   final String databasePath;
 }
 
-/// The name of the database file, when the operator has not named one.
 const _databaseFileName = 'fcm-telemetry.sqlite';
 
-/// Resolves the telemetry database from `FCM_TELEMETRY_DB`, defaulting to a
-/// file beside the service-account key at [keyPath].
+/// Resolves the telemetry database from `FCM_TELEMETRY_DB`, defaulting to a file
+/// beside the service-account key at [keyPath] — so the two files that must never
+/// be committed live in one directory.
 ///
-/// Beside the key deliberately: the two files that must never be committed then
-/// live in one directory, so whoever has kept one out of the repository has kept
-/// both out.
-///
-/// A blank explicit value is refused rather than treated as unset. Falling back
-/// would put the database somewhere the operator did not ask for, and they would
-/// then look for their data in the wrong place — which, for a store that exists
-/// to be queried days later, is indistinguishable from having recorded nothing.
+/// A blank explicit value is refused rather than treated as unset: falling back
+/// would put the database somewhere the operator did not ask for.
 String _readDatabasePath(String? value, String keyPath) {
   if (value == null) {
     return p.normalize(p.join(p.dirname(keyPath), _databaseFileName));
@@ -96,11 +79,8 @@ String _readDatabasePath(String? value, String keyPath) {
   return value;
 }
 
-/// Loads and decodes the service account key at [path] via [readFile].
-///
-/// Any read failure and any decode failure both become the same kind of
-/// [StateError] — from the operator's chair, an unreadable path and
-/// unparsable content are the same problem: the credential is broken.
+/// Read failures and decode failures become the same kind of [StateError]: from the
+/// operator's chair, both mean the credential is broken.
 Map<String, dynamic> _readServiceAccount(
   String path,
   String Function(String path) readFile,
@@ -109,8 +89,6 @@ Map<String, dynamic> _readServiceAccount(
   try {
     contents = readFile(path);
   } catch (error) {
-    // Any read failure is the same problem for the operator: the path is wrong
-    // or unreadable. The original error is kept in the message.
     throw StateError('Could not read the service account key at $path: $error');
   }
 
@@ -126,11 +104,8 @@ Map<String, dynamic> _readServiceAccount(
   }
 }
 
-/// Parses `PORT`, defaulting to 8080 when unset.
-///
-/// A default is safe here because an absent `PORT` is normal (most local
-/// runs), while a present-but-invalid one is an operator mistake worth
-/// failing loudly on.
+/// Defaults to 8080 when unset — an absent `PORT` is normal for a local run, while
+/// a present-but-invalid one is an operator mistake worth failing loudly on.
 int _readPort(String? value) {
   if (value == null) {
     return 8080;
@@ -144,6 +119,5 @@ int _readPort(String? value) {
   return port;
 }
 
-/// Narrows a decoded JSON value to a non-blank [String], or null.
 String? _textOrNull(Object? value) =>
     value is String && value.trim().isNotEmpty ? value : null;

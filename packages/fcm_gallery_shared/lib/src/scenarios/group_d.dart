@@ -3,15 +3,13 @@ import 'scenario_need.dart';
 
 /// **D — Channels and importance.** What the user, not the sender, controls.
 ///
-/// Importance is a property of the *channel*, set once when it is created, and
-/// Android ignores every later attempt to change it — so a channel is effectively
-/// immutable and the only fix is a new one with a new id. That is why d7 exists,
-/// and why channels get versioned names like `chat_v2`.
+/// Importance is a property of the *channel*, set once when it is created and
+/// immutable thereafter — so the only fix is a new channel with a new id, which is
+/// why d7 exists and why channels get versioned names like `chat_v2`.
 ///
 /// None of these demonstrates anything until the app registers the channels and
-/// offers a screen showing each one's importance **as read back from the system**.
-/// Reading it from our own code would only ever tell us what we asked for, not
-/// what the user has since changed.
+/// shows each one's importance *as read back from the system* — reading it from our
+/// own code would only tell us what we asked for.
 const groupD = <Scenario>[
   Scenario(
     id: 'd1_importance_high',

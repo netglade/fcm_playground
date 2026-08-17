@@ -42,8 +42,7 @@ void main() {
   });
 
   test('the round-trip really covered every field', () {
-    // Guards against a field being added to the class but not to everyField:
-    // the fixture must mention as many keys as the class writes out.
+    // Guards against a field added to the class but not to everyField.
     expect(everyField, hasLength(27));
   });
 

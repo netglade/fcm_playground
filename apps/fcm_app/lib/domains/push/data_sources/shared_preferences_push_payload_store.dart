@@ -1,0 +1,80 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../entities/push_payload_store.dart';
+
+/// A [PushPayloadStore] over `shared_preferences`.
+///
+/// [SharedPreferencesAsync] rather than the legacy `SharedPreferences`: the
+/// legacy API caches per isolate, and the background message handler runs in its
+/// own engine instance, so a cached UI-side snapshot would never see what the
+/// background isolate appended.
+class SharedPreferencesPushPayloadStore implements PushPayloadStore {
+  SharedPreferencesPushPayloadStore({SharedPreferencesAsync? preferences})
+    : _preferences = preferences ?? SharedPreferencesAsync();
+
+  final SharedPreferencesAsync _preferences;
+
+  @override
+  Future<List<Map<String, Object?>>> loadInbox() => _read(_inboxKey);
+
+  @override
+  Future<void> saveInbox(List<Map<String, Object?>> payloads) =>
+      _preferences.setStringList(_inboxKey, payloads.map(jsonEncode).toList());
+
+  @override
+  Future<void> appendPending(Map<String, Object?> payload) async {
+    final stored =
+        await _preferences.getStringList(_pendingKey) ?? const <String>[];
+
+    await _preferences.setStringList(_pendingKey, [
+      ...stored,
+      jsonEncode(payload),
+    ]);
+  }
+
+  @override
+  Future<List<Map<String, Object?>>> takePending() async {
+    final payloads = await _read(_pendingKey);
+    await _preferences.remove(_pendingKey);
+
+    return payloads;
+  }
+
+  Future<List<Map<String, Object?>>> _read(String key) async {
+    final stored = await _preferences.getStringList(key) ?? const <String>[];
+    final payloads = <Map<String, Object?>>[];
+    for (final entry in stored) {
+      final decoded = _decodePayload(entry);
+      if (decoded != null) {
+        payloads.add(decoded);
+      }
+    }
+
+    return payloads;
+  }
+}
+
+const _inboxKey = 'push.inbox';
+const _pendingKey = 'push.pending';
+
+/// Decodes one stored entry, or null when it is not a JSON object — one corrupt
+/// entry must not cost the whole inbox.
+Map<String, Object?>? _decodePayload(String entry) {
+  try {
+    final decoded = jsonDecode(entry);
+    if (decoded is! Map<String, Object?>) {
+      debugPrint('Dropping a stored payload that is not an object: $entry');
+
+      return null;
+    }
+
+    return decoded;
+  } on FormatException catch (error) {
+    debugPrint('Dropping a corrupt stored payload: ${error.message}');
+
+    return null;
+  }
+}

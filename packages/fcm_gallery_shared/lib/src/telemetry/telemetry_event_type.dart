@@ -1,11 +1,8 @@
 /// One thing that happened to one message, on either side of the wire.
 ///
-/// The nine values are the whole vocabulary of the telemetry pipeline. Two of
-/// them — [dismissed] and the state qualifier on [opened] — cannot be produced
-/// yet: they need a delete intent and three-state routing, which are `f6` and
-/// `f3`–`f5` of the scenario catalogue's interaction work. They are declared
-/// anyway so the wire format and the database schema do not change when that
-/// work lands.
+/// [dismissed] and the state qualifier on [opened] cannot be produced yet — they
+/// need a delete intent and three-state routing — but are declared anyway so the
+/// wire format and the database schema do not change when that work lands.
 enum TelemetryEventType {
   /// The API accepted a send request.
   queued('queued'),
