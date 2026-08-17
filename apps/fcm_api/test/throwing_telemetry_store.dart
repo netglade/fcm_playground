@@ -24,8 +24,10 @@ class ThrowingTelemetryStore implements TelemetryStore {
   Future<List<TelemetryEvent>> all() async => attempts;
 
   @override
+  /// The same filtered view of [all], so a test can still tell a swallowed write
+  /// from a call that was never made.
   Future<List<TelemetryEvent>> eventsForTraces(List<String> traceIds) async =>
-      const [];
+      attempts.where((event) => traceIds.contains(event.traceId)).toList();
 
   @override
   Future<List<LatencyRow>> latencies() async => const [];
