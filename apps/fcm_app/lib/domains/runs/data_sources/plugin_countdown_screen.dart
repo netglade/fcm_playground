@@ -16,17 +16,24 @@ class PluginCountdownScreen implements CountdownScreen {
   @override
   Future<void> keepAwake() => _quietly(() => WakelockPlus.enable());
 
+  // Each of these two steps is guarded on its own, rather than the pair sharing one
+  // `_quietly`: a failing wakelock call must not suppress the brightness call next
+  // to it, or `release` would leave the display pinned at minimum brightness after
+  // the user has already left the countdown screen — the one failure this class
+  // cannot let pass as a mere lost convenience.
   @override
-  Future<void> dim() => _quietly(() async {
-    await ScreenBrightness.instance.setApplicationScreenBrightness(0);
-    await WakelockPlus.disable();
-  });
+  Future<void> dim() async {
+    await _quietly(
+      () => ScreenBrightness.instance.setApplicationScreenBrightness(0),
+    );
+    await _quietly(WakelockPlus.disable);
+  }
 
   @override
-  Future<void> release() => _quietly(() async {
-    await WakelockPlus.disable();
-    await ScreenBrightness.instance.resetApplicationScreenBrightness();
-  });
+  Future<void> release() async {
+    await _quietly(WakelockPlus.disable);
+    await _quietly(ScreenBrightness.instance.resetApplicationScreenBrightness);
+  }
 
   @override
   Future<void> openBatterySettings() => _quietly(

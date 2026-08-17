@@ -114,9 +114,27 @@ void main() {
     await pump(tester);
 
     await tester.tap(find.text('Cancel'));
+    // cancel() awaits cancelling the tick subscription before it emits, and that
+    // await does not settle under the test binding's fake clock — real pumps alone
+    // never observe it completing. runAsync steps outside the fake clock just long
+    // enough for it to resolve, the way any other genuine async gap would.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
     await tester.pumpAndSettle();
 
     expect(scheduler.cancelled, ['run-1']);
+    expect(find.byType(CountdownPage), findsNothing);
+  });
+
+  testWidgets('releases the screen once it is gone', (tester) async {
+    await pump(tester);
+
+    // Replacing the tree disposes CountdownPage the same way leaving the route
+    // would, without depending on Cancel's own pop.
+    await tester.pumpWidget(const SizedBox.shrink());
+
+    expect(screen.calls, contains('release'));
   });
 
   testWidgets('calls back once when the delay has elapsed', (tester) async {
