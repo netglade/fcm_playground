@@ -297,6 +297,7 @@ void main() {
         token: () => 'device-token',
         startRun: StartRun(scheduler: runs, active: InMemoryActiveRunStore()),
       )..applyScenario(scenarioGallery.firstWhere((s) => s.id == 'b3_killed'));
+      cubit.form.notification.title.updateValue('Killed-app probe');
 
       final run = await cubit.schedule(30);
 
@@ -305,6 +306,41 @@ void main() {
       expect(request.delaySeconds, 30);
       expect(request.items.single.scenarioId, 'b3_killed');
       expect(request.items.single.target, const TokenTarget('device-token'));
+      // The gap this test used to leave: it named "the payload" but never read it
+      // back, so a message dropped between the form and the request would have
+      // passed unnoticed.
+      expect(request.items.single.message, cubit.form.toModel());
+      expect(
+        request.items.single.message.notification?.title,
+        'Killed-app probe',
+      );
+    });
+
+    test('reads the form at the press, not once the run comes back', () async {
+      // Mirrors `send`'s own guarantee, and the comment in `schedule` that
+      // makes it: the read has to happen before the request is handed to
+      // the scheduler, or an edit made while the call is in flight would
+      // travel instead of what was on screen at the press.
+      final runs = FakeRunScheduler();
+      final cubit = SandboxCubit(
+        sender: FakeNotificationSender(),
+        token: () => 'device-token',
+        startRun: StartRun(scheduler: runs, active: InMemoryActiveRunStore()),
+      )..applyScenario(scenarioGallery.firstWhere((s) => s.id == 'b3_killed'));
+      cubit.form.notification.title.updateValue('At the press');
+
+      // Not awaited yet: `schedule` runs synchronously up to its first
+      // `await`, so the read below happens either before this line
+      // (correct) or after it (if it were moved past an `await`) — which
+      // is exactly what this proves.
+      final pending = cubit.schedule(30);
+      cubit.form.notification.title.updateValue('After the press');
+      await pending;
+
+      expect(
+        runs.scheduled.single.items.single.message.notification?.title,
+        'At the press',
+      );
     });
 
     test('remembers the run, so a killed app can reopen it', () async {

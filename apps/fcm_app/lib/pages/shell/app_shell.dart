@@ -33,8 +33,8 @@ class _AppShellState extends State<AppShell> {
   static const _inboxDestination = 0;
   static const _sandboxDestination = 2;
   // No `_runsDestination` constant yet: nothing in this file reads one, and an
-  // unread private field is `unused_field`, fatal here. Task 15 adds it back
-  // alongside the switch that actually reads it.
+  // unread private field is `unused_field`, fatal here. Whichever change first
+  // switches to this destination adds the constant back alongside that switch.
 
   late final AppLifecycleListener _lifecycle;
 

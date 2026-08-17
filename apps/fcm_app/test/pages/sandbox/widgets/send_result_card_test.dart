@@ -71,4 +71,38 @@ void main() {
 
     expect(textOf(tester), 'FCM refused it');
   });
+
+  testWidgets('names the run and says nothing has been sent yet', (
+    tester,
+  ) async {
+    // Telling someone a push arrived when it did not is "the worst failure this
+    // screen could produce" — the class doc's own words — so a scheduled run has
+    // to read unmistakably differently from a real send, not just add a word.
+    final run = ScheduledRun(
+      id: 'run-9',
+      createdAt: DateTime.utc(2026, 8, 17, 9, 0),
+      items: [
+        ScheduledRunItem(
+          index: 0,
+          request: const SendMessageRequest(
+            target: TokenTarget('device-token'),
+            message: FcmMessage(),
+          ),
+          dueAt: DateTime.utc(2026, 8, 17, 9, 0, 30),
+        ),
+      ],
+    );
+
+    await pump(tester, SandboxScheduled(run));
+
+    expect(textOf(tester), contains('run-9'));
+    expect(textOf(tester), contains('nothing has been sent yet'));
+    // The exact wording a real send uses, so the two cannot be mistaken for one
+    // another even if someone later adds sent-like language alongside.
+    expect(
+      textOf(tester),
+      isNot(contains('should appear in the Inbox')),
+      reason: 'nothing was sent, so this must not read like a delivery',
+    );
+  });
 }
