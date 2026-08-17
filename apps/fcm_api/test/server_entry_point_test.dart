@@ -34,6 +34,12 @@ void _configurationFailures() {
 
     expect(result, _refuses('GOOGLE_APPLICATION_CREDENTIALS'));
   });
+
+  test('the ticker interval is short enough for a countdown to look right', () {
+    // One second: the countdown on the phone is drawn per second, and a coarser
+    // tick would let the screen reach zero while the send is still queued.
+    expect(schedulerTickInterval, const Duration(seconds: 1));
+  });
 }
 
 /// What the entry point does with the database path its configuration resolved.
@@ -93,12 +99,6 @@ void _databaseWiring() {
     });
 
     expect(result, _refuses(databasePath));
-  });
-
-  test('the ticker interval is short enough for a countdown to look right', () {
-    // One second: the countdown on the phone is drawn per second, and a coarser
-    // tick would let the screen reach zero while the send is still queued.
-    expect(schedulerTickInterval, const Duration(seconds: 1));
   });
 }
 
