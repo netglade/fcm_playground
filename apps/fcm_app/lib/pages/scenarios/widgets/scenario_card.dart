@@ -7,11 +7,23 @@ import 'package:flutter/material.dart';
 /// scenario: the source catalogue, the validate-only sweep and the tests all name
 /// ids.
 class ScenarioCard extends StatelessWidget {
-  const ScenarioCard({required this.scenario, required this.onTap, super.key});
+  const ScenarioCard({
+    required this.scenario,
+    required this.onTap,
+    this.isSelected,
+    this.onSelectionChanged,
+    super.key,
+  });
 
   final Scenario scenario;
 
   final VoidCallback onTap;
+
+  /// Null outside selection mode, which is what decides whether a checkbox is
+  /// drawn — a bool could not tell "not selecting" from "selecting, unticked".
+  final bool? isSelected;
+
+  final ValueChanged<bool>? onSelectionChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +33,16 @@ class ScenarioCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        onTap: onTap,
+        key: Key('scenario-${scenario.id}'),
+        onTap: isSelected == null
+            ? onTap
+            : () => onSelectionChanged?.call(!isSelected!),
+        leading: isSelected == null
+            ? null
+            : Checkbox(
+                value: isSelected,
+                onChanged: (value) => onSelectionChanged?.call(value ?? false),
+              ),
         title: Text(scenario.title),
         // Only *that* work is outstanding, not which: ScenarioNeedsBanner names
         // them once the scenario is loaded.
