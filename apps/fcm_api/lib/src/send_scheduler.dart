@@ -91,6 +91,101 @@ class SendScheduler {
     for (final run in await _runs.recent()) RunSummary.of(run),
   ];
 
+  /// Cancels every still-pending item of [runId], or null when there is no such run.
+  ///
+  /// A claimed item is deliberately out of reach: at that moment it is already on
+  /// its way to FCM, and reporting it cancelled would be a lie the timeline then
+  /// contradicts.
+  Future<int?> cancel(String runId) => _runs.cancelPending(runId);
+
+  /// Settles every outstanding item after a restart.
+  ///
+  /// Runs once, before the server starts serving, so nothing else is touching the
+  /// store while it works.
+  Future<void> recover(DateTime now) async {
+    for (final run in await _runs.unfinished()) {
+      for (final item in run.items) {
+        if (item.state == RunItemState.dispatching) {
+          await _resolveInterrupted(run.id, item);
+        } else if (item.state == RunItemState.pending &&
+            !item.dueAt.isAfter(now)) {
+          await _settleOverdue(run.id, item, now);
+        }
+      }
+    }
+  }
+
+  /// Sends a lately-due item, or gives up on one nobody can still be waiting for.
+  Future<void> _settleOverdue(
+    String runId,
+    ScheduledRunItem item,
+    DateTime now,
+  ) async {
+    if (now.difference(item.dueAt) > graceOnRestart) {
+      await _runs.updateItem(
+        runId,
+        item.copyWith(
+          state: RunItemState.missed,
+          error:
+              'The server was not running when this was due, and it was too '
+              'late to send by the time it came back.',
+        ),
+      );
+
+      return;
+    }
+
+    await _dispatch(runId, item.copyWith(state: RunItemState.dispatching), now);
+  }
+
+  /// Reads the outcome of an item the process died in the middle of.
+  ///
+  /// Nothing is assumed: `sendMessage` writes `queued` before asking FCM and `sent`
+  /// or `send_failed` after, so the telemetry already holds the answer. A trace with
+  /// only `queued` means FCM never answered, which is a failure — claiming it sent
+  /// would put a phantom into the latency figures.
+  Future<void> _resolveInterrupted(String runId, ScheduledRunItem item) async {
+    final traceId = item.traceId;
+    if (traceId == null) {
+      await _runs.updateItem(
+        runId,
+        item.copyWith(
+          state: RunItemState.failed,
+          error: 'The server stopped before the send was recorded.',
+        ),
+      );
+
+      return;
+    }
+
+    final events = await _telemetry.eventsForTraces([traceId]);
+    final sent = _firstOfType(events, TelemetryEventType.sent);
+    if (sent != null) {
+      await _runs.updateItem(
+        runId,
+        item.copyWith(
+          state: RunItemState.sent,
+          messageId: sent.detail,
+          dispatchedAt: sent.at,
+        ),
+      );
+
+      return;
+    }
+
+    final failed = _firstOfType(events, TelemetryEventType.sendFailed);
+    await _runs.updateItem(
+      runId,
+      item.copyWith(
+        state: RunItemState.failed,
+        error: failed == null
+            ? 'The server stopped while sending, and FCM never answered.'
+            : 'FCM refused it (${failed.detail}).',
+        dispatchedAt: failed?.at,
+      ),
+    );
+  }
+
   /// Sends one claimed item and writes its outcome back.
   ///
   /// The trace id is minted and **persisted before the send**, which is what makes an
@@ -126,4 +221,17 @@ class SendScheduler {
       ),
     });
   }
+}
+
+TelemetryEvent? _firstOfType(
+  List<TelemetryEvent> events,
+  TelemetryEventType type,
+) {
+  for (final event in events) {
+    if (event.type == type) {
+      return event;
+    }
+  }
+
+  return null;
 }

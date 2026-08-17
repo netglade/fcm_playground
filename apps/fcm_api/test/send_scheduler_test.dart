@@ -241,4 +241,168 @@ void main() {
       expect(summaries.last.count(RunItemState.pending), 2);
     });
   });
+
+  group('cancel', () {
+    test('cancels what is still pending and reports how many', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(
+        requestWith(delay: 30, spacing: 30, count: 3),
+        createdAt,
+      );
+
+      expect(await scheduler.cancel(run.id), 3);
+      expect(
+        (await runs.find(run.id))!.items.map((i) => i.state),
+        List.filled(3, RunItemState.cancelled),
+      );
+    });
+
+    test('leaves an already-sent item alone', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(
+        requestWith(delay: 0, spacing: 60, count: 2),
+        createdAt,
+      );
+      await scheduler.tick(createdAt);
+
+      expect(await scheduler.cancel(run.id), 1);
+      expect((await runs.find(run.id))!.items.map((i) => i.state), [
+        RunItemState.sent,
+        RunItemState.cancelled,
+      ]);
+    });
+
+    test('answers null for a run that does not exist', () async {
+      expect(await schedulerWith(sender).cancel('nope'), isNull);
+    });
+
+    test('a cancelled item is never sent afterwards', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 30), createdAt);
+
+      await scheduler.cancel(run.id);
+      await scheduler.tick(createdAt.add(const Duration(seconds: 60)));
+
+      expect(sender.sent, isEmpty);
+    });
+  });
+
+  group('recover', () {
+    test('sends an item that came due while the server was down', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 30), createdAt);
+
+      await scheduler.recover(createdAt.add(const Duration(seconds: 90)));
+
+      expect((await runs.find(run.id))!.items.single.state, RunItemState.sent);
+    });
+
+    test('misses one overdue by more than the grace period', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 30), createdAt);
+
+      await scheduler.recover(createdAt.add(const Duration(minutes: 30)));
+
+      expect(
+        (await runs.find(run.id))!.items.single.state,
+        RunItemState.missed,
+      );
+      expect(sender.sent, isEmpty);
+    });
+
+    test('leaves an item still in the future for the ticker', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 300), createdAt);
+
+      await scheduler.recover(createdAt.add(const Duration(seconds: 10)));
+
+      expect(
+        (await runs.find(run.id))!.items.single.state,
+        RunItemState.pending,
+      );
+    });
+
+    test('resolves an interrupted dispatch that FCM had accepted', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 0), createdAt);
+      // The state a process killed between `queued` and the outcome leaves behind.
+      await runs.updateItem(
+        run.id,
+        run.items.single.copyWith(
+          state: RunItemState.dispatching,
+          traceId: 'tr-interrupted',
+        ),
+      );
+      await telemetry.record([
+        TelemetryEvent(
+          traceId: 'tr-interrupted',
+          type: TelemetryEventType.sent,
+          at: createdAt,
+          deviceId: '',
+          detail: 'projects/p/messages/0:99',
+        ),
+      ]);
+
+      await scheduler.recover(createdAt.add(const Duration(seconds: 5)));
+
+      final item = (await runs.find(run.id))!.items.single;
+      expect(item.state, RunItemState.sent);
+      expect(item.messageId, 'projects/p/messages/0:99');
+      // Read back rather than resent: the message already left.
+      expect(sender.sent, isEmpty);
+    });
+
+    test('fails an interrupted dispatch FCM never answered', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 0), createdAt);
+      await runs.updateItem(
+        run.id,
+        run.items.single.copyWith(
+          state: RunItemState.dispatching,
+          traceId: 'tr-interrupted',
+        ),
+      );
+      await telemetry.record([
+        TelemetryEvent(
+          traceId: 'tr-interrupted',
+          type: TelemetryEventType.queued,
+          at: createdAt,
+          deviceId: '',
+        ),
+      ]);
+
+      await scheduler.recover(createdAt.add(const Duration(seconds: 5)));
+
+      final item = (await runs.find(run.id))!.items.single;
+      expect(item.state, RunItemState.failed);
+      expect(item.error, contains('stopped'));
+    });
+
+    test('carries FCM\'s refusal through from the telemetry', () async {
+      final scheduler = schedulerWith(sender);
+      final run = await scheduler.schedule(requestWith(delay: 0), createdAt);
+      await runs.updateItem(
+        run.id,
+        run.items.single.copyWith(
+          state: RunItemState.dispatching,
+          traceId: 'tr-interrupted',
+        ),
+      );
+      await telemetry.record([
+        TelemetryEvent(
+          traceId: 'tr-interrupted',
+          type: TelemetryEventType.sendFailed,
+          at: createdAt,
+          deviceId: '',
+          detail: 'UNREGISTERED',
+        ),
+      ]);
+
+      await scheduler.recover(createdAt.add(const Duration(seconds: 5)));
+
+      final item = (await runs.find(run.id))!.items.single;
+      expect(item.state, RunItemState.failed);
+      expect(item.error, contains('UNREGISTERED'));
+    });
+  });
 }
