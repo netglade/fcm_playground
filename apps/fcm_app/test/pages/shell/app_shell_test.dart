@@ -1,5 +1,6 @@
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
@@ -14,6 +15,7 @@ import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
 import '../../fakes/fake_push_source.dart';
 import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_navigator_observer.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
@@ -52,6 +54,10 @@ void main() {
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => inbox.state.token,
+      startRun: StartRun(
+        scheduler: FakeRunScheduler(),
+        active: InMemoryActiveRunStore(),
+      ),
     );
     await tester.pumpWidget(
       MaterialApp(

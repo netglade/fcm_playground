@@ -19,6 +19,7 @@ import '../domains/runs/data_sources/shared_preferences_active_run_store.dart';
 import '../domains/runs/data_sources/unavailable_run_scheduler.dart';
 import '../domains/runs/entities/active_run_store.dart';
 import '../domains/runs/entities/run_scheduler.dart';
+import '../domains/runs/start_run.dart';
 import '../domains/sandbox/data_sources/http_notification_sender.dart';
 import '../domains/sandbox/data_sources/unavailable_notification_sender.dart';
 import '../domains/sandbox/entities/notification_sender.dart';
@@ -67,6 +68,9 @@ Future<void> configureDependencies({
     ..registerSingleton<NotificationPresenter>(presenter)
     ..registerSingleton<NotificationSender>(_senderFor(setupError))
     ..registerSingleton<RunScheduler>(_runSchedulerFor(setupError));
+  getIt.registerSingleton<StartRun>(
+    StartRun(scheduler: getIt<RunScheduler>(), active: getIt<ActiveRunStore>()),
+  );
   _registerTelemetry(isWeb: isWeb);
   // A singleton necessarily: the repository owns the push subscription and the
   // token, so a second instance would subscribe twice to a single-subscription

@@ -1,3 +1,4 @@
+import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/scenarios/scenarios_view.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
@@ -7,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
 import '../../fakes/fake_notification_sender.dart';
+import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/in_memory_active_run_store.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
@@ -18,6 +21,10 @@ void main() {
     controller = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => 'device-token',
+      startRun: StartRun(
+        scheduler: FakeRunScheduler(),
+        active: InMemoryActiveRunStore(),
+      ),
     );
     selectedCount = 0;
   }

@@ -27,3 +27,10 @@ final class SandboxFailed extends SandboxSendState {
   /// Safe to show as-is.
   final String message;
 }
+
+/// A run was scheduled. Nothing has been sent yet, and that is the point.
+final class SandboxScheduled extends SandboxSendState {
+  const SandboxScheduled(this.run);
+
+  final ScheduledRun run;
+}
