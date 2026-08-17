@@ -1,3 +1,4 @@
+import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
@@ -17,14 +18,16 @@ void main() {
 
   late SandboxCubit controller;
   late FakeRunScheduler runs;
+  late InMemoryActiveRunStore active;
   late int selectedCount;
 
   void build({String? token = 'device-token'}) {
     runs = FakeRunScheduler();
+    active = InMemoryActiveRunStore();
     controller = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => token,
-      startRun: StartRun(scheduler: runs, active: InMemoryActiveRunStore()),
+      startRun: StartRun(scheduler: runs, active: active),
     );
     selectedCount = 0;
   }
@@ -35,11 +38,9 @@ void main() {
         home: MultiRepositoryProvider(
           providers: [
             RepositoryProvider<RunScheduler>.value(value: runs),
+            RepositoryProvider<ActiveRunStore>.value(value: active),
             RepositoryProvider<StartRun>.value(
-              value: StartRun(
-                scheduler: runs,
-                active: InMemoryActiveRunStore(),
-              ),
+              value: StartRun(scheduler: runs, active: active),
             ),
           ],
           child: Scaffold(

@@ -137,6 +137,18 @@ void main() {
       expect(cancelled, 2);
     });
 
+    test(
+      'fails loudly on a wrongly-typed cancelled count rather than reporting 0',
+      () async {
+        // The same blind-default pattern removed from `RunSummary.fromJson`:
+        // a string here must not silently become a 0 nobody asked for.
+        expect(
+          () => schedulerAnswering(200, {'cancelled': '2'}).cancel('run-1'),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
+
     test('reports a 404 as a failure the user can read', () async {
       expect(
         () => schedulerAnswering(404, {

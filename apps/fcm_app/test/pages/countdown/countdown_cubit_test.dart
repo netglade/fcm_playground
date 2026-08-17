@@ -6,10 +6,12 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/in_memory_active_run_store.dart';
 
 void main() {
   late StreamController<void> ticks;
   late FakeRunScheduler scheduler;
+  late InMemoryActiveRunStore active;
 
   ScheduledRun runOf(String id) => ScheduledRun(
     id: id,
@@ -33,6 +35,7 @@ void main() {
     return CountdownCubit(
       scheduler: scheduler,
       run: run,
+      active: active,
       delaySeconds: delaySeconds,
       ticks: ticks.stream,
     );
@@ -48,6 +51,7 @@ void main() {
   setUp(() {
     ticks = StreamController<void>.broadcast();
     scheduler = FakeRunScheduler();
+    active = InMemoryActiveRunStore();
   });
 
   tearDown(() => ticks.close());
@@ -102,6 +106,7 @@ void main() {
       final cubit = CountdownCubit(
         scheduler: failing,
         run: run,
+        active: active,
         delaySeconds: 30,
         ticks: ticks.stream,
       );
@@ -112,4 +117,44 @@ void main() {
       expect(cubit.state.error, contains('Could not reach'));
     },
   );
+
+  test('a successful cancel clears the awaited run id', () async {
+    await active.setActiveRunId('run-1');
+    final cubit = cubitFor(delaySeconds: 30);
+
+    await cubit.cancel();
+
+    expect(await active.activeRunId(), isNull);
+  });
+
+  test('a cancel the API refused leaves the awaited run id alone', () async {
+    final failing = FakeRunScheduler(
+      failure: const RunSchedulerException('Could not reach the API'),
+    );
+    await active.setActiveRunId('run-1');
+    final run = runOf('run-1');
+    final cubit = CountdownCubit(
+      scheduler: failing,
+      run: run,
+      active: active,
+      delaySeconds: 30,
+      ticks: ticks.stream,
+    );
+
+    await cubit.cancel();
+
+    // Losing the id here would lose the only pointer back to a run that is
+    // still, for all this cubit knows, going out.
+    expect(await active.activeRunId(), 'run-1');
+  });
+
+  test('finishing the countdown clears the awaited run id', () async {
+    await active.setActiveRunId('run-1');
+    final cubit = cubitFor(delaySeconds: 1);
+
+    await tick(1);
+
+    expect(cubit.state.isFinished, isTrue);
+    expect(await active.activeRunId(), isNull);
+  });
 }

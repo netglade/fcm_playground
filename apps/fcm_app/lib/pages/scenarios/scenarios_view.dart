@@ -2,6 +2,7 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domains/runs/entities/active_run_store.dart';
 import '../../domains/runs/entities/run_scheduler.dart';
 import '../../domains/runs/entities/run_scheduler_exception.dart';
 import '../../domains/runs/start_run.dart';
@@ -107,6 +108,7 @@ class _ScenariosViewState extends State<ScenariosView> {
     // from `context` past that point — `showScheduleSheet` is the first one.
     final startRun = context.read<StartRun>();
     final scheduler = context.read<RunScheduler>();
+    final active = context.read<ActiveRunStore>();
     final navigator = Navigator.of(context);
     final choice = await showScheduleSheet(
       context,
@@ -150,6 +152,7 @@ class _ScenariosViewState extends State<ScenariosView> {
     final countdown = CountdownCubit(
       scheduler: scheduler,
       run: run,
+      active: active,
       delaySeconds: choice.delaySeconds,
     );
     await navigator.push(

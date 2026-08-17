@@ -129,7 +129,7 @@ void main() {
 
     test('nothing in this group is about the killed app', () {
       // Targeting is about who receives a push, not what state they are in, so the
-      // flag would be false on all three and would drag in delayed sending.
+      // flag is false on all three.
       for (final scenario in groupJ) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);

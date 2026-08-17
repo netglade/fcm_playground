@@ -53,7 +53,10 @@ class FakeRunScheduler implements RunScheduler {
   Future<List<RunSummary>> list() async {
     _throwIfFailing();
 
-    return summaries;
+    // A snapshot, not the live list: a real `GET /runs` answers what the server
+    // held at that moment, and a caller mutating `summaries` after the fact must
+    // not silently rewrite a state this fake already emitted.
+    return List.unmodifiable(summaries);
   }
 
   @override

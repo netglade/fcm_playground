@@ -4,6 +4,7 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../domains/runs/entities/active_run_store.dart';
 import '../../../domains/runs/entities/run_scheduler.dart';
 import '../../countdown/countdown_page.dart';
 import '../../countdown/cubit/countdown_cubit.dart';
@@ -81,6 +82,7 @@ class SendFooter extends StatelessWidget {
   Future<void> _schedule(BuildContext context, SandboxState state) async {
     final cubit = context.read<SandboxCubit>();
     final scheduler = context.read<RunScheduler>();
+    final active = context.read<ActiveRunStore>();
     final navigator = Navigator.of(context);
     final choice = await showScheduleSheet(
       context,
@@ -98,6 +100,7 @@ class SendFooter extends StatelessWidget {
     final countdown = CountdownCubit(
       scheduler: scheduler,
       run: run,
+      active: active,
       delaySeconds: choice.delaySeconds,
     );
     await navigator.push(

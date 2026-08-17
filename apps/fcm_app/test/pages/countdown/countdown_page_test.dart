@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_countdown_screen.dart';
 
 void main() {
   late StreamController<void> ticks;
   late FakeRunScheduler scheduler;
+  late InMemoryActiveRunStore active;
   late RecordingCountdownScreen screen;
   late int finished;
 
@@ -40,6 +42,7 @@ void main() {
           cubit: CountdownCubit(
             scheduler: scheduler,
             run: run,
+            active: active,
             delaySeconds: delaySeconds,
             ticks: ticks.stream,
           ),
@@ -53,6 +56,7 @@ void main() {
   setUp(() {
     ticks = StreamController<void>.broadcast();
     scheduler = FakeRunScheduler();
+    active = InMemoryActiveRunStore();
     screen = RecordingCountdownScreen();
     finished = 0;
   });
@@ -114,13 +118,6 @@ void main() {
     await pump(tester);
 
     await tester.tap(find.text('Cancel'));
-    // cancel() awaits cancelling the tick subscription before it emits, and that
-    // await does not settle under the test binding's fake clock — real pumps alone
-    // never observe it completing. runAsync steps outside the fake clock just long
-    // enough for it to resolve, the way any other genuine async gap would.
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 50)),
-    );
     await tester.pumpAndSettle();
 
     expect(scheduler.cancelled, ['run-1']);

@@ -5,6 +5,7 @@
 library;
 
 export 'src/api_error.dart';
+export 'src/json_field.dart';
 export 'src/message/android_config.dart';
 export 'src/message/android_message_priority.dart';
 export 'src/message/android_notification.dart';

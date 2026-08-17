@@ -192,6 +192,46 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Push inbox'), findsOne);
   });
 
+  testWidgets(
+    'reloads the Runs page each time it is chosen, not just at launch',
+    (tester) async {
+      // Growable, and held onto by the test: `FakeRunScheduler.list` answers
+      // whatever is in here at the moment it is called, so mutating it between
+      // two visits stands in for a run appearing on the server in between —
+      // exactly what happens after scheduling one from another tab.
+      final summaries = <RunSummary>[];
+      await pumpApp(tester, scheduler: FakeRunScheduler(summaries: summaries));
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Runs'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nothing scheduled yet'), findsOneWidget);
+
+      summaries.add(
+        RunSummary(
+          runId: 'run-1',
+          createdAt: FakeRunScheduler.createdAt,
+          itemCount: 1,
+          states: const {RunItemState.pending: 1},
+          nextDueAt: FakeRunScheduler.createdAt.add(
+            const Duration(seconds: 30),
+          ),
+        ),
+      );
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Inbox'));
+      await tester.pumpAndSettle();
+      await openDrawer(tester);
+      await tester.tap(find.text('Runs'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nothing scheduled yet'), findsNothing);
+      expect(find.byKey(const Key('run-run-1')), findsOneWidget);
+    },
+  );
+
   testWidgets('tapping a scenario switches to the sandbox with it loaded', (
     tester,
   ) async {

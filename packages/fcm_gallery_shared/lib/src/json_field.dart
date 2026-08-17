@@ -1,8 +1,12 @@
-/// JSON field readers shared by the DTOs in this package.
+/// JSON field readers shared by the DTOs in this package, and exported for any
+/// caller parsing the same wire format — `HttpRunScheduler` in `fcm_app` reads
+/// `DELETE /runs/{id}`'s `cancelled` field through [requireInt] for exactly this
+/// reason.
 ///
 /// They exist so a malformed body fails as a [FormatException] naming the
 /// offending field, rather than as a `TypeError` from a blind cast that says
-/// nothing a caller could act on.
+/// nothing a caller could act on, or — worse — a blind default that turns a
+/// wrongly-typed value into a wrong-but-plausible one.
 library;
 
 /// Absence becomes `''`, and blankness is deliberately not an error: the validator

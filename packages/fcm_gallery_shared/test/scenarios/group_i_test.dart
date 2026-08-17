@@ -117,8 +117,8 @@ void main() {
 
     test('nothing in this group is about the killed app', () {
       // Tempting here, since a silent data push still runs with no UI — but each
-      // entry is observable in the foreground, so the flag would be false and would
-      // drag in delayed sending.
+      // entry is observable in the foreground, so the flag is false across the
+      // group.
       for (final scenario in groupI) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);

@@ -35,10 +35,24 @@ class _AppShellState extends State<AppShell> {
   static const _titles = ['Push inbox', 'Scenarios', 'Sandbox', 'Runs'];
   static const _inboxDestination = 0;
   static const _sandboxDestination = 2;
+  static const _runsDestination = 3;
 
   late final AppLifecycleListener _lifecycle;
 
   int _destination = _inboxDestination;
+
+  /// Bumped every time Runs is chosen from the drawer, and used as [RunsView]'s
+  /// key below.
+  ///
+  /// `IndexedStack` builds every destination up front and keeps them alive, so
+  /// without this a page-local `RunsCubit` built once at launch would call
+  /// `load()` exactly once and never again — schedule a run, open Runs, and the
+  /// page would still say nothing has been scheduled. Changing the key forces
+  /// Flutter to discard that element and build a fresh one, whose `BlocProvider`
+  /// runs `create` — and `load()` — again. `RunsView` stays exactly as
+  /// page-local as its own doc already claims: this only changes *when* a new
+  /// page begins, not who owns it.
+  int _runsVisits = 0;
 
   @override
   void initState() {
@@ -102,6 +116,7 @@ class _AppShellState extends State<AppShell> {
             ScenariosView(onScenarioSelected: _openSandbox),
             const SandboxView(),
             RunsView(
+              key: ValueKey(_runsVisits),
               scheduler: context.read<RunScheduler>(),
               onRunSelected: (runId) => _openRun(context, runId),
             ),
@@ -114,7 +129,12 @@ class _AppShellState extends State<AppShell> {
   /// Applies the drawer's choice and gets the drawer out of the way, which
   /// `NavigationDrawer` does not do on its own.
   void _select(int index) {
-    setState(() => _destination = index);
+    setState(() {
+      _destination = index;
+      if (index == _runsDestination) {
+        _runsVisits++;
+      }
+    });
     Navigator.pop(context);
   }
 

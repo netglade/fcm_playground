@@ -1,3 +1,4 @@
+import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/countdown/countdown_page.dart';
@@ -17,14 +18,16 @@ void main() {
   setUpAll(GladeForms.initialize);
 
   late FakeRunScheduler runs;
+  late InMemoryActiveRunStore active;
   late SandboxCubit controller;
 
   void build() {
     runs = FakeRunScheduler();
+    active = InMemoryActiveRunStore();
     controller = SandboxCubit(
       sender: FakeNotificationSender(),
       token: () => 'device-token',
-      startRun: StartRun(scheduler: runs, active: InMemoryActiveRunStore()),
+      startRun: StartRun(scheduler: runs, active: active),
     );
   }
 
@@ -33,10 +36,13 @@ void main() {
       MaterialApp(
         home: RepositoryProvider<RunScheduler>.value(
           value: runs,
-          child: Scaffold(
-            body: BlocProvider.value(
-              value: controller,
-              child: const SendFooter(),
+          child: RepositoryProvider<ActiveRunStore>.value(
+            value: active,
+            child: Scaffold(
+              body: BlocProvider.value(
+                value: controller,
+                child: const SendFooter(),
+              ),
             ),
           ),
         ),
@@ -97,6 +103,9 @@ void main() {
     // covered, once the hand-off happens.
     expect(find.byType(RunTimelinePage), findsOneWidget);
     expect(find.byType(CountdownPage), findsNothing);
+    // The user has just been shown this run's outcome, so nothing should
+    // reopen it unasked at the next launch.
+    expect(await active.activeRunId(), isNull);
   });
 
   testWidgets('does not schedule anything when the sheet is dismissed', (

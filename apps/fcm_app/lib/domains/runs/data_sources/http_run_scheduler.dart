@@ -44,7 +44,10 @@ class HttpRunScheduler implements RunScheduler {
       () => _client.delete(_baseUrl.replace(path: '/runs/$runId')),
     );
 
-    return body['cancelled'] as int? ?? 0;
+    // `requireInt` rather than a blind `as int? ?? 0`: the same pattern was
+    // removed from `RunSummary.fromJson` for the same reason — a wrongly-typed
+    // value (`{"cancelled": "3"}`) must fail loudly, not silently become 0.
+    return requireInt(body['cancelled'], 'cancelled');
   }
 
   Future<Map<String, dynamic>> _object(
