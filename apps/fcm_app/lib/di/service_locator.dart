@@ -14,6 +14,9 @@ import '../domains/push/data_sources/shared_preferences_push_payload_store.dart'
 import '../domains/push/entities/push_payload_store.dart';
 import '../domains/push/entities/push_source.dart';
 import '../domains/push/repositories/push_repository.dart';
+import '../domains/runs/data_sources/http_run_scheduler.dart';
+import '../domains/runs/data_sources/unavailable_run_scheduler.dart';
+import '../domains/runs/entities/run_scheduler.dart';
 import '../domains/sandbox/data_sources/http_notification_sender.dart';
 import '../domains/sandbox/data_sources/unavailable_notification_sender.dart';
 import '../domains/sandbox/entities/notification_sender.dart';
@@ -59,7 +62,8 @@ Future<void> configureDependencies({
     ..registerSingleton<PushPayloadStore>(SharedPreferencesPushPayloadStore())
     ..registerSingleton<DeviceIdentity>(SharedPreferencesDeviceIdentity())
     ..registerSingleton<NotificationPresenter>(presenter)
-    ..registerSingleton<NotificationSender>(_senderFor(setupError));
+    ..registerSingleton<NotificationSender>(_senderFor(setupError))
+    ..registerSingleton<RunScheduler>(_runSchedulerFor(setupError));
   _registerTelemetry(isWeb: isWeb);
   // A singleton necessarily: the repository owns the push subscription and the
   // token, so a second instance would subscribe twice to a single-subscription
@@ -190,3 +194,10 @@ NotificationSender _senderFor(String? setupError) => setupError == null
         baseUrl: Uri.parse(defaultApiBaseUrl),
       )
     : UnavailableNotificationSender(setupError);
+
+RunScheduler _runSchedulerFor(String? setupError) => setupError == null
+    ? HttpRunScheduler(
+        client: http.Client(),
+        baseUrl: Uri.parse(defaultApiBaseUrl),
+      )
+    : UnavailableRunScheduler(setupError);
