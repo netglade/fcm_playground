@@ -3,20 +3,24 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domains/runs/entities/run_scheduler.dart';
 import '../inbox/cubit/inbox_cubit.dart';
 import '../inbox/cubit/inbox_state.dart';
 import '../inbox/inbox_view.dart';
 import '../inbox/message_detail_page.dart';
+import '../runs/run_timeline_page.dart';
+import '../runs/runs_view.dart';
 import '../sandbox/sandbox_view.dart';
 import '../scenarios/scenarios_view.dart';
 
 /// Owns the app's chrome: one `AppBar` whose title follows the drawer's selection,
 /// and one body per destination.
 ///
-/// The destinations sit in an `IndexedStack` so all three keep their state — the
+/// The destinations sit in an `IndexedStack` so all four keep their state — the
 /// half-filled Sandbox form survives a look at the inbox or the gallery. Both
 /// cubits come from `context`, which is what lets Scenarios and Sandbox share one
-/// [SandboxCubit] across a tab switch.
+/// [SandboxCubit] across a tab switch. Runs reads its `RunScheduler` from
+/// `context` too, provided above `App`'s shell rather than looked up here.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -25,9 +29,12 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  static const _titles = ['Push inbox', 'Scenarios', 'Sandbox'];
+  static const _titles = ['Push inbox', 'Scenarios', 'Sandbox', 'Runs'];
   static const _inboxDestination = 0;
   static const _sandboxDestination = 2;
+  // No `_runsDestination` constant yet: nothing in this file reads one, and an
+  // unread private field is `unused_field`, fatal here. Task 15 adds it back
+  // alongside the switch that actually reads it.
 
   late final AppLifecycleListener _lifecycle;
 
@@ -72,6 +79,10 @@ class _AppShellState extends State<AppShell> {
             icon: Icon(Icons.science_outlined),
             label: Text('Sandbox'),
           ),
+          NavigationDrawerDestination(
+            icon: Icon(Icons.schedule_outlined),
+            label: Text('Runs'),
+          ),
         ],
       ),
       // top: false because the AppBar already sits below the status bar. Applied
@@ -85,6 +96,10 @@ class _AppShellState extends State<AppShell> {
             const InboxView(),
             ScenariosView(onScenarioSelected: _openSandbox),
             const SandboxView(),
+            RunsView(
+              scheduler: context.read<RunScheduler>(),
+              onRunSelected: (runId) => _openRun(context, runId),
+            ),
           ],
         ),
       ),
@@ -104,6 +119,19 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _onResume() => unawaited(context.read<InboxCubit>().drainPending());
+
+  /// Pushes the timeline for [runId], reached only by tapping a run — never a
+  /// drawer choice, so there is no destination index to set.
+  void _openRun(BuildContext context, String runId) => unawaited(
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RunTimelinePage(
+          scheduler: context.read<RunScheduler>(),
+          runId: runId,
+        ),
+      ),
+    ),
+  );
 
   /// Acts on a notification tap once its message is known.
   ///
