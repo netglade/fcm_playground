@@ -16,6 +16,7 @@ export 'src/new_trace_id.dart';
 export 'src/run_store.dart';
 export 'src/send_message.dart';
 export 'src/send_outcome.dart';
+export 'src/send_scheduler.dart';
 export 'src/server_config.dart';
 export 'src/sqlite_telemetry_store.dart';
 export 'src/telemetry_store.dart';
