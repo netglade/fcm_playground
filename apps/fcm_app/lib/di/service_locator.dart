@@ -9,6 +9,8 @@ import '../domains/notifications/data_sources/local_notification_presenter.dart'
 import '../domains/notifications/data_sources/silent_notification_presenter.dart';
 import '../domains/notifications/entities/notification_presenter.dart';
 import '../domains/push/data_sources/disabled_push_source.dart';
+import '../domains/runs/data_sources/shared_preferences_active_run_store.dart';
+import '../domains/runs/entities/active_run_store.dart';
 import '../domains/push/data_sources/firebase_push_source.dart';
 import '../domains/push/data_sources/shared_preferences_push_payload_store.dart';
 import '../domains/push/entities/push_payload_store.dart';
@@ -61,6 +63,7 @@ Future<void> configureDependencies({
   getIt
     ..registerSingleton<PushPayloadStore>(SharedPreferencesPushPayloadStore())
     ..registerSingleton<DeviceIdentity>(SharedPreferencesDeviceIdentity())
+    ..registerSingleton<ActiveRunStore>(SharedPreferencesActiveRunStore())
     ..registerSingleton<NotificationPresenter>(presenter)
     ..registerSingleton<NotificationSender>(_senderFor(setupError))
     ..registerSingleton<RunScheduler>(_runSchedulerFor(setupError));
