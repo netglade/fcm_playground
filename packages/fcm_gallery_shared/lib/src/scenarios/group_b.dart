@@ -46,7 +46,6 @@ const groupB = <Scenario>[
       'data': {'event': 'killed_probe', 'sent_at_stage': 'killed'},
       'android': {'priority': 'HIGH'},
     },
-    needs: [ScenarioNeed.delayedSend],
     requiresKilledApp: true,
     defaultDelaySeconds: 20,
   ),

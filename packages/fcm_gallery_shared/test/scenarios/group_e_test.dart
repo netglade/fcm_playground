@@ -53,11 +53,9 @@ void main() {
     });
 
     test('nothing here is about the killed app', () {
-      // Appearance is observable in any app state, so the flag would only mislead —
-      // and would drag in the delayedSend this group has no use for.
+      // Appearance is observable in any app state, so the flag would only mislead.
       for (final scenario in groupE) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
-        expect(scenario.needs, isNot(contains(ScenarioNeed.delayedSend)));
       }
     });
 

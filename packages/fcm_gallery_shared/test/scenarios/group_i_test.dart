@@ -122,11 +122,6 @@ void main() {
       for (final scenario in groupI) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);
-        expect(
-          scenario.needs,
-          isNot(contains(ScenarioNeed.delayedSend)),
-          reason: scenario.id,
-        );
       }
     });
 

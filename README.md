@@ -248,19 +248,21 @@ unchanged — a test asserts it, so a field missing from a form fails the build.
 
 ## The scenario catalogue
 
-The Scenarios page (drawer → Scenarios) holds **66 scenarios in eleven groups,
-A–K**, mirroring the FCM playground test plan. Tapping one applies its payload to
-the Sandbox form and switches you there. The groups are the facets of FCM each
-scenario probes: basic delivery, app states, priority and delivery window,
-channels and importance, appearance, interaction, groups and badges, intrusive
-delivery, silent and data, targeting, and edge cases.
+The Scenarios page (drawer → Scenarios, one of four destinations alongside
+Inbox, Sandbox and Runs) holds **66 scenarios in eleven groups, A–K**, mirroring
+the FCM playground test plan. Tapping one applies its payload to the Sandbox
+form and switches you there; ticking several and scheduling them instead sends
+you to Runs, as one run with a spacing between them. The groups are the facets
+of FCM each scenario probes: basic delivery, app states, priority and delivery
+window, channels and importance, appearance, interaction, groups and badges,
+intrusive delivery, silent and data, targeting, and edge cases.
 
-**21 of the 66 work today.** The rest carry a marker naming what they still need —
+**22 of the 66 work today.** The rest carry a marker naming what they still need —
 notification channels, notification styles, notification actions, a launcher
-badge, a device registry, delayed sending, a manual step, or approval from Apple
-or the OS that this project cannot grant itself. That count is asserted by a test,
-so this README cannot drift from the code: if a scenario is quietly unmarked to
-look supported, the build fails.
+badge, a device registry, a manual step, or approval from Apple or the OS that
+this project cannot grant itself. That count is asserted by a test, so this
+README cannot drift from the code: if a scenario is quietly unmarked to look
+supported, the build fails.
 
 A blocked scenario is **still sendable**. The push is genuine and valid; only the
 behaviour it demonstrates is missing, and watching a client with no action support
@@ -360,7 +362,9 @@ disagree, and worth turning on before trusting either.
 ## Sending a test push
 
 The Sandbox page (drawer → Sandbox) composes a payload and sends it to the
-device the app is running on, through `apps/fcm_api`.
+device the app is running on, through `apps/fcm_api`. *Schedule…* holds the
+same payload for later instead of sending it now, landing it on the Runs page
+(drawer → Runs) rather than in the Inbox until it fires.
 
 **One-time:** download a service account key from the
 [Firebase console](https://console.firebase.google.com/project/fcm-sandbox-770fa/settings/serviceaccounts/adminsdk)
@@ -435,6 +439,49 @@ within the last two minutes is sent immediately, and anything older is marked
 so only the machine running it can reach it. Do not deploy it as is — bound to
 `0.0.0.0` it is an open relay to any token an attacker already holds.
 
+## Delayed sending
+
+`b3_killed` is the hardest scenario in the catalogue and the reason this exists: the
+send has to happen *after* the app is gone, so it cannot be a button the app presses.
+
+**A run is a group of sends created by one action, and a single delayed send is a run
+of one.** `POST /runs` stores it with an absolute due time per item; a one-second
+ticker in the server dispatches whatever has fallen due, through the same
+`sendMessage` an immediate send uses, so a scheduled push writes the same telemetry.
+The Sandbox schedules one message from *Schedule…*; the Scenarios page ticks any set
+of scenarios and schedules them as one run with a spacing between them.
+
+**Not Cloud Tasks, deliberately.** That would be right for a Cloud Function, whose
+container can be killed between accepting a request and firing a timer. This API is a
+long-lived loopback process, and the property that actually matters — a schedule that
+survives the process dying — comes from writing it to SQLite and sweeping it at
+startup, not from who owns the timer. Cloud Tasks would additionally mean deploying
+the API, which the warning above says not to do.
+
+**A run that came due while the server was down** is sent if it is less than two
+minutes late, and marked `missed` otherwise. Three hours late is worse than never: it
+arrives in a state nobody was observing and pollutes the latency figures it lands in.
+
+**Cancelling reaches only what has not gone out.** An item the scheduler has already
+claimed is on its way to FCM, and reporting it cancelled would be contradicted by the
+timeline a minute later. A crash mid-dispatch is resolved rather than guessed: the
+trace id is written before the send, so at startup the item's own telemetry says
+whether FCM ever answered.
+
+**The countdown counts on the phone's clock**, not against the server's `due_at`.
+Disagreeing clocks are a documented fact here — `GET /latency` reports both
+timestamps rather than clamping — and a ten-second skew would show "40 s remaining"
+with thirty seconds left. It holds a wakelock so the screen does not sleep before you
+have swiped the app away. *"Dim the screen"* does not switch the display off: an
+ordinary Android app cannot, without DeviceAdmin. It dims and releases the lock, and
+the system's own timeout does the rest — which is what the button says.
+
+**Coming back**, the app reopens the run it was waiting on, from an id in
+`shared_preferences` — the only thing that survives being swiped away. That timing is
+what makes the killed case readable: `received_bg` is buffered by the background
+isolate and flushed at the next launch, which is the moment you are looking at the
+timeline.
+
 ## Notifications
 
 A received push is shown as a notification as well as landing in the inbox, and
@@ -467,8 +514,8 @@ and nothing else — the inbox still fills.
 
 ## Verified on this machine
 
-`melos run ci` passes clean — 24 `core` tests, 209 `fcm_gallery_shared` tests, 133
-`fcm_api` tests and 386 `fcm_app` tests. `fvm flutter build apk --debug`
+`melos run ci` passes clean — 24 `core` tests, 231 `fcm_gallery_shared` tests, 201
+`fcm_api` tests and 480 `fcm_app` tests. `fvm flutter build apk --debug`
 and `fvm flutter build web --release` both succeed (compile checks only: the web
 build cannot receive FCM pushes without a VAPID key, and an apk build is not the
 same as running on a device). The iOS build has **not** been verified here —
@@ -500,15 +547,13 @@ Three things remain explicitly **not verified** on this machine:
   `direct_boot_ok` sends `false` when set to false and omits the key when left
   unset. That last one is the only real-world proof of the tristate design; a
   widget test can show the three states cycling but not what leaves the device.
-- **The telemetry round trip on a real device.** Send a scenario, then read
-  `GET /latency` and confirm the figure is plausible; repeat with the app
-  backgrounded and killed. The killed case is the one that matters and the one that
-  needs `b3_killed`'s delayed send to arrange properly. *Partly verified here:* the
-  pipeline was driven end to end against the real router and the real SQLite file
-  with a stubbed FCM sender — a send, an arrival, `{"recorded":1}` then
-  `{"recorded":0}` on replay, and one latency row carrying the right device and
-  scenario. What is **not** verified is the FCM leg, a real handset, or the entry
-  point's own socket, none of which can run without a service-account key.
+- **The delayed send on a real handset.** Schedule `b3_killed`, swipe the app out of
+  recents, and confirm on relaunch that the timeline holds `queued → sent →
+  received_bg`. *Verified here:* a run is scheduled, claimed, dispatched through a
+  stubbed sender, cancelled, missed past the grace period, and recovered across a
+  restart from its own telemetry. What is **not** verified is the FCM leg, a real
+  handset, the three display plugins, or that a killed app's background isolate wakes
+  at all — which is the very question the scenario asks.
 - **Two devices, one send** — the point of the whole pipeline, and the only way to
   see the matrix do its job. Send to a topic both have subscribed to (which needs
   the targeting work) or twice by token, and confirm two rows with different

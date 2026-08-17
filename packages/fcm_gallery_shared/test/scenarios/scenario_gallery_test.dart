@@ -69,17 +69,13 @@ void main() {
     }
   });
 
-  test('a killed-app scenario needs delayed sending to be arranged', () {
+  test('a killed-app scenario says how long to hold the send', () {
     // Gives requiresKilledApp exactly one meaning: "meaningless unless the app is
-    // killed". Arranging that means holding the send, so the flag and the need go
-    // together — otherwise it drifts into "the killed case is interesting".
+    // killed". Arranging that means holding the send, so the flag still guarantees
+    // a positive delay — but it no longer implies anything about needs, since
+    // delayed sending is arranged for every scenario without asking.
     for (final scenario in scenarioGallery) {
       if (scenario.requiresKilledApp) {
-        expect(
-          scenario.needs,
-          contains(ScenarioNeed.delayedSend),
-          reason: scenario.id,
-        );
         expect(
           scenario.defaultDelaySeconds,
           greaterThan(0),
@@ -102,14 +98,14 @@ void main() {
     expect(scenarioGallery.map((s) => s.group).toSet(), hasLength(11));
   });
 
-  test('exactly 21 scenarios work today', () {
+  test('exactly 22 scenarios work today', () {
     // Asserted so that mis-marking one as blocked, or quietly unmarking one to
     // make it look supported, fails the build.
     final supported = scenarioGallery.where((s) => s.isSupported).toList();
 
     expect(
       supported,
-      hasLength(21),
+      hasLength(22),
       reason: supported.map((s) => s.id).join(', '),
     );
   });

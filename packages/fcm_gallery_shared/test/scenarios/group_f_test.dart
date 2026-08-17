@@ -44,10 +44,7 @@ void main() {
         'f2_inline_reply': [ScenarioNeed.interaction],
         'f3_deeplink_foreground': [ScenarioNeed.interaction],
         'f4_deeplink_background': [ScenarioNeed.interaction],
-        'f5_deeplink_killed': [
-          ScenarioNeed.interaction,
-          ScenarioNeed.delayedSend,
-        ],
+        'f5_deeplink_killed': [ScenarioNeed.interaction],
         'f6_delete_intent': [ScenarioNeed.interaction],
         'f7_ongoing': [ScenarioNeed.interaction],
         'f8_full_screen_intent': [
@@ -75,16 +72,11 @@ void main() {
       final killed = scenarioF('f5_deeplink_killed');
 
       expect(killed.requiresKilledApp, isTrue);
-      expect(killed.needs, contains(ScenarioNeed.delayedSend));
+      expect(killed.needs, [ScenarioNeed.interaction]);
       expect(killed.defaultDelaySeconds, greaterThan(0));
 
       for (final scenario in groupF.where((s) => s.id != killed.id)) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
-        expect(
-          scenario.needs,
-          isNot(contains(ScenarioNeed.delayedSend)),
-          reason: scenario.id,
-        );
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);
       }
     });

@@ -1,7 +1,8 @@
 # fcm_api
 
-One endpoint that sends a push through FCM, so the Sandbox page in `fcm_app` has
-something to talk to — plus the two that collect what became of it.
+A local HTTP server so the app in `fcm_app` has something to talk to: one route
+that sends a push through FCM, four that schedule and manage a delayed run of
+sends, and three that collect what became of any of them.
 
 ```
 POST /send        {<target>, validate_only, message}   →  200 {messageId, sentAt}

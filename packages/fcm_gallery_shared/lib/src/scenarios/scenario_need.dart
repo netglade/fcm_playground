@@ -22,9 +22,6 @@ enum ScenarioNeed {
   /// A registry of every registered token, so a message can fan out.
   targeting('a device registry'),
 
-  /// Holding a send long enough for the app to be killed first.
-  delayedSend('delayed sending'),
-
   /// A step on the device or over adb that no payload can perform.
   manualStep('a manual step'),
 
