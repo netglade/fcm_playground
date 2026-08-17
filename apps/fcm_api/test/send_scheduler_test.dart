@@ -2,6 +2,7 @@ import 'package:fcm_api/fcm_api.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:test/test.dart';
 
+import 'blocking_fcm_sender.dart';
 import 'fake_fcm_sender.dart';
 
 void main() {
@@ -30,7 +31,7 @@ void main() {
   late FakeFcmSender sender;
   late int minted;
 
-  SendScheduler schedulerWith(FakeFcmSender fcm) => SendScheduler(
+  SendScheduler schedulerWith(FcmSender fcm) => SendScheduler(
     runs: runs,
     telemetry: telemetry,
     sender: fcm,
@@ -167,13 +168,53 @@ void main() {
     });
 
     test('a tick starting while one is in flight does nothing', () async {
-      final scheduler = schedulerWith(sender);
-      await scheduler.schedule(requestWith(delay: 0, count: 2), createdAt);
+      final blocking = BlockingFcmSender();
+      final scheduler = schedulerWith(blocking);
+      final run = await scheduler.schedule(
+        requestWith(delay: 0, spacing: 1, count: 2),
+        createdAt,
+      );
 
-      await Future.wait([scheduler.tick(createdAt), scheduler.tick(createdAt)]);
+      final firstTick = scheduler.tick(createdAt);
+      while (blocking.sent.isEmpty) {
+        await Future<void>.delayed(Duration.zero);
+      }
 
-      expect(sender.sent, hasLength(2));
+      // The second item is due by now, and the first send is still parked
+      // inside FCM — this is what a guardless `tick` would claim and dispatch.
+      await scheduler.tick(createdAt.add(const Duration(seconds: 1)));
+
+      blocking.gate.complete();
+      await firstTick;
+
+      expect(blocking.sent, hasLength(1));
+      expect((await runs.find(run.id))!.items[1].state, RunItemState.pending);
     });
+
+    test(
+      'clears the guard even when a send throws something unexpected',
+      () async {
+        final blocking = BlockingFcmSender()..failure = StateError('boom');
+        final scheduler = schedulerWith(blocking);
+        await scheduler.schedule(requestWith(delay: 0), createdAt);
+
+        final firstTick = scheduler.tick(createdAt);
+        while (blocking.sent.isEmpty) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        blocking.gate.complete();
+
+        await expectLater(firstTick, throwsStateError);
+
+        // If `_ticking` were left latched shut by the throw, this tick would do
+        // nothing and `sent` would stay at 1.
+        blocking.failure = null;
+        await scheduler.schedule(requestWith(delay: 0), createdAt);
+        await scheduler.tick(createdAt);
+
+        expect(blocking.sent, hasLength(2));
+      },
+    );
   });
 
   group('reading runs back', () {
