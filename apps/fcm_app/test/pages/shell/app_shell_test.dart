@@ -53,7 +53,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
-        navigatorObservers: [if (observer != null) observer],
+        navigatorObservers: [?observer],
         home: MultiBlocProvider(
           providers: [
             BlocProvider.value(value: inbox),
