@@ -197,11 +197,14 @@ void main() {
       await pump(tester);
       await startSelecting(tester);
       // SandboxCubit's constructor already applies the catalogue's first
-      // scenario, which a1 happens to be — so the state to compare against is
-      // whatever it was before the tick, not a hardcoded id.
+      // scenario, so the state to compare against is whatever it was before the
+      // tick rather than a hardcoded id. That id must also differ from the one
+      // ticked below — a1_notification_only would not, since it is that same
+      // default — or a wrongly-applied scenario could not move it and this
+      // assertion could never fail.
       final beforeTick = controller.state.selectedScenario?.id;
 
-      await tick(tester, 'a1_notification_only');
+      await tick(tester, 'a3_hybrid');
 
       expect(find.text('1 selected'), findsOne);
       // Neither the Sandbox handoff nor the form ran, which is what a tap does
@@ -277,5 +280,32 @@ void main() {
       expect(find.textContaining('No registration token'), findsOne);
       expect(runs.scheduled, isEmpty);
     });
+
+    testWidgets(
+      'schedules a batch of only targeted scenarios with no token at all',
+      (tester) async {
+        // j1_topic names its own audience (a topic), so it needs no device
+        // token — this is the positive case the refusal's narrower condition
+        // (`token == null && scenarios.any((s) => s.target == null)`) exists
+        // for, and a regression to plain `token == null` would refuse it.
+        build(token: null);
+        await pump(tester);
+        await startSelecting(tester);
+        // Group J starts collapsed — only the first group opens on arrival —
+        // so its scenarios are not in the tree until the group is expanded.
+        await scrollIntoView(tester, find.text('J — Targeting'));
+        await tester.tap(find.text('J — Targeting'));
+        await tester.pumpAndSettle();
+        await tick(tester, 'j1_topic');
+
+        await tester.tap(find.text('Schedule…'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Schedule'));
+        await tester.pumpAndSettle();
+
+        expect(runs.scheduled, hasLength(1));
+        expect(find.textContaining('No registration token'), findsNothing);
+      },
+    );
   });
 }
