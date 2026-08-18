@@ -529,7 +529,7 @@ and nothing else — the inbox still fills.
 ## Verified on this machine
 
 `melos run ci` passes clean — 24 `core` tests, 231 `fcm_gallery_shared` tests, 204
-`fcm_api` tests and 487 `fcm_app` tests. `fvm flutter build web --release` succeeds
+`fcm_api` tests and 538 `fcm_app` tests. `fvm flutter build web --release` succeeds
 (a compile check only: the web build cannot receive FCM pushes without a VAPID
 key). `fvm flutter build apk --debug` currently **fails** — see below. The iOS
 build has **not** been verified here either; there is no Xcode on this machine.
