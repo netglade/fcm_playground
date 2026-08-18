@@ -92,6 +92,47 @@ void main() {
         ),
       );
     });
+
+    test('turns a 200 that is not JSON into a readable message', () async {
+      final reader = readerAnswering(
+        (_) async => http.Response('not json at all', 200),
+      );
+
+      // Not merely the type: a message a raw FormatException would never have
+      // produced is the point of the guard.
+      await expectLater(
+        reader.recentEvents(),
+        throwsA(
+          isA<TelemetryReaderException>().having(
+            (error) => error.message,
+            'message',
+            contains('not JSON'),
+          ),
+        ),
+      );
+    });
+
+    test('turns a row missing trace_id into a readable message', () async {
+      final reader = readerAnswering(
+        (_) async => http.Response(
+          jsonEncode([
+            {'type': 'opened', 'at': '2026-08-18T09:30:00Z', 'device_id': 'd1'},
+          ]),
+          200,
+        ),
+      );
+
+      await expectLater(
+        reader.recentEvents(),
+        throwsA(
+          isA<TelemetryReaderException>().having(
+            (error) => error.message,
+            'message',
+            allOf(contains('an event'), contains('trace_id')),
+          ),
+        ),
+      );
+    });
   });
 
   group('HttpTelemetryReader.latencies', () {
@@ -111,6 +152,32 @@ void main() {
 
       expect(rows.single.traceId, 't1');
       expect(rows.single.latency, const Duration(milliseconds: 300));
+    });
+
+    test('turns a row missing sent_at into a readable message', () async {
+      final reader = readerAnswering(
+        (_) async => http.Response(
+          jsonEncode([
+            {
+              'trace_id': 't1',
+              'device_id': 'd1',
+              'received_at': '2026-08-18T09:30:00Z',
+            },
+          ]),
+          200,
+        ),
+      );
+
+      await expectLater(
+        reader.latencies(),
+        throwsA(
+          isA<TelemetryReaderException>().having(
+            (error) => error.message,
+            'message',
+            allOf(contains('a latency row'), contains('sent_at')),
+          ),
+        ),
+      );
     });
   });
 }

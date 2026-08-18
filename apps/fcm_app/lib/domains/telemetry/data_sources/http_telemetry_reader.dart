@@ -14,25 +14,32 @@ class HttpTelemetryReader implements TelemetryReader {
   final Uri _baseUrl;
 
   @override
-  Future<List<TelemetryEvent>> recentEvents({int limit = 500}) async => [
-    for (final row in await _list(
+  Future<List<TelemetryEvent>> recentEvents({int limit = 500}) async => _rows(
+    await _list(
       () => _client.get(
         _baseUrl.replace(path: '/events', queryParameters: {'limit': '$limit'}),
       ),
-    ))
-      TelemetryEvent.fromJson(_asObject(row)),
-  ];
+    ),
+    TelemetryEvent.fromJson,
+    'an event',
+  );
 
   @override
-  Future<List<LatencyRow>> latencies() async => [
-    for (final row in await _list(
-      () => _client.get(_baseUrl.replace(path: '/latency')),
-    ))
-      LatencyRow.fromJson(_asObject(row)),
-  ];
+  Future<List<LatencyRow>> latencies() async => _rows(
+    await _list(() => _client.get(_baseUrl.replace(path: '/latency'))),
+    LatencyRow.fromJson,
+    'a latency row',
+  );
 
   Future<List<Object?>> _list(Future<http.Response> Function() send) async {
-    final decoded = jsonDecode(await _body(send));
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(await _body(send));
+    } on FormatException catch (error) {
+      throw TelemetryReaderException(
+        'The API answered 200 with something that is not JSON: ${error.message}',
+      );
+    }
     if (decoded is! List) {
       throw TelemetryReaderException(
         'The API answered 200 with ${decoded.runtimeType} where a list was '
@@ -85,4 +92,24 @@ Map<String, dynamic> _asObject(Object? decoded) {
   }
 
   return decoded;
+}
+
+/// Parses each row of [decoded] with [parse], turning a body this build cannot read
+/// into a message rather than a raw [FormatException].
+///
+/// A 200 the app cannot parse is still a failure the page has to show: the cubit that
+/// reads this catches [TelemetryReaderException] and nothing else, so anything raw
+/// escaping here would become an unhandled error instead of a line on the screen.
+List<T> _rows<T>(
+  List<Object?> decoded,
+  T Function(Map<String, Object?> json) parse,
+  String what,
+) {
+  try {
+    return [for (final row in decoded) parse(_asObject(row))];
+  } on FormatException catch (error) {
+    throw TelemetryReaderException(
+      'The API answered 200 with $what this build cannot read: ${error.message}',
+    );
+  }
 }
