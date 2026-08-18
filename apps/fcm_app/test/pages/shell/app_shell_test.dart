@@ -3,6 +3,7 @@ import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
+import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/runs/run_timeline_page.dart';
@@ -18,6 +19,7 @@ import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
 import '../../fakes/fake_push_source.dart';
 import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/fake_telemetry_reader.dart';
 import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_navigator_observer.dart';
 
@@ -82,6 +84,9 @@ void main() {
             ),
             RepositoryProvider<ActiveRunStore>.value(
               value: active ?? InMemoryActiveRunStore(),
+            ),
+            RepositoryProvider<TelemetryReader>.value(
+              value: FakeTelemetryReader(),
             ),
           ],
           child: MultiBlocProvider(
@@ -231,6 +236,18 @@ void main() {
       expect(find.byKey(const Key('run-run-1')), findsOneWidget);
     },
   );
+
+  testWidgets('opens Telemetry from the drawer', (tester) async {
+    await pumpApp(tester);
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Telemetry'));
+    await tester.pumpAndSettle();
+
+    // The title comes from the shell, so this is what proves the destination is
+    // selected rather than merely present in the drawer.
+    expect(find.widgetWithText(AppBar, 'Telemetry'), findsOneWidget);
+  });
 
   testWidgets('tapping a scenario switches to the sandbox with it loaded', (
     tester,

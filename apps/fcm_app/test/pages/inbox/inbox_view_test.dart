@@ -2,6 +2,7 @@ import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
+import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
@@ -15,6 +16,7 @@ import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
 import '../../fakes/fake_push_source.dart';
 import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/fake_telemetry_reader.dart';
 import '../../fakes/in_memory_active_run_store.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
@@ -52,6 +54,9 @@ void main() {
             RepositoryProvider<RunScheduler>.value(value: FakeRunScheduler()),
             RepositoryProvider<ActiveRunStore>.value(
               value: InMemoryActiveRunStore(),
+            ),
+            RepositoryProvider<TelemetryReader>.value(
+              value: FakeTelemetryReader(),
             ),
           ],
           child: MultiBlocProvider(
