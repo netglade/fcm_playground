@@ -48,3 +48,8 @@ apps/*/ios/Runner/GoogleService-Info.plist
 # to a reader of this repo lives in the code, its doc comments and README.md.
 docs/superpowers/
 .superpowers/
+
+# Worktrees this repo's agent sessions create. One was committed as a gitlink
+# before this line existed (.claude/worktrees/fcm-notification-sandbox, added by
+# b034f3e); this stops the next one repeating that.
+.claude/worktrees/
