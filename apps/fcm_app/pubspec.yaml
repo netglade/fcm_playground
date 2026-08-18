@@ -46,6 +46,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
+  patrol: ^4.6.1
   shared_preferences_platform_interface: ^2.4.2
   # Test-only: `flutter test` runs on the Dart VM, where drift_flutter's bundled
   # native library is not available, so the tests name the system one the same
@@ -54,3 +55,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+patrol:
+  app_name: FCM Sample
+  android:
+    package_name: cz.netglade.fcm_app
