@@ -888,5 +888,70 @@ void main() {
         ['tr-1'],
       );
     });
+
+    test('a swipe records dismissed against the held payload', () async {
+      final telemetry = RecordingPushTelemetry();
+      final presenter = RecordingNotificationPresenter();
+      final repository = PushRepository(
+        source,
+        store: FakePushPayloadStore(),
+        presenter: presenter,
+        telemetry: telemetry,
+      )..listen();
+      addTearDown(repository.dispose);
+
+      source.emit(payload(id: 'm1', traceId: 't1'));
+      await pumpEventQueue();
+      repository.reportDismissed('m1');
+      await pumpEventQueue();
+
+      final dismissed = telemetry.recorded
+          .where((event) => event.type == TelemetryEventType.dismissed)
+          .single;
+      // Against the trace, which lives on the payload rather than on the message.
+      expect(dismissed.traceId, 't1');
+    });
+
+    test('a tap does not also record a dismissed', () async {
+      final telemetry = RecordingPushTelemetry();
+      final repository = PushRepository(
+        source,
+        store: FakePushPayloadStore(),
+        telemetry: telemetry,
+      )..listen();
+      addTearDown(repository.dispose);
+
+      source.emit(payload(id: 'm1', traceId: 't1'));
+      await pumpEventQueue();
+      repository.requestOpen('m1', OpenedFrom.foreground);
+      await pumpEventQueue();
+
+      // The plugin promises this and the repository must not undo it: one press is one
+      // event, or the only count a human produces gets a companion nobody asked for.
+      expect(
+        telemetry.recorded.map((event) => event.type),
+        isNot(contains(TelemetryEventType.dismissed)),
+      );
+    });
+
+    test(
+      'a swipe for a message the repository does not hold records nothing',
+      () async {
+        final telemetry = RecordingPushTelemetry();
+        final repository = PushRepository(
+          source,
+          store: FakePushPayloadStore(),
+          telemetry: telemetry,
+        )..listen();
+        addTearDown(repository.dispose);
+
+        repository.reportDismissed('never-arrived');
+        await pumpEventQueue();
+
+        // Unlike a tap, a dismissal is not held for a payload that may never come: there
+        // is nothing to open afterwards, and a fabricated trace is worse than a gap.
+        expect(telemetry.recorded, isEmpty);
+      },
+    );
   });
 }

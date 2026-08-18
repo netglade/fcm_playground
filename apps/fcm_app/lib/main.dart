@@ -46,6 +46,9 @@ Future<void> main() async {
   getIt<NotificationPresenter>().taps.listen(
     (tap) => repository.requestOpen(tap.id, tap.from),
   );
+  // Only the presenter has dismissals: FCM's own tray entries were never posted
+  // through the plugin, so nothing reports when one of those is swiped away.
+  getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
 
   runApp(const App());
 }

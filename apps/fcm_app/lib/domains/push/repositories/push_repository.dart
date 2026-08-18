@@ -108,6 +108,28 @@ class PushRepository {
     _publish();
   }
 
+  /// Records that the user swiped the notification for [id] away.
+  ///
+  /// Nothing is published: a dismissal changes nothing the screen shows — the message
+  /// stays in the inbox, because the tray and the inbox are different lists.
+  ///
+  /// An id the repository does not hold records nothing, unlike a tap: there is no
+  /// screen to open afterwards, so there is nothing to hold the dismissal for.
+  void reportDismissed(String id) {
+    final dismissed = _acceptedFor(id);
+    if (dismissed == null) {
+      return;
+    }
+
+    unawaited(
+      reportAndFlush(
+        _telemetry,
+        TelemetryEventType.dismissed,
+        dismissed.payload,
+      ),
+    );
+  }
+
   /// Called by the shell once it has navigated, so it does not navigate twice.
   ///
   /// Published like every other change: the tap is a field of the snapshot on

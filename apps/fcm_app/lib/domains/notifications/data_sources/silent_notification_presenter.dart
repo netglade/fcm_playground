@@ -18,5 +18,8 @@ class SilentNotificationPresenter implements NotificationPresenter {
   Stream<PushTap> get taps => const Stream.empty();
 
   @override
+  Stream<String> get dismissals => const Stream.empty();
+
+  @override
   Future<void> dispose() => Future<void>.value();
 }

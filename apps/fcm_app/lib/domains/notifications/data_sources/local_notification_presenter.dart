@@ -17,9 +17,13 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   final FlutterLocalNotificationsPlugin _plugin;
   final _taps = StreamController<PushTap>.broadcast();
+  final _dismissals = StreamController<String>.broadcast();
 
   @override
   Stream<PushTap> get taps => _taps.stream;
+
+  @override
+  Stream<String> get dismissals => _dismissals.stream;
 
   @override
   Future<void> initialize() async {
@@ -57,6 +61,11 @@ class LocalNotificationPresenter implements NotificationPresenter {
         channelDescription: notificationChannelDescription,
         importance: Importance.high,
         priority: Priority.high,
+        // Without this, a swipe is not reported at all. `main` rather than
+        // `background`: a background dismissal reaches a fresh isolate carrying only
+        // the message id, and `dismissed` has to be recorded against the trace id on
+        // the stored payload — see the spec's Part B for what that would cost.
+        dismissIsolate: NotificationDismissedIsolate.main,
       ),
       iOS: DarwinNotificationDetails(),
     ),
@@ -66,10 +75,19 @@ class LocalNotificationPresenter implements NotificationPresenter {
   );
 
   @override
-  Future<void> dispose() => _taps.close();
+  Future<void> dispose() async {
+    await _taps.close();
+    await _dismissals.close();
+  }
 
   void _onResponse(NotificationResponse response) {
     if (response.payload case final id? when id.isNotEmpty) {
+      if (response.notificationResponseType ==
+          NotificationResponseType.notificationDismissed) {
+        _dismissals.add(id);
+
+        return;
+      }
       // Always foreground: this presenter only ever draws a banner for a message that
       // arrived while the app was on screen.
       _taps.add(PushTap(id, OpenedFrom.foreground));
