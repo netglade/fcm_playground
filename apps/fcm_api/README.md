@@ -2,7 +2,7 @@
 
 A local HTTP server so the app in `fcm_app` has something to talk to: one route
 that sends a push through FCM, four that schedule and manage a delayed run of
-sends, and three that collect what became of any of them.
+sends, and four that collect what became of any of them.
 
 ```
 POST /send        {<target>, validate_only, message}   →  200 {messageId, sentAt}
@@ -12,7 +12,7 @@ GET  /runs                                              →  200 [{run_id, item_
 GET  /runs/<id>                                         →  200 {run_id, created_at, items}
 DELETE /runs/<id>                                       →  200 {"cancelled": <n>}
 POST /events      {"events": [<event>, …]}              →  200 {"recorded": <n>}
-GET  /events      ?limit=<1..2000>                       →  200 [<event>, …]
+GET  /events      ?limit=<1..2000>                      →  200 [<event>, …]
 GET  /latency                                           →  200 [<latency row>, …]
 GET  /health                                            →  200 {"status": "ok"}
 ```
