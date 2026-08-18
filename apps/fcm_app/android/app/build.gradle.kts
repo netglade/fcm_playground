@@ -31,6 +31,20 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
+        // `clearPackageData` is intentionally NOT set here. It is only honoured by
+        // Android Test Orchestrator, which this project does not add — plain
+        // `AndroidJUnitRunner` (which `PatrolJUnitRunner` extends) ignores it, so
+        // setting it would be dead configuration claiming an isolation this build
+        // does not provide. The Orchestrator would give true per-test isolation, at
+        // the cost of a fresh FCM token per test (up to ~45s each, and roughly 13
+        // minutes across the suite) — and `integration_test/support/app_harness.dart`
+        // already tears its own pipeline down between tests, which covers the leak
+        // the Orchestrator would otherwise be needed for. App data, including the
+        // FCM token and the telemetry buffer, persists across a target's tests as a
+        // result, and the permission dialog is granted once per target rather than
+        // once per test — see `_permissionDialogTimeout` in that same file.
     }
 
     buildTypes {

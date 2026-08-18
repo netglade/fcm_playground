@@ -529,10 +529,21 @@ and nothing else — the inbox still fills.
 ## Verified on this machine
 
 `melos run ci` passes clean — 24 `core` tests, 231 `fcm_gallery_shared` tests, 204
-`fcm_api` tests and 487 `fcm_app` tests. `fvm flutter build web --release` succeeds
+`fcm_api` tests and 538 `fcm_app` tests. `fvm flutter build web --release` succeeds
 (a compile check only: the web build cannot receive FCM pushes without a VAPID
 key). `fvm flutter build apk --debug` currently **fails** — see below. The iOS
 build has **not** been verified here either; there is no Xcode on this machine.
+
+There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patrol
+suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
+Android device**, needs the API serving with `GOOGLE_APPLICATION_CREDENTIALS` set,
+and is deliberately excluded from the gate because a device-dependent suite has no
+business in a hermetic one. Of the catalogue's 66 scenarios, 17 run there; the other
+49 are skipped with a stated reason — 44 wait on a `ScenarioNeed` the app has not
+built, 4 need a physical iPhone, and one (`b3_killed`) would have to kill the app the
+test runs inside. That split has not been run on this machine either — no Android
+device is attached — so it is asserted by `apps/fcm_app/test/integration_coverage_test.dart`
+rather than by an actual pass on hardware.
 
 The Android build needs one thing that is easy to miss:
 `flutter_local_notifications` requires **core library desugaring**, and without
