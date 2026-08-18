@@ -43,26 +43,28 @@ void main() {
       },
     );
 
-    test('a tap response puts a foreground PushTap on taps and nothing on '
-        'dismissals', () async {
-      presenter.handleResponse(
-        const NotificationResponse(
-          notificationResponseType:
-              NotificationResponseType.selectedNotification,
-          payload: 'msg-1',
-        ),
-      );
-      await pumpEventQueue();
+    test(
+      'a tap response puts a foreground PushTap on taps and nothing on dismissals',
+      () async {
+        presenter.handleResponse(
+          const NotificationResponse(
+            notificationResponseType:
+                NotificationResponseType.selectedNotification,
+            payload: 'msg-1',
+          ),
+        );
+        await pumpEventQueue();
 
-      expect(taps, [const PushTap('msg-1', OpenedFrom.foreground)]);
-      expect(
-        dismissals,
-        isEmpty,
-        reason:
-            'one press is one event: a tap must not also register as a '
-            'dismissal',
-      );
-    });
+        expect(taps, [const PushTap('msg-1', OpenedFrom.foreground)]);
+        expect(
+          dismissals,
+          isEmpty,
+          reason:
+              'one press is one event: a tap must not also register as a '
+              'dismissal',
+        );
+      },
+    );
 
     test('a response with no payload puts nothing on either stream', () async {
       presenter.handleResponse(
