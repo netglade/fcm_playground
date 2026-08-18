@@ -95,7 +95,7 @@ melos:
         part of `ci`, which stays hermetic and device-free. Set FCM_API_BASE_URL to
         http://10.0.2.2:8080 for the emulator.
       run: |
-        cd apps/fcm_app
+        cd apps/fcm_app || exit 1
         status=0
         for target in integration_test/group_*_test.dart; do
           fvm exec patrol test --target "$target" \
