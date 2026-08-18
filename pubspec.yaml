@@ -87,6 +87,27 @@ melos:
         flutter: true
         dirExists: test
 
+    test:e2e:
+      description: >-
+        End-to-end Patrol suite against a connected Android device. Needs the API
+        running (melos run api:serve) with GOOGLE_APPLICATION_CREDENTIALS set, and
+        — on a physical handset — adb reverse tcp:8080 tcp:8080. Deliberately not
+        part of `ci`, which stays hermetic and device-free. Set FCM_API_BASE_URL to
+        http://10.0.2.2:8080 for the emulator.
+      run: |
+        cd apps/fcm_app
+        status=0
+        for target in integration_test/group_*_test.dart; do
+          fvm exec patrol test --target "$target" \
+            --dart-define=FCM_API_BASE_URL="${FCM_API_BASE_URL:-http://localhost:8080}" \
+            || status=1
+        done
+        # `patrol test` leaves a generated patrol_test/ behind, and dart format
+        # walks it regardless of .gitignore — clean it up whether the loop above
+        # succeeded or not, so a failing run doesn't also break format:check.
+        rm -rf patrol_test
+        exit $status
+
     test:
       description: Run every test suite in the workspace.
       steps:
