@@ -26,6 +26,13 @@ abstract interface class NotificationPresenter {
   ///
   /// Only banners *this presenter drew* can be reported, which means foreground ones.
   /// A tray entry FCM drew itself was never posted through the plugin.
+  ///
+  /// Android only: the plugin reports a swipe through `dismissIsolate: main`, which
+  /// exists on `AndroidNotificationDetails` alone, and only while the process is
+  /// still running — a swipe after the app was killed reaches no isolate at all. On
+  /// iOS this stream never emits: `show` posts a default `DarwinNotificationDetails`
+  /// with no `customDismissAction` category, so there is no route for a dismissal to
+  /// take.
   Stream<String> get dismissals;
 
   Future<void> dispose();
