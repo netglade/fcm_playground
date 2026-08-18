@@ -1,8 +1,7 @@
 /// One thing that happened to one message, on either side of the wire.
 ///
-/// [dismissed] and the state qualifier on [opened] cannot be produced yet — they
-/// need a delete intent and three-state routing — but are declared anyway so the
-/// wire format and the database schema do not change when that work lands.
+/// [dismissed] is produced only for notifications the app drew itself — see
+/// `LocalNotificationPresenter`.
 enum TelemetryEventType {
   /// The API accepted a send request.
   queued('queued'),
@@ -26,7 +25,7 @@ enum TelemetryEventType {
   /// A local notification was drawn for it.
   displayed('displayed'),
 
-  /// The user tapped it. `detail` carries the app state, once that is known.
+  /// The user tapped it. `detail` carries the `OpenedFrom` the tap came through.
   opened('opened'),
 
   /// The user swiped it away without tapping.

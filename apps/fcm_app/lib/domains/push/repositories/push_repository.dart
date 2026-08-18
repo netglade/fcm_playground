@@ -50,11 +50,14 @@ class PushRepository {
   String? _token;
   String? _pendingOpenId;
 
-  /// A tap whose message the repository did not hold when it arrived — the
-  /// Android warm-start path, where FCM reports the tap before the background
-  /// isolate's payload has been drained. Cleared once reported, so one press
-  /// cannot record two opens.
-  String? _unreportedOpenId;
+  /// A tap whose message the repository did not hold when it arrived — the Android
+  /// warm-start path, where FCM reports the tap before the background isolate's payload
+  /// has been drained.
+  ///
+  /// The state travels with the id, because by the time the payload turns up nothing
+  /// else remembers which channel the tap came through. Cleared once reported, so one
+  /// press cannot record two opens.
+  ({String id, OpenedFrom from})? _unreportedOpen;
 
   Stream<InboxState> get changes => _changes.stream;
 
@@ -85,16 +88,21 @@ class PushRepository {
   /// request.
   PushMessage? get pendingOpen => state.pendingOpen;
 
-  void requestOpen(String id) {
+  void requestOpen(String id, OpenedFrom from) {
     _pendingOpenId = id;
-    // A tap is handled whether or not it can be reported. The trace id lives on
-    // the payload, so an unresolvable tap is held until the payload turns up
-    // rather than recorded against a fabricated trace.
+    // A tap is handled whether or not it can be reported. The trace id lives on the
+    // payload, so an unresolvable tap is held until the payload turns up rather than
+    // recorded against a fabricated trace.
     final opened = _acceptedFor(id);
-    _unreportedOpenId = opened == null ? id : null;
+    _unreportedOpen = opened == null ? (id: id, from: from) : null;
     if (opened != null) {
       unawaited(
-        reportAndFlush(_telemetry, TelemetryEventType.opened, opened.payload),
+        reportAndFlush(
+          _telemetry,
+          TelemetryEventType.opened,
+          opened.payload,
+          detail: from.wireName,
+        ),
       );
     }
     _publish();
@@ -195,10 +203,15 @@ class PushRepository {
         if (notify) {
           unawaited(_show(message, payload));
         }
-        if (message.id == _unreportedOpenId) {
-          _unreportedOpenId = null;
+        if (_unreportedOpen case final open? when message.id == open.id) {
+          _unreportedOpen = null;
           unawaited(
-            reportAndFlush(_telemetry, TelemetryEventType.opened, payload),
+            reportAndFlush(
+              _telemetry,
+              TelemetryEventType.opened,
+              payload,
+              detail: open.from.wireName,
+            ),
           );
         }
       }

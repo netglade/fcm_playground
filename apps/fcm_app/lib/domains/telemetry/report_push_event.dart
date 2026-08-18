@@ -17,10 +17,11 @@ const _scenarioIdKey = 'scenario_id';
 Future<void> reportAndFlush(
   PushTelemetry telemetry,
   TelemetryEventType type,
-  Map<String, Object?> payload,
-) async {
+  Map<String, Object?> payload, {
+  String? detail,
+}) async {
   try {
-    if (await _record(telemetry, type, payload)) {
+    if (await _record(telemetry, type, payload, detail)) {
       await telemetry.flush();
     }
   } on Object catch (error) {
@@ -36,10 +37,11 @@ Future<void> reportAndFlush(
 Future<void> reportWithoutFlushing(
   PushTelemetry telemetry,
   TelemetryEventType type,
-  Map<String, Object?> payload,
-) async {
+  Map<String, Object?> payload, {
+  String? detail,
+}) async {
   try {
-    await _record(telemetry, type, payload);
+    await _record(telemetry, type, payload, detail);
   } on Object catch (error) {
     _swallow(type, error);
   }
@@ -60,6 +62,7 @@ Future<bool> _record(
   PushTelemetry telemetry,
   TelemetryEventType type,
   Map<String, Object?> payload,
+  String? detail,
 ) async {
   final traceId = _textIn(payload, _traceIdKey);
   if (traceId == null) {
@@ -70,6 +73,7 @@ Future<bool> _record(
     type,
     traceId: traceId,
     scenarioId: _textIn(payload, _scenarioIdKey),
+    detail: detail,
   );
 
   return true;

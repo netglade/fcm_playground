@@ -1,6 +1,7 @@
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_state.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../fakes/fake_push_payload_store.dart';
@@ -76,7 +77,7 @@ void main() {
   });
 
   test('resolves a tap against what the repository holds now', () async {
-    inbox.requestOpen('late');
+    inbox.requestOpen('late', OpenedFrom.background);
     expect(
       inbox.state.hasPendingOpen,
       isTrue,
@@ -99,7 +100,7 @@ void main() {
     final seen = <InboxState>[];
     final watching = inbox.stream.listen(seen.add);
     addTearDown(watching.cancel);
-    inbox.requestOpen('msg-1');
+    inbox.requestOpen('msg-1', OpenedFrom.background);
     await pumpEventQueue();
     expect(seen.single.pendingOpenId, 'msg-1');
 

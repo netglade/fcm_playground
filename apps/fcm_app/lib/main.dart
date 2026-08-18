@@ -40,9 +40,11 @@ Future<void> main() async {
   // tray entries it drew itself, the presenter reports taps on the banners the app
   // posted while in the foreground. Each labels its own, which is why the repository
   // can say which state an `opened` came from.
-  getIt<PushSource>().taps.listen((tap) => repository.requestOpen(tap.id));
+  getIt<PushSource>().taps.listen(
+    (tap) => repository.requestOpen(tap.id, tap.from),
+  );
   getIt<NotificationPresenter>().taps.listen(
-    (tap) => repository.requestOpen(tap.id),
+    (tap) => repository.requestOpen(tap.id, tap.from),
   );
 
   runApp(const App());

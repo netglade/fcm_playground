@@ -62,7 +62,7 @@ void main() {
       ..listen();
     inbox = InboxCubit(repository);
     if (pendingTapId != null) {
-      inbox.requestOpen(pendingTapId);
+      inbox.requestOpen(pendingTapId, OpenedFrom.background);
     }
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
@@ -267,7 +267,7 @@ void main() {
     source.emit(payload(id: 'tapped'));
     await tester.pumpAndSettle();
 
-    inbox.requestOpen('tapped');
+    inbox.requestOpen('tapped', OpenedFrom.background);
     await tester.pumpAndSettle();
 
     expect(find.byType(MessageDetailPage), findsOne);
@@ -280,7 +280,7 @@ void main() {
     await pumpApp(tester);
     await openSandbox(tester);
 
-    inbox.requestOpen('never-seen');
+    inbox.requestOpen('never-seen', OpenedFrom.background);
     await tester.pumpAndSettle();
 
     expect(selectedDestination(tester), 0);
@@ -290,7 +290,7 @@ void main() {
   testWidgets('opens the page once the message catches up', (tester) async {
     await pumpApp(tester);
 
-    inbox.requestOpen('late');
+    inbox.requestOpen('late', OpenedFrom.background);
     await tester.pumpAndSettle();
     expect(find.byType(MessageDetailPage), findsNothing);
     source.emit(payload(id: 'late'));
@@ -304,7 +304,7 @@ void main() {
     source.emit(payload(id: 'tapped'));
     await tester.pumpAndSettle();
 
-    inbox.requestOpen('tapped');
+    inbox.requestOpen('tapped', OpenedFrom.background);
     await tester.pumpAndSettle();
     source.emit(payload(id: 'unrelated'));
     await tester.pumpAndSettle();
@@ -328,7 +328,7 @@ void main() {
     source.emit(payload(id: 'tapped'));
     await tester.pumpAndSettle();
 
-    inbox.requestOpen('tapped');
+    inbox.requestOpen('tapped', OpenedFrom.background);
     await tester.pumpAndSettle();
 
     // The last push is the detail route — the one before it is the shell itself,

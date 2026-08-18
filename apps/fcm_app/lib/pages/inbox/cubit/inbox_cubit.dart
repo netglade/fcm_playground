@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domains/push/repositories/push_repository.dart';
@@ -23,7 +24,8 @@ class InboxCubit extends Cubit<InboxState> {
   final PushRepository _repository;
   late final StreamSubscription<InboxState> _subscription;
 
-  void requestOpen(String id) => _repository.requestOpen(id);
+  void requestOpen(String id, OpenedFrom from) =>
+      _repository.requestOpen(id, from);
 
   void clearPendingOpen() => _repository.clearPendingOpen();
 
