@@ -54,6 +54,7 @@ void main() {
     NavigatorObserver? observer,
     ActiveRunStore? active,
     FakeRunScheduler? scheduler,
+    TelemetryReader? reader,
     // Set before the first frame, so it is already outstanding by the time
     // `_openAwaitedRun`'s post-frame callback checks for one — unlike the other
     // notification-tap tests below, which fire `requestOpen` after settling to
@@ -86,7 +87,7 @@ void main() {
               value: active ?? InMemoryActiveRunStore(),
             ),
             RepositoryProvider<TelemetryReader>.value(
-              value: FakeTelemetryReader(),
+              value: reader ?? FakeTelemetryReader(),
             ),
           ],
           child: MultiBlocProvider(
@@ -139,7 +140,7 @@ void main() {
     expect(selectedDestination(tester), 0);
   });
 
-  testWidgets('offers all three destinations in the drawer', (tester) async {
+  testWidgets('offers all five destinations in the drawer', (tester) async {
     await pumpApp(tester);
 
     await openDrawer(tester);
@@ -147,6 +148,8 @@ void main() {
     expect(find.text('Inbox'), findsOne);
     expect(find.text('Scenarios'), findsOne);
     expect(find.text('Sandbox'), findsOne);
+    expect(find.text('Runs'), findsOne);
+    expect(find.text('Telemetry'), findsOne);
   });
 
   testWidgets('switches to the scenarios page and retitles the bar', (
@@ -239,8 +242,7 @@ void main() {
 
   testWidgets('opens Telemetry from the drawer', (tester) async {
     await pumpApp(tester);
-    await tester.tap(find.byTooltip('Open navigation menu'));
-    await tester.pumpAndSettle();
+    await openDrawer(tester);
     await tester.tap(find.text('Telemetry'));
     await tester.pumpAndSettle();
 
@@ -248,6 +250,44 @@ void main() {
     // selected rather than merely present in the drawer.
     expect(find.widgetWithText(AppBar, 'Telemetry'), findsOneWidget);
   });
+
+  testWidgets(
+    'reloads the Telemetry page each time it is chosen, not just at launch',
+    (tester) async {
+      // Growable, and held onto by the test, mirroring the Runs test above:
+      // `FakeTelemetryReader` answers the same list instance it was built with, so
+      // mutating it between two visits stands in for an event arriving on the
+      // server in between.
+      final events = <TelemetryEvent>[];
+      await pumpApp(tester, reader: FakeTelemetryReader(events: events));
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Telemetry'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nothing recorded yet'), findsOneWidget);
+
+      events.add(
+        TelemetryEvent(
+          traceId: 't1',
+          type: TelemetryEventType.queued,
+          at: DateTime.utc(2026, 8, 18, 9, 30),
+          deviceId: '',
+          scenarioId: 'a1_notification_only',
+        ),
+      );
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Inbox'));
+      await tester.pumpAndSettle();
+      await openDrawer(tester);
+      await tester.tap(find.text('Telemetry'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nothing recorded yet'), findsNothing);
+      expect(find.textContaining('t1'), findsWidgets);
+    },
+  );
 
   testWidgets('tapping a scenario switches to the sandbox with it loaded', (
     tester,
