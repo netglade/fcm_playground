@@ -12,6 +12,7 @@ GET  /runs                                              →  200 [{run_id, item_
 GET  /runs/<id>                                         →  200 {run_id, created_at, items}
 DELETE /runs/<id>                                       →  200 {"cancelled": <n>}
 POST /events      {"events": [<event>, …]}              →  200 {"recorded": <n>}
+GET  /events      ?limit=<1..2000>                       →  200 [<event>, …]
 GET  /latency                                           →  200 [<latency row>, …]
 GET  /health                                            →  200 {"status": "ok"}
 ```
@@ -72,6 +73,11 @@ Events are accepted for a trace this server never sent — a push made by hand h
 no `queued` row, and refusing its arrival would hide a real delivery. Such an
 arrival is stored but produces no latency row, since there is nothing to measure
 from.
+
+`GET /events` answers the recent events, newest first, in the same shape `POST /events`
+accepts — the app's Telemetry page reads it to show what became of each trace. It is
+bounded: `?limit=` defaults to 500 and is capped at 2000, and a value outside that is a
+400 naming the parameter rather than a silent fallback to the default.
 
 ### `FCM_TELEMETRY_DB`
 
