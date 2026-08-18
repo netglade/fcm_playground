@@ -57,9 +57,6 @@ class RecordingNotificationPresenter implements NotificationPresenter {
   /// that is the only kind of banner this presenter stands in for.
   void emitTap(String id) => _taps.add(PushTap(id, OpenedFrom.foreground));
 
-  /// Acts as though the user swiped the banner for [id] away.
-  void emitDismissal(String id) => _dismissals.add(id);
-
   @override
   Future<void> dispose() async {
     await _taps.close();

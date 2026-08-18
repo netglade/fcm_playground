@@ -30,10 +30,10 @@ class FakePushSource implements PushSource {
 
   /// Acts as though the user tapped the tray notification for [id].
   ///
-  /// [from] defaults to `background`, which is what an FCM tray tap ordinarily is, so
-  /// the tests that do not care about the state need no change.
-  void emitTap(String id, {OpenedFrom from = OpenedFrom.background}) =>
-      _taps.add(PushTap(id, from));
+  /// Always `background`: that is what an ordinary FCM tray tap is, since this
+  /// source stands in for the tray FCM draws while the app is not in the
+  /// foreground.
+  void emitTap(String id) => _taps.add(PushTap(id, OpenedFrom.background));
 
   @override
   Future<String?> token() {
