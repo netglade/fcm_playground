@@ -9,9 +9,11 @@ import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/domains/sandbox/data_sources/unavailable_notification_sender.dart';
 import 'package:fcm_app/domains/sandbox/entities/notification_sender.dart';
+import 'package:fcm_app/domains/telemetry/data_sources/http_telemetry_reader.dart';
 import 'package:fcm_app/domains/telemetry/data_sources/silent_push_telemetry.dart';
 import 'package:fcm_app/domains/telemetry/entities/push_telemetry.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
 import 'package:fcm_app/firebase_setup.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -72,6 +74,9 @@ void main() {
     );
     expect(getIt<NotificationSender>(), isA<UnavailableNotificationSender>());
     expect(getIt<RunScheduler>(), isA<UnavailableRunScheduler>());
+    // Unlike the sender and the scheduler above, reading telemetry needs nothing
+    // from Firebase, so it stays live even on an unconfigured checkout.
+    expect(getIt<TelemetryReader>(), isA<HttpTelemetryReader>());
     expect(getIt<ActiveRunStore>(), isA<SharedPreferencesActiveRunStore>());
     expect(getIt<StartRun>(), isA<StartRun>());
   });

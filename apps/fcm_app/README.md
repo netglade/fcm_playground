@@ -15,9 +15,9 @@ cd apps/fcm_app && fvm flutter run  # run on a device
 Structure:
 
 - `lib/pages/<page>/` — one directory per destination (`inbox`, `scenarios`,
-  `sandbox`, plus `shell`), each holding its page widget, its `cubit/`, and the
-  `widgets/` only that page uses. `lib/app.dart` is the root that provides the
-  cubits
+  `sandbox`, `runs`, `countdown`, `telemetry`, plus `shell`), each holding its page
+  widget, its `cubit/`, and the `widgets/` only that page uses. `lib/app.dart` is
+  the root that provides the cubits
 - `lib/domains/<domain>/` — `entities/` for the interfaces and value types,
   `repositories/` for the app-scoped owners such as `PushRepository`, and
   `data_sources/` for the implementations that reach Firebase, Drift, HTTP or

@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:core/core.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../push/entities/push_tap.dart';
 import '../entities/notification_content.dart';
 import '../entities/notification_presenter.dart';
 
@@ -14,10 +17,14 @@ class LocalNotificationPresenter implements NotificationPresenter {
     : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   final FlutterLocalNotificationsPlugin _plugin;
-  final _taps = StreamController<String>.broadcast();
+  final _taps = StreamController<PushTap>.broadcast();
+  final _dismissals = StreamController<String>.broadcast();
 
   @override
-  Stream<String> get taps => _taps.stream;
+  Stream<PushTap> get taps => _taps.stream;
+
+  @override
+  Stream<String> get dismissals => _dismissals.stream;
 
   @override
   Future<void> initialize() async {
@@ -26,7 +33,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(),
       ),
-      onDidReceiveNotificationResponse: _onResponse,
+      onDidReceiveNotificationResponse: handleResponse,
     );
 
     await _plugin
@@ -55,6 +62,11 @@ class LocalNotificationPresenter implements NotificationPresenter {
         channelDescription: notificationChannelDescription,
         importance: Importance.high,
         priority: Priority.high,
+        // Without this, a swipe is not reported at all. `main` rather than
+        // `background`: a background dismissal reaches a fresh isolate carrying only
+        // the message id, and `dismissed` has to be recorded against the trace id on
+        // the stored payload — see the spec's Part B for what that would cost.
+        dismissIsolate: NotificationDismissedIsolate.main,
       ),
       iOS: DarwinNotificationDetails(),
     ),
@@ -64,11 +76,27 @@ class LocalNotificationPresenter implements NotificationPresenter {
   );
 
   @override
-  Future<void> dispose() => _taps.close();
+  Future<void> dispose() async {
+    await _taps.close();
+    await _dismissals.close();
+  }
 
-  void _onResponse(NotificationResponse response) {
+  /// Routes one plugin response to the stream it belongs on.
+  ///
+  /// Visible for testing because this is where the tap/dismissal distinction lives, and
+  /// the plugin hands it to us through a callback there is otherwise no way to invoke.
+  @visibleForTesting
+  void handleResponse(NotificationResponse response) {
     if (response.payload case final id? when id.isNotEmpty) {
-      _taps.add(id);
+      if (response.notificationResponseType ==
+          NotificationResponseType.notificationDismissed) {
+        _dismissals.add(id);
+
+        return;
+      }
+      // Always foreground: this presenter only ever draws a banner for a message that
+      // arrived while the app was on screen.
+      _taps.add(PushTap(id, OpenedFrom.foreground));
     }
   }
 }

@@ -60,5 +60,39 @@ void main() {
     test('omits an unknown scenario rather than writing null', () {
       expect(row().toJson().containsKey('scenario_id'), isFalse);
     });
+
+    test('round-trips through the wire format', () {
+      final row = LatencyRow(
+        traceId: 't1',
+        deviceId: 'd1',
+        sentAt: DateTime.utc(2026, 8, 18, 9, 30),
+        receivedAt: DateTime.utc(2026, 8, 18, 9, 30, 0, 300),
+        scenarioId: 'a1_notification_only',
+      );
+
+      final decoded = LatencyRow.fromJson(row.toJson());
+
+      // Field by field, because LatencyRow has no `==`: a toJson that dropped a
+      // column would otherwise still "round-trip".
+      expect(decoded.traceId, row.traceId);
+      expect(decoded.deviceId, row.deviceId);
+      expect(decoded.sentAt, row.sentAt);
+      expect(decoded.receivedAt, row.receivedAt);
+      expect(decoded.scenarioId, row.scenarioId);
+    });
+
+    test('keeps an absent scenario absent rather than blank', () {
+      final row = LatencyRow(
+        traceId: 't1',
+        deviceId: 'd1',
+        sentAt: DateTime.utc(2026, 8, 18, 9, 30),
+        receivedAt: DateTime.utc(2026, 8, 18, 9, 31),
+        scenarioId: null,
+      );
+
+      // `''` and "not from the gallery" are different answers when reading the matrix,
+      // and toJson omits the key rather than writing null.
+      expect(LatencyRow.fromJson(row.toJson()).scenarioId, isNull);
+    });
   });
 }

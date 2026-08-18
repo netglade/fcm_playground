@@ -11,7 +11,7 @@ import 'send_outcome.dart';
 import 'send_scheduler.dart';
 import 'telemetry_store.dart';
 
-/// The HTTP surface: eight routes, JSON in and JSON out.
+/// The HTTP surface: nine routes, JSON in and JSON out.
 ///
 /// It decides nothing about a send — [sendMessage] returns the status and
 /// the body, and this class only translates between that and `shelf`.
@@ -43,6 +43,7 @@ class ApiRouter {
       ..get('/runs/<id>', _run)
       ..delete('/runs/<id>', _cancelRun)
       ..post('/events', _events)
+      ..get('/events', _recentEvents)
       ..get('/latency', _latency);
 
     return router.call;
@@ -152,6 +153,21 @@ class ApiRouter {
     (events) async => _json(200, {'recorded': await _telemetry.record(events)}),
   );
 
+  /// The recent events, newest first, for the app's telemetry page.
+  ///
+  /// Bounded because this is the whole table's worth of history and a page wants the
+  /// last screenful of it.
+  Future<Response> _recentEvents(Request request) async {
+    final int limit;
+    try {
+      limit = readEventLimit(request.url.queryParameters['limit']);
+    } on FormatException catch (error) {
+      return _json(400, ApiError(error.message, field: 'limit').toJson());
+    }
+
+    return _json(200, eventsBody(await _telemetry.recent(limit: limit)));
+  }
+
   Future<Response> _latency(Request request) async =>
       _json(200, latencyBody(await _telemetry.latencies()));
 
@@ -180,8 +196,8 @@ class ApiRouter {
     404,
     const ApiError(
       'No such route. The API has POST /send, POST /runs, GET /runs, '
-      'GET /runs/<id>, DELETE /runs/<id>, POST /events, GET /latency and '
-      'GET /health.',
+      'GET /runs/<id>, DELETE /runs/<id>, POST /events, GET /events, '
+      'GET /latency and GET /health.',
     ).toJson(),
   );
 }

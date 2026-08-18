@@ -1,5 +1,7 @@
 import 'package:core/core.dart';
 
+import '../../push/entities/push_tap.dart';
+
 /// Shows a received push as an operating-system notification — the same shape of
 /// seam as `PushSource`, so the widget tests never construct
 /// `flutter_local_notifications`.
@@ -13,8 +15,25 @@ abstract interface class NotificationPresenter {
 
   Future<void> show(PushMessage message);
 
-  /// Ids of messages whose banner the user tapped.
-  Stream<String> get taps;
+  /// Taps on banners this presenter drew, which are always foreground ones.
+  Stream<PushTap> get taps;
+
+  /// Ids of messages whose banner the user swiped away.
+  ///
+  /// A tap never appears here: the plugin documents that dismissing via a tap or
+  /// `cancel` is not reported as a dismissal, so one press cannot produce both an
+  /// `opened` and a `dismissed`.
+  ///
+  /// Only banners *this presenter drew* can be reported, which means foreground ones.
+  /// A tray entry FCM drew itself was never posted through the plugin.
+  ///
+  /// Android only: the plugin reports a swipe through `dismissIsolate: main`, which
+  /// exists on `AndroidNotificationDetails` alone, and only while the process is
+  /// still running — a swipe after the app was killed reaches no isolate at all. On
+  /// iOS this stream never emits: `show` posts a default `DarwinNotificationDetails`
+  /// with no `customDismissAction` category, so there is no route for a dismissal to
+  /// take.
+  Stream<String> get dismissals;
 
   Future<void> dispose();
 }

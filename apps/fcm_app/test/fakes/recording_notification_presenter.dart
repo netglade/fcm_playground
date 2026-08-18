@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:core/core.dart';
 import 'package:fcm_app/domains/notifications/entities/notification_presenter.dart';
+import 'package:fcm_app/domains/push/entities/push_tap.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A [NotificationPresenter] that records instead of notifying.
 class RecordingNotificationPresenter implements NotificationPresenter {
@@ -23,13 +25,17 @@ class RecordingNotificationPresenter implements NotificationPresenter {
   /// Every message a banner was requested for, in order.
   final shown = <PushMessage>[];
 
-  final _taps = StreamController<String>.broadcast();
+  final _taps = StreamController<PushTap>.broadcast();
+  final _dismissals = StreamController<String>.broadcast();
 
   /// Whether [initialize] ran, so a test can prove the app set the channel up.
   bool initialized = false;
 
   @override
-  Stream<String> get taps => _taps.stream;
+  Stream<PushTap> get taps => _taps.stream;
+
+  @override
+  Stream<String> get dismissals => _dismissals.stream;
 
   @override
   Future<void> initialize() async {
@@ -47,9 +53,13 @@ class RecordingNotificationPresenter implements NotificationPresenter {
     }
   }
 
-  /// Acts as though the user tapped the banner for [id].
-  void emitTap(String id) => _taps.add(id);
+  /// Acts as though the user tapped the banner for [id]. Always foreground, because
+  /// that is the only kind of banner this presenter stands in for.
+  void emitTap(String id) => _taps.add(PushTap(id, OpenedFrom.foreground));
 
   @override
-  Future<void> dispose() => _taps.close();
+  Future<void> dispose() async {
+    await _taps.close();
+    await _dismissals.close();
+  }
 }

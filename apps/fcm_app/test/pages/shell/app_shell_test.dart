@@ -3,6 +3,7 @@ import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
+import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/runs/run_timeline_page.dart';
@@ -18,6 +19,7 @@ import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
 import '../../fakes/fake_push_source.dart';
 import '../../fakes/fake_run_scheduler.dart';
+import '../../fakes/fake_telemetry_reader.dart';
 import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_navigator_observer.dart';
 
@@ -52,6 +54,7 @@ void main() {
     NavigatorObserver? observer,
     ActiveRunStore? active,
     FakeRunScheduler? scheduler,
+    TelemetryReader? reader,
     // Set before the first frame, so it is already outstanding by the time
     // `_openAwaitedRun`'s post-frame callback checks for one — unlike the other
     // notification-tap tests below, which fire `requestOpen` after settling to
@@ -62,7 +65,7 @@ void main() {
       ..listen();
     inbox = InboxCubit(repository);
     if (pendingTapId != null) {
-      inbox.requestOpen(pendingTapId);
+      inbox.requestOpen(pendingTapId, OpenedFrom.background);
     }
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
@@ -82,6 +85,9 @@ void main() {
             ),
             RepositoryProvider<ActiveRunStore>.value(
               value: active ?? InMemoryActiveRunStore(),
+            ),
+            RepositoryProvider<TelemetryReader>.value(
+              value: reader ?? FakeTelemetryReader(),
             ),
           ],
           child: MultiBlocProvider(
@@ -134,7 +140,7 @@ void main() {
     expect(selectedDestination(tester), 0);
   });
 
-  testWidgets('offers all three destinations in the drawer', (tester) async {
+  testWidgets('offers all five destinations in the drawer', (tester) async {
     await pumpApp(tester);
 
     await openDrawer(tester);
@@ -142,6 +148,8 @@ void main() {
     expect(find.text('Inbox'), findsOne);
     expect(find.text('Scenarios'), findsOne);
     expect(find.text('Sandbox'), findsOne);
+    expect(find.text('Runs'), findsOne);
+    expect(find.text('Telemetry'), findsOne);
   });
 
   testWidgets('switches to the scenarios page and retitles the bar', (
@@ -232,6 +240,55 @@ void main() {
     },
   );
 
+  testWidgets('opens Telemetry from the drawer', (tester) async {
+    await pumpApp(tester);
+    await openDrawer(tester);
+    await tester.tap(find.text('Telemetry'));
+    await tester.pumpAndSettle();
+
+    // The title comes from the shell, so this is what proves the destination is
+    // selected rather than merely present in the drawer.
+    expect(find.widgetWithText(AppBar, 'Telemetry'), findsOneWidget);
+  });
+
+  testWidgets(
+    'reloads the Telemetry page each time it is chosen, not just at launch',
+    (tester) async {
+      // Growable, and held onto by the test, mirroring the Runs test above:
+      // `FakeTelemetryReader` answers the same list instance it was built with, so
+      // mutating it between two visits stands in for an event arriving on the
+      // server in between.
+      final events = <TelemetryEvent>[];
+      await pumpApp(tester, reader: FakeTelemetryReader(events: events));
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Telemetry'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nothing recorded yet'), findsOneWidget);
+
+      events.add(
+        TelemetryEvent(
+          traceId: 't1',
+          type: TelemetryEventType.queued,
+          at: DateTime.utc(2026, 8, 18, 9, 30),
+          deviceId: '',
+          scenarioId: 'a1_notification_only',
+        ),
+      );
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Inbox'));
+      await tester.pumpAndSettle();
+      await openDrawer(tester);
+      await tester.tap(find.text('Telemetry'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nothing recorded yet'), findsNothing);
+      expect(find.textContaining('t1'), findsWidgets);
+    },
+  );
+
   testWidgets('tapping a scenario switches to the sandbox with it loaded', (
     tester,
   ) async {
@@ -267,7 +324,7 @@ void main() {
     source.emit(payload(id: 'tapped'));
     await tester.pumpAndSettle();
 
-    inbox.requestOpen('tapped');
+    inbox.requestOpen('tapped', OpenedFrom.background);
     await tester.pumpAndSettle();
 
     expect(find.byType(MessageDetailPage), findsOne);
@@ -280,7 +337,7 @@ void main() {
     await pumpApp(tester);
     await openSandbox(tester);
 
-    inbox.requestOpen('never-seen');
+    inbox.requestOpen('never-seen', OpenedFrom.background);
     await tester.pumpAndSettle();
 
     expect(selectedDestination(tester), 0);
@@ -290,7 +347,7 @@ void main() {
   testWidgets('opens the page once the message catches up', (tester) async {
     await pumpApp(tester);
 
-    inbox.requestOpen('late');
+    inbox.requestOpen('late', OpenedFrom.background);
     await tester.pumpAndSettle();
     expect(find.byType(MessageDetailPage), findsNothing);
     source.emit(payload(id: 'late'));
@@ -304,7 +361,7 @@ void main() {
     source.emit(payload(id: 'tapped'));
     await tester.pumpAndSettle();
 
-    inbox.requestOpen('tapped');
+    inbox.requestOpen('tapped', OpenedFrom.background);
     await tester.pumpAndSettle();
     source.emit(payload(id: 'unrelated'));
     await tester.pumpAndSettle();
@@ -328,7 +385,7 @@ void main() {
     source.emit(payload(id: 'tapped'));
     await tester.pumpAndSettle();
 
-    inbox.requestOpen('tapped');
+    inbox.requestOpen('tapped', OpenedFrom.background);
     await tester.pumpAndSettle();
 
     // The last push is the detail route — the one before it is the shell itself,

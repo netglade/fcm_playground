@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:fcm_app/domains/push/entities/push_source.dart';
+import 'package:fcm_app/domains/push/entities/push_tap.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A [PushSource] driven by the test rather than by Firebase.
 class FakePushSource implements PushSource {
@@ -15,19 +17,23 @@ class FakePushSource implements PushSource {
   // Single-subscription, mirroring FirebasePushSource: a payload emitted before
   // anything listens must still be delivered.
   final _controller = StreamController<Map<String, Object?>>();
-  final _taps = StreamController<String>();
+  final _taps = StreamController<PushTap>();
 
   @override
   Stream<Map<String, Object?>> get payloads => _controller.stream;
 
   @override
-  Stream<String> get taps => _taps.stream;
+  Stream<PushTap> get taps => _taps.stream;
 
   /// Pushes [payload] to listeners as if it had arrived from FCM.
   void emit(Map<String, Object?> payload) => _controller.add(payload);
 
   /// Acts as though the user tapped the tray notification for [id].
-  void emitTap(String id) => _taps.add(id);
+  ///
+  /// Always `background`: that is what an ordinary FCM tray tap is, since this
+  /// source stands in for the tray FCM draws while the app is not in the
+  /// foreground.
+  void emitTap(String id) => _taps.add(PushTap(id, OpenedFrom.background));
 
   @override
   Future<String?> token() {

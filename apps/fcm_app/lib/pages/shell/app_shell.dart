@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domains/runs/entities/active_run_store.dart';
 import '../../domains/runs/entities/run_scheduler.dart';
 import '../../domains/runs/entities/run_scheduler_exception.dart';
+import '../../domains/telemetry/entities/telemetry_reader.dart';
 import '../inbox/cubit/inbox_cubit.dart';
 import '../inbox/cubit/inbox_state.dart';
 import '../inbox/inbox_view.dart';
@@ -15,11 +16,12 @@ import '../runs/run_timeline_page.dart';
 import '../runs/runs_view.dart';
 import '../sandbox/sandbox_view.dart';
 import '../scenarios/scenarios_view.dart';
+import '../telemetry/telemetry_view.dart';
 
 /// Owns the app's chrome: one `AppBar` whose title follows the drawer's selection,
 /// and one body per destination.
 ///
-/// The destinations sit in an `IndexedStack` so all four keep their state — the
+/// The destinations sit in an `IndexedStack` so all five keep their state — the
 /// half-filled Sandbox form survives a look at the inbox or the gallery. Both
 /// cubits come from `context`, which is what lets Scenarios and Sandbox share one
 /// [SandboxCubit] across a tab switch. Runs reads its `RunScheduler` from
@@ -32,10 +34,17 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  static const _titles = ['Push inbox', 'Scenarios', 'Sandbox', 'Runs'];
+  static const _titles = [
+    'Push inbox',
+    'Scenarios',
+    'Sandbox',
+    'Runs',
+    'Telemetry',
+  ];
   static const _inboxDestination = 0;
   static const _sandboxDestination = 2;
   static const _runsDestination = 3;
+  static const _telemetryDestination = 4;
 
   late final AppLifecycleListener _lifecycle;
 
@@ -53,6 +62,12 @@ class _AppShellState extends State<AppShell> {
   /// page-local as its own doc already claims: this only changes *when* a new
   /// page begins, not who owns it.
   int _runsVisits = 0;
+
+  /// Bumped every time Telemetry is chosen from the drawer, and used as
+  /// [TelemetryView]'s key below, for the reason [_runsVisits] spells out: an
+  /// `IndexedStack` keeps every destination alive, so a page-local cubit built once
+  /// at launch would `load()` once and never again.
+  int _telemetryVisits = 0;
 
   @override
   void initState() {
@@ -102,6 +117,10 @@ class _AppShellState extends State<AppShell> {
             icon: Icon(Icons.schedule_outlined),
             label: Text('Runs'),
           ),
+          NavigationDrawerDestination(
+            icon: Icon(Icons.analytics_outlined),
+            label: Text('Telemetry'),
+          ),
         ],
       ),
       // top: false because the AppBar already sits below the status bar. Applied
@@ -120,6 +139,10 @@ class _AppShellState extends State<AppShell> {
               scheduler: context.read<RunScheduler>(),
               onRunSelected: (runId) => _openRun(context, runId),
             ),
+            TelemetryView(
+              key: ValueKey(_telemetryVisits),
+              reader: context.read<TelemetryReader>(),
+            ),
           ],
         ),
       ),
@@ -133,6 +156,9 @@ class _AppShellState extends State<AppShell> {
       _destination = index;
       if (index == _runsDestination) {
         _runsVisits++;
+      }
+      if (index == _telemetryDestination) {
+        _telemetryVisits++;
       }
     });
     Navigator.pop(context);

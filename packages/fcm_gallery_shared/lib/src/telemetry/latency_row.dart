@@ -1,3 +1,5 @@
+import '../json_field.dart';
+
 /// One `sent → received` measurement: a trace, a device, and the two times.
 ///
 /// It lives here rather than in the API because the app reads the same rows back to
@@ -15,6 +17,18 @@ class LatencyRow {
     required this.scenarioId,
   }) : sentAt = sentAt.toUtc(),
        receivedAt = receivedAt.toUtc();
+
+  /// Parses a row as `GET /latency` answers it.
+  ///
+  /// `latency` is deliberately not read: it is derived from the two timestamps, and a
+  /// value carried alongside them is one that can disagree.
+  factory LatencyRow.fromJson(Map<String, Object?> json) => LatencyRow(
+    traceId: requireText(json['trace_id'], 'trace_id'),
+    deviceId: requireText(json['device_id'], 'device_id'),
+    sentAt: requireTimestamp(json['sent_at'], 'sent_at'),
+    receivedAt: requireTimestamp(json['received_at'], 'received_at'),
+    scenarioId: _nullableText(json['scenario_id']),
+  );
 
   final String traceId;
 
@@ -53,4 +67,16 @@ class LatencyRow {
   @override
   String toString() =>
       'LatencyRow($traceId $deviceId ${latency.inMilliseconds}ms)';
+}
+
+/// Reads an optional string, keeping absence as `null`.
+///
+/// The shared [readOptionalText] treats absence as `''`, which is right for a field a
+/// validator later reports on but wrong here, for the reason `scenarioId` documents.
+String? _nullableText(Object? value) {
+  if (value == null) {
+    return null;
+  }
+
+  return readOptionalText(value, 'scenario_id');
 }

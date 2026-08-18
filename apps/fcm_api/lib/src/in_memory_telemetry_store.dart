@@ -39,6 +39,15 @@ class InMemoryTelemetryStore implements TelemetryStore {
       List<TelemetryEvent>.unmodifiable(_events.values);
 
   @override
+  Future<List<TelemetryEvent>> recent({int limit = 500}) async {
+    // The map is insertion-ordered and an upsert leaves a key's position alone, so
+    // reversing it is newest first — the same order `ORDER BY rowid DESC` gives.
+    final newestFirst = _events.values.toList().reversed;
+
+    return List<TelemetryEvent>.unmodifiable(newestFirst.take(limit));
+  }
+
+  @override
   Future<List<TelemetryEvent>> eventsForTraces(List<String> traceIds) async {
     final wanted = traceIds.toSet();
 

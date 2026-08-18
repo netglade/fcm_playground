@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fcm_api/fcm_api.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -223,6 +224,55 @@ void main() {
         reason: 'nothing at all may be stored, whatever /latency then shows',
       );
       expect(await rowsOf(await get('/latency')), isEmpty);
+    });
+  });
+
+  group('readEventLimit', () {
+    test('defaults when the parameter is absent', () {
+      // The page asks for "the recent ones" and should not have to know a number.
+      expect(readEventLimit(null), defaultEventLimit);
+    });
+
+    test('takes a number a caller asked for', () {
+      expect(readEventLimit('25'), 25);
+    });
+
+    test('refuses text rather than falling back', () {
+      // Falling back to the default would answer a different question than the one
+      // asked, and the caller would never learn their parameter was ignored.
+      expect(
+        () => readEventLimit('abc'),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('limit'),
+          ),
+        ),
+      );
+    });
+
+    test('refuses zero, a negative, and more than the cap', () {
+      // Zero and negatives are not a smaller page, they are a question with no answer;
+      // the cap exists because the whole result is held in memory at once.
+      for (final raw in ['0', '-1', '${maxEventLimit + 1}']) {
+        expect(() => readEventLimit(raw), throwsA(isA<FormatException>()));
+      }
+    });
+  });
+
+  group('eventsBody', () {
+    test('writes each event in the shape POST /events accepts', () {
+      final event = TelemetryEvent(
+        traceId: 't1',
+        type: TelemetryEventType.queued,
+        at: DateTime.utc(2026, 8, 18, 9, 30),
+        deviceId: '',
+      );
+
+      // Through toJson rather than spelled out again: the app parses these back, and
+      // two spellings of one format would drift.
+      expect(eventsBody([event]), [event.toJson()]);
     });
   });
 

@@ -433,7 +433,7 @@ void main() {
       );
       await repository.restore();
 
-      repository.requestOpen('msg-1');
+      repository.requestOpen('msg-1', OpenedFrom.background);
 
       expect(repository.hasPendingOpen, isTrue);
       expect(repository.pendingOpen?.id, 'msg-1');
@@ -442,7 +442,7 @@ void main() {
     test('stays outstanding but unresolved for an unknown id', () {
       repository = PushRepository(source, store: FakePushPayloadStore());
 
-      repository.requestOpen('never-seen');
+      repository.requestOpen('never-seen', OpenedFrom.background);
 
       expect(repository.hasPendingOpen, isTrue);
       expect(repository.pendingOpen, isNull);
@@ -457,7 +457,7 @@ void main() {
         repository = PushRepository(source, store: FakePushPayloadStore())
           ..listen();
 
-        repository.requestOpen('late');
+        repository.requestOpen('late', OpenedFrom.background);
         expect(repository.pendingOpen, isNull);
         source.emit(payload(id: 'late'));
         await pumpEventQueue();
@@ -472,7 +472,7 @@ void main() {
       final watching = repository.changes.listen((_) => notifications++);
       addTearDown(watching.cancel);
 
-      repository.requestOpen('msg-1');
+      repository.requestOpen('msg-1', OpenedFrom.background);
 
       expect(
         notifications,
@@ -489,7 +489,7 @@ void main() {
         store: FakePushPayloadStore(inbox: [payload(id: 'msg-1')]),
       );
       await repository.restore();
-      repository.requestOpen('msg-1');
+      repository.requestOpen('msg-1', OpenedFrom.background);
 
       repository.clearPendingOpen();
 
@@ -509,7 +509,7 @@ void main() {
       final seen = <InboxState>[];
       final watching = repository.changes.listen(seen.add);
       addTearDown(watching.cancel);
-      repository.requestOpen('msg-1');
+      repository.requestOpen('msg-1', OpenedFrom.background);
 
       repository.clearPendingOpen();
 
@@ -715,7 +715,7 @@ void main() {
       source.emit(payload(traceId: 'tr-1', scenarioId: 'a1_notification_only'));
       await pumpEventQueue();
 
-      repository.requestOpen('msg-1');
+      repository.requestOpen('msg-1', OpenedFrom.background);
       await pumpEventQueue();
 
       final opens = telemetry.recorded
@@ -728,6 +728,78 @@ void main() {
         reason: 'the tap resolves to the payload the inbox kept',
       );
       expect(opens.single.scenarioId, 'a1_notification_only');
+    });
+
+    test('opened says which state the tap came from', () async {
+      final telemetry = RecordingPushTelemetry();
+      final repository = PushRepository(
+        source,
+        store: FakePushPayloadStore(),
+        telemetry: telemetry,
+      )..listen();
+      addTearDown(repository.dispose);
+
+      source.emit(payload(id: 'm1', traceId: 't1'));
+      await pumpEventQueue();
+      repository.requestOpen('m1', OpenedFrom.killed);
+      await pumpEventQueue();
+
+      // The detail, not merely the type: an `opened` with a null detail is exactly
+      // what this closes, and the type alone was already recorded before.
+      final opened = telemetry.recorded
+          .where((event) => event.type == TelemetryEventType.opened)
+          .single;
+      expect(opened.detail, 'killed');
+    });
+
+    test('a tap from each channel keeps its own state', () async {
+      final telemetry = RecordingPushTelemetry();
+      final repository = PushRepository(
+        source,
+        store: FakePushPayloadStore(),
+        telemetry: telemetry,
+      )..listen();
+      addTearDown(repository.dispose);
+
+      source.emit(payload(id: 'm1', traceId: 't1'));
+      source.emit(payload(id: 'm2', traceId: 't2'));
+      await pumpEventQueue();
+      repository.requestOpen('m1', OpenedFrom.foreground);
+      repository.requestOpen('m2', OpenedFrom.background);
+      await pumpEventQueue();
+
+      // Both, in order: with one only, an implementation that hard-coded a single
+      // state would pass.
+      expect(
+        [
+          for (final event in telemetry.recorded)
+            if (event.type == TelemetryEventType.opened) event.detail,
+        ],
+        ['foreground', 'background'],
+      );
+    });
+
+    test('a tap that precedes its payload still reports its own state', () async {
+      final telemetry = RecordingPushTelemetry();
+      final repository = PushRepository(
+        source,
+        store: FakePushPayloadStore(),
+        telemetry: telemetry,
+      )..listen();
+      addTearDown(repository.dispose);
+
+      // The Android warm-start path: the tap arrives before the payload has been
+      // drained, so the state has to be held alongside the id rather than re-derived
+      // when the payload turns up — by then nothing knows where the tap came from.
+      repository.requestOpen('m1', OpenedFrom.killed);
+      await pumpEventQueue();
+      source.emit(payload(id: 'm1', traceId: 't1'));
+      await pumpEventQueue();
+
+      final opened = telemetry.recorded
+          .where((event) => event.type == TelemetryEventType.opened)
+          .single;
+      expect(opened.detail, 'killed');
     });
 
     test('delivers the push even when the reporter fails', () async {
@@ -743,7 +815,7 @@ void main() {
 
       source.emit(payload(traceId: 'tr-1'));
       await pumpEventQueue();
-      repository.requestOpen('msg-1');
+      repository.requestOpen('msg-1', OpenedFrom.background);
       await pumpEventQueue();
 
       expect(repository.messages.single.id, 'msg-1');
@@ -766,7 +838,7 @@ void main() {
         telemetry: telemetry,
       );
 
-      repository.requestOpen('tapped');
+      repository.requestOpen('tapped', OpenedFrom.background);
       await pumpEventQueue();
 
       expect(
@@ -796,7 +868,7 @@ void main() {
         telemetry: telemetry,
       )..listen();
 
-      repository.requestOpen('never-seen');
+      repository.requestOpen('never-seen', OpenedFrom.background);
       await pumpEventQueue();
 
       expect(repository.hasPendingOpen, isTrue);
@@ -806,7 +878,7 @@ void main() {
       // payload rather than a hook that never fires.
       source.emit(payload(id: 'msg-1', traceId: 'tr-1'));
       await pumpEventQueue();
-      repository.requestOpen('msg-1');
+      repository.requestOpen('msg-1', OpenedFrom.background);
       await pumpEventQueue();
 
       expect(
@@ -816,5 +888,70 @@ void main() {
         ['tr-1'],
       );
     });
+
+    test('a swipe records dismissed against the held payload', () async {
+      final telemetry = RecordingPushTelemetry();
+      final presenter = RecordingNotificationPresenter();
+      final repository = PushRepository(
+        source,
+        store: FakePushPayloadStore(),
+        presenter: presenter,
+        telemetry: telemetry,
+      )..listen();
+      addTearDown(repository.dispose);
+
+      source.emit(payload(id: 'm1', traceId: 't1'));
+      await pumpEventQueue();
+      repository.reportDismissed('m1');
+      await pumpEventQueue();
+
+      final dismissed = telemetry.recorded
+          .where((event) => event.type == TelemetryEventType.dismissed)
+          .single;
+      // Against the trace, which lives on the payload rather than on the message.
+      expect(dismissed.traceId, 't1');
+    });
+
+    test('requestOpen records an opened and nothing else', () async {
+      final telemetry = RecordingPushTelemetry();
+      final repository = PushRepository(
+        source,
+        store: FakePushPayloadStore(),
+        telemetry: telemetry,
+      )..listen();
+      addTearDown(repository.dispose);
+
+      source.emit(payload(id: 'm1', traceId: 't1'));
+      await pumpEventQueue();
+      repository.requestOpen('m1', OpenedFrom.foreground);
+      await pumpEventQueue();
+
+      // The plugin promises this and the repository must not undo it: one press is one
+      // event, or the only count a human produces gets a companion nobody asked for.
+      expect(
+        telemetry.recorded.map((event) => event.type),
+        isNot(contains(TelemetryEventType.dismissed)),
+      );
+    });
+
+    test(
+      'a swipe for a message the repository does not hold records nothing',
+      () async {
+        final telemetry = RecordingPushTelemetry();
+        final repository = PushRepository(
+          source,
+          store: FakePushPayloadStore(),
+          telemetry: telemetry,
+        )..listen();
+        addTearDown(repository.dispose);
+
+        repository.reportDismissed('never-arrived');
+        await pumpEventQueue();
+
+        // Unlike a tap, a dismissal is not held for a payload that may never come: there
+        // is nothing to open afterwards, and a fabricated trace is worse than a gap.
+        expect(telemetry.recorded, isEmpty);
+      },
+    );
   });
 }

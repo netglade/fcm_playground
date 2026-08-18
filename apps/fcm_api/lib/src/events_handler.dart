@@ -30,6 +30,46 @@ List<Map<String, Object?>> latencyBody(Iterable<LatencyRow> rows) => [
   for (final row in rows) row.toJson(),
 ];
 
+/// What `GET /events` answers with when the caller names no limit.
+const defaultEventLimit = 500;
+
+/// The most `GET /events` will answer with, however large a limit is asked for.
+///
+/// The whole result is decoded and held in memory at once, on both sides, so this is a
+/// bound on a caller's ability to make the server do that.
+const maxEventLimit = 2000;
+
+/// Reads `?limit=`, defaulting when absent and refusing what it cannot honour.
+///
+/// A bad value is a [FormatException] rather than a silent fallback: someone who typed
+/// `limit=abc` asked a question this cannot answer, and answering a different one
+/// without saying so is worse than a 400.
+int readEventLimit(String? raw) {
+  if (raw == null) {
+    return defaultEventLimit;
+  }
+
+  final limit = int.tryParse(raw);
+  if (limit == null) {
+    throw FormatException('"limit" must be a number, got "$raw"');
+  }
+  if (limit < 1 || limit > maxEventLimit) {
+    throw FormatException(
+      '"limit" must be between 1 and $maxEventLimit, got $limit',
+    );
+  }
+
+  return limit;
+}
+
+/// Serialises what `GET /events` answers with.
+///
+/// Each event goes through [TelemetryEvent.toJson], the same shape `POST /events`
+/// accepts, so the app parses back exactly the format it sends.
+List<Map<String, Object?>> eventsBody(Iterable<TelemetryEvent> events) => [
+  for (final event in events) event.toJson(),
+];
+
 /// A blind cast would raise a `TypeError` on `{"events": [1]}`, which reaches the
 /// client as a 500 and reads as a server fault rather than a malformed body.
 Map<String, Object?> _object(Object? value) {

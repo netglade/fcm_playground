@@ -1,5 +1,6 @@
 import 'package:core/core.dart';
 
+import '../../push/entities/push_tap.dart';
 import '../entities/notification_presenter.dart';
 
 /// A [NotificationPresenter] that never shows anything — the default in widget
@@ -14,7 +15,10 @@ class SilentNotificationPresenter implements NotificationPresenter {
   Future<void> show(PushMessage _) => Future<void>.value();
 
   @override
-  Stream<String> get taps => const Stream.empty();
+  Stream<PushTap> get taps => const Stream.empty();
+
+  @override
+  Stream<String> get dismissals => const Stream.empty();
 
   @override
   Future<void> dispose() => Future<void>.value();

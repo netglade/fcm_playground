@@ -38,6 +38,31 @@ void main() {
   Future<Map<String, dynamic>> bodyOf(Response response) async =>
       jsonDecode(await response.readAsString()) as Map<String, dynamic>;
 
+  /// A router over a store the caller can seed, which `handlerWith` cannot give:
+  /// it builds a fresh store per call, so nothing recorded before the request is
+  /// visible to the handler. Follows the pattern the send-side test above already uses.
+  ({Handler handler, InMemoryTelemetryStore store}) routerOverStore() {
+    final store = InMemoryTelemetryStore();
+    final sender = FakeFcmSender();
+
+    return (
+      handler: ApiRouter(
+        sender: sender,
+        now: () => sentAt,
+        newTraceId: () => 'tr-1',
+        telemetry: store,
+        scheduler: SendScheduler(
+          runs: InMemoryRunStore(),
+          telemetry: store,
+          sender: sender,
+          newId: () => 'run-1',
+          now: () => sentAt,
+        ),
+      ).handler,
+      store: store,
+    );
+  }
+
   Map<String, Object?> validBody({String token = 'device-token'}) => {
     'token': token,
     'message': {
@@ -213,6 +238,72 @@ void main() {
       );
 
       expect(response.statusCode, 502);
+    });
+  });
+
+  group('GET /events', () {
+    TelemetryEvent queuedAt(String trace, DateTime at) => TelemetryEvent(
+      traceId: trace,
+      type: TelemetryEventType.queued,
+      at: at,
+      deviceId: '',
+    );
+
+    test('answers the recent events, newest first', () async {
+      final api = routerOverStore();
+      await api.store.record([
+        queuedAt('tr-1', DateTime.utc(2026, 8, 18, 9, 30)),
+        queuedAt('tr-2', DateTime.utc(2026, 8, 18, 9, 31)),
+      ]);
+
+      final response = await api.handler(
+        Request('GET', Uri.parse('http://localhost:8080/events')),
+      );
+
+      expect(response.statusCode, 200);
+      final decoded =
+          jsonDecode(await response.readAsString()) as List<Object?>;
+      expect(
+        [for (final row in decoded) (row as Map<String, Object?>)['trace_id']],
+        ['tr-2', 'tr-1'],
+      );
+    });
+
+    test('honours a limit', () async {
+      final api = routerOverStore();
+      await api.store.record([
+        queuedAt('tr-1', DateTime.utc(2026, 8, 18, 9, 30)),
+        queuedAt('tr-2', DateTime.utc(2026, 8, 18, 9, 31)),
+        queuedAt('tr-3', DateTime.utc(2026, 8, 18, 9, 32)),
+      ]);
+
+      final response = await api.handler(
+        Request('GET', Uri.parse('http://localhost:8080/events?limit=2')),
+      );
+
+      // The newest two, not merely two: a route that honoured the count while
+      // dropping the wrong end of the list would satisfy a length assertion.
+      final decoded =
+          jsonDecode(await response.readAsString()) as List<Object?>;
+      expect(
+        [for (final row in decoded) (row as Map<String, Object?>)['trace_id']],
+        ['tr-3', 'tr-2'],
+      );
+    });
+
+    test('answers 400 naming the limit it refused', () async {
+      final api = routerOverStore();
+
+      final response = await api.handler(
+        Request('GET', Uri.parse('http://localhost:8080/events?limit=abc')),
+      );
+
+      expect(response.statusCode, 400);
+      // The field, not merely the status: a 400 that does not say which parameter was
+      // wrong leaves the caller guessing at four of them.
+      final body =
+          jsonDecode(await response.readAsString()) as Map<String, Object?>;
+      expect(body['field'], 'limit');
     });
   });
 

@@ -1,4 +1,5 @@
 import '../entities/push_source.dart';
+import '../entities/push_tap.dart';
 
 /// A [PushSource] that never emits, substituted for `FirebasePushSource` when
 /// Firebase fails to start.
@@ -9,7 +10,7 @@ class DisabledPushSource implements PushSource {
   Stream<Map<String, Object?>> get payloads => const Stream.empty();
 
   @override
-  Stream<String> get taps => const Stream.empty();
+  Stream<PushTap> get taps => const Stream.empty();
 
   @override
   Future<String?> token() => Future<String?>.value();
