@@ -39,13 +39,19 @@ class EventRow extends StatelessWidget {
 
 /// The time, the detail, and the one caveat the record carries.
 ///
-/// `sent` is annotated because its time is when the API received the request, not when
-/// FCM answered — see the spec's Scope. Leaving that unsaid would let the column read
-/// as a response time it is not.
+/// `sent` and `send_failed` are both annotated because both are stamped from the one
+/// clock reading taken before the API calls FCM, not from FCM's answer — see the
+/// spec's Scope. Leaving that unsaid would let either column read as a response time
+/// it is not.
 String _describe(TelemetryEvent event, TelemetryEventType type) {
   final at = event.at.toIso8601String();
   final detail = event.detail == null ? '' : ' · ${event.detail}';
-  final caveat = type == TelemetryEventType.sent ? ' · (request received)' : '';
+  final caveat = _isPreRequestStamp(type) ? ' · (request received)' : '';
 
   return '$at$detail$caveat';
 }
+
+/// Whether [type]'s `at` is the one clock reading taken before the API calls FCM,
+/// rather than a time FCM itself reported.
+bool _isPreRequestStamp(TelemetryEventType type) =>
+    type == TelemetryEventType.sent || type == TelemetryEventType.sendFailed;

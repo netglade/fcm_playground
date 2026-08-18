@@ -68,6 +68,25 @@ void main() {
     }
   });
 
+  testWidgets('marks sent and send_failed as the pre-request stamp', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      FakeTelemetryReader(
+        events: [
+          event('t1', TelemetryEventType.sent, detail: 'msg-1'),
+          event('t2', TelemetryEventType.sendFailed, detail: 'UNREGISTERED'),
+        ],
+      ),
+    );
+
+    // Both are stamped from the one clock reading taken before the API calls FCM,
+    // so both need the same caveat — a bare time on either would read as a
+    // response time neither is.
+    expect(find.textContaining('(request received)'), findsNWidgets(2));
+  });
+
   testWidgets('shows the reader failure instead of an empty page', (
     tester,
   ) async {
@@ -100,5 +119,46 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('300'), findsWidgets);
+    // Every figure on this tab derives from `sent`, so the tab itself must say what
+    // event_row.dart says only on the Events tab: that the figure is inflated by
+    // the FCM call.
+    expect(
+      find.textContaining('is when the API received the request'),
+      findsOneWidget,
+    );
   });
+
+  testWidgets(
+    'shows the newest of several measurements for one cell, with a count',
+    (tester) async {
+      await pumpPage(
+        tester,
+        FakeTelemetryReader(
+          rows: [
+            LatencyRow(
+              traceId: 't1',
+              deviceId: 'd1',
+              sentAt: DateTime.utc(2026, 8, 18, 9, 0),
+              receivedAt: DateTime.utc(2026, 8, 18, 9, 0, 0, 500),
+              scenarioId: 'a1_notification_only',
+            ),
+            LatencyRow(
+              traceId: 't2',
+              deviceId: 'd1',
+              sentAt: DateTime.utc(2026, 8, 18, 9, 30),
+              receivedAt: DateTime.utc(2026, 8, 18, 9, 30, 0, 300),
+              scenarioId: 'a1_notification_only',
+            ),
+          ],
+        ),
+      );
+      await tester.tap(find.text('Latency'));
+      await tester.pumpAndSettle();
+
+      // The later-sent row wins the cell, not the oldest one merely scanned first,
+      // and the count says two measurements landed here.
+      expect(find.text('300 ms (n=2)'), findsOneWidget);
+      expect(find.textContaining('500 ms'), findsNothing);
+    },
+  );
 }
