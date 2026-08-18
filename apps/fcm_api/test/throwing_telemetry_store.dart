@@ -30,6 +30,12 @@ class ThrowingTelemetryStore implements TelemetryStore {
       attempts.where((event) => traceIds.contains(event.traceId)).toList();
 
   @override
+  Future<List<TelemetryEvent>> recent({int limit = 500}) =>
+      Future<List<TelemetryEvent>>.error(
+        StateError('the store is unavailable'),
+      );
+
+  @override
   Future<List<LatencyRow>> latencies() async => const [];
 
   @override

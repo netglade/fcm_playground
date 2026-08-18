@@ -82,6 +82,18 @@ CREATE TABLE IF NOT EXISTS events (
       _eventFrom(row),
   ];
 
+  @override
+  Future<List<TelemetryEvent>> recent({int limit = 500}) async => [
+    // `rowid` DESC is recorded order reversed, which is the same "newest first" the
+    // in-memory store gets by reversing its insertion-ordered map.
+    for (final row in _db.select(
+      'SELECT trace_id, type, device_id, at, scenario_id, detail '
+      'FROM events ORDER BY rowid DESC LIMIT ?',
+      [limit],
+    ))
+      _eventFrom(row),
+  ];
+
   /// `rowid` order is recorded order, as in [all]. The placeholders are built from
   /// the list's length rather than interpolated, so a trace id can never be SQL.
   @override

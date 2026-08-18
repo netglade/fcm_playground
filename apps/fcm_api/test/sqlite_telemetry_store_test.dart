@@ -420,6 +420,49 @@ void _storeBehaviour() {
     });
   });
 
+  group('recent', () {
+    test('answers newest first, which all() deliberately does not', () async {
+      await store.record([
+        sentAt('tr-1', DateTime.utc(2026, 8, 13, 9, 0)),
+        sentAt('tr-2', DateTime.utc(2026, 8, 13, 9, 1)),
+      ]);
+
+      // The page shows the last thing that happened first, while `all()` is recorded
+      // order because the API stamps `queued` and `sent` from one clock reading. Both
+      // orders are wanted; this is the one a screen reads.
+      expect((await store.recent()).map((event) => event.traceId), [
+        'tr-2',
+        'tr-1',
+      ]);
+    });
+
+    test('stops at the limit, keeping the newest', () async {
+      await store.record([
+        sentAt('tr-1', DateTime.utc(2026, 8, 13, 9, 0)),
+        sentAt('tr-2', DateTime.utc(2026, 8, 13, 9, 1)),
+        sentAt('tr-3', DateTime.utc(2026, 8, 13, 9, 2)),
+      ]);
+
+      // Keeping the newest, not merely keeping two: a store that took the first two
+      // would satisfy a length assertion and answer the wrong question.
+      expect((await store.recent(limit: 2)).map((event) => event.traceId), [
+        'tr-3',
+        'tr-2',
+      ]);
+    });
+
+    test('agrees with all() about content, one reversal apart', () async {
+      await store.record([
+        sentAt('tr-1', DateTime.utc(2026, 8, 13, 9, 0)),
+        arrivalAt('tr-1', 'dev-a', DateTime.utc(2026, 8, 13, 9, 1)),
+      ]);
+
+      // A `recent` that dropped a column or a row would pass both tests above.
+      // `TelemetryEvent` has value equality, so this compares contents, not identity.
+      expect(await store.recent(), (await store.all()).reversed.toList());
+    });
+  });
+
   group('eventsForTraces', () {
     TelemetryEvent event(String traceId, TelemetryEventType type) =>
         TelemetryEvent(

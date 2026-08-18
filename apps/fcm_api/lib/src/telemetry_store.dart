@@ -23,6 +23,14 @@ abstract interface class TelemetryStore {
   /// the API stamps `queued` and `sent` from one clock reading.
   Future<List<TelemetryEvent>> all();
 
+  /// The most recent [limit] events, newest first.
+  ///
+  /// Newest first and bounded, unlike [all]: a page shows the last thing that happened,
+  /// and a store that has been recording for days should not be read whole to answer
+  /// that. [limit] must be positive — `GET /events` is what refuses a caller's bad one,
+  /// so this does not repeat the check.
+  Future<List<TelemetryEvent>> recent({int limit = 500});
+
   /// Every stored event belonging to one of [traceIds], in recorded order.
   ///
   /// Narrower than [all] because a run's timeline asks about six traces and reading
