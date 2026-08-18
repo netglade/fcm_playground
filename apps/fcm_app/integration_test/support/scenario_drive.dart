@@ -16,6 +16,14 @@ import 'telemetry_probe.dart';
 /// left over.
 const _rejectionSettle = Duration(seconds: 5);
 
+/// How long to leave between checks while [_rejectedCard] waits for the failure
+/// card to render.
+///
+/// Short, unlike `telemetry_probe.dart`'s `_pollInterval`: that one waits on the API
+/// and a device, this one only waits on the frame after a state change that, per
+/// `tap()`'s own settle, should already have happened by the time this loop starts.
+const _rejectionPollInterval = Duration(milliseconds: 200);
+
 /// Sends [scenario] the way a user would, then asserts what the pipeline recorded.
 ///
 /// Only ever called for a scenario `skipReasonFor` cleared, so it does not re-check.
@@ -91,7 +99,7 @@ Future<String> _readTraceId(PatrolIntegrationTester $) async {
 /// for after all, rather than a fixed sleep with nothing behind it. The wording inside
 /// is deliberately not pinned: it is FCM's own error text travelling through two
 /// layers of mapping, and asserting it here would make the test fail on a Google copy
-/// edit. What is pinned is that the success card is absent, which is the part that
+/// edit. What is pinned is that the failure card is absent, which is the part that
 /// would silently invert if the API started swallowing errors.
 Future<Finder> _rejectedCard(
   PatrolIntegrationTester $,
@@ -104,19 +112,22 @@ Future<Finder> _rejectedCard(
   final deadline = $.tester.binding.clock.now().add(_rejectionSettle);
   while (failureCard.evaluate().isEmpty &&
       $.tester.binding.clock.now().isBefore(deadline)) {
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(_rejectionPollInterval);
     await $.pump();
   }
 
+  // Claims only what was observed: the absence of a failure card within the
+  // window, not that the send succeeded — a slow or hung request lands here too,
+  // and the two are worth telling apart in whoever reads the first failing run.
   expect(
     failureCard.evaluate().isNotEmpty,
     isTrue,
     reason:
-        '${scenario.id} was expected to be refused, but the send '
-        'succeeded instead',
+        '${scenario.id} was expected to be refused, but no refusal was '
+        'observed within $_rejectionSettle',
   );
 
-  return newestCard();
+  return newestRejectedCard();
 }
 
 /// Compares what arrived against what the table expects, both ways.

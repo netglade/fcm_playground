@@ -26,13 +26,30 @@ Finder cardForTrace(String traceId) => find.byWidgetPredicate(
   description: 'TraceCard for trace $traceId',
 );
 
-/// The newest trace on the page.
+/// The newest trace whose send was refused.
 ///
-/// For a refused send there is no trace id on screen to match — `SendResultCard` shows
-/// the server's error and nothing else — so the newest card is the only handle. Sound
-/// because `GET /events` answers newest first and `groupIntoTimelines` keeps that
-/// order, and because the test under way is the only send since the app launched.
-Finder newestCard() => find.byType(TraceCard).first;
+/// For a refused send there is no trace id on screen to match — `SendResultCard`
+/// shows the server's error and nothing else — so the newest *rejected* trace is
+/// the handle, not simply the newest trace. Those are not the same thing: `GET
+/// /events` orders traces by wherever their newest event landed, so a trace already
+/// on screen moves back to the front the moment it gains one — including a
+/// `received_fg` or `displayed` from an earlier scenario's delivery arriving late.
+/// `c2_priority_normal` carries a two-minute timeout precisely because FCM is
+/// entitled to hold a normal-priority push that long, so a delivery from group C can
+/// still land while group K is running. Scoping to `send_failed` rules that
+/// displacement out: no delivered scenario ever records it, so a late delivery can
+/// never push its way in front of a rejected trace here — and a rejected send never
+/// reaches a device, so it can never gain a later event of its own either. Matched on
+/// `timeline.eventOf`, the same underlying data `EventRow` reads, rather than on
+/// rendered text, for the reason [cardForTrace] gives.
+Finder newestRejectedCard() => find
+    .byWidgetPredicate(
+      (widget) =>
+          widget is TraceCard &&
+          widget.timeline.eventOf(TelemetryEventType.sendFailed) != null,
+      description: 'newest TraceCard with a send_failed event',
+    )
+    .first;
 
 /// Whether [card] shows an arrived (non-null) event of [type].
 ///
