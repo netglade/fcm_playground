@@ -912,7 +912,7 @@ void main() {
       expect(dismissed.traceId, 't1');
     });
 
-    test('a tap does not also record a dismissed', () async {
+    test('requestOpen records an opened and nothing else', () async {
       final telemetry = RecordingPushTelemetry();
       final repository = PushRepository(
         source,

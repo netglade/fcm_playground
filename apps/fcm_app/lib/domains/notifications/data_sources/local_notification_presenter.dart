@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:core/core.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../push/entities/push_tap.dart';
@@ -32,7 +33,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(),
       ),
-      onDidReceiveNotificationResponse: _onResponse,
+      onDidReceiveNotificationResponse: handleResponse,
     );
 
     await _plugin
@@ -80,7 +81,12 @@ class LocalNotificationPresenter implements NotificationPresenter {
     await _dismissals.close();
   }
 
-  void _onResponse(NotificationResponse response) {
+  /// Routes one plugin response to the stream it belongs on.
+  ///
+  /// Visible for testing because this is where the tap/dismissal distinction lives, and
+  /// the plugin hands it to us through a callback there is otherwise no way to invoke.
+  @visibleForTesting
+  void handleResponse(NotificationResponse response) {
     if (response.payload case final id? when id.isNotEmpty) {
       if (response.notificationResponseType ==
           NotificationResponseType.notificationDismissed) {
