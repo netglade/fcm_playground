@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:fcm_app/app.dart';
@@ -23,6 +24,20 @@ const tokenTimeout = Duration(seconds: 45);
 /// expected every time; the wait is bounded rather than required in case a device or
 /// an API level below 33 never shows one.
 const _permissionDialogTimeout = Duration(seconds: 15);
+
+/// How long a TCP connect to a new host is given before it is called unreachable.
+///
+/// Only bounds the connect itself: the SDK documents `HttpClient.connectionTimeout`
+/// as covering the act of reaching a new host, not anything that happens after.
+const _connectTimeout = Duration(seconds: 3);
+
+/// How long the whole `/health` round trip — connect, headers and body — is given
+/// before an API that accepted the connection but never answered is called stuck.
+///
+/// A separate, longer bound than [_connectTimeout] on purpose: a host can accept a
+/// TCP connection and then never write a response, which `connectionTimeout` alone
+/// does not catch.
+const _healthCheckTimeout = Duration(seconds: 5);
 
 /// Brings the real app up, ready to drive.
 ///
@@ -73,13 +88,21 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
 /// Without this the suite produces seventeen delivery timeouts whose single cause is
 /// one stopped process, and the first one read would send someone into the app.
 Future<void> requireApiReachable() async {
-  final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
+  final Uri healthUri;
   try {
-    final request = await client.getUrl(
-      Uri.parse(defaultApiBaseUrl).replace(path: '/health'),
+    healthUri = Uri.parse(defaultApiBaseUrl).replace(path: '/health');
+  } on FormatException catch (error) {
+    throw StateError(
+      'FCM_API_BASE_URL="$defaultApiBaseUrl" is not a valid URL ($error).',
     );
-    final response = await request.close();
-    await response.drain<void>();
+  }
+
+  final client = HttpClient()..connectionTimeout = _connectTimeout;
+  try {
+    final response = await _fetchHealth(
+      client,
+      healthUri,
+    ).timeout(_healthCheckTimeout);
     if (response.statusCode != 200) {
       throw StateError(
         'The API at $defaultApiBaseUrl answered ${response.statusCode} for '
@@ -94,9 +117,23 @@ Future<void> requireApiReachable() async {
       'On the emulator rebuild with '
       '--dart-define=FCM_API_BASE_URL=http://10.0.2.2:8080',
     );
+  } on TimeoutException {
+    throw StateError(
+      'The API at $defaultApiBaseUrl accepted a connection but did not answer '
+      '/health within $_healthCheckTimeout. Start it with: melos run api:serve',
+    );
   } finally {
     client.close();
   }
+}
+
+/// The connect-headers-body sequence `requireApiReachable` bounds as one whole.
+Future<HttpClientResponse> _fetchHealth(HttpClient client, Uri uri) async {
+  final request = await client.getUrl(uri);
+  final response = await request.close();
+  await response.drain<void>();
+
+  return response;
 }
 
 /// Waits on the Inbox — the shell's default destination — until the token is drawn.
