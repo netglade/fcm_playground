@@ -4,12 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import '../integration_test/support/expected_events.dart';
 
 /// Which of [skipReasonFor]'s three branches a skipped [scenario] falls under,
-/// or null when it runs.
+/// `'unclassified'` if none of them account for it, or null when it runs.
 ///
 /// Mirrors that function's own order — needs, then platform, then
 /// requiresKilledApp — over the same fields it reads, rather than a hard-coded
 /// list of ids: a scenario that becomes unblocked drops out of its bucket
-/// instead of staying miscounted.
+/// instead of staying miscounted. The fall-through is a genuine outcome, not
+/// a default: if [skipReasonFor] ever grows a fourth reason to skip, the
+/// scenario it applies to lands here instead of silently joining `'appKill'`,
+/// and the sum assertion below catches it.
 String? _skipBucket(Scenario scenario) {
   if (skipReasonFor(scenario) == null) return null;
 
@@ -20,7 +23,9 @@ String? _skipBucket(Scenario scenario) {
     return 'ios';
   }
 
-  return 'appKill';
+  if (scenario.requiresKilledApp) return 'appKill';
+
+  return 'unclassified';
 }
 
 void main() {
@@ -139,21 +144,37 @@ void main() {
       // ScenarioNeed too, and skipReasonFor checks that branch first — so
       // it lands in the needs bucket above, leaving only b3_killed here.
       expect(appKillOnly.map((s) => s.id), ['b3_killed']);
+    });
 
-      // The three buckets must not drift apart from the totals the file
-      // already pins above: 44 + 4 + 1 is the 49 skipped, and 49 + 17 is
-      // the catalogue's 66.
+    test('the skip buckets add up to forty-nine, with none unclassified', () {
       final needsCount = scenarioGallery
           .where((s) => _skipBucket(s) == 'needs')
           .length;
       final iosCount = scenarioGallery
           .where((s) => _skipBucket(s) == 'ios')
           .length;
+      final appKillCount = scenarioGallery
+          .where((s) => _skipBucket(s) == 'appKill')
+          .length;
+      final unclassified = scenarioGallery.where(
+        (s) => _skipBucket(s) == 'unclassified',
+      );
       final skippedCount = scenarioGallery
           .where((s) => skipReasonFor(s) != null)
           .length;
 
-      expect(needsCount + iosCount + appKillOnly.length, skippedCount);
+      // A non-empty bucket here means skipReasonFor grew a reason to skip
+      // that none of needs/platform/requiresKilledApp accounts for — the
+      // classifier and the function it mirrors have drifted apart.
+      expect(unclassified, isEmpty);
+
+      // The buckets must not drift apart from the totals the file already
+      // pins above: 44 + 4 + 1 is the 49 skipped, and 49 + 17 is the
+      // catalogue's 66.
+      expect(
+        needsCount + iosCount + appKillCount + unclassified.length,
+        skippedCount,
+      );
       expect(skippedCount, 49);
       expect(skippedCount + 17, 66);
     });
