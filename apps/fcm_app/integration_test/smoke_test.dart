@@ -1,12 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
+import 'support/app_harness.dart';
+
 void main() {
-  patrolTest('the Patrol runner reaches a Dart test', ($) async {
-    // Asserts nothing about the app on purpose. Its whole job is to prove the
-    // instrumentation, the Dart test bundle and patrol_cli agree with each other —
-    // a failure here is a wiring failure, and folding an app assertion in would
-    // make that ambiguous.
-    expect(1, 1);
+  patrolTest('the app launches, grants notifications, and registers a token', (
+    $,
+  ) async {
+    await launchApp($);
+
+    // The token is the one precondition every scenario shares, so proving the
+    // harness reaches it is proving the suite can start at all.
+    expect($('Registration token').exists, isTrue);
   });
 }
