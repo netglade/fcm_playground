@@ -8,6 +8,7 @@ import 'domains/runs/entities/run_scheduler.dart';
 import 'domains/runs/start_run.dart';
 import 'domains/sandbox/entities/notification_sender.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
+import 'domains/telemetry/entities/telemetry_reader.dart';
 import 'pages/inbox/cubit/inbox_cubit.dart';
 import 'pages/sandbox/cubit/sandbox_cubit.dart';
 import 'pages/shell/app_shell.dart';
@@ -39,6 +40,9 @@ class App extends StatelessWidget {
       RepositoryProvider<StartRun>(create: (_) => getIt<StartRun>()),
       RepositoryProvider<ActiveRunStore>(
         create: (_) => getIt<ActiveRunStore>(),
+      ),
+      RepositoryProvider<TelemetryReader>(
+        create: (_) => getIt<TelemetryReader>(),
       ),
     ],
     child: MultiBlocProvider(

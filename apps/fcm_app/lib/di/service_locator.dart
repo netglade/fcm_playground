@@ -24,12 +24,14 @@ import '../domains/sandbox/data_sources/http_notification_sender.dart';
 import '../domains/sandbox/data_sources/unavailable_notification_sender.dart';
 import '../domains/sandbox/entities/notification_sender.dart';
 import '../domains/telemetry/data_sources/drift_telemetry_buffer.dart';
+import '../domains/telemetry/data_sources/http_telemetry_reader.dart';
 import '../domains/telemetry/data_sources/shared_preferences_device_identity.dart';
 import '../domains/telemetry/data_sources/silent_push_telemetry.dart';
 import '../domains/telemetry/data_sources/telemetry_reporter.dart';
 import '../domains/telemetry/entities/device_identity.dart';
 import '../domains/telemetry/entities/push_telemetry.dart';
 import '../domains/telemetry/entities/telemetry_buffer.dart';
+import '../domains/telemetry/entities/telemetry_reader.dart';
 import '../firebase_options.dart';
 import '../firebase_setup.dart';
 
@@ -67,7 +69,16 @@ Future<void> configureDependencies({
     ..registerSingleton<ActiveRunStore>(SharedPreferencesActiveRunStore())
     ..registerSingleton<NotificationPresenter>(presenter)
     ..registerSingleton<NotificationSender>(_senderFor(setupError))
-    ..registerSingleton<RunScheduler>(_runSchedulerFor(setupError));
+    ..registerSingleton<RunScheduler>(_runSchedulerFor(setupError))
+    ..registerSingleton<TelemetryReader>(
+      // Unconditional, unlike the sender and the scheduler: those need a registration
+      // token before they can do anything, and reading telemetry needs nothing from
+      // Firebase at all.
+      HttpTelemetryReader(
+        client: http.Client(),
+        baseUrl: Uri.parse(defaultApiBaseUrl),
+      ),
+    );
   getIt.registerSingleton<StartRun>(
     StartRun(scheduler: getIt<RunScheduler>(), active: getIt<ActiveRunStore>()),
   );
