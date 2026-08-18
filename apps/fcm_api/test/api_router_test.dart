@@ -281,9 +281,13 @@ void main() {
         Request('GET', Uri.parse('http://localhost:8080/events?limit=2')),
       );
 
+      // The newest two, not merely two: a route that honoured the count while
+      // dropping the wrong end of the list would satisfy a length assertion.
+      final decoded =
+          jsonDecode(await response.readAsString()) as List<Object?>;
       expect(
-        (jsonDecode(await response.readAsString()) as List<Object?>).length,
-        2,
+        [for (final row in decoded) (row as Map<String, Object?>)['trace_id']],
+        ['tr-3', 'tr-2'],
       );
     });
 
