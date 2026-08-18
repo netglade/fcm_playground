@@ -85,14 +85,7 @@ dart_code_metrics:
     - no-empty-block
     - no-equal-then-else
     - prefer-correct-type-name
-    - prefer-match-file-name:
-        exclude:
-          # The interface contract fixes both names: the file is
-          # `support/expected_events.dart`, named for the census table it holds, and
-          # its first class is `ScenarioExpectation`, named for the row it declares.
-          # Renaming either would break Task 5's import or the table's own doc
-          # comment, so the mismatch is intentional rather than a name to fix.
-          - integration_test/support/expected_events.dart
+    - prefer-match-file-name
     - prefer-trailing-comma
     # Flutter
     - always-remove-listener
