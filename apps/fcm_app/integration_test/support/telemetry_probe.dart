@@ -26,30 +26,51 @@ Finder cardForTrace(String traceId) => find.byWidgetPredicate(
   description: 'TraceCard for trace $traceId',
 );
 
-/// The newest trace whose send was refused.
+/// The newest trace whose send was refused *by the send this test just made*.
 ///
 /// For a refused send there is no trace id on screen to match — `SendResultCard`
 /// shows the server's error and nothing else — so the newest *rejected* trace is
-/// the handle, not simply the newest trace. Those are not the same thing: `GET
-/// /events` orders traces by wherever their newest event landed, so a trace already
-/// on screen moves back to the front the moment it gains one — including a
-/// `received_fg` or `displayed` from an earlier scenario's delivery arriving late.
-/// `c2_priority_normal` carries a two-minute timeout precisely because FCM is
-/// entitled to hold a normal-priority push that long, so a delivery from group C can
-/// still land while group K is running. Scoping to `send_failed` rules that
-/// displacement out: no delivered scenario ever records it, so a late delivery can
-/// never push its way in front of a rejected trace here — and a rejected send never
-/// reaches a device, so it can never gain a later event of its own either. Matched on
-/// `timeline.eventOf`, the same underlying data `EventRow` reads, rather than on
-/// rendered text, for the reason [cardForTrace] gives.
-Finder newestRejectedCard() => find
-    .byWidgetPredicate(
-      (widget) =>
-          widget is TraceCard &&
-          widget.timeline.eventOf(TelemetryEventType.sendFailed) != null,
-      description: 'newest TraceCard with a send_failed event',
-    )
-    .first;
+/// the handle, not simply the newest trace. Those are not the same thing, for two
+/// distinct reasons, and scoping to `send_failed` alone only rules out the first:
+///
+/// 1. **Displacement.** `GET /events` orders traces by wherever their newest event
+///    landed, so a trace already on screen moves back to the front the moment it
+///    gains one — including a `received_fg` or `displayed` from an earlier
+///    scenario's delivery arriving late. `c2_priority_normal` carries a two-minute
+///    timeout precisely because FCM is entitled to hold a normal-priority push
+///    that long, so a delivery from group C can still land while group K is
+///    running. No delivered scenario ever records `send_failed`, so a late
+///    delivery can never push its way in front of a rejected trace here.
+/// 2. **Staleness.** The telemetry SQLite file persists across runs by design, so
+///    without [notBefore] the newest card carrying `send_failed` could be *this
+///    scenario's own trace from a previous run*, or the other rejected scenario's
+///    trace from minutes earlier — if the send under test fails for an unrelated
+///    reason (a dropped `adb reverse`, a timed-out `POST /send`) and produces no
+///    `send_failed` of its own, the stale card still satisfies every assertion.
+///    [notBefore] closes that gap: only a `send_failed` recorded at or after the
+///    instant this test tapped Send can match. [scenarioId] narrows further, for
+///    the case where two rejections land in the same instant — `SandboxCubit.send`
+///    always sets it from `state.selectedScenario?.id`, so it is safe to pass
+///    whenever the caller knows it.
+///
+/// Matched on `timeline.eventOf` and `timeline.scenarioId`, the same underlying
+/// data `EventRow` reads, rather than on rendered text, for the reason
+/// [cardForTrace] gives.
+Finder newestRejectedCard({required DateTime notBefore, String? scenarioId}) =>
+    find.byWidgetPredicate(
+      (widget) {
+        if (widget is! TraceCard) {
+          return false;
+        }
+        final failure = widget.timeline.eventOf(TelemetryEventType.sendFailed);
+        if (failure == null || failure.at.isBefore(notBefore)) {
+          return false;
+        }
+
+        return scenarioId == null || widget.timeline.scenarioId == scenarioId;
+      },
+      description: 'newest TraceCard with a send_failed at or after $notBefore',
+    ).first;
 
 /// Whether [card] shows an arrived (non-null) event of [type].
 ///
@@ -93,11 +114,24 @@ Future<Set<TelemetryEventType>> awaitArrival(
   final deadline = $.tester.binding.clock.now().add(timeout);
   while (true) {
     await $(find.byTooltip('Reload')).tap();
-    final arrived = card.evaluate().isEmpty
-        ? <TelemetryEventType>{}
-        : arrivedTypes(card);
+    final found = card.evaluate().isNotEmpty;
+    final arrived = found ? arrivedTypes(card) : <TelemetryEventType>{};
     if (expected.difference(arrived).isEmpty ||
         $.tester.binding.clock.now().isAfter(deadline)) {
+      // Told apart on purpose: "never found" and "found with these rows empty"
+      // are different diagnoses. `EventsTab` is a `ListView` that builds only the
+      // topmost few cards and nothing here scrolls it, so a trace pushed out of
+      // the built range would otherwise read as nothing having been recorded —
+      // even though the caller demonstrably read a trace id off a successful
+      // send moments earlier.
+      if (!found) {
+        fail(
+          'The TraceCard never appeared in the Events list within $timeout. '
+          'It may have been pushed out of the built range by a later trace — '
+          'scroll is not applied here — or the id it was matched on is wrong.',
+        );
+      }
+
       return arrived;
     }
     // A real delay, then one frame. `$.pump(duration)` would be the shorter spelling,

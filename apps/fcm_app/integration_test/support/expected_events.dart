@@ -104,6 +104,11 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     // than sufficient — see the spec's Known limitations.
     timeout: Duration(minutes: 2),
   ),
+  // Shares c2's "can fail for a correct reason" property, and worse: TTL zero
+  // means FCM makes exactly one delivery attempt and discards the message if it
+  // does not land, so a momentarily unreachable device fails this test for a
+  // correct reason too — and unlike c2, no longer timeout can rescue it, because
+  // there is no later delivery window to wait for. See CALIBRATION.md.
   'c3_ttl_zero': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,

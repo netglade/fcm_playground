@@ -64,6 +64,22 @@ hold the message until the next maintenance window. Its two-minute timeout is ge
 not sufficient. A timeout there may be FCM behaving exactly as documented — re-run
 before believing it.
 
+**`c3_ttl_zero` shares that property, and a longer timeout cannot fix it.** `ttl: '0s'`
+tells FCM to make exactly one delivery attempt and discard the message rather than
+queue it. A device that is momentarily unreachable at the instant FCM tries — briefly
+off the network, mid Doze maintenance window itself — fails this test for a correct
+reason, and re-running is the only remedy: there is no later delivery window for a
+longer timeout to wait for, unlike `c2`.
+
+**A passing `displayed` does not prove a notification was drawn.** It is recorded
+when `LocalNotificationPresenter.show` *returns without throwing* — not when the OS
+actually paints something. On Android 13+ with `POST_NOTIFICATIONS` denied, `show`
+still returns normally; nothing appears in the tray. So if permission granting were
+ever to silently fail — the harness's own grant call swallowing an error, a device
+that never shows the dialog at all — every `displayed` assertion here would still
+pass, against an empty tray. `displayed` is evidence the app *tried* to draw a
+banner, not that a person would have seen one.
+
 **The four iOS scenarios have never been compiled for iOS.** They are in the table so
 that unblocking iOS is a skip-policy change rather than a table rewrite. Expect the
 Xcode side to need work that this plan did not do.

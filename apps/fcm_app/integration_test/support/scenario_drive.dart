@@ -1,3 +1,4 @@
+import 'package:fcm_app/pages/inbox/widgets/message_tile.dart';
 import 'package:fcm_app/pages/sandbox/widgets/send_result_card.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,23 @@ const _rejectionSettle = Duration(seconds: 5);
 /// `tap()`'s own settle, should already have happened by the time this loop starts.
 const _rejectionPollInterval = Duration(milliseconds: 200);
 
+/// The widest bound given to a delivered send's round trip — the API call and the
+/// frame that renders `SendResultCard`'s success branch — before [_readTraceId]
+/// gives up waiting for the trace text.
+///
+/// Named rather than left to Patrol's default `visibleTimeout`, like every other
+/// wait in this file.
+const _sendRoundTripTimeout = Duration(seconds: 30);
+
+/// How many scroll gestures `scrollTo()` may take, in place of Patrol's default
+/// of 15.
+///
+/// Group K's header is the eleventh of eleven in a list whose first group starts
+/// expanded, which is comfortably enough rows to need more drags than the
+/// default budgets for. An explicit number beats relying on it happening to be
+/// enough.
+const _scenarioScrollMax = 30;
+
 /// Sends [scenario] the way a user would, then asserts what the pipeline recorded.
 ///
 /// Only ever called for a scenario `skipReasonFor` cleared, so it does not re-check.
@@ -32,10 +50,13 @@ Future<void> driveScenario(PatrolIntegrationTester $, Scenario scenario) async {
 
   await launchApp($);
   await _applyScenario($, scenario);
+  // Read before tapping Send, not after: it has to predate the `send_failed`
+  // this test's own send will produce, not just the read of it.
+  final sentAt = $.tester.binding.clock.now().toUtc();
   await $(Icons.send_outlined).tap();
 
   final Finder card = expectation.sendRejected
-      ? await _rejectedCard($, scenario)
+      ? await _rejectedCard($, scenario, sentAt)
       : cardForTrace(await _readTraceId($));
 
   await openTelemetry($);
@@ -47,6 +68,9 @@ Future<void> driveScenario(PatrolIntegrationTester $, Scenario scenario) async {
   );
 
   _assertRecorded(scenario, expectation, arrived);
+  if (!expectation.sendRejected) {
+    await _assertInInbox($);
+  }
 }
 
 /// Picks [scenario] out of the gallery, which hands off to the Sandbox with the
@@ -63,7 +87,7 @@ Future<void> _applyScenario(
   await _expandGroup($, scenario);
 
   final card = $(Key('scenario-${scenario.id}'));
-  await card.scrollTo();
+  await card.scrollTo(maxScrolls: _scenarioScrollMax);
   await card.tap();
 }
 
@@ -79,14 +103,36 @@ Future<void> _expandGroup(PatrolIntegrationTester $, Scenario scenario) async {
   }
 
   final title = $(scenario.group);
-  await title.scrollTo();
+  await title.scrollTo(maxScrolls: _scenarioScrollMax);
   await title.tap();
 }
 
 /// The trace id the send reported, read off `SendResultCard`.
+///
+/// Checks for a refusal first. A delivered scenario is not expected to be
+/// refused, but a send can still come back rejected for reasons that have
+/// nothing to do with the scenario — a revoked service-account permission, the
+/// wrong project, `SENDER_ID_MISMATCH`, a stale token, a transient FCM 502 — and
+/// when it does, `SendResultCard`'s failure branch renders instead of the trace
+/// text this waits for, and that text never appears. Without this check the test
+/// dies at Patrol's default timeout with a bare `WaitUntilVisibleTimeoutException`
+/// and no screenshot, while the actual answer — FCM's mapped error message — sits
+/// on screen the whole time. This is also the most likely way a *first* run
+/// fails, since bad credentials are the usual first-run problem.
 Future<String> _readTraceId(PatrolIntegrationTester $) async {
+  final failureCard = find.descendant(
+    of: find.byType(SendResultCard),
+    matching: find.byType(ColoredBox),
+  );
+  if (failureCard.evaluate().isNotEmpty) {
+    final message = $(
+      find.descendant(of: failureCard, matching: find.byType(Text)),
+    ).text;
+    fail('Send was refused instead of delivered: $message');
+  }
+
   final result = $(RegExp(r'trace \S+'));
-  await result.waitUntilVisible();
+  await result.waitUntilVisible(timeout: _sendRoundTripTimeout);
   final match = RegExp(r'trace (\S+)').firstMatch(result.text!);
 
   return match!.group(1)!;
@@ -99,11 +145,12 @@ Future<String> _readTraceId(PatrolIntegrationTester $) async {
 /// for after all, rather than a fixed sleep with nothing behind it. The wording inside
 /// is deliberately not pinned: it is FCM's own error text travelling through two
 /// layers of mapping, and asserting it here would make the test fail on a Google copy
-/// edit. What is pinned is that the failure card is absent, which is the part that
+/// edit. What is pinned is that the failure card is present, which is the part that
 /// would silently invert if the API started swallowing errors.
 Future<Finder> _rejectedCard(
   PatrolIntegrationTester $,
   Scenario scenario,
+  DateTime sentAt,
 ) async {
   final failureCard = find.descendant(
     of: find.byType(SendResultCard),
@@ -116,7 +163,7 @@ Future<Finder> _rejectedCard(
     await $.pump();
   }
 
-  // Claims only what was observed: the absence of a failure card within the
+  // Claims only what was observed: the presence of a failure card within the
   // window, not that the send succeeded — a slow or hung request lands here too,
   // and the two are worth telling apart in whoever reads the first failing run.
   expect(
@@ -127,7 +174,29 @@ Future<Finder> _rejectedCard(
         'observed within $_rejectionSettle',
   );
 
-  return newestRejectedCard();
+  return newestRejectedCard(notBefore: sentAt, scenarioId: scenario.id);
+}
+
+/// Confirms the spec's other half of the oracle: "The Inbox must show the
+/// message." The Telemetry assertions above cover the trace only; they do not
+/// visit the Inbox at all. A passing `displayed` transitively implies the inbox
+/// holds the message for most scenarios, but `a2_data_only`, `a4_no_display` and
+/// `i2_silent_data_sync` are exactly the three whose catalogue text says to watch
+/// the Inbox rather than the tray, so this checks it directly instead of trusting
+/// the implication.
+///
+/// Never called for a refused send — nothing reached a device, so there is
+/// nothing for the Inbox to hold.
+Future<void> _assertInInbox(PatrolIntegrationTester $) async {
+  await $(find.byTooltip('Open navigation menu')).tap();
+  await $('Inbox').tap();
+
+  expect(
+    find.byType(MessageTile).evaluate(),
+    isNotEmpty,
+    reason:
+        'the Inbox should hold the delivered message, but the list is empty',
+  );
 }
 
 /// Compares what arrived against what the table expects, both ways.
