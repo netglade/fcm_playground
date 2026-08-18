@@ -3,6 +3,26 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../integration_test/support/expected_events.dart';
 
+/// Which of [skipReasonFor]'s three branches a skipped [scenario] falls under,
+/// or null when it runs.
+///
+/// Mirrors that function's own order — needs, then platform, then
+/// requiresKilledApp — over the same fields it reads, rather than a hard-coded
+/// list of ids: a scenario that becomes unblocked drops out of its bucket
+/// instead of staying miscounted.
+String? _skipBucket(Scenario scenario) {
+  if (skipReasonFor(scenario) == null) return null;
+
+  if (scenario.needs.isNotEmpty) return 'needs';
+
+  final expectation = scenarioExpectations[scenario.id];
+  if (expectation != null && !expectation.platforms.contains(suitePlatform)) {
+    return 'ios';
+  }
+
+  return 'appKill';
+}
+
 void main() {
   group('integration coverage', () {
     test('every scenario either has an expectation or a reason to skip', () {
@@ -94,6 +114,48 @@ void main() {
           reason: entry.key,
         );
       }
+    });
+
+    test('forty-four scenarios are skipped for an unbuilt ScenarioNeed', () {
+      final blockedByNeed = scenarioGallery.where(
+        (s) => _skipBucket(s) == 'needs',
+      );
+
+      expect(blockedByNeed, hasLength(44));
+    });
+
+    test('four scenarios are skipped for being iOS-only', () {
+      final iosOnly = scenarioGallery.where((s) => _skipBucket(s) == 'ios');
+
+      expect(iosOnly, hasLength(4));
+    });
+
+    test('one scenario is skipped only for needing the app killed', () {
+      final appKillOnly = scenarioGallery.where(
+        (s) => _skipBucket(s) == 'appKill',
+      );
+
+      // f5_deeplink_killed also requires a killed app, but it carries a
+      // ScenarioNeed too, and skipReasonFor checks that branch first — so
+      // it lands in the needs bucket above, leaving only b3_killed here.
+      expect(appKillOnly.map((s) => s.id), ['b3_killed']);
+
+      // The three buckets must not drift apart from the totals the file
+      // already pins above: 44 + 4 + 1 is the 49 skipped, and 49 + 17 is
+      // the catalogue's 66.
+      final needsCount = scenarioGallery
+          .where((s) => _skipBucket(s) == 'needs')
+          .length;
+      final iosCount = scenarioGallery
+          .where((s) => _skipBucket(s) == 'ios')
+          .length;
+      final skippedCount = scenarioGallery
+          .where((s) => skipReasonFor(s) != null)
+          .length;
+
+      expect(needsCount + iosCount + appKillOnly.length, skippedCount);
+      expect(skippedCount, 49);
+      expect(skippedCount + 17, 66);
     });
 
     test('a rejected send expects nothing device-side', () {
