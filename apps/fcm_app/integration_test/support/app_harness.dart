@@ -7,6 +7,8 @@ import 'package:fcm_app/domains/notifications/entities/notification_presenter.da
 import 'package:fcm_app/domains/push/entities/push_source.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/sandbox/data_sources/http_notification_sender.dart';
+import 'package:fcm_app/domains/telemetry/data_sources/drift_telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:glade_forms/glade_forms.dart';
 import 'package:patrol/patrol.dart';
@@ -16,14 +18,30 @@ import 'package:patrol/patrol.dart';
 /// Starting a test before the token exists is the likeliest source of flake here: the
 /// Sandbox disables Send without one, so the test would tap a dead button and fail
 /// somewhere far from the cause.
-const tokenTimeout = Duration(seconds: 45);
+const _tokenTimeout = Duration(seconds: 45);
 
-/// How long the system permission dialog is waited for.
+/// How long the system permission dialog is waited for, on the first launch in
+/// this process.
 ///
-/// `clearPackageData` revokes POST_NOTIFICATIONS between tests, so the dialog is
-/// expected every time; the wait is bounded rather than required in case a device or
-/// an API level below 33 never shows one.
+/// Patrol launches the app once per target and reuses that isolate for every test
+/// in the file, so the dialog is a property of the *process*, not of each test —
+/// there is no Test Orchestrator here to clear app data between tests (see the
+/// build.gradle.kts comment by `clearPackageData`'s old home), so
+/// POST_NOTIFICATIONS is granted once and stays granted. [_firstLaunchInProcess]
+/// is what makes [launchApp] wait the full window only the first time; every
+/// later launch gates on that flag instead of burning the same fifteen seconds
+/// against a dialog that cannot reappear. Bounded rather than required even on
+/// the first launch, in case a device or an API level below 33 never shows one.
 const _permissionDialogTimeout = Duration(seconds: 15);
+
+/// Whether the app has not yet been launched in this process.
+///
+/// Library-level rather than a parameter: every `patrolTest` in a group file
+/// calls [launchApp] independently, with no shared object across them to hold it
+/// on. Set to false the first time the permission dialog is checked for, and
+/// never reset — there is one process per target, and the dialog cannot come
+/// back within it.
+bool _firstLaunchInProcess = true;
 
 /// How long a TCP connect to a new host is given before it is called unreachable.
 ///
@@ -48,6 +66,7 @@ const _healthCheckTimeout = Duration(seconds: 5);
 Future<void> launchApp(PatrolIntegrationTester $) async {
   await requireApiReachable();
 
+  await _tearDownPreviousLaunch();
   await getIt.reset();
   GladeForms.initialize();
 
@@ -58,11 +77,15 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
   final configured = configureDependencies(
     onBackgroundMessage: _onBackgroundMessage,
   );
+  final dialogTimeout = _firstLaunchInProcess
+      ? _permissionDialogTimeout
+      : Duration.zero;
   if (await $.platformAutomator.mobile.isPermissionDialogVisible(
-    timeout: _permissionDialogTimeout,
+    timeout: dialogTimeout,
   )) {
     await $.platformAutomator.mobile.grantPermissionWhenInUse();
   }
+  _firstLaunchInProcess = false;
   await configured;
 
   final repository = getIt<PushRepository>()..listen();
@@ -79,8 +102,47 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
   );
   getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
 
-  await $.pumpWidgetAndSettle(const App());
+  // `pumpWidget` then `pumpAndTrySettle` rather than the one-shot
+  // `pumpWidgetAndSettle`: `AppShell`'s `IndexedStack` builds `TelemetryView` at
+  // launch, whose cubit immediately calls an unbounded `GET /latency`, and a
+  // spinner keeps frames scheduled for as long as that takes. A strict settle
+  // throws after its own timeout rather than tolerating a still-busy frame, so
+  // once the telemetry database is large enough every test would fail right here
+  // with a bare "pumpAndSettle timed out" and no hint that the remedy is deleting
+  // the database.
+  await $.pumpWidget(const App());
+  await $.pumpAndTrySettle();
   await _waitForToken($);
+}
+
+/// Disposes what the previous launch registered, before [getIt]'s own reset
+/// drops the registrations without disposing them.
+///
+/// Patrol launches the app once per target and reuses that isolate for every
+/// test in the file, so without this a fifth test in a group file leaves five
+/// `PushRepository`s subscribed to the same broadcast, five presenters, and five
+/// open connections to one telemetry database — every arrival ingested, drawn
+/// and written that many times over. `GetIt.reset()` only disposes a
+/// registration made with a `dispose:` callback or one implementing
+/// `Disposable`; `configureDependencies` registers all of these bare. Guarded by
+/// `isRegistered`, so the very first launch — nothing registered yet — is a
+/// no-op.
+Future<void> _tearDownPreviousLaunch() async {
+  if (getIt.isRegistered<PushRepository>()) {
+    getIt<PushRepository>().dispose();
+  }
+  if (getIt.isRegistered<NotificationPresenter>()) {
+    await getIt<NotificationPresenter>().dispose();
+  }
+  // `TelemetryBuffer` is only ever registered as a `DriftTelemetryBuffer` — see
+  // `_registerTelemetry` — but the interface itself declares no `close`, so the
+  // concrete type has to be named here to reach it.
+  if (getIt.isRegistered<TelemetryBuffer>()) {
+    final buffer = getIt<TelemetryBuffer>();
+    if (buffer is DriftTelemetryBuffer) {
+      await buffer.close();
+    }
+  }
 }
 
 /// Fails once, legibly, when the local API is not running.
@@ -123,7 +185,7 @@ Future<void> requireApiReachable() async {
       '/health within $_healthCheckTimeout. Start it with: melos run api:serve',
     );
   } finally {
-    client.close();
+    client.close(force: true);
   }
 }
 
@@ -139,7 +201,7 @@ Future<HttpClientResponse> _fetchHealth(HttpClient client, Uri uri) async {
 /// Waits on the Inbox — the shell's default destination — until the token is drawn.
 Future<void> _waitForToken(PatrolIntegrationTester $) async {
   await $('Push inbox').waitUntilVisible();
-  await $('Registration token').waitUntilVisible(timeout: tokenTimeout);
+  await $('Registration token').waitUntilVisible(timeout: _tokenTimeout);
 }
 
 /// The background handler `configureDependencies` requires.
