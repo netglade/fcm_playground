@@ -38,9 +38,12 @@ Future<void> main() async {
 
   // Both channels mean the same thing to the repository: FCM reports taps on the
   // tray entries it drew itself, the presenter reports taps on the banners the app
-  // posted while in the foreground.
-  getIt<PushSource>().taps.listen(repository.requestOpen);
-  getIt<NotificationPresenter>().taps.listen(repository.requestOpen);
+  // posted while in the foreground. Each labels its own, which is why the repository
+  // can say which state an `opened` came from.
+  getIt<PushSource>().taps.listen((tap) => repository.requestOpen(tap.id));
+  getIt<NotificationPresenter>().taps.listen(
+    (tap) => repository.requestOpen(tap.id),
+  );
 
   runApp(const App());
 }

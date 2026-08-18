@@ -1,13 +1,14 @@
+import 'push_tap.dart';
+
 /// The seam that keeps `firebase_messaging` out of the widget tree and out of
 /// the tests.
 abstract interface class PushSource {
   /// Raw FCM `data` maps, in arrival order.
   Stream<Map<String, Object?>> get payloads;
 
-  /// Ids of messages whose notification the user tapped, fed by FCM's own tray
-  /// notifications. A banner the app posted itself is reported by
-  /// `NotificationPresenter.taps` instead.
-  Stream<String> get taps;
+  /// Notification taps, fed by FCM's own tray entries. A banner the app posted itself
+  /// is reported by `NotificationPresenter.taps` instead.
+  Stream<PushTap> get taps;
 
   Future<String?> token();
 

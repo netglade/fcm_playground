@@ -1,5 +1,7 @@
 import 'package:core/core.dart';
 
+import '../../push/entities/push_tap.dart';
+
 /// Shows a received push as an operating-system notification — the same shape of
 /// seam as `PushSource`, so the widget tests never construct
 /// `flutter_local_notifications`.
@@ -13,8 +15,8 @@ abstract interface class NotificationPresenter {
 
   Future<void> show(PushMessage message);
 
-  /// Ids of messages whose banner the user tapped.
-  Stream<String> get taps;
+  /// Taps on banners this presenter drew, which are always foreground ones.
+  Stream<PushTap> get taps;
 
   Future<void> dispose();
 }

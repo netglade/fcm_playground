@@ -1,3 +1,5 @@
+import 'package:fcm_app/domains/push/entities/push_tap.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_push_source.dart';
@@ -29,23 +31,23 @@ void main() {
 
   group('the tap stream', () {
     test('reports a tapped id', () async {
-      final tapped = <String>[];
+      final tapped = <PushTap>[];
       source.taps.listen(tapped.add);
 
       source.emitTap('msg-1');
       await pumpEventQueue();
 
-      expect(tapped, ['msg-1']);
+      expect(tapped, [const PushTap('msg-1', OpenedFrom.background)]);
     });
 
     test('buffers a tap emitted before anything listens', () async {
       source.emitTap('launch');
 
-      final tapped = <String>[];
+      final tapped = <PushTap>[];
       source.taps.listen(tapped.add);
       await pumpEventQueue();
 
-      expect(tapped, ['launch']);
+      expect(tapped, [const PushTap('launch', OpenedFrom.background)]);
     });
   });
 }

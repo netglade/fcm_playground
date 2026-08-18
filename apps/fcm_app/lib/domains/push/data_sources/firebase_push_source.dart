@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../entities/push_source.dart';
+import '../entities/push_tap.dart';
 import '../entities/remote_message_payload.dart';
 
 /// A [PushSource] backed by `firebase_messaging`.
@@ -15,7 +17,7 @@ class FirebasePushSource implements PushSource {
   // PushRepository subscribes, and a broadcast controller discards events added
   // while nothing is listening. PushRepository is the only subscriber either way.
   final _controller = StreamController<Map<String, Object?>>();
-  final _taps = StreamController<String>();
+  final _taps = StreamController<PushTap>();
   StreamSubscription<RemoteMessage>? _subscription;
   StreamSubscription<RemoteMessage>? _openedSubscription;
 
@@ -23,12 +25,13 @@ class FirebasePushSource implements PushSource {
   Stream<Map<String, Object?>> get payloads => _controller.stream;
 
   @override
-  Stream<String> get taps => _taps.stream;
+  Stream<PushTap> get taps => _taps.stream;
 
   Future<void> start() async {
     _subscription = FirebaseMessaging.onMessage.listen(_emit);
+    // The app is running but not on screen: FCM drew the tray entry itself.
     _openedSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
-      _onOpened,
+      (message) => _onOpened(message, OpenedFrom.background),
     );
 
     // iOS suppresses the foreground banner unless asked. Android shows nothing
@@ -44,7 +47,9 @@ class FirebasePushSource implements PushSource {
       // Payload first, so the inbox holds the message before the tap asks to
       // open it. Both controllers deliver in the order added.
       _emit(launchMessage);
-      _onOpened(launchMessage);
+      // `killed`: an initial message exists only because this tap started the
+      // process, so there is no state to guess at.
+      _onOpened(launchMessage, OpenedFrom.killed);
     }
   }
 
@@ -73,10 +78,10 @@ class FirebasePushSource implements PushSource {
   void _emit(RemoteMessage message) =>
       _controller.add(remoteMessageToPayload(message));
 
-  void _onOpened(RemoteMessage message) {
+  void _onOpened(RemoteMessage message, OpenedFrom from) {
     final id = remoteMessageToPayload(message)['id'];
     if (id is String && id.isNotEmpty) {
-      _taps.add(id);
+      _taps.add(PushTap(id, from));
     }
   }
 }
