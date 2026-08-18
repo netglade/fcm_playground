@@ -248,14 +248,15 @@ unchanged — a test asserts it, so a field missing from a form fails the build.
 
 ## The scenario catalogue
 
-The Scenarios page (drawer → Scenarios, one of four destinations alongside
-Inbox, Sandbox and Runs) holds **66 scenarios in eleven groups, A–K**, mirroring
-the FCM playground test plan. Tapping one applies its payload to the Sandbox
-form and switches you there; ticking several and scheduling them instead sends
-you to Runs, as one run with a spacing between them. The groups are the facets
-of FCM each scenario probes: basic delivery, app states, priority and delivery
-window, channels and importance, appearance, interaction, groups and badges,
-intrusive delivery, silent and data, targeting, and edge cases.
+The Scenarios page (drawer → Scenarios, one of five destinations alongside
+Inbox, Sandbox, Runs and Telemetry) holds **66 scenarios in eleven groups,
+A–K**, mirroring the FCM playground test plan. Tapping one applies its payload
+to the Sandbox form and switches you there; ticking several and scheduling
+them instead sends you to Runs, as one run with a spacing between them. The
+groups are the facets of FCM each scenario probes: basic delivery, app states,
+priority and delivery window, channels and importance, appearance,
+interaction, groups and badges, intrusive delivery, silent and data,
+targeting, and edge cases.
 
 **22 of the 66 work today.** The rest carry a marker naming what they still need —
 notification channels, notification styles, notification actions, a launcher
@@ -309,7 +310,7 @@ identify the scenario** — without the sender naming it, the scenario axis of t
 matrix would be empty. Both are reserved keys in `PushMessageParser`, so neither
 shows up as an "extra data" row in the inbox.
 
-Nine events, seven of which are recorded today:
+Nine events, eight of which are recorded today:
 
 | Event | Where it comes from |
 | --- | --- |
@@ -317,13 +318,14 @@ Nine events, seven of which are recorded today:
 | `received_fg` | the foreground stream |
 | `received_bg` | the background handler — **data payloads only**, since a notification-only push never wakes it |
 | `displayed` | after the local notification is actually drawn, never before |
-| `opened` | a tap. On Android the tap is reported as the app resumes, *before* the payload carrying the trace id exists, so it is held and reported once that arrives |
-| `dismissed` | **not yet** — needs a delete intent (`f6_delete_intent`) |
+| `opened` | a tap, carrying which of `foreground` / `background` / `killed` the app was in. On Android the tap is reported as the app resumes, *before* the payload carrying the trace id exists, so it is held and reported once that arrives |
+| `dismissed` | a swipe, but **Android only** — the plugin's dismissal report lives on `AndroidNotificationDetails` alone, so iOS has no route to it — and only for notifications the app itself drew, and only while the process is still running |
 | `not_received` | the one event a human asserts, and the only evidence available when the interesting answer is silence |
 
-`opened` records no "from which state" qualifier yet: that needs the three-state
-routing of `f3`–`f5`. Both gaps are in the enum and the schema from the start, so
-nothing changes shape when that work lands.
+`opened` records its "from which state" qualifier as of this branch. `dismissed` is
+the one event still short of what it should carry: it is produced now, but only on
+Android and only for a foreground-drawn banner, so a device-drawn tray entry and
+any iOS device both show a permanently blank row.
 
 **Events buffer on the device and flush to `POST /events`.** They are deleted only
 once the API acknowledges them, and only the ones acknowledged — a blanket clear
@@ -347,6 +349,12 @@ is on the desk.
 **No telemetry on web.** `drift_flutter`'s web path needs a `sqlite3.wasm` and a
 drift worker shipped as assets, and the app cannot receive a push on web at all
 without a VAPID key — so there is nothing there for a buffer to hold.
+
+**The Telemetry page (drawer → Telemetry)** is where this surfaces on the device
+itself: an Events tab listing every trace with all nine rows, arrived or not, and a
+Latency tab drawing the `scenario × device` matrix above from `GET /latency`.
+Neither tab polls — the arrival of a push is reported by the device, not by this
+page, so a refresh button reloads both.
 
 ### Independent confirmation
 
