@@ -28,7 +28,10 @@ abstract interface class TelemetryStore {
   /// Newest first and bounded, unlike [all]: a page shows the last thing that happened,
   /// and a store that has been recording for days should not be read whole to answer
   /// that. [limit] must be positive — `GET /events` is what refuses a caller's bad one,
-  /// so this does not repeat the check.
+  /// so this does not repeat the check. The two implementations disagree on what a bad
+  /// value does anyway: in memory, `take(-1)` throws a `RangeError`, while SQLite's
+  /// `LIMIT -1` answers the whole table — a caller that skipped the route's check
+  /// would see a different failure, or none, depending on which store is behind it.
   Future<List<TelemetryEvent>> recent({int limit = 500});
 
   /// Every stored event belonging to one of [traceIds], in recorded order.

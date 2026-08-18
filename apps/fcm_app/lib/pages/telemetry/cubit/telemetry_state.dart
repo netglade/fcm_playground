@@ -6,9 +6,12 @@ import 'trace_timeline.dart';
 ///
 /// Value-equal, like `RunsState` and unlike `SandboxState`: nothing here is republished
 /// on every keystroke, so dropping a state equal to the current one is exactly right.
-/// Compared by what the page actually draws — which traces, how many events each has,
-/// and which rows — rather than by list identity, which would call two identical loads
-/// different.
+/// Compared by trace and row identity and count — `traceId`/`deviceId` plus how many
+/// events or which `receivedAt` each carries — rather than by list identity, which
+/// would call two identical loads different. Not by everything the page draws:
+/// timestamps, `detail` and `sentAt` are drawn but left out of the comparison. That is
+/// safe only because the store is append-only and keeps the earliest stamp per key, so
+/// a key that still matches cannot have grown a different value underneath it.
 class TelemetryState {
   const TelemetryState({
     this.isLoading = true,

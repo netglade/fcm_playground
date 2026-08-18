@@ -26,7 +26,13 @@ class TraceTimeline {
   /// Every event for this trace, newest first.
   final List<TelemetryEvent> events;
 
-  /// The first event of [type], or null when none was recorded.
+  /// The newest event of [type], or null when none was recorded. [events] is
+  /// newest first, so the first match in that order is the newest, not the first
+  /// to have happened.
+  ///
+  /// A trace spanning two devices holds two arrival events of the same type — a
+  /// `received_fg` for each handset a broadcast reached — and the card shows only
+  /// one of them.
   TelemetryEvent? eventOf(TelemetryEventType type) {
     for (final event in events) {
       if (event.type == type) {
