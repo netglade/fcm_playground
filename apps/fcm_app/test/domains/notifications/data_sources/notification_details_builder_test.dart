@@ -76,6 +76,13 @@ void main() {
             'iOS action buttons come from a UNNotificationCategory registered '
             'at startup, so a per-message list cannot reach them',
       );
+      expect(
+        details.iOS?.categoryIdentifier,
+        isNull,
+        reason:
+            'no category means no buttons — asserting isNotNull above would '
+            'still pass if the builder started setting one',
+      );
     });
   });
 }

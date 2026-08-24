@@ -55,13 +55,13 @@ void main() {
     expect(find.textContaining('background'), findsWidgets);
   });
 
-  testWidgets('says which of the nine did not arrive', (tester) async {
+  testWidgets('says which of the ten did not arrive', (tester) async {
     await pumpPage(
       tester,
       FakeTelemetryReader(events: [event('t1', TelemetryEventType.queued)]),
     );
 
-    // All nine are drawn whether or not they happened: a card that listed only what
+    // All ten are drawn whether or not they happened: a card that listed only what
     // arrived could not answer "did this push get displayed?".
     for (final type in TelemetryEventType.values) {
       expect(find.text(type.wireName), findsOneWidget);

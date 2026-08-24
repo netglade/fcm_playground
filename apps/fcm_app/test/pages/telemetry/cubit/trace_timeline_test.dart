@@ -78,7 +78,7 @@ void main() {
         event(traceId: 't1', type: TelemetryEventType.queued),
       ]).single;
 
-      // The page draws all nine types whether or not they arrived, so this is a lookup
+      // The page draws all ten types whether or not they arrived, so this is a lookup
       // rather than a filter.
       expect(timeline.eventOf(TelemetryEventType.queued), isNotNull);
       expect(timeline.eventOf(TelemetryEventType.dismissed), isNull);

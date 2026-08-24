@@ -190,27 +190,30 @@ void main() {
       expect(taps, isEmpty);
     });
 
-    test('the callback repeating the launching press reports it once', () async {
-      presenter.handleLaunchDetails(launch(actionId: 'retry'));
-      presenter.handleResponse(
-        const NotificationResponse(
-          notificationResponseType:
-              NotificationResponseType.selectedNotification,
-          payload: 'msg-1',
-          actionId: 'retry',
-        ),
-      );
-      await pumpEventQueue();
+    test(
+      'the callback repeating the launching press reports it once',
+      () async {
+        presenter.handleLaunchDetails(launch(actionId: 'retry'));
+        presenter.handleResponse(
+          const NotificationResponse(
+            notificationResponseType:
+                NotificationResponseType.selectedNotification,
+            payload: 'msg-1',
+            actionId: 'retry',
+          ),
+        );
+        await pumpEventQueue();
 
-      expect(
-        taps,
-        hasLength(1),
-        reason:
-            'on Android the callback has been seen firing for the very press '
-            'that launched the app, and two opens for one press is a telemetry '
-            'bug',
-      );
-    });
+        expect(
+          taps,
+          hasLength(1),
+          reason:
+              'not reproducible on the pinned plugin version, but if a future '
+              'version ever re-delivered the launching press through this '
+              'callback too, two opens for one press would be a telemetry bug',
+        );
+      },
+    );
 
     test(
       'a genuine second press of the same button is not swallowed',
@@ -238,8 +241,9 @@ void main() {
           taps.map((tap) => tap.from),
           [OpenedFrom.killed, OpenedFrom.foreground],
           reason:
-              'the suppression covers exactly one echo of the launching press, '
-              'not every later press of that button',
+              'the guard drops the first matching response, whenever it '
+              'arrives, and nulls itself out — a second matching response is '
+              'never checked against it and always reported',
         );
       },
     );

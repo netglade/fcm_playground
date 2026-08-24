@@ -1117,6 +1117,16 @@ void main() {
             'hole in the latency matrix for exactly these scenarios',
       );
       expect(
+        telemetry.recorded.where((e) => e.type == TelemetryEventType.opened),
+        hasLength(1),
+        reason: 'one press produces exactly one opened, never a duplicate',
+      );
+      expect(
+        telemetry.recorded.where((e) => e.type == TelemetryEventType.action),
+        hasLength(1),
+        reason: 'one press produces exactly one action, never a duplicate',
+      );
+      expect(
         telemetry.recorded
             .firstWhere((event) => event.type == TelemetryEventType.action)
             .detail,
@@ -1141,6 +1151,16 @@ void main() {
           reason:
               'the warm-start path reports through _ingest rather than '
               'requestOpen, and must not skip the action report on the way',
+        );
+        expect(
+          telemetry.recorded.where((e) => e.type == TelemetryEventType.opened),
+          hasLength(1),
+          reason: 'one press produces exactly one opened, never a duplicate',
+        );
+        expect(
+          telemetry.recorded.where((e) => e.type == TelemetryEventType.action),
+          hasLength(1),
+          reason: 'one press produces exactly one action, never a duplicate',
         );
         expect(
           telemetry.recorded
