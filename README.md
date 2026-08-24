@@ -258,7 +258,7 @@ priority and delivery window, channels and importance, appearance,
 interaction, groups and badges, intrusive delivery, silent and data,
 targeting, and edge cases.
 
-**22 of the 66 work today.** The rest carry a marker naming what they still need —
+**23 of the 66 work today.** The rest carry a marker naming what they still need —
 notification channels, notification styles, notification actions, a launcher
 badge, a device registry, a manual step, or approval from Apple or the OS that
 this project cannot grant itself. That count is asserted by a test, so this
@@ -310,7 +310,7 @@ identify the scenario** — without the sender naming it, the scenario axis of t
 matrix would be empty. Both are reserved keys in `PushMessageParser`, so neither
 shows up as an "extra data" row in the inbox.
 
-Nine events, eight of which are recorded today:
+Ten events, nine of which are recorded today:
 
 | Event | Where it comes from |
 | --- | --- |
@@ -319,13 +319,18 @@ Nine events, eight of which are recorded today:
 | `received_bg` | the background handler — **data payloads only**, since a notification-only push never wakes it |
 | `displayed` | after the local notification is actually drawn, never before |
 | `opened` | a tap, carrying which of `foreground` / `background` / `killed` the app was in. On Android the tap is reported as the app resumes, *before* the payload carrying the trace id exists, so it is held and reported once that arrives |
+| `action` | pressing an action button, but **Android only** — iOS takes actions from a `UNNotificationCategory` registered at startup, and a per-message payload cannot reach one |
 | `dismissed` | a swipe, but **Android only** — the plugin's dismissal report lives on `AndroidNotificationDetails` alone, so iOS has no route to it — and only for notifications the app itself drew, and only while the process is still running |
 | `not_received` | the one event a human asserts, and the only evidence available when the interesting answer is silence |
 
 `opened` records its "from which state" qualifier as of this branch. `dismissed` is
 the one event still short of what it should carry: it is produced now, but only on
 Android and only for a foreground-drawn banner, so a device-drawn tray entry and
-any iOS device both show a permanently blank row.
+any iOS device both show a permanently blank row. `action` carries the same
+Android-only limitation, for the same underlying reason as the buttons
+themselves: iOS takes actions from a `UNNotificationCategory` registered at
+startup, and a per-message payload cannot reach one, so no iOS device ever
+produces this event.
 
 **Events buffer on the device and flush to `POST /events`.** They are deleted only
 once the API acknowledges them, and only the ones acknowledged — a blanket clear
@@ -351,7 +356,7 @@ drift worker shipped as assets, and the app cannot receive a push on web at all
 without a VAPID key — so there is nothing there for a buffer to hold.
 
 **The Telemetry page (drawer → Telemetry)** is where this surfaces on the device
-itself: an Events tab listing every trace with all nine rows, arrived or not, and a
+itself: an Events tab listing every trace with all ten rows, arrived or not, and a
 Latency tab drawing the `scenario × device` matrix above from `GET /latency`.
 Neither tab polls — the arrival of a push is reported by the device, not by this
 page, so a refresh button reloads both.
@@ -538,8 +543,8 @@ There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patr
 suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
 Android device**, needs the API serving with `GOOGLE_APPLICATION_CREDENTIALS` set,
 and is deliberately excluded from the gate because a device-dependent suite has no
-business in a hermetic one. Of the catalogue's 66 scenarios, 17 run there; the other
-49 are skipped with a stated reason — 44 wait on a `ScenarioNeed` the app has not
+business in a hermetic one. Of the catalogue's 66 scenarios, 18 run there; the other
+48 are skipped with a stated reason — 43 wait on a `ScenarioNeed` the app has not
 built, 4 need a physical iPhone, and one (`b3_killed`) would have to kill the app the
 test runs inside. That split has not been run on this machine either — no Android
 device is attached — so it is asserted by `apps/fcm_app/test/integration_coverage_test.dart`

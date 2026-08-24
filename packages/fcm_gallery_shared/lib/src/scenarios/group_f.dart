@@ -17,11 +17,18 @@ const groupF = <Scenario>[
     description:
         'Watch whether the buttons survive a reboot of the notification shade, '
         'and what happens to the notification when one is pressed.',
+    expectation:
+        'Data-only on purpose: an FCM-drawn tray entry cannot carry action '
+        'buttons, so the app draws this one itself in every state. Android '
+        'only — iOS actions come from a category registered at startup.',
     payloadTemplate: {
-      'notification': {'title': 'Build failed', 'body': 'Retry or open?'},
-      'data': {'actions': 'retry:Retry|open:Open build', 'build': '128'},
+      'data': {
+        'title': 'Build failed',
+        'body': 'Retry or open?',
+        'actions': 'retry:Retry|open:Open build',
+        'build': '128',
+      },
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'f2_inline_reply',

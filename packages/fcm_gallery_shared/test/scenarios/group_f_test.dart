@@ -33,14 +33,16 @@ void main() {
       ]);
     });
 
-    test('all nine are blocked on interaction work and nothing unrelated', () {
-      // `contains(interaction)` alone passes on an entry that ALSO carries channels
-      // or styles, which would file this group's work under the wrong sub-project. So
-      // needs are pinned exactly, and hasLength(9) backs the words "all nine".
+    test('eight of the nine are still blocked on interaction work', () {
+      // `contains(interaction)` alone passes on an entry that ALSO carries
+      // channels or styles, which would file this group's work under the wrong
+      // sub-project. So needs are pinned exactly, and the literal counts back
+      // the words: f1 was unblocked by the notification-actions cycle, and the
+      // other eight are the sub-projects still to come.
       expect(groupF, hasLength(9));
 
       const expected = {
-        'f1_actions': [ScenarioNeed.interaction],
+        'f1_actions': <ScenarioNeed>[],
         'f2_inline_reply': [ScenarioNeed.interaction],
         'f3_deeplink_foreground': [ScenarioNeed.interaction],
         'f4_deeplink_background': [ScenarioNeed.interaction],
@@ -55,13 +57,12 @@ void main() {
       };
 
       for (final scenario in groupF) {
-        expect(
-          scenario.needs,
-          contains(ScenarioNeed.interaction),
-          reason: scenario.id,
-        );
-        expect(scenario.needs, expected[scenario.id], reason: scenario.id);
-        expect(scenario.isSupported, isFalse, reason: scenario.id);
+        final needs = expected[scenario.id]!;
+        expect(scenario.needs, needs, reason: scenario.id);
+        // f1 is the one entry unblocked this cycle: isSupported flips to true
+        // exactly when its needs list is empty, so drive the expectation from
+        // the same map rather than special-casing an id here.
+        expect(scenario.isSupported, needs.isEmpty, reason: scenario.id);
       }
     });
 

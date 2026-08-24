@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 /// What one scenario's end-to-end run should produce.
 ///
-/// A table rather than assertions inside each test, so seventeen running scenarios
+/// A table rather than assertions inside each test, so eighteen running scenarios
 /// differ in data instead of in code — and so the census guard can read it without a
 /// device. That is also why this file must never import `patrol`.
 class ScenarioExpectation {

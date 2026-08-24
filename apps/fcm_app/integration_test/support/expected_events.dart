@@ -55,7 +55,7 @@ const _sendRefused = {TelemetryEventType.queued, TelemetryEventType.sendFailed};
 
 /// Per-scenario expectations, keyed by [Scenario.id].
 ///
-/// Twenty-one entries: the seventeen that run on Android plus the four iOS-only ones,
+/// Twenty-two entries: the eighteen that run on Android plus the four iOS-only ones,
 /// which are written so that unblocking iOS is a skip-policy change rather than a
 /// table rewrite. `b3_killed` has no entry on purpose — [skipReasonFor] turns it away
 /// before the table is consulted.
@@ -139,6 +139,15 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
   'e11_emoji_rtl': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+
+  // Group F — interaction. Only f1 runs: the app draws this one itself, so the
+  // delivery assertions are the same as any other data-only push. Pressing the
+  // button is a human step, which is why `action` stays in `_quiet` — see
+  // CALIBRATION.md.
+  'f1_actions': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),

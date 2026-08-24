@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import '../cubit/trace_timeline.dart';
 import 'event_row.dart';
 
-/// One trace, with all nine event types listed whether or not they arrived.
+/// One trace, with all ten event types listed whether or not they arrived.
 ///
-/// All nine, because the absences are the interesting part: a card that listed only
+/// All ten, because the absences are the interesting part: a card that listed only
 /// what happened could not answer "was this one ever displayed?". Absence is drawn
 /// neutrally rather than as a failure, since most absences are correct — a data-only
 /// push has no `displayed`, a notification-only push has no `received_bg`, and a

@@ -83,3 +83,10 @@ banner, not that a person would have seen one.
 **The four iOS scenarios have never been compiled for iOS.** They are in the table so
 that unblocking iOS is a skip-policy change rather than a table rewrite. Expect the
 Xcode side to need work that this plan did not do.
+
+**`f1_actions`'s automated assertions cover delivery and drawing only.** Pressing an
+action button is a manual step: Patrol's `tapOnNotificationBySelector` matches
+notifications, not the buttons inside them, and pressing an action is not something
+Patrol documents an API for. Whoever calibrates this entry on a device should press
+each button by hand and confirm `action` reaches the Telemetry page with the right
+id, in each of the three app states — foreground, background and killed.
