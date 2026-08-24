@@ -8,7 +8,7 @@ environment:
   sdk: ^3.12.2
 
 dependencies:
-  app_settings: ^6.1.1
+  app_settings: ^7.0.0
   core:
     path: ../../packages/core
   cupertino_icons: ^1.0.8
@@ -45,6 +45,8 @@ dev_dependencies:
   drift_dev: ">=2.29.0 <2.32.0"
   flutter_lints: ^6.0.0
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   # patrol_cli is version-locked to this: any patrol_cli that declares
   # compatibility with a patrol below 4.9.0 refuses to run at all. See
