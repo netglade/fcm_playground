@@ -258,5 +258,34 @@ void main() {
 
       expect(taps.map((tap) => tap.actionId), ['retry', 'open']);
     });
+
+    test(
+      'a launching press survives being emitted before anyone subscribes',
+      () async {
+        // The setUp above subscribes before calling handleLaunchDetails, which
+        // is the opposite of production: main.dart only subscribes after
+        // configureDependencies (and so initialize(), and so
+        // handleLaunchDetails) has already returned. This test drives that real
+        // ordering directly, on a presenter of its own.
+        final unsubscribedPresenter = LocalNotificationPresenter(
+          lifecycleState: () => AppLifecycleState.resumed,
+        );
+        addTearDown(unsubscribedPresenter.dispose);
+
+        unsubscribedPresenter.handleLaunchDetails(launch(actionId: 'retry'));
+        final lateTaps = <PushTap>[];
+        unsubscribedPresenter.taps.listen(lateTaps.add);
+        await pumpEventQueue();
+
+        expect(
+          lateTaps,
+          [const PushTap('msg-1', OpenedFrom.killed, actionId: 'retry')],
+          reason:
+              'a broadcast controller discards an event added before anyone '
+              'listens, and this is exactly that gap: the stream must buffer '
+              'so the launching press is not lost',
+        );
+      },
+    );
   });
 }

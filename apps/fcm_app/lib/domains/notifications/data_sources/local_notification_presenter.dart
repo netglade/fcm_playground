@@ -25,8 +25,13 @@ class LocalNotificationPresenter implements NotificationPresenter {
   /// Injected so the tests can say which state a press arrived in. There is no
   /// other way to drive `WidgetsBinding`'s lifecycle from a unit test.
   final AppLifecycleState Function() _lifecycleState;
-  final _taps = StreamController<PushTap>.broadcast();
-  final _dismissals = StreamController<String>.broadcast();
+
+  // Single-subscription, not broadcast: initialize() emits the launching press
+  // before anything subscribes, and a broadcast controller discards events added
+  // while nothing is listening. Each is consumed by exactly one subscriber
+  // either way, so single-subscription costs nothing.
+  final _taps = StreamController<PushTap>();
+  final _dismissals = StreamController<String>();
 
   /// The press that launched the app, remembered only until the next response.
   ///
@@ -85,8 +90,11 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   @override
   Future<void> dispose() async {
-    await _taps.close();
-    await _dismissals.close();
+    // Not awaited: a single-subscription controller's close() future only
+    // completes once a listener has received the done event, and dispose can run
+    // before anything ever subscribes. Closing still stops further adds.
+    unawaited(_taps.close());
+    unawaited(_dismissals.close());
   }
 
   /// Routes one plugin response to the stream it belongs on.
