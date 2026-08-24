@@ -244,7 +244,9 @@ class _AppShellState extends State<AppShell> {
   /// fallback for an id that will never resolve — evicted by the cap, or rejected
   /// as malformed. Skipped when the link names a destination of its own, because
   /// the switch below is about to set `_destination` to that destination anyway —
-  /// this just avoids assigning a value only to overwrite it a few lines later.
+  /// this just avoids assigning a value only to overwrite it a few lines later;
+  /// for `/runs/<id>` links, the fallback runs and Inbox remains beneath the
+  /// pushed timeline.
   void _onInboxChanged(BuildContext context, InboxState inbox) {
     if (!inbox.hasPendingOpen) {
       return;
