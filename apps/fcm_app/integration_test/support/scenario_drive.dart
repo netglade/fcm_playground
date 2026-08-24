@@ -77,7 +77,7 @@ Future<void> driveScenario(PatrolIntegrationTester $, Scenario scenario) async {
 /// template already applied.
 ///
 /// Taps the card by key rather than by title: one place breaks when the gallery
-/// changes, not eighteen.
+/// changes, not twenty.
 Future<void> _applyScenario(
   PatrolIntegrationTester $,
   Scenario scenario,

@@ -50,11 +50,11 @@ const groupF = <Scenario>[
     description:
         'Routing from onMessage, with the app already on screen. Watch that the '
         'current screen is not lost.',
+    expectation: 'Opens the Telemetry page.',
     payloadTemplate: {
-      'notification': {'title': 'Open build 128', 'body': 'Tap to route.'},
-      'data': {'deep_link': '/builds/128'},
+      'notification': {'title': 'Open telemetry', 'body': 'Tap to route.'},
+      'data': {'deep_link': '/telemetry'},
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'f4_deeplink_background',
@@ -63,11 +63,11 @@ const groupF = <Scenario>[
     description:
         'Routing from onMessageOpenedApp. Watch that the app resumes on the '
         'linked screen rather than where it was left.',
+    expectation: 'Opens the Sandbox.',
     payloadTemplate: {
-      'notification': {'title': 'Open build 127', 'body': 'Tap to route.'},
-      'data': {'deep_link': '/builds/127'},
+      'notification': {'title': 'Open sandbox', 'body': 'Tap to route.'},
+      'data': {'deep_link': '/sandbox'},
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'f5_deeplink_killed',
@@ -77,13 +77,11 @@ const groupF = <Scenario>[
         'Routing from getInitialMessage, which runs once at startup and is the '
         'commonest source of deep-link bugs — it is easy to forget, and it fails '
         'only in the one state nobody tests by hand.',
+    expectation: 'Opens the Runs page.',
     payloadTemplate: {
-      'notification': {'title': 'Open build 126', 'body': 'Tap to route.'},
-      'data': {'deep_link': '/builds/126'},
+      'notification': {'title': 'Open runs', 'body': 'Tap to route.'},
+      'data': {'deep_link': '/runs'},
     },
-    // Blocked on interaction alone: the send can now be held until the app is
-    // gone, but there is no three-state routing to observe when it arrives.
-    needs: [ScenarioNeed.interaction],
     requiresKilledApp: true,
     defaultDelaySeconds: 20,
   ),

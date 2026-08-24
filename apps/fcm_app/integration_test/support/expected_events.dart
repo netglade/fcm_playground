@@ -55,10 +55,10 @@ const _sendRefused = {TelemetryEventType.queued, TelemetryEventType.sendFailed};
 
 /// Per-scenario expectations, keyed by [Scenario.id].
 ///
-/// Twenty-two entries: the eighteen that run on Android plus the four iOS-only ones,
+/// Twenty-four entries: the twenty that run on Android plus the four iOS-only ones,
 /// which are written so that unblocking iOS is a skip-policy change rather than a
-/// table rewrite. `b3_killed` has no entry on purpose — [skipReasonFor] turns it away
-/// before the table is consulted.
+/// table rewrite. `b3_killed` and `f5_deeplink_killed` have no entry on purpose —
+/// [skipReasonFor] turns each away before the table is consulted.
 ///
 /// **Derived from reading the code, not from watching a device.** See
 /// `integration_test/CALIBRATION.md` for how to settle it.
@@ -144,11 +144,22 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
 
-  // Group F — interaction. Only f1 runs: the app draws this one itself, so the
-  // delivery assertions are the same as any other data-only push. Pressing the
-  // button is a human step, which is why `action` stays in `_quiet` — see
+  // Group F — interaction. f1 draws its buttons itself, so the delivery
+  // assertions are the same as any other data-only push; pressing the button
+  // is a human step, which is why `action` stays in `_quiet` — see
   // CALIBRATION.md.
   'f1_actions': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  // Group F — the two deep links that run. The tap itself is a human step, so
+  // `opened` stays in `_quiet`; what these assert is that the push arrives and is
+  // drawn, the same as any other notification payload.
+  'f3_deeplink_foreground': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  'f4_deeplink_background': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),

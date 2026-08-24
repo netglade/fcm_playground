@@ -97,3 +97,12 @@ notification helpers construct — and whoever calibrates this entry should try 
 before assuming the manual step is permanent. Until then, press each button by hand
 and confirm `action` reaches the Telemetry page with the right id, in each of the
 three app states — foreground, background and killed.
+
+**The three deep links need a tap by hand too, same as `f1_actions`.** The suite's
+automated assertions only cover that the push arrives and is drawn; the tap itself,
+and where it lands, is a manual step. Send `f3_deeplink_foreground` and
+`f4_deeplink_background` and confirm the named screen opens — Telemetry and Sandbox
+respectively — rather than the message detail page. `f5_deeplink_killed` needs the
+delayed send and a real app kill to exercise at all, and is the one most worth doing
+by hand: `getInitialMessage` is the route nobody exercises by accident, so it is the
+one most likely to have quietly broken.

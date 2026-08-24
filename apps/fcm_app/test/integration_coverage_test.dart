@@ -52,15 +52,15 @@ void main() {
       );
     });
 
-    test('runs eighteen scenarios and skips forty-eight of sixty-six', () {
+    test('runs twenty scenarios and skips forty-six of sixty-six', () {
       final running = scenarioGallery.where((s) => skipReasonFor(s) == null);
 
       // Pinned to literals because the split is a claim the spec makes, and drift
       // in either direction is what is worth catching: a scenario becoming
       // unblocked should show up here rather than be absorbed silently.
       expect(scenarioGallery, hasLength(66));
-      expect(running, hasLength(18));
-      expect(scenarioGallery.length - running.length, 48);
+      expect(running, hasLength(20));
+      expect(scenarioGallery.length - running.length, 46);
     });
 
     test('a blocked scenario is skipped for its own need, named in words', () {
@@ -121,12 +121,12 @@ void main() {
       }
     });
 
-    test('forty-three scenarios are skipped for an unbuilt ScenarioNeed', () {
+    test('forty scenarios are skipped for an unbuilt ScenarioNeed', () {
       final blockedByNeed = scenarioGallery.where(
         (s) => _skipBucket(s) == 'needs',
       );
 
-      expect(blockedByNeed, hasLength(43));
+      expect(blockedByNeed, hasLength(40));
     });
 
     test('four scenarios are skipped for being iOS-only', () {
@@ -135,18 +135,19 @@ void main() {
       expect(iosOnly, hasLength(4));
     });
 
-    test('one scenario is skipped only for needing the app killed', () {
+    test('two scenarios are skipped only for needing the app killed', () {
       final appKillOnly = scenarioGallery.where(
         (s) => _skipBucket(s) == 'appKill',
       );
 
-      // f5_deeplink_killed also requires a killed app, but it carries a
-      // ScenarioNeed too, and skipReasonFor checks that branch first — so
-      // it lands in the needs bucket above, leaving only b3_killed here.
-      expect(appKillOnly.map((s) => s.id), ['b3_killed']);
+      // f5_deeplink_killed's ScenarioNeed is gone now that the deep-link
+      // routing it needed is built, so skipReasonFor's needs branch no
+      // longer catches it first — it falls through to the killed-app
+      // branch and joins b3_killed here, in gallery order.
+      expect(appKillOnly.map((s) => s.id), ['b3_killed', 'f5_deeplink_killed']);
     });
 
-    test('the skip buckets add up to forty-eight, with none unclassified', () {
+    test('the skip buckets add up to forty-six, with none unclassified', () {
       final needsCount = scenarioGallery
           .where((s) => _skipBucket(s) == 'needs')
           .length;
@@ -169,14 +170,14 @@ void main() {
       expect(unclassified, isEmpty);
 
       // The buckets must not drift apart from the totals the file already
-      // pins above: 43 + 4 + 1 is the 48 skipped, and 48 + 18 is the
+      // pins above: 40 + 4 + 2 is the 46 skipped, and 46 + 20 is the
       // catalogue's 66.
       expect(
         needsCount + iosCount + appKillCount + unclassified.length,
         skippedCount,
       );
-      expect(skippedCount, 48);
-      expect(skippedCount + 18, 66);
+      expect(skippedCount, 46);
+      expect(skippedCount + 20, 66);
     });
 
     test('a rejected send expects nothing device-side', () {

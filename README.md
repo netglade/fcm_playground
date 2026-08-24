@@ -258,7 +258,7 @@ priority and delivery window, channels and importance, appearance,
 interaction, groups and badges, intrusive delivery, silent and data,
 targeting, and edge cases.
 
-**23 of the 66 work today.** The rest carry a marker naming what they still need —
+**26 of the 66 work today.** The rest carry a marker naming what they still need —
 notification channels, notification styles, notification actions, a launcher
 badge, a device registry, a manual step, or approval from Apple or the OS that
 this project cannot grant itself. That count is asserted by a test, so this
@@ -546,12 +546,13 @@ There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patr
 suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
 Android device**, needs the API serving with `GOOGLE_APPLICATION_CREDENTIALS` set,
 and is deliberately excluded from the gate because a device-dependent suite has no
-business in a hermetic one. Of the catalogue's 66 scenarios, 18 run there; the other
-48 are skipped with a stated reason — 43 wait on a `ScenarioNeed` the app has not
-built, 4 need a physical iPhone, and one (`b3_killed`) would have to kill the app the
-test runs inside. That split has not been run on this machine either — no Android
-device is attached — so it is asserted by `apps/fcm_app/test/integration_coverage_test.dart`
-rather than by an actual pass on hardware.
+business in a hermetic one. Of the catalogue's 66 scenarios, 20 run there; the other
+46 are skipped with a stated reason — 40 wait on a `ScenarioNeed` the app has not
+built, 4 need a physical iPhone, and two (`b3_killed` and `f5_deeplink_killed`) would
+each have to kill the app the test runs inside. That split has not been run on this
+machine either — no Android device is attached — so it is asserted by
+`apps/fcm_app/test/integration_coverage_test.dart` rather than by an actual pass on
+hardware.
 
 The Android build needs one thing that is easy to miss:
 `flutter_local_notifications` requires **core library desugaring**, and without
