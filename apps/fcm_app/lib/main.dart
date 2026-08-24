@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' show DartPluginRegistrant;
 
+import 'package:core/core.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -9,6 +10,7 @@ import 'package:glade_forms/glade_forms.dart';
 
 import 'app.dart';
 import 'di/service_locator.dart';
+import 'domains/notifications/data_sources/background_notification_draw.dart';
 import 'domains/notifications/entities/notification_presenter.dart';
 import 'domains/push/data_sources/shared_preferences_push_payload_store.dart';
 import 'domains/push/entities/push_source.dart';
@@ -64,9 +66,11 @@ Future<void> _flushQuietly(PushTelemetry telemetry) async {
 /// Handles pushes that arrive while the app is backgrounded or terminated.
 ///
 /// Must be a top-level function, and annotated so AOT compilation keeps it
-/// reachable from the background isolate. It persists and records but draws
-/// nothing: FCM has already drawn the tray entry. Only ever runs for a payload
-/// carrying `data` — a notification-only push never wakes this handler.
+/// reachable from the background isolate. It persists, records, and — for a
+/// data-only payload, which FCM does not draw — draws the notification itself.
+/// That is what lets an action button exist at all: an FCM-drawn tray entry
+/// cannot carry one. Only ever runs for a payload carrying `data`; a
+/// notification-only push never wakes this handler.
 ///
 /// Everything here is built by hand: this runs in its own isolate, so
 /// `configureDependencies` has not run and a `getIt` lookup would throw.
@@ -83,6 +87,20 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
   final payload = remoteMessageToPayload(message);
   await SharedPreferencesPushPayloadStore().appendPending(payload);
 
+  var drawn = false;
+  if (shouldDrawInBackground(message)) {
+    try {
+      await drawBackgroundNotification(
+        const PushMessageParser().parse(payload),
+      );
+      drawn = true;
+    } on Object catch (error) {
+      // A malformed payload or a failing plugin costs the notification, not the
+      // record of the arrival that is about to be written below.
+      debugPrint('No background notification for ${message.messageId}: $error');
+    }
+  }
+
   // Recorded and deliberately not flushed: this isolate can be killed at any
   // moment, so a request in flight would lose the event it was carrying. Closed
   // either way, so a handset that wakes for twenty pushes does not leave twenty
@@ -97,6 +115,13 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
       TelemetryEventType.receivedBg,
       payload,
     );
+    if (drawn) {
+      await reportWithoutFlushing(
+        telemetryReporterOn(buffer, SharedPreferencesDeviceIdentity()),
+        TelemetryEventType.displayed,
+        payload,
+      );
+    }
   } finally {
     await buffer.close();
   }
