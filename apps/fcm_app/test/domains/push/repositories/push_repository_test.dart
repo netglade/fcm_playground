@@ -1238,6 +1238,35 @@ void main() {
       );
     });
 
+    test(
+      'drains a reply in the same drain as the push it answers, backgrounded',
+      () async {
+        // The canonical f2 path: the reply action never foregrounds the app, so
+        // both the push and its reply are still sitting in their pending queues
+        // when the app next resumes and drains them together. Unlike the two
+        // tests above, the payload here is never put on the live stream at
+        // all — it must come from `replyPayloadStore.pending`, or this test
+        // would pass the way every other reply test already did before this
+        // one was written, without ever exercising the order `drainPending`
+        // merges the two queues in.
+        final repository = build();
+        replyPayloadStore.pending.add(payload(id: 'msg-1'));
+        await replies.appendPending(const PendingReply('msg-1', 'on my way'));
+
+        await repository.drainPending();
+
+        expect(
+          repository.state.replies,
+          {'msg-1': 'on my way'},
+          reason:
+              'a reply typed while the app was backgrounded arrives in the '
+              'same drain as the push it answers — draining replies before '
+              'the payload they answer has been ingested prunes the reply as '
+              'an orphan before the caller ever sees it',
+        );
+      },
+    );
+
     test('keeps a reply across a restart', () async {
       await replies.appendPending(const PendingReply('msg-1', 'on my way'));
       await replyPayloadStore.saveInbox([payload(id: 'msg-1')]);

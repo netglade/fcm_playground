@@ -214,27 +214,34 @@ class PushRepository {
 
   /// Merges anything the background isolate appended since the last drain.
   ///
-  /// A reply is drained before the payload-queue check below, deliberately: a
-  /// reply action does not foreground the app, so the ordinary resume carries a
-  /// reply with no accompanying payload at all. Draining it after that check
-  /// would leave it stranded until the next cold start's [restore] — silently
-  /// late by however long the app happens to stay backgrounded.
+  /// Payloads are ingested first, replies second — the same order [restore]
+  /// uses, and deliberately so: a reply typed against the push that arrived in
+  /// this very drain must find its message already held, or [_saveReplies]'s
+  /// prune deletes it on the spot, merged into `_replies` and immediately
+  /// written back out as absent before the caller ever observes it. That is
+  /// not a hypothetical; draining replies first was tried, and it lost exactly
+  /// this reply in exactly this way.
+  ///
+  /// The empty check below guards only the payload-ingest work, never the
+  /// reply merge that follows it: a reply action deliberately does not
+  /// foreground the app, so the ordinary resume carries a reply with no
+  /// accompanying payload at all, and gating the merge on the payload queue
+  /// would leave that reply stranded until the next cold start's [restore] —
+  /// silently late by however long the app happens to stay backgrounded.
+  /// [_mergeReplies] therefore runs unconditionally, exactly as it does in
+  /// [restore]: even an empty drain can still need to prune a reply whose
+  /// message this call's own payload-ingest just evicted from the cap.
   Future<void> drainPending() async {
-    final pendingReplies = await _replyStore.takePending();
-    if (pendingReplies.isNotEmpty) {
-      await _mergeReplies(pendingReplies);
-      _publish();
-    }
-
     final pending = await _store.takePending();
-    if (pending.isEmpty) {
-      return;
+    if (pending.isNotEmpty) {
+      for (final payload in pending) {
+        _ingest(payload, notify: false);
+      }
+      await _save();
     }
 
-    for (final payload in pending) {
-      _ingest(payload, notify: false);
-    }
-    await _save();
+    await _mergeReplies(await _replyStore.takePending());
+    _publish();
   }
 
   Future<void> refreshToken() async {
@@ -392,9 +399,14 @@ class PushRepository {
   ///
   /// Pruning here rather than on a timer keeps the store bounded by
   /// [maxStoredMessages] without inventing a second cap, the same reasoning
-  /// [_savePressed] gives — except a reply has no warm-start case to protect:
-  /// unlike an unreported tap, a reply is never outstanding while its message
-  /// is missing, so this prunes to [_acceptedFor] alone.
+  /// [_savePressed] gives. A reply needs no [_unreportedOpen]-style holding
+  /// field to survive this prune, but not because a reply can never be
+  /// outstanding while its message is missing — [drainPending] used to get
+  /// exactly that wrong, pruning a freshly merged reply the instant it ran
+  /// ahead of the payload it answered. It survives because [drainPending] and
+  /// [restore] both ingest their payloads before merging their replies, so by
+  /// the time this prune runs, a reply's message has already been given the
+  /// chance to exist.
   Future<void> _saveReplies() async {
     _replies.removeWhere((id, _) => _acceptedFor(id) == null);
     await _replyStore.save(Map.of(_replies));
