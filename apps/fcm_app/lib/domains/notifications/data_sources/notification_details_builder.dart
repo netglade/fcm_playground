@@ -30,11 +30,19 @@ NotificationDetails buildNotificationDetails(
         AndroidNotificationAction(
           action.id,
           action.label,
-          // Every action in this cycle opens the app. That is what keeps
-          // `onDidReceiveBackgroundNotificationResponse` out of the design:
-          // it exists for actions that do not show UI.
-          showsUserInterface: true,
-          cancelNotification: true,
+          // A reply is answered in the shade, so it must NOT show UI: that
+          // is what routes the press to the background isolate instead of
+          // the main one. Every other action opens the app, which is what
+          // lets `LocalNotificationPresenter` answer for it.
+          showsUserInterface: !action.takesInput,
+          // A plain action's notification is stale the moment it is
+          // pressed. A reply's is not — the background isolate updates it
+          // in place, and cancelling would delete the thing being updated.
+          cancelNotification: !action.takesInput,
+          inputs: [
+            if (action.takesInput)
+              AndroidNotificationActionInput(label: action.label),
+          ],
         ),
     ],
   ),

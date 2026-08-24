@@ -64,6 +64,50 @@ void main() {
       expect(details.android?.actions, isEmpty);
     });
 
+    test('gives an input action a text field and leaves the app closed', () {
+      final details = buildNotificationDetails(
+        message(data: const {'actions': 'reply:Reply:input'}),
+      );
+
+      final action = details.android!.actions!.single;
+      expect(action.inputs, hasLength(1));
+      expect(
+        action.showsUserInterface,
+        isFalse,
+        reason:
+            'answering without opening the app is the whole demonstration; '
+            'showing UI would route the press to the main isolate instead',
+      );
+      expect(
+        action.cancelNotification,
+        isFalse,
+        reason:
+            'the notification has to survive the press so the background '
+            'isolate can update it in place',
+      );
+    });
+
+    test('keeps a plain action opening the app and cancelling', () {
+      final details = buildNotificationDetails(
+        message(data: const {'actions': 'open:Open build'}),
+      );
+
+      final action = details.android!.actions!.single;
+      expect(action.inputs, isEmpty);
+      expect(action.showsUserInterface, isTrue);
+      expect(action.cancelNotification, isTrue);
+    });
+
+    test('carries both shapes in one notification', () {
+      final details = buildNotificationDetails(
+        message(data: const {'actions': 'reply:Reply:input|mute:Mute'}),
+      );
+
+      final actions = details.android!.actions!;
+      expect(actions.map((action) => action.inputs.isNotEmpty), [true, false]);
+      expect(actions.map((action) => action.showsUserInterface), [false, true]);
+    });
+
     test('carries plain iOS details, because actions need a category', () {
       final details = buildNotificationDetails(
         message(data: const {'actions': 'retry:Retry'}),
