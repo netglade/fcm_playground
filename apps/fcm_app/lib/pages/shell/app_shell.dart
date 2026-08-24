@@ -17,6 +17,7 @@ import '../runs/runs_view.dart';
 import '../sandbox/sandbox_view.dart';
 import '../scenarios/scenarios_view.dart';
 import '../telemetry/telemetry_view.dart';
+import 'deep_link_destination.dart';
 
 /// Owns the app's chrome: one `AppBar` whose title follows the drawer's selection,
 /// and one body per destination.
@@ -41,14 +42,9 @@ class _AppShellState extends State<AppShell> {
     'Runs',
     'Telemetry',
   ];
-  static const _inboxDestination = 0;
-  static const _sandboxDestination = 2;
-  static const _runsDestination = 3;
-  static const _telemetryDestination = 4;
-
   late final AppLifecycleListener _lifecycle;
 
-  int _destination = _inboxDestination;
+  int _destination = inboxDestination;
 
   /// Bumped every time Runs is chosen from the drawer, and used as [RunsView]'s
   /// key below.
@@ -154,10 +150,10 @@ class _AppShellState extends State<AppShell> {
   void _select(int index) {
     setState(() {
       _destination = index;
-      if (index == _runsDestination) {
+      if (index == runsDestination) {
         _runsVisits++;
       }
-      if (index == _telemetryDestination) {
+      if (index == telemetryDestination) {
         _telemetryVisits++;
       }
     });
@@ -166,7 +162,7 @@ class _AppShellState extends State<AppShell> {
 
   /// Unlike [_select], this is not a drawer choice, so there is no drawer to pop.
   void _openSandbox() {
-    setState(() => _destination = _sandboxDestination);
+    setState(() => _destination = sandboxDestination);
   }
 
   void _onResume() => unawaited(context.read<InboxCubit>().drainPending());
@@ -252,8 +248,8 @@ class _AppShellState extends State<AppShell> {
       return;
     }
 
-    if (_destination != _inboxDestination) {
-      setState(() => _destination = _inboxDestination);
+    if (_destination != inboxDestination) {
+      setState(() => _destination = inboxDestination);
     }
 
     final message = inbox.pendingOpen;
