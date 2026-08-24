@@ -171,6 +171,34 @@ void main() {
     expect(find.text('Replied: on my way'), findsOne);
   });
 
+  testWidgets(
+    'shows both cards when a message has a pressed action and a reply',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MessageDetailPage(
+            PushMessage(
+              id: 'msg-1',
+              title: 'Build failed',
+              body: 'Retry or open?',
+              sentAt: DateTime.utc(2026, 8, 24, 9),
+              data: const {'actions': 'retry:Retry|open:Open build'},
+            ),
+            pressedAction: const PressedAction(
+              actionId: 'retry',
+              from: OpenedFrom.background,
+            ),
+            reply: 'on my way',
+          ),
+        ),
+      );
+
+      expect(find.text('Opened by action: Retry'), findsOne);
+      expect(find.text('from: background'), findsOne);
+      expect(find.text('Replied: on my way'), findsOne);
+    },
+  );
+
   testWidgets('says nothing when there is no reply', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
