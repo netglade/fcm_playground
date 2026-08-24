@@ -5,6 +5,7 @@
 /// no Firebase project required.
 library;
 
+export 'src/notification_actions.dart';
 export 'src/push_message.dart';
 export 'src/push_message_format_exception.dart';
 export 'src/push_message_parser.dart';
