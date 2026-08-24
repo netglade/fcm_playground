@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../entities/notification_content.dart';
 import 'notification_details_builder.dart';
+import 'notification_reply.dart';
 
 /// Whether the background isolate should draw [message] itself.
 ///
@@ -31,6 +32,10 @@ Future<void> drawBackgroundNotification(PushMessage message) async {
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(),
     ),
+    // The same callback the main isolate registers. The plugin persists callback
+    // handles natively, so initialising here without it would clobber that
+    // registration and a reply pressed afterwards would silently do nothing.
+    onDidReceiveBackgroundNotificationResponse: onNotificationReply,
   );
   await plugin
       .resolvePlatformSpecificImplementation<

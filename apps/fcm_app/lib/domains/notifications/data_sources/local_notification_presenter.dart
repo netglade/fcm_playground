@@ -9,6 +9,7 @@ import '../../push/entities/push_tap.dart';
 import '../entities/notification_content.dart';
 import '../entities/notification_presenter.dart';
 import 'notification_details_builder.dart';
+import 'notification_reply.dart';
 
 /// A [NotificationPresenter] over `flutter_local_notifications`, needed only
 /// because Android shows nothing for a message that arrives while the app is in
@@ -61,6 +62,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
         iOS: DarwinInitializationSettings(),
       ),
       onDidReceiveNotificationResponse: handleResponse,
+      onDidReceiveBackgroundNotificationResponse: onNotificationReply,
     );
 
     await _plugin
