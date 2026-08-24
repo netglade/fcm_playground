@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:core/core.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../push/entities/push_tap.dart';
@@ -14,10 +14,17 @@ import 'notification_details_builder.dart';
 /// because Android shows nothing for a message that arrives while the app is in
 /// use.
 class LocalNotificationPresenter implements NotificationPresenter {
-  LocalNotificationPresenter({FlutterLocalNotificationsPlugin? plugin})
-    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+  LocalNotificationPresenter({
+    FlutterLocalNotificationsPlugin? plugin,
+    AppLifecycleState Function()? lifecycleState,
+  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
+       _lifecycleState = lifecycleState ?? _bindingLifecycleState;
 
   final FlutterLocalNotificationsPlugin _plugin;
+
+  /// Injected so the tests can say which state a press arrived in. There is no
+  /// other way to drive `WidgetsBinding`'s lifecycle from a unit test.
+  final AppLifecycleState Function() _lifecycleState;
   final _taps = StreamController<PushTap>.broadcast();
   final _dismissals = StreamController<String>.broadcast();
 
@@ -81,9 +88,21 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
         return;
       }
-      // Always foreground: this presenter only ever draws a banner for a message that
-      // arrived while the app was on screen.
-      _taps.add(PushTap(id, OpenedFrom.foreground));
+      // The state has to be read, not assumed: since the background isolate
+      // draws through the same builder, a press can reach this callback with the
+      // app off screen.
+      final from = _lifecycleState() == AppLifecycleState.resumed
+          ? OpenedFrom.foreground
+          : OpenedFrom.background;
+      _taps.add(PushTap(id, from, actionId: response.actionId));
     }
   }
 }
+
+/// The binding's view of the app state, defaulting to resumed.
+///
+/// Null before the first lifecycle event reaches the binding. Foreground is the
+/// honest reading there: it is what this presenter claimed unconditionally until
+/// now, and an unknown state must not fabricate a background open.
+AppLifecycleState _bindingLifecycleState() =>
+    WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
