@@ -141,4 +141,122 @@ void main() {
       );
     });
   });
+
+  group('LocalNotificationPresenter.handleLaunchDetails', () {
+    late LocalNotificationPresenter presenter;
+    late List<PushTap> taps;
+
+    setUp(() {
+      presenter = LocalNotificationPresenter(
+        lifecycleState: () => AppLifecycleState.resumed,
+      );
+      taps = <PushTap>[];
+      presenter.taps.listen(taps.add);
+    });
+
+    tearDown(() => presenter.dispose());
+
+    NotificationAppLaunchDetails launch({String? actionId}) =>
+        NotificationAppLaunchDetails(
+          true,
+          notificationResponse: NotificationResponse(
+            notificationResponseType:
+                NotificationResponseType.selectedNotification,
+            payload: 'msg-1',
+            actionId: actionId,
+          ),
+        );
+
+    test('a press that launched the app reports killed', () async {
+      presenter.handleLaunchDetails(launch(actionId: 'retry'));
+      await pumpEventQueue();
+
+      expect(taps, [
+        const PushTap('msg-1', OpenedFrom.killed, actionId: 'retry'),
+      ]);
+    });
+
+    test('a launch that no notification caused reports nothing', () async {
+      presenter.handleLaunchDetails(const NotificationAppLaunchDetails(false));
+      await pumpEventQueue();
+
+      expect(taps, isEmpty);
+    });
+
+    test('null details report nothing', () async {
+      presenter.handleLaunchDetails(null);
+      await pumpEventQueue();
+
+      expect(taps, isEmpty);
+    });
+
+    test('the callback repeating the launching press reports it once', () async {
+      presenter.handleLaunchDetails(launch(actionId: 'retry'));
+      presenter.handleResponse(
+        const NotificationResponse(
+          notificationResponseType:
+              NotificationResponseType.selectedNotification,
+          payload: 'msg-1',
+          actionId: 'retry',
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(
+        taps,
+        hasLength(1),
+        reason:
+            'on Android the callback has been seen firing for the very press '
+            'that launched the app, and two opens for one press is a telemetry '
+            'bug',
+      );
+    });
+
+    test(
+      'a genuine second press of the same button is not swallowed',
+      () async {
+        presenter.handleLaunchDetails(launch(actionId: 'retry'));
+        presenter.handleResponse(
+          const NotificationResponse(
+            notificationResponseType:
+                NotificationResponseType.selectedNotification,
+            payload: 'msg-1',
+            actionId: 'retry',
+          ),
+        );
+        presenter.handleResponse(
+          const NotificationResponse(
+            notificationResponseType:
+                NotificationResponseType.selectedNotification,
+            payload: 'msg-1',
+            actionId: 'retry',
+          ),
+        );
+        await pumpEventQueue();
+
+        expect(
+          taps.map((tap) => tap.from),
+          [OpenedFrom.killed, OpenedFrom.foreground],
+          reason:
+              'the suppression covers exactly one echo of the launching press, '
+              'not every later press of that button',
+        );
+      },
+    );
+
+    test('a different press after the launch is reported', () async {
+      presenter.handleLaunchDetails(launch(actionId: 'retry'));
+      presenter.handleResponse(
+        const NotificationResponse(
+          notificationResponseType:
+              NotificationResponseType.selectedNotification,
+          payload: 'msg-1',
+          actionId: 'open',
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(taps.map((tap) => tap.actionId), ['retry', 'open']);
+    });
+  });
 }
