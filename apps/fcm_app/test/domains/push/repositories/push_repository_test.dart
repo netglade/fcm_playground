@@ -1316,6 +1316,31 @@ void main() {
     );
 
     test(
+      'records the reply action\'s own id as the action event\'s detail',
+      () async {
+        // A payload can name its input action anything — 'note:Note:input' is
+        // as valid as 'reply:Reply:input' — so a literal here would be wrong
+        // for every scenario but the one it was copied from.
+        final telemetry = RecordingPushTelemetry();
+        final repository = build(telemetry: telemetry);
+        replySource.emit(payload(id: 'msg-1', traceId: 'trace-1'));
+        await pumpEventQueue();
+        await replies.appendPending(
+          const PendingReply('msg-1', 'on my way', actionId: 'note'),
+        );
+
+        await repository.drainPending();
+
+        expect(
+          telemetry.recorded
+              .where((event) => event.type == TelemetryEventType.action)
+              .map((event) => event.detail),
+          ['note'],
+        );
+      },
+    );
+
+    test(
       'a reply for a message the repository does not hold records nothing',
       () async {
         final telemetry = RecordingPushTelemetry();

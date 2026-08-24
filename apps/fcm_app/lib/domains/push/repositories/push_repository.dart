@@ -387,7 +387,7 @@ class PushRepository {
             _telemetry,
             TelemetryEventType.action,
             accepted.payload,
-            detail: 'reply',
+            detail: reply.actionId,
           ),
         );
       }

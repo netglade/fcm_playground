@@ -22,6 +22,26 @@ void main() {
       },
     );
 
+    test('carries the id of the action the reply was pressed through', () {
+      final reply = replyFrom(
+        const NotificationResponse(
+          notificationResponseType:
+              NotificationResponseType.selectedNotificationAction,
+          payload: 'msg-1',
+          actionId: 'note',
+          input: 'ready when you are',
+        ),
+      );
+
+      expect(
+        reply?.actionId,
+        'note',
+        reason:
+            'telemetry records the pressed action\'s own id, not a literal '
+            'that is only ever right for one of them',
+      );
+    });
+
     test('keeps an empty reply, which is a thing a user can send', () {
       final reply = replyFrom(
         const NotificationResponse(

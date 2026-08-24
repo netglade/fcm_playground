@@ -19,7 +19,7 @@ PendingReply? replyFrom(NotificationResponse response) {
     return null;
   }
 
-  return PendingReply(id, text);
+  return PendingReply(id, text, actionId: response.actionId ?? 'reply');
 }
 
 /// Redraws the notification to show where the reply has got to.

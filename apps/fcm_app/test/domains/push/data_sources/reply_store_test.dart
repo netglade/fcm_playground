@@ -34,6 +34,26 @@ void main() {
     );
   });
 
+  test('round-trips the action id a reply was carried by', () async {
+    await store.appendPending(
+      const PendingReply('msg-1', 'first', actionId: 'note'),
+    );
+
+    expect((await store.takePending()).single.actionId, 'note');
+  });
+
+  test('an entry missing actionId defaults it to "reply"', () async {
+    await SharedPreferencesAsync().setStringList('push.pendingReplies', [
+      '{"messageId":"msg-1","text":"kept"}',
+    ]);
+
+    expect(
+      (await store.takePending()).single.actionId,
+      'reply',
+      reason: 'a build that predates the field must be read, not dropped',
+    );
+  });
+
   test('round-trips the merged map', () async {
     await store.save({'msg-1': 'ready when you are'});
 
