@@ -9,6 +9,7 @@ import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/runs/run_timeline_page.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/shell/app_shell.dart';
+import 'package:fcm_app/pages/shell/deep_link_destination.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,11 +24,12 @@ import '../../fakes/fake_telemetry_reader.dart';
 import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_navigator_observer.dart';
 
-Map<String, Object?> payload({String id = 'msg-1'}) => {
+Map<String, Object?> payload({String id = 'msg-1', String? deepLink}) => {
   'id': id,
   'title': 'Build finished',
   'body': 'Release 1.0.0 is ready.',
   'sentAt': '2026-08-11T09:30:00Z',
+  'deep_link': ?deepLink,
 };
 
 void main() {
@@ -329,6 +331,74 @@ void main() {
 
     expect(find.byType(MessageDetailPage), findsOne);
     expect(inbox.state.hasPendingOpen, isFalse);
+  });
+
+  testWidgets('a link naming a destination switches to it', (tester) async {
+    await pumpApp(tester);
+    source.emit(payload(id: 'tapped', deepLink: '/telemetry'));
+    await tester.pumpAndSettle();
+
+    inbox.requestOpen('tapped', OpenedFrom.background);
+    await tester.pumpAndSettle();
+
+    expect(selectedDestination(tester), telemetryDestination);
+    expect(
+      find.byType(MessageDetailPage),
+      findsNothing,
+      reason:
+          'the user asked to go to Telemetry, and pushing the detail page over '
+          'it would be a screen they did not ask for',
+    );
+  });
+
+  testWidgets('a link to a destination does not flash the inbox first', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await openSandbox(tester);
+    source.emit(payload(id: 'tapped', deepLink: '/telemetry'));
+    await tester.pumpAndSettle();
+
+    inbox.requestOpen('tapped', OpenedFrom.background);
+    await tester.pump();
+    await tester.pump();
+
+    expect(
+      selectedDestination(tester),
+      telemetryDestination,
+      reason:
+          'selecting the inbox is the fallback for an id that never resolves; '
+          'a link that names a destination must not pass through it',
+    );
+  });
+
+  testWidgets('a /runs/<id> link pushes that timeline', (tester) async {
+    await pumpApp(tester);
+    source.emit(payload(id: 'tapped', deepLink: '/runs/run-7'));
+    await tester.pumpAndSettle();
+
+    inbox.requestOpen('tapped', OpenedFrom.background);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RunTimelinePage), findsOne);
+    expect(find.byType(MessageDetailPage), findsNothing);
+  });
+
+  testWidgets('an unrecognised link opens the detail page', (tester) async {
+    await pumpApp(tester);
+    source.emit(payload(id: 'tapped', deepLink: '/builds/128'));
+    await tester.pumpAndSettle();
+
+    inbox.requestOpen('tapped', OpenedFrom.background);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byType(MessageDetailPage),
+      findsOne,
+      reason:
+          'the detail page lists deep_link among its data rows, so an app with '
+          'no such screen still shows the user what the notification asked for',
+    );
   });
 
   testWidgets('leaves the sandbox for the inbox when a tap arrives', (

@@ -242,17 +242,23 @@ class _AppShellState extends State<AppShell> {
   ///
   /// Selecting the inbox happens as soon as a tap is outstanding: it is the
   /// fallback for an id that will never resolve — evicted by the cap, or rejected
-  /// as malformed.
+  /// as malformed. A link that names a destination of its own overrides that,
+  /// because passing through the inbox on the way would show the user a screen
+  /// they did not ask for.
   void _onInboxChanged(BuildContext context, InboxState inbox) {
     if (!inbox.hasPendingOpen) {
       return;
     }
 
-    if (_destination != inboxDestination) {
+    final message = inbox.pendingOpen;
+    final destination = message == null
+        ? null
+        : deepLinkDestination(message.data[deepLinkKey]);
+
+    if (destination is! ShellDestination && _destination != inboxDestination) {
       setState(() => _destination = inboxDestination);
     }
 
-    final message = inbox.pendingOpen;
     if (message == null) {
       return;
     }
@@ -261,15 +267,23 @@ class _AppShellState extends State<AppShell> {
     // the one this clear itself publishes, which arrives with no pending open and
     // is turned away by the guard above.
     context.read<InboxCubit>().clearPendingOpen();
-    unawaited(
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => MessageDetailPage(
-            message,
-            pressedAction: inbox.pressedActions[message.id],
+
+    switch (destination) {
+      case ShellDestination(:final index):
+        setState(() => _destination = index);
+      case RunTimelineDestination(:final runId):
+        _openRun(context, runId);
+      case null:
+        unawaited(
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => MessageDetailPage(
+                message,
+                pressedAction: inbox.pressedActions[message.id],
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        );
+    }
   }
 }
