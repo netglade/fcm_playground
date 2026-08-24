@@ -152,4 +152,39 @@ void main() {
 
     expect(find.text('Opened by action: retry'), findsOne);
   });
+
+  testWidgets('shows a reply the user typed in the shade', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MessageDetailPage(
+          PushMessage(
+            id: 'msg-1',
+            title: 'Ada',
+            body: 'ready when you are',
+            sentAt: DateTime.utc(2026, 8, 24, 9),
+          ),
+          reply: 'on my way',
+        ),
+      ),
+    );
+
+    expect(find.text('Replied: on my way'), findsOne);
+  });
+
+  testWidgets('says nothing when there is no reply', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MessageDetailPage(
+          PushMessage(
+            id: 'msg-1',
+            title: 'Ada',
+            body: 'ready when you are',
+            sentAt: DateTime.utc(2026, 8, 24, 9),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.textContaining('Replied:'), findsNothing);
+  });
 }

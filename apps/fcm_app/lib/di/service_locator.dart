@@ -12,9 +12,11 @@ import '../domains/push/data_sources/disabled_push_source.dart';
 import '../domains/push/data_sources/firebase_push_source.dart';
 import '../domains/push/data_sources/shared_preferences_pressed_action_store.dart';
 import '../domains/push/data_sources/shared_preferences_push_payload_store.dart';
+import '../domains/push/data_sources/shared_preferences_reply_store.dart';
 import '../domains/push/entities/pressed_action_store.dart';
 import '../domains/push/entities/push_payload_store.dart';
 import '../domains/push/entities/push_source.dart';
+import '../domains/push/entities/reply_store.dart';
 import '../domains/push/repositories/push_repository.dart';
 import '../domains/runs/data_sources/http_run_scheduler.dart';
 import '../domains/runs/data_sources/shared_preferences_active_run_store.dart';
@@ -70,6 +72,7 @@ Future<void> configureDependencies({
     ..registerSingleton<PressedActionStore>(
       SharedPreferencesPressedActionStore(),
     )
+    ..registerSingleton<ReplyStore>(SharedPreferencesReplyStore())
     ..registerSingleton<DeviceIdentity>(SharedPreferencesDeviceIdentity())
     ..registerSingleton<ActiveRunStore>(SharedPreferencesActiveRunStore())
     ..registerSingleton<NotificationPresenter>(presenter)
@@ -100,6 +103,7 @@ Future<void> configureDependencies({
       // `sent` it contradicts land in one buffer and one database.
       telemetry: getIt<PushTelemetry>(),
       pressedActions: getIt<PressedActionStore>(),
+      replies: getIt<ReplyStore>(),
       setupError: setupError,
     ),
   );

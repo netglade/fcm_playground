@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:fcm_app/domains/push/data_sources/shared_preferences_pressed_action_store.dart';
+import 'package:fcm_app/domains/push/data_sources/shared_preferences_reply_store.dart';
+import 'package:fcm_app/domains/push/entities/pending_reply.dart';
 import 'package:fcm_app/domains/push/entities/pressed_action.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/telemetry/data_sources/silent_push_telemetry.dart';
@@ -1167,6 +1169,140 @@ void main() {
               .firstWhere((event) => event.type == TelemetryEventType.action)
               .detail,
           'retry',
+        );
+      },
+    );
+  });
+
+  group('a reply', () {
+    late FakePushSource replySource;
+    late FakePushPayloadStore replyPayloadStore;
+    late SharedPreferencesReplyStore replies;
+    late PushRepository replyRepository;
+
+    setUp(() {
+      SharedPreferencesAsyncPlatform.instance =
+          InMemorySharedPreferencesAsync.empty();
+      replySource = FakePushSource();
+      replyPayloadStore = FakePushPayloadStore();
+      replies = SharedPreferencesReplyStore();
+    });
+
+    tearDown(() async {
+      replyRepository.dispose();
+      await replySource.dispose();
+    });
+
+    /// Its own source and store, because `FakePushSource`'s stream takes one
+    /// listener and the repositories built in the outer `setUp` and in `a
+    /// pressed action` already hold theirs.
+    PushRepository build({RecordingPushTelemetry? telemetry}) =>
+        replyRepository = PushRepository(
+          replySource,
+          store: replyPayloadStore,
+          replies: replies,
+          telemetry: telemetry ?? const SilentPushTelemetry(),
+        )..listen();
+
+    test('drains a pending reply and publishes it', () async {
+      await replies.appendPending(const PendingReply('msg-1', 'on my way'));
+      final repository = build();
+      replySource.emit(payload(id: 'msg-1'));
+      await pumpEventQueue();
+
+      await repository.drainPending();
+
+      expect(repository.state.replies, {'msg-1': 'on my way'});
+    });
+
+    test('drains a reply typed while no new push arrived', () async {
+      // The normal case: a reply action deliberately does not foreground the
+      // app, so the far more common shape of a resume is a reply with no
+      // accompanying payload — never the other way around. A drain that only
+      // ran when the payload queue was non-empty would leave this reply
+      // stranded until the next cold start.
+      final repository = build();
+      replySource.emit(payload(id: 'msg-1'));
+      await pumpEventQueue();
+
+      await replies.appendPending(const PendingReply('msg-1', 'on my way'));
+      await repository.drainPending();
+
+      expect(
+        repository.state.replies,
+        {'msg-1': 'on my way'},
+        reason:
+            'a reply typed while backgrounded arrives at the next resume '
+            'with no new push alongside it, so draining it must not sit '
+            'behind the payload queue\'s empty guard',
+      );
+    });
+
+    test('keeps a reply across a restart', () async {
+      await replies.appendPending(const PendingReply('msg-1', 'on my way'));
+      await replyPayloadStore.saveInbox([payload(id: 'msg-1')]);
+
+      final repository = build();
+      await repository.restore();
+
+      expect(repository.state.replies.keys, ['msg-1']);
+    });
+
+    test('prunes a reply whose message the cap evicted', () async {
+      await replies.save({'gone': 'orphan'});
+      final repository = build();
+
+      await repository.restore();
+
+      expect(
+        (await replies.load()).keys,
+        isEmpty,
+        reason:
+            'a reply pointing at a message nobody holds can never be shown, and '
+            'keeping it would grow the store without bound',
+      );
+    });
+
+    test(
+      'records an action event for a drained reply whose message it holds',
+      () async {
+        final telemetry = RecordingPushTelemetry();
+        final repository = build(telemetry: telemetry);
+        replySource.emit(payload(id: 'msg-1', traceId: 'trace-1'));
+        await pumpEventQueue();
+        await replies.appendPending(const PendingReply('msg-1', 'on my way'));
+
+        await repository.drainPending();
+
+        expect(
+          telemetry.recorded
+              .where((event) => event.type == TelemetryEventType.action)
+              .map((event) => event.detail),
+          ['reply'],
+          reason:
+              'a reply never reaches requestOpen, so this drain is the only '
+              'place the action event can be recorded with a real trace id',
+        );
+      },
+    );
+
+    test(
+      'a reply for a message the repository does not hold records nothing',
+      () async {
+        final telemetry = RecordingPushTelemetry();
+        final repository = build(telemetry: telemetry);
+
+        await replies.appendPending(const PendingReply('msg-1', 'on my way'));
+        await repository.drainPending();
+
+        expect(
+          telemetry.recorded.where(
+            (event) => event.type == TelemetryEventType.action,
+          ),
+          isEmpty,
+          reason:
+              'there is no payload to attach a trace id to, so nothing sent '
+              'is more honest than a fabricated trace',
         );
       },
     );

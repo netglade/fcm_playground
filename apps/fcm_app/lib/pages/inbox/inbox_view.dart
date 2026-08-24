@@ -40,6 +40,7 @@ class InboxView extends StatelessWidget {
                         builder: (_) => MessageDetailPage(
                           message,
                           pressedAction: state.pressedActions[message.id],
+                          reply: state.replies[message.id],
                         ),
                       ),
                     ),

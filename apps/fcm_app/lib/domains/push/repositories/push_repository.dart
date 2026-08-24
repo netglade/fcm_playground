@@ -11,10 +11,13 @@ import '../../telemetry/data_sources/silent_push_telemetry.dart';
 import '../../telemetry/entities/push_telemetry.dart';
 import '../../telemetry/report_push_event.dart';
 import '../data_sources/silent_pressed_action_store.dart';
+import '../data_sources/silent_reply_store.dart';
+import '../entities/pending_reply.dart';
 import '../entities/pressed_action.dart';
 import '../entities/pressed_action_store.dart';
 import '../entities/push_payload_store.dart';
 import '../entities/push_source.dart';
+import '../entities/reply_store.dart';
 
 /// Everything about received pushes that outlives a page: the subscription, the
 /// ordering, the de-duplication and the persistence.
@@ -29,8 +32,9 @@ class PushRepository {
     this._presenter = const SilentNotificationPresenter(),
     this._telemetry = const SilentPushTelemetry(),
     this._pressedActions = const SilentPressedActionStore(),
+    ReplyStore replies = const SilentReplyStore(),
     this._setupError,
-  });
+  }) : _replyStore = replies;
 
   static const maxStoredMessages = 100;
 
@@ -39,8 +43,14 @@ class PushRepository {
   final NotificationPresenter _presenter;
   final PushTelemetry _telemetry;
   final PressedActionStore _pressedActions;
+  // Named `_replyStore` rather than `this._replies`, so the merged map below can
+  // keep the name that mirrors `_pressed` — the pressed-action store and its
+  // merged map do not collide this way because "actions" is not in the map's
+  // name, but "replies" would be in both here.
+  final ReplyStore _replyStore;
   final _parser = const PushMessageParser();
   final _pressed = <String, PressedAction>{};
+  final _replies = <String, String>{};
   final _accepted = <_AcceptedPush>[];
   final _rejections = <String>[];
   final _seenIds = <String>{};
@@ -74,6 +84,7 @@ class PushRepository {
     setupError: _setupError,
     pendingOpenId: _pendingOpenId,
     pressedActions: Map.unmodifiable(_pressed),
+    replies: Map.unmodifiable(_replies),
   );
 
   String? get setupError => _setupError;
@@ -190,6 +201,11 @@ class PushRepository {
       await _save();
       _pressed.addAll(await _pressedActions.load());
       await _savePressed();
+      _replies.addAll(await _replyStore.load());
+      // Runs even when nothing is pending: a reply loaded above may point at a
+      // message [restore] just found the cap had evicted, and that has to be
+      // pruned here too, or it sits in the store forever.
+      await _mergeReplies(await _replyStore.takePending());
     } catch (error) {
       _setupError ??= 'Stored pushes could not be read: $error';
       _publish();
@@ -197,7 +213,19 @@ class PushRepository {
   }
 
   /// Merges anything the background isolate appended since the last drain.
+  ///
+  /// A reply is drained before the payload-queue check below, deliberately: a
+  /// reply action does not foreground the app, so the ordinary resume carries a
+  /// reply with no accompanying payload at all. Draining it after that check
+  /// would leave it stranded until the next cold start's [restore] — silently
+  /// late by however long the app happens to stay backgrounded.
   Future<void> drainPending() async {
+    final pendingReplies = await _replyStore.takePending();
+    if (pendingReplies.isNotEmpty) {
+      await _mergeReplies(pendingReplies);
+      _publish();
+    }
+
     final pending = await _store.takePending();
     if (pending.isEmpty) {
       return;
@@ -331,6 +359,45 @@ class PushRepository {
     );
 
     await _pressedActions.save(Map.of(_pressed));
+  }
+
+  /// Merges [pending] into the merged replies map, records the `action`
+  /// telemetry event once per reply whose message this repository holds, then
+  /// re-persists.
+  ///
+  /// A reply never reaches [requestOpen] — it produced no tap, because it never
+  /// opened the app — so this drain is the only place the event can be recorded
+  /// with a real trace id. The cost: the event's timestamp is the moment the
+  /// app resumed and drained the reply, not the moment the user actually typed
+  /// it, so a latency figure computed from this event measures the wrong
+  /// interval.
+  Future<void> _mergeReplies(List<PendingReply> pending) async {
+    for (final reply in pending) {
+      _replies[reply.messageId] = reply.text;
+      if (_acceptedFor(reply.messageId) case final accepted?) {
+        unawaited(
+          reportAndFlush(
+            _telemetry,
+            TelemetryEventType.action,
+            accepted.payload,
+            detail: 'reply',
+          ),
+        );
+      }
+    }
+    await _saveReplies();
+  }
+
+  /// Writes the merged replies for messages still held, dropping the rest.
+  ///
+  /// Pruning here rather than on a timer keeps the store bounded by
+  /// [maxStoredMessages] without inventing a second cap, the same reasoning
+  /// [_savePressed] gives — except a reply has no warm-start case to protect:
+  /// unlike an unreported tap, a reply is never outstanding while its message
+  /// is missing, so this prunes to [_acceptedFor] alone.
+  Future<void> _saveReplies() async {
+    _replies.removeWhere((id, _) => _acceptedFor(id) == null);
+    await _replyStore.save(Map.of(_replies));
   }
 
   void _publish() {

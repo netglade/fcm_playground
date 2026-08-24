@@ -16,6 +16,7 @@ class InboxState {
     required this.setupError,
     required this.pendingOpenId,
     required this.pressedActions,
+    required this.replies,
   });
 
   /// Received messages, newest first.
@@ -36,6 +37,14 @@ class InboxState {
   /// Not folded into [PushMessage]: it is not something the sender said, and a
   /// message the app never drew a notification for has no entry at all.
   final Map<String, PressedAction> pressedActions;
+
+  /// The reply text the user typed into each message's notification, keyed by
+  /// message id.
+  ///
+  /// Not folded into [PushMessage] for the same reason as [pressedActions]: it
+  /// is not something the sender said, and a message nobody replied to has no
+  /// entry at all.
+  final Map<String, String> replies;
 
   /// True as soon as the tap arrives, whether or not [pendingOpen] can resolve
   /// it: the shell selects the inbox on this, which is the fallback for an id

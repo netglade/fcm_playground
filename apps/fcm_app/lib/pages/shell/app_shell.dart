@@ -282,6 +282,7 @@ class _AppShellState extends State<AppShell> {
               builder: (_) => MessageDetailPage(
                 message,
                 pressedAction: inbox.pressedActions[message.id],
+                reply: inbox.replies[message.id],
               ),
             ),
           ),

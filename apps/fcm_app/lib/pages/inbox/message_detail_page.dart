@@ -9,7 +9,12 @@ import '../../domains/push/entities/pressed_action.dart';
 /// from two places that both mean "look at this one message": an inbox row, and a
 /// notification the user tapped.
 class MessageDetailPage extends StatelessWidget {
-  const MessageDetailPage(this.message, {this.pressedAction, super.key});
+  const MessageDetailPage(
+    this.message, {
+    this.pressedAction,
+    this.reply,
+    super.key,
+  });
 
   final PushMessage message;
 
@@ -19,6 +24,13 @@ class MessageDetailPage extends StatelessWidget {
   /// `StatelessWidget` that both its call sites can build from state they
   /// already hold.
   final PressedAction? pressedAction;
+
+  /// The reply the user typed into this message's notification, if any.
+  ///
+  /// Passed in for the same reason as [pressedAction]: this page stays a
+  /// `StatelessWidget` built from state its call sites already hold, rather
+  /// than one that reaches into a store of its own.
+  final String? reply;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +67,19 @@ class MessageDetailPage extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ),
+            if (reply case final text?)
+              Card(
+                color: theme.colorScheme.secondaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    'Replied: $text',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
                   ),
                 ),
               ),
