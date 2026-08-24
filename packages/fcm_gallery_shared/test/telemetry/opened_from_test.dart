@@ -23,4 +23,17 @@ void main() {
       expect(OpenedFrom.values, hasLength(3));
     });
   });
+
+  group('OpenedFrom.fromWireName', () {
+    test('round-trips every value through its wire name', () {
+      for (final from in OpenedFrom.values) {
+        expect(OpenedFrom.fromWireName(from.wireName), from);
+      }
+    });
+
+    test('returns null for an unknown or absent name', () {
+      expect(OpenedFrom.fromWireName('sideways'), isNull);
+      expect(OpenedFrom.fromWireName(null), isNull);
+    });
+  });
 }
