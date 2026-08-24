@@ -48,16 +48,19 @@ which are still guesses.
 
 ## Known disagreements, decided in advance
 
-**`a4_no_display` and `i2_silent_data_sync` expect `displayed`.** The catalogue
-describes both as drawing nothing. The app draws a banner for every foreground
-arrival: `PushRepository._ingest` calls `_show` unconditionally, and
-`LocalNotificationPresenter.show` has no title guard, so a data-only push posts a
-notification with an empty title and records `displayed`.
+**`a4_no_display` and `i2_silent_data_sync` expect `displayed`.** Both are data-only
+and carry no title or body, and nothing guards against that: `PushRepository._ingest`
+calls `_show` unconditionally for a foreground arrival, and the background isolate
+draws through the same builder for every payload with no `notification` block, so
+either isolate posts a blank tray entry — icon and app name, no text — and records
+`displayed`. The catalogue used to describe these two as drawing nothing at all; that
+was wrong and has been corrected in the catalogue copy itself, not here.
 
-The table matches the app, so these two tests pass. That is a deliberate choice not to
-ship a red test — **not** a finding that the app is right. Someone has to decide
-whether the app should suppress a titleless banner, and if it should, these two
-entries gain `absentEvents: {displayed}` and the app gains a guard, in that order.
+The table matches the app, so these two tests pass. That is not a finding that the app
+is right, only that the table describes it accurately. Someone still has to decide
+whether the app should suppress a titleless banner instead of drawing an empty shell,
+and if it should, these two entries gain `absentEvents: {displayed}` and the app gains
+a guard, in that order.
 
 **`c2_priority_normal` can fail for a correct reason.** NORMAL priority entitles FCM to
 hold the message until the next maintenance window. Its two-minute timeout is generous,
@@ -87,6 +90,10 @@ Xcode side to need work that this plan did not do.
 **`f1_actions`'s automated assertions cover delivery and drawing only.** Pressing an
 action button is a manual step: Patrol's `tapOnNotificationBySelector` matches
 notifications, not the buttons inside them, and pressing an action is not something
-Patrol documents an API for. Whoever calibrates this entry on a device should press
-each button by hand and confirm `action` reaches the Telemetry page with the right
-id, in each of the three app states — foreground, background and killed.
+Patrol documents an API for. That is not the same as "cannot be automated", though:
+`$.native.tap(Selector(text: 'Retry'))` against an already-open shade is the obvious
+untried route — `NativeAutomator.tap` takes any `Selector`, not only ones the
+notification helpers construct — and whoever calibrates this entry should try it
+before assuming the manual step is permanent. Until then, press each button by hand
+and confirm `action` reaches the Telemetry page with the right id, in each of the
+three app states — foreground, background and killed.

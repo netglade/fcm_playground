@@ -76,12 +76,13 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
-  // Expects `displayed` despite the catalogue calling this one "nothing drawn".
-  // `PushRepository._ingest` calls `_show` for every live payload and
-  // `LocalNotificationPresenter.show` has no title guard, so the app does draw a
-  // banner here — the catalogue describes an intent the app does not implement.
-  // Asserting the absence would ship a red test; the disagreement is recorded in
-  // CALIBRATION.md instead, for someone to decide which side is wrong.
+  // Expects `displayed`: `PushRepository._ingest` calls `_show` for every live
+  // payload and `LocalNotificationPresenter.show` has no title guard, so a4
+  // draws a blank tray entry — icon and app name, no text — rather than
+  // nothing. The catalogue's own copy used to call this "nothing drawn"; that
+  // was wrong and has been corrected there, not here. Whether the app *should*
+  // suppress a titleless banner is still an open question, recorded in
+  // CALIBRATION.md.
   'a4_no_display': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -152,8 +153,9 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
 
-  // Group I — a silent data sync. Same note as a4_no_display: it is silent in the
-  // catalogue's intent, not in the app's behaviour.
+  // Group I — a silent data sync. Same note as a4_no_display: the row it writes
+  // is silent, but the blank tray entry the app also draws is not — the
+  // catalogue's copy now says so.
   'i2_silent_data_sync': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,

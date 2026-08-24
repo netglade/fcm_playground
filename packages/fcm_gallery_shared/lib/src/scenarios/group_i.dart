@@ -3,11 +3,13 @@ import 'scenario_need.dart';
 
 /// **I — Silent and data.** Delivery the user is not meant to notice.
 ///
-/// The distinction that matters here is *visible but quiet* versus *not visible at
-/// all*. The first is a channel-importance question and so is blocked; the second
-/// is just a `data` payload and works today. i4 is the odd one out: twenty pushes
-/// in ten seconds is about rate limiting, and MIUI in particular will start
-/// dropping them.
+/// The distinction that matters here is *visible but quiet* versus *no text to
+/// read*: i1 posts a real banner through a low-importance channel, while i2's
+/// payload carries no title or body, so what appears is a blank tray entry
+/// rather than a wholly absent one. The first is a channel-importance question
+/// and so is blocked; the second is just a `data` payload and works today. i4 is
+/// the odd one out: twenty pushes in ten seconds is about rate limiting, and
+/// MIUI in particular will start dropping them.
 const groupI = <Scenario>[
   Scenario(
     id: 'i1_silent_no_sound',
@@ -27,10 +29,12 @@ const groupI = <Scenario>[
   Scenario(
     id: 'i2_silent_data_sync',
     group: 'I — Silent and data',
-    title: 'Invisible, writes to local storage only',
+    title: 'Silent sync, drawn blank',
     description:
-        'Nothing is drawn; the handler writes a row and that is the whole '
-        'observable effect. Watch the Inbox page rather than the tray.',
+        'The handler writes a row; that is the effect this scenario is about. '
+        'A tray entry still appears — icon and app name, no title or body — '
+        'since nothing suppresses a titleless banner. Watch the Inbox page for '
+        'the row; the tray entry has no text to read.',
     // `data` is deliberately the only block: anything under `notification` or
     // `android.notification` would be drawn by the system and this would stop
     // being a silent sync. FCM's data map is map<string, string>, so the cursor

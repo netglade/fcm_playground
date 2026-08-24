@@ -7,7 +7,7 @@ import 'cubit/telemetry_state.dart';
 import 'widgets/events_tab.dart';
 import 'widgets/latency_matrix.dart';
 
-/// What became of every push: the nine events per trace, and the latency matrix.
+/// What became of every push: the ten events per trace, and the latency matrix.
 ///
 /// The `TabBar` sits in the body rather than in an `AppBar.bottom`, because the shell
 /// owns the app bar and every destination shares it. It builds its own cubit, like

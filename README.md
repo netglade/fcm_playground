@@ -325,10 +325,12 @@ Ten events, nine of which are recorded today:
 
 `opened` records its "from which state" qualifier as of this branch. `dismissed` is
 the one event still short of what it should carry: it is produced now, but only on
-Android and only for a foreground-drawn banner, so a device-drawn tray entry and
-any iOS device both show a permanently blank row. `action` carries the same
-Android-only limitation, for the same underlying reason as the buttons
-themselves: iOS takes actions from a `UNNotificationCategory` registered at
+Android, only for a banner the app itself drew — foreground or background, since
+both go through the same builder — and only while the process is still alive to
+receive the callback. A swipe after the process has been killed, and any FCM-drawn
+tray entry, reaches no isolate at all and shows a permanently blank row. `action`
+carries the same Android-only limitation, for the same underlying reason as the
+buttons themselves: iOS takes actions from a `UNNotificationCategory` registered at
 startup, and a per-message payload cannot reach one, so no iOS device ever
 produces this event.
 
@@ -533,11 +535,12 @@ and nothing else — the inbox still fills.
 
 ## Verified on this machine
 
-`melos run ci` passes clean — 24 `core` tests, 231 `fcm_gallery_shared` tests, 204
-`fcm_api` tests and 538 `fcm_app` tests. `fvm flutter build web --release` succeeds
+`melos run ci` passes clean — 33 `core` tests, 238 `fcm_gallery_shared` tests, 218
+`fcm_api` tests and 573 `fcm_app` tests. `fvm flutter build web --release` succeeds
 (a compile check only: the web build cannot receive FCM pushes without a VAPID
-key). `fvm flutter build apk --debug` currently **fails** — see below. The iOS
-build has **not** been verified here either; there is no Xcode on this machine.
+key). `fvm flutter build apk --debug` succeeds too — see below for the plugin
+that used to break it. The iOS build has **not** been verified here either;
+there is no Xcode on this machine.
 
 There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patrol
 suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
@@ -560,19 +563,17 @@ enabled for :app`. `android/app/build.gradle.kts` therefore sets
 needed even though the app only ever shows notifications immediately and never
 schedules one.
 
-**The debug APK build is broken today by a second plugin, in the same family of
+**A second plugin used to break the debug APK build, in the same family of
 failure.** `app_settings` — added for the "Battery settings" link on the
-countdown screen — pulls in `androidx.fragment:fragment:1.7.1`,
-`androidx.window:window:1.2.0`, `androidx.lifecycle:lifecycle-runtime:2.7.0` and
-twelve more transitive dependencies that all require compiling against API 34 or
-later. This project's `compileSdk` is 33, so `fvm flutter build apk --debug`
-fails at `:app_settings:checkDebugAarMetadata` with fifteen AAR-metadata errors,
-each recommending the same fix: raise `compileSdk` to at least 34. That change
-was deliberately **not** made here — it affects what every plugin in the app
-compiles against, not only this one, and deciding that is a separate piece of
-work from the review that found it. Until `compileSdk` is raised,
-`fvm flutter build apk --debug` cannot be used to verify this branch on Android;
-`fvm flutter build web --release` is unaffected and remains a valid check.
+countdown screen — pinned `compileSdkVersion 33` in its own
+`android/build.gradle`, while fifteen of its transitive AndroidX dependencies
+required consumers to compile against API 34 or later. That module's pin was the
+failure, not this app's: `android/app/build.gradle.kts` already compiles against
+`flutter.compileSdkVersion`, never a hardcoded 33. The fix was to bump
+`app_settings` to 7.0.0, which compiles against 36 and keeps the
+`AppSettings.openAppSettings` API this app uses — not to raise this app's own
+`compileSdk`, which was never the thing pinned low. `fvm flutter build apk --debug`
+now succeeds.
 
 Seven things remain explicitly **not verified** on this machine:
 
@@ -585,7 +586,8 @@ Seven things remain explicitly **not verified** on this machine:
   a service account key downloaded from the Firebase console and the API running
   against it, which this machine cannot do unattended.
 - **The on-device payload checks** — that `e2_image_remote` renders its image,
-  that `a2_data_only` reaches the inbox with no notification drawn, that
+  that `a2_data_only` reaches the inbox and draws only a blank tray entry (icon
+  and app name, no text — it carries no title or body for anyone to draw), that
   `k2_invalid_token` reports UNREGISTERED rather than a generic 404, and that
   `direct_boot_ok` sends `false` when set to false and omits the key when left
   unset. That last one is the only real-world proof of the tristate design; a

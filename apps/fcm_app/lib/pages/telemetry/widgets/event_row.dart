@@ -1,7 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
-/// One of `TraceCard`'s nine rows: the type, whether it arrived, and if so when.
+/// One of `TraceCard`'s ten rows: the type, whether it arrived, and if so when.
 ///
 /// Extracted into its own file rather than kept private alongside `TraceCard`: DCM's
 /// `prefer-single-widget-per-file` counts a private widget class too, so a second

@@ -58,10 +58,13 @@ const groupA = <Scenario>[
   Scenario(
     id: 'a4_no_display',
     group: 'A — Basic delivery',
-    title: 'Data with nothing drawn, logged only',
+    title: 'Data logged silently, drawn blank',
     description:
-        'A silent synchronisation: the handler runs and writes a log line, and '
-        'the user sees nothing at all. Watch the inbox rather than the tray.',
+        'A silent synchronisation: the handler runs and writes a log line. '
+        'Nothing suppresses a titleless banner, so a tray entry still appears — '
+        'icon and app name, no text. The observable difference from a1 is the '
+        'missing text, not a missing notification. Watch the inbox for the log '
+        'line; the tray has nothing to read.',
     payloadTemplate: {
       'data': {'event': 'log_only', 'silent': 'true'},
     },

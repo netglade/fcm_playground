@@ -50,5 +50,5 @@ asserted by a test, so the documentation cannot drift from the code.
 | Type | Purpose |
 | --- | --- |
 | `TelemetryEvent` | One thing that happened to one message, on either side. `at` is normalised to UTC in the constructor, because a latency computed across a device on local time and a server on UTC is out by hours and reads as a delivery fault. |
-| `TelemetryEventType` | The nine events, each with a wire name pinned by test to its literal — a rename would otherwise surface only as telemetry that stops correlating. |
+| `TelemetryEventType` | The ten events, each with a wire name pinned by test to its literal — a rename would otherwise surface only as telemetry that stops correlating. |
 | `LatencyRow` | What `GET /latency` returns. A negative `latency` means the clocks disagree and is reported rather than clamped, because clamping turns a measurement error into a false result. |
