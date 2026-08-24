@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../push/entities/push_tap.dart';
 import '../entities/notification_content.dart';
 import '../entities/notification_presenter.dart';
+import 'notification_details_builder.dart';
 
 /// A [NotificationPresenter] over `flutter_local_notifications`, needed only
 /// because Android shows nothing for a message that arrives while the app is in
@@ -55,21 +56,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
     id: notificationIdFor(message.id),
     title: message.title,
     body: message.body,
-    notificationDetails: const NotificationDetails(
-      android: AndroidNotificationDetails(
-        notificationChannelId,
-        notificationChannelName,
-        channelDescription: notificationChannelDescription,
-        importance: Importance.high,
-        priority: Priority.high,
-        // Without this, a swipe is not reported at all. `main` rather than
-        // `background`: a background dismissal reaches a fresh isolate carrying only
-        // the message id, and `dismissed` has to be recorded against the trace id on
-        // the stored payload — see the spec's Part B for what that would cost.
-        dismissIsolate: NotificationDismissedIsolate.main,
-      ),
-      iOS: DarwinNotificationDetails(),
-    ),
+    notificationDetails: buildNotificationDetails(message),
     // The payload is the message id, which is how a tap resolves back to a
     // message the inbox already holds.
     payload: message.id,
