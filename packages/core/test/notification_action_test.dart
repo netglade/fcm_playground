@@ -65,6 +65,57 @@ void main() {
 
       expect(actions.map((action) => action.id), ['a', 'b', 'c']);
     });
+
+    test('reads a trailing :input as a request for typed input', () {
+      final actions = parseNotificationActions('reply:Reply:input');
+
+      expect(actions, [
+        const NotificationAction('reply', 'Reply', takesInput: true),
+      ]);
+    });
+
+    test('leaves an action without the flag alone', () {
+      final actions = parseNotificationActions('open:Open build');
+
+      expect(actions.single.takesInput, isFalse);
+    });
+
+    test('mixes an input action and a plain one', () {
+      final actions = parseNotificationActions('reply:Reply:input|mute:Mute');
+
+      expect(actions.map((action) => action.id), ['reply', 'mute']);
+      expect(actions.map((action) => action.takesInput), [true, false]);
+    });
+
+    test('keeps a colon-bearing label that does not end in the flag', () {
+      final actions = parseNotificationActions('open:Open: build 128');
+
+      expect(
+        actions,
+        [const NotificationAction('open', 'Open: build 128')],
+        reason:
+            'the flag is only the trailing segment when it is exactly `input`, '
+            'so a label may still contain a colon as it always could',
+      );
+    });
+
+    test('tolerates whitespace around the flag', () {
+      final actions = parseNotificationActions('reply:Reply : input ');
+
+      expect(actions, [
+        const NotificationAction('reply', 'Reply', takesInput: true),
+      ]);
+    });
+
+    test('drops an action whose label is only the flag', () {
+      expect(
+        parseNotificationActions('reply::input'),
+        isEmpty,
+        reason:
+            'a button with no label is not a button, and the flag is not one '
+            'either',
+      );
+    });
   });
 
   group('notificationActionLabel', () {
