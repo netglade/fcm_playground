@@ -1,3 +1,5 @@
+import 'dart:ui' show DartPluginRegistrant;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -117,6 +119,14 @@ Future<bool> _attempt(Future<void> Function() action, String label) async {
 /// reappear inside its own error handling.
 @pragma('vm:entry-point')
 Future<void> onNotificationReply(NotificationResponse response) async {
+  // This isolate has its own memory and its own plugin registry, so both need
+  // setting up before shared_preferences can be reached — the same reasoning
+  // `main.dart`'s `_onBackgroundMessage` gives for its own call. Without this,
+  // `SharedPreferencesReplyStore`'s `SharedPreferencesAsync` throws the moment
+  // it is constructed, and every reply is lost with only a `debugPrint` to show
+  // for it.
+  DartPluginRegistrant.ensureInitialized();
+
   final reply = replyFrom(response);
   if (reply == null) {
     return;
