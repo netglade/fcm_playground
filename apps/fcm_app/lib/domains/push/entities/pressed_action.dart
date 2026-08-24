@@ -25,8 +25,13 @@ class PressedAction {
     }
 
     final actionId = json['actionId'];
-    final from = OpenedFrom.fromWireName(json['from'] as String?);
-    if (actionId is! String || actionId.isEmpty || from == null) {
+    final fromWire = json['from'];
+    if (actionId is! String || actionId.isEmpty || fromWire is! String) {
+      return null;
+    }
+
+    final from = OpenedFrom.fromWireName(fromWire);
+    if (from == null) {
       return null;
     }
 

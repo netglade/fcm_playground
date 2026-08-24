@@ -64,6 +64,27 @@ void main() {
     );
   });
 
+  test(
+    "drops an entry whose 'from' is not a String, rather than the whole store",
+    () async {
+      await SharedPreferencesAsync().setString(
+        'push.pressedActions',
+        '{"msg-1":{"actionId":"retry","from":42},'
+            '"msg-2":{"actionId":"open","from":"killed"}}',
+      );
+
+      final loaded = await store.load();
+
+      expect(
+        loaded.keys,
+        ['msg-2'],
+        reason:
+            "a non-String 'from' is a value this build cannot read, and losing "
+            'every other press with it would be worse than losing the one',
+      );
+    },
+  );
+
   test('survives a value that is not JSON at all', () async {
     await SharedPreferencesAsync().setString('push.pressedActions', 'not json');
 
