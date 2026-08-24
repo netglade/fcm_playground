@@ -31,6 +31,9 @@ class SharedPreferencesReplyStore implements ReplyStore {
 
   @override
   Future<List<PendingReply>> takePending() async {
+    // Not atomic: `getStringList` and `remove` are two platform calls, so an
+    // `appendPending` landing between them can be lost or replayed. See the
+    // `ReplyStore` class doc for why that window is tolerable.
     final stored =
         await _preferences.getStringList(_pendingKey) ?? const <String>[];
     await _preferences.remove(_pendingKey);

@@ -77,4 +77,22 @@ void main() {
 
     expect(await store.takePending(), isEmpty);
   });
+
+  test('keeps an empty reply rather than dropping it as corrupt', () async {
+    await SharedPreferencesAsync().setStringList('push.pendingReplies', [
+      '{"messageId":"msg-1","text":""}',
+      '{"messageId":"msg-2","text":"kept"}',
+    ]);
+
+    final replies = await store.takePending();
+
+    expect(
+      replies.map((reply) => reply.messageId),
+      ['msg-1', 'msg-2'],
+      reason:
+          'a user can genuinely send an empty reply, so it is an observation '
+          'rather than corruption and must not be dropped',
+    );
+    expect(replies.first.text, '');
+  });
 }
