@@ -1099,5 +1099,56 @@ void main() {
         expect(repository.state.pressedActions, isEmpty);
       },
     );
+
+    test('records an action event beside the opened one', () async {
+      final telemetry = RecordingPushTelemetry();
+      final repository = build(telemetry: telemetry);
+      pressSource.emit(payload(id: 'msg-1', traceId: 'trace-1'));
+      await pumpEventQueue();
+
+      repository.requestOpen('msg-1', OpenedFrom.killed, actionId: 'retry');
+      await pumpEventQueue();
+
+      expect(
+        telemetry.recorded.map((event) => event.type),
+        containsAll([TelemetryEventType.opened, TelemetryEventType.action]),
+        reason:
+            'the app genuinely did open, so suppressing opened would punch a '
+            'hole in the latency matrix for exactly these scenarios',
+      );
+      expect(
+        telemetry.recorded
+            .firstWhere((event) => event.type == TelemetryEventType.action)
+            .detail,
+        'retry',
+      );
+    });
+
+    test(
+      'records an action event beside the opened one on a warm start',
+      () async {
+        final telemetry = RecordingPushTelemetry();
+        final repository = build(telemetry: telemetry);
+
+        repository.requestOpen('msg-1', OpenedFrom.killed, actionId: 'retry');
+        await pumpEventQueue();
+        pressSource.emit(payload(id: 'msg-1', traceId: 'trace-1'));
+        await pumpEventQueue();
+
+        expect(
+          telemetry.recorded.map((event) => event.type),
+          containsAll([TelemetryEventType.opened, TelemetryEventType.action]),
+          reason:
+              'the warm-start path reports through _ingest rather than '
+              'requestOpen, and must not skip the action report on the way',
+        );
+        expect(
+          telemetry.recorded
+              .firstWhere((event) => event.type == TelemetryEventType.action)
+              .detail,
+          'retry',
+        );
+      },
+    );
   });
 }

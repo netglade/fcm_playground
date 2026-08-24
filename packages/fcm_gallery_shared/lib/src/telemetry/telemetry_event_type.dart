@@ -28,6 +28,15 @@ enum TelemetryEventType {
   /// The user tapped it. `detail` carries the `OpenedFrom` the tap came through.
   opened('opened'),
 
+  /// The user pressed an action button on it. `detail` carries the action id.
+  ///
+  /// Emitted beside [opened] rather than instead of it: every action in this
+  /// build opens the app, so the open is real and the matrix would otherwise
+  /// have a hole where these scenarios should be. Android only — iOS actions
+  /// need a category registered at startup, which a per-message payload cannot
+  /// reach.
+  action('action'),
+
   /// The user swiped it away without tapping.
   dismissed('dismissed'),
 

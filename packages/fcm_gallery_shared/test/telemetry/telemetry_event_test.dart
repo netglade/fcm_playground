@@ -92,6 +92,7 @@ void main() {
         TelemetryEventType.receivedBg: 'received_bg',
         TelemetryEventType.displayed: 'displayed',
         TelemetryEventType.opened: 'opened',
+        TelemetryEventType.action: 'action',
         TelemetryEventType.dismissed: 'dismissed',
         TelemetryEventType.notReceived: 'not_received',
       },
@@ -102,6 +103,10 @@ void main() {
       hasLength(TelemetryEventType.values.length),
       reason: 'two types sharing a wire name would be indistinguishable',
     );
+  });
+
+  test('action has the wire name both sides agree on', () {
+    expect(TelemetryEventType.action.wireName, 'action');
   });
 
   test('keeps the timestamp in UTC, whatever it was given', () {

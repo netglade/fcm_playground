@@ -120,6 +120,16 @@ class PushRepository {
           detail: from.wireName,
         ),
       );
+      if (actionId != null) {
+        unawaited(
+          reportAndFlush(
+            _telemetry,
+            TelemetryEventType.action,
+            opened.payload,
+            detail: actionId,
+          ),
+        );
+      }
     }
     _publish();
   }
@@ -245,13 +255,6 @@ class PushRepository {
         }
         if (_unreportedOpen case final open? when message.id == open.id) {
           _unreportedOpen = null;
-          if (open.actionId case final actionId?) {
-            _pressed[message.id] = PressedAction(
-              actionId: actionId,
-              from: open.from,
-            );
-            unawaited(_savePressed());
-          }
           unawaited(
             reportAndFlush(
               _telemetry,
@@ -260,6 +263,21 @@ class PushRepository {
               detail: open.from.wireName,
             ),
           );
+          if (open.actionId case final actionId?) {
+            _pressed[message.id] = PressedAction(
+              actionId: actionId,
+              from: open.from,
+            );
+            unawaited(_savePressed());
+            unawaited(
+              reportAndFlush(
+                _telemetry,
+                TelemetryEventType.action,
+                payload,
+                detail: actionId,
+              ),
+            );
+          }
         }
       }
     } on PushMessageFormatException catch (error) {

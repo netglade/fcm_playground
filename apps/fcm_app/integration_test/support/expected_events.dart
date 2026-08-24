@@ -31,12 +31,14 @@ const _deliveredAndDrawn = {
 
 /// What must stay silent on a delivered trace.
 ///
-/// The app is in the foreground for the whole test, so `onBackgroundMessage` never
-/// runs; nothing taps or swipes the notification; and nobody presses "Nepřišlo mi
-/// to". Each of those absences is a real assertion rather than a formality.
+/// The app is in the foreground for the whole test, so `onBackgroundMessage`
+/// never runs; nothing taps, presses a button on, or swipes the notification;
+/// and nobody presses "Nepřišlo mi to". Each of those absences is a real
+/// assertion rather than a formality.
 const _quiet = {
   TelemetryEventType.receivedBg,
   TelemetryEventType.opened,
+  TelemetryEventType.action,
   TelemetryEventType.dismissed,
   TelemetryEventType.notReceived,
 };
