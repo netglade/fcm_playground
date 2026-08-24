@@ -105,12 +105,18 @@ everything the reply sets in motion — is a manual pass. Three things need a de
 to settle, and none of them is provable by any test:
 
 1. **Run this one first.** Send the scenario with the app backgrounded, so the
-   background isolate draws it, then press Reply and type. If the notification
-   does not change, `drawBackgroundNotification`'s call to `initialize` has
-   clobbered the response callback: the plugin persists callback handles
-   natively, so registering one without the other silently drops the reply
-   handler — the hazard Task 4 exists to close, and it fails in a way no test
-   can see.
+   background isolate draws it, then press Reply and type. The notification
+   should update in place — `Sending…`, then `Sent`. It reliably will: the
+   background isolate, the response isolate, and the main isolate all
+   register the same callback, so the registration is correct whichever of
+   the three happens to run its `initialize` last, and the pinned
+   `flutter_local_notifications` does not clear one registration when another
+   initialize call omits it. A failure here does not show in the shade at
+   all — open the message from the Inbox afterwards and confirm the detail
+   page reads `Replied: <what you typed>`. A reply that reaches storage but
+   never makes it into the app's merged map looks identical to success in the
+   tray, right through to the final `Sent`; the missing `Replied:` line on the
+   detail page is the only place that failure is visible.
 2. That the notification **updates in place** — `Sending…` replaced by `Sent` —
    rather than a second banner stacking beside the first.
 3. That the **typed text arrives intact** through the platform channel: open the

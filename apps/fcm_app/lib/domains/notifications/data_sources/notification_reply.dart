@@ -60,6 +60,10 @@ Future<void> _draw(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(),
     ),
+    // The same callback `drawBackgroundNotification` and the main isolate both
+    // register — passing it here is defence in case a future plugin version
+    // clears handles on a partial initialize, not a fix for an observed one; see
+    // `background_notification_draw.dart` for why.
     onDidReceiveBackgroundNotificationResponse: onNotificationReply,
   );
 

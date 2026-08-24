@@ -32,9 +32,15 @@ Future<void> drawBackgroundNotification(PushMessage message) async {
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(),
     ),
-    // The same callback the main isolate registers. The plugin persists callback
-    // handles natively, so initialising here without it would clobber that
-    // registration and a reply pressed afterwards would silently do nothing.
+    // The same callback the main isolate and the response isolate's own
+    // `initialize` call (`notification_reply.dart`) both register, so the
+    // registration is correct whichever of the three happens to run last. On
+    // the pinned `flutter_local_notifications` 22.3.0, the Android side only
+    // updates its stored handles when both are supplied together
+    // (`FlutterLocalNotificationsPlugin.java:1744-1747`), so a partial
+    // initialize does not clear the other's registration on this version —
+    // passing it here is defence against a plugin that behaves differently,
+    // not a fix for a clobber anyone has observed.
     onDidReceiveBackgroundNotificationResponse: onNotificationReply,
   );
   await plugin
