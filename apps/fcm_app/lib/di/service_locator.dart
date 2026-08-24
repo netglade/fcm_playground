@@ -10,7 +10,9 @@ import '../domains/notifications/data_sources/silent_notification_presenter.dart
 import '../domains/notifications/entities/notification_presenter.dart';
 import '../domains/push/data_sources/disabled_push_source.dart';
 import '../domains/push/data_sources/firebase_push_source.dart';
+import '../domains/push/data_sources/shared_preferences_pressed_action_store.dart';
 import '../domains/push/data_sources/shared_preferences_push_payload_store.dart';
+import '../domains/push/entities/pressed_action_store.dart';
 import '../domains/push/entities/push_payload_store.dart';
 import '../domains/push/entities/push_source.dart';
 import '../domains/push/repositories/push_repository.dart';
@@ -65,6 +67,9 @@ Future<void> configureDependencies({
   final presenter = await _startPresenter();
   getIt
     ..registerSingleton<PushPayloadStore>(SharedPreferencesPushPayloadStore())
+    ..registerSingleton<PressedActionStore>(
+      SharedPreferencesPressedActionStore(),
+    )
     ..registerSingleton<DeviceIdentity>(SharedPreferencesDeviceIdentity())
     ..registerSingleton<ActiveRunStore>(SharedPreferencesActiveRunStore())
     ..registerSingleton<NotificationPresenter>(presenter)
@@ -94,6 +99,7 @@ Future<void> configureDependencies({
       // The same reporter the sandbox sends through, so a `not_received` and the
       // `sent` it contradicts land in one buffer and one database.
       telemetry: getIt<PushTelemetry>(),
+      pressedActions: getIt<PressedActionStore>(),
       setupError: setupError,
     ),
   );

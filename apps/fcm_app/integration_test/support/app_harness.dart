@@ -95,10 +95,10 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
   // The same two channels `main.dart` wires, for the same reason: FCM reports taps on
   // the tray entries it drew, the presenter reports taps on the banners the app drew.
   getIt<PushSource>().taps.listen(
-    (tap) => repository.requestOpen(tap.id, tap.from),
+    (tap) => repository.requestOpen(tap.id, tap.from, actionId: tap.actionId),
   );
   getIt<NotificationPresenter>().taps.listen(
-    (tap) => repository.requestOpen(tap.id, tap.from),
+    (tap) => repository.requestOpen(tap.id, tap.from, actionId: tap.actionId),
   );
   getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
 

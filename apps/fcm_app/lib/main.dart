@@ -41,10 +41,10 @@ Future<void> main() async {
   // posted while in the foreground. Each labels its own, which is why the repository
   // can say which state an `opened` came from.
   getIt<PushSource>().taps.listen(
-    (tap) => repository.requestOpen(tap.id, tap.from),
+    (tap) => repository.requestOpen(tap.id, tap.from, actionId: tap.actionId),
   );
   getIt<NotificationPresenter>().taps.listen(
-    (tap) => repository.requestOpen(tap.id, tap.from),
+    (tap) => repository.requestOpen(tap.id, tap.from, actionId: tap.actionId),
   );
   // Only the presenter has dismissals: FCM's own tray entries were never posted
   // through the plugin, so nothing reports when one of those is swiped away.

@@ -10,6 +10,9 @@ import '../../notifications/entities/notification_presenter.dart';
 import '../../telemetry/data_sources/silent_push_telemetry.dart';
 import '../../telemetry/entities/push_telemetry.dart';
 import '../../telemetry/report_push_event.dart';
+import '../data_sources/silent_pressed_action_store.dart';
+import '../entities/pressed_action.dart';
+import '../entities/pressed_action_store.dart';
 import '../entities/push_payload_store.dart';
 import '../entities/push_source.dart';
 
@@ -25,6 +28,7 @@ class PushRepository {
     required this._store,
     this._presenter = const SilentNotificationPresenter(),
     this._telemetry = const SilentPushTelemetry(),
+    this._pressedActions = const SilentPressedActionStore(),
     this._setupError,
   });
 
@@ -34,7 +38,9 @@ class PushRepository {
   final PushPayloadStore _store;
   final NotificationPresenter _presenter;
   final PushTelemetry _telemetry;
+  final PressedActionStore _pressedActions;
   final _parser = const PushMessageParser();
+  final _pressed = <String, PressedAction>{};
   final _accepted = <_AcceptedPush>[];
   final _rejections = <String>[];
   final _seenIds = <String>{};
@@ -57,7 +63,7 @@ class PushRepository {
   /// The state travels with the id, because by the time the payload turns up nothing
   /// else remembers which channel the tap came through. Cleared once reported, so one
   /// press cannot record two opens.
-  ({String id, OpenedFrom from})? _unreportedOpen;
+  ({String id, OpenedFrom from, String? actionId})? _unreportedOpen;
 
   Stream<InboxState> get changes => _changes.stream;
 
@@ -67,6 +73,7 @@ class PushRepository {
     token: _token,
     setupError: _setupError,
     pendingOpenId: _pendingOpenId,
+    pressedActions: Map.unmodifiable(_pressed),
   );
 
   String? get setupError => _setupError;
@@ -88,13 +95,19 @@ class PushRepository {
   /// request.
   PushMessage? get pendingOpen => state.pendingOpen;
 
-  void requestOpen(String id, OpenedFrom from) {
+  void requestOpen(String id, OpenedFrom from, {String? actionId}) {
     _pendingOpenId = id;
+    if (actionId != null) {
+      _pressed[id] = PressedAction(actionId: actionId, from: from);
+      unawaited(_savePressed());
+    }
     // A tap is handled whether or not it can be reported. The trace id lives on the
     // payload, so an unresolvable tap is held until the payload turns up rather than
     // recorded against a fabricated trace.
     final opened = _acceptedFor(id);
-    _unreportedOpen = opened == null ? (id: id, from: from) : null;
+    _unreportedOpen = opened == null
+        ? (id: id, from: from, actionId: actionId)
+        : null;
     if (opened != null) {
       unawaited(
         reportAndFlush(
@@ -162,6 +175,8 @@ class PushRepository {
         _ingest(payload, notify: false);
       }
       await _save();
+      _pressed.addAll(await _pressedActions.load());
+      await _savePressed();
     } catch (error) {
       _setupError ??= 'Stored pushes could not be read: $error';
       _publish();
@@ -227,6 +242,13 @@ class PushRepository {
         }
         if (_unreportedOpen case final open? when message.id == open.id) {
           _unreportedOpen = null;
+          if (open.actionId case final actionId?) {
+            _pressed[message.id] = PressedAction(
+              actionId: actionId,
+              from: open.from,
+            );
+            unawaited(_savePressed());
+          }
           unawaited(
             reportAndFlush(
               _telemetry,
@@ -271,6 +293,17 @@ class PushRepository {
 
   Future<void> _save() =>
       _store.saveInbox(_accepted.map((push) => push.payload).toList());
+
+  /// Writes the presses for messages still held, dropping the rest.
+  ///
+  /// Pruning here rather than on a timer keeps the store bounded by
+  /// [maxStoredMessages] without inventing a second cap: a press whose message
+  /// the cap evicted can never be shown again.
+  Future<void> _savePressed() async {
+    _pressed.removeWhere((id, _) => _acceptedFor(id) == null);
+
+    await _pressedActions.save(Map.of(_pressed));
+  }
 
   void _publish() {
     _changes.add(state);

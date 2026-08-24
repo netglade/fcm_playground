@@ -1,9 +1,14 @@
 import 'dart:async';
 
+import 'package:fcm_app/domains/push/data_sources/shared_preferences_pressed_action_store.dart';
+import 'package:fcm_app/domains/push/entities/pressed_action.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/telemetry/data_sources/silent_push_telemetry.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import '../../../fakes/fake_push_payload_store.dart';
 import '../../../fakes/fake_push_source.dart';
@@ -953,5 +958,116 @@ void main() {
         expect(telemetry.recorded, isEmpty);
       },
     );
+  });
+
+  group('a pressed action', () {
+    late FakePushSource pressSource;
+    late FakePushPayloadStore pressStore;
+    late SharedPreferencesPressedActionStore pressed;
+    late PushRepository pressRepository;
+
+    setUp(() {
+      SharedPreferencesAsyncPlatform.instance =
+          InMemorySharedPreferencesAsync.empty();
+      pressSource = FakePushSource();
+      pressStore = FakePushPayloadStore();
+      pressed = SharedPreferencesPressedActionStore();
+    });
+
+    tearDown(() async {
+      pressRepository.dispose();
+      await pressSource.dispose();
+    });
+
+    /// Its own source and store, because `FakePushSource`'s stream takes one
+    /// listener and the repository built in the outer `setUp` already holds it.
+    PushRepository build({RecordingPushTelemetry? telemetry}) =>
+        pressRepository = PushRepository(
+          pressSource,
+          store: pressStore,
+          pressedActions: pressed,
+          telemetry: telemetry ?? const SilentPushTelemetry(),
+        )..listen();
+
+    test('is published on the state and kept in the store', () async {
+      final repository = build();
+      pressSource.emit(payload(id: 'msg-1'));
+      await pumpEventQueue();
+
+      repository.requestOpen('msg-1', OpenedFrom.killed, actionId: 'retry');
+      await pumpEventQueue();
+
+      expect(repository.state.pressedActions, {
+        'msg-1': const PressedAction(
+          actionId: 'retry',
+          from: OpenedFrom.killed,
+        ),
+      });
+      expect(await pressed.load(), repository.state.pressedActions);
+    });
+
+    test('a tap on the body records nothing', () async {
+      final repository = build();
+      pressSource.emit(payload(id: 'msg-1'));
+      await pumpEventQueue();
+
+      repository.requestOpen('msg-1', OpenedFrom.foreground);
+      await pumpEventQueue();
+
+      expect(repository.state.pressedActions, isEmpty);
+    });
+
+    test('is restored, so the detail page can still report it', () async {
+      await pressed.save({
+        'msg-1': const PressedAction(
+          actionId: 'retry',
+          from: OpenedFrom.killed,
+        ),
+      });
+      await pressStore.saveInbox([payload(id: 'msg-1')]);
+
+      final repository = build();
+      await repository.restore();
+
+      expect(repository.state.pressedActions.keys, ['msg-1']);
+    });
+
+    test('is pruned to the messages still held', () async {
+      await pressed.save({
+        'gone': const PressedAction(actionId: 'retry', from: OpenedFrom.killed),
+      });
+
+      final repository = build();
+      await repository.restore();
+      pressSource.emit(payload(id: 'msg-1'));
+      await pumpEventQueue();
+      repository.requestOpen('msg-1', OpenedFrom.foreground, actionId: 'open');
+      await pumpEventQueue();
+
+      expect(
+        (await pressed.load()).keys,
+        ['msg-1'],
+        reason:
+            'a press whose message the cap has evicted points at nothing, and '
+            'keeping it would grow the store without bound',
+      );
+    });
+
+    test('survives arriving before its payload', () async {
+      final repository = build();
+
+      repository.requestOpen('msg-1', OpenedFrom.killed, actionId: 'retry');
+      await pumpEventQueue();
+      pressSource.emit(payload(id: 'msg-1'));
+      await pumpEventQueue();
+
+      expect(
+        repository.state.pressedActions['msg-1']?.actionId,
+        'retry',
+        reason:
+            'the warm-start path reports the press before the background '
+            'isolate payload has been drained',
+      );
+    });
   });
 }

@@ -1,5 +1,7 @@
 import 'package:core/core.dart';
 
+import '../../../domains/push/entities/pressed_action.dart';
+
 /// What the inbox holds, as one immutable snapshot. `PushRepository` publishes
 /// it and `InboxCubit`'s state *is* it.
 ///
@@ -13,6 +15,7 @@ class InboxState {
     required this.token,
     required this.setupError,
     required this.pendingOpenId,
+    required this.pressedActions,
   });
 
   /// Received messages, newest first.
@@ -27,6 +30,12 @@ class InboxState {
 
   /// The message id a notification tap is waiting on, if any.
   final String? pendingOpenId;
+
+  /// The action pressed on each message's notification, keyed by message id.
+  ///
+  /// Not folded into [PushMessage]: it is not something the sender said, and a
+  /// message the app never drew a notification for has no entry at all.
+  final Map<String, PressedAction> pressedActions;
 
   /// True as soon as the tap arrives, whether or not [pendingOpen] can resolve
   /// it: the shell selects the inbox on this, which is the fallback for an id
