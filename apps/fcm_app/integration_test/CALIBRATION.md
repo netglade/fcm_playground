@@ -98,6 +98,35 @@ before assuming the manual step is permanent. Until then, press each button by h
 and confirm `action` reaches the Telemetry page with the right id, in each of the
 three app states — foreground, background and killed.
 
+**`f2_inline_reply`'s automated assertions cover delivery and drawing only, the same
+limit `f1_actions` already documents.** Patrol cannot type into the notification
+shade any more than it can press an action button, so typing the reply — and
+everything the reply sets in motion — is a manual pass. Three things need a device
+to settle, and none of them is provable by any test:
+
+1. **Run this one first.** Send the scenario with the app backgrounded, so the
+   background isolate draws it, then press Reply and type. If the notification
+   does not change, `drawBackgroundNotification`'s call to `initialize` has
+   clobbered the response callback: the plugin persists callback handles
+   natively, so registering one without the other silently drops the reply
+   handler — the hazard Task 4 exists to close, and it fails in a way no test
+   can see.
+2. That the notification **updates in place** — `Sending…` replaced by `Sent` —
+   rather than a second banner stacking beside the first.
+3. That the **typed text arrives intact** through the platform channel: open the
+   message from the Inbox and confirm it reads `Replied: <what you typed>`, not
+   a truncated or re-encoded copy of it.
+
+Also confirm the Telemetry page records an `action` event for the reply, with no
+`opened` — nothing opened the app.
+
+**`f6_delete_intent` needs a swipe by hand, for the same reason.** Patrol has no
+notification-specific dismiss gesture, only the generic `$.native.swipe`, and
+nobody has aimed it at a tray entry yet. Send the scenario with the app on screen
+and swipe it away; confirm `dismissed` is recorded. Then send it again, background
+the app, and swipe the FCM-drawn entry: confirm nothing is recorded, which is the
+limit `f6_delete_intent`'s catalogue entry now documents, not a gap in the harness.
+
 **The three deep links need a tap by hand too, same as `f1_actions`.** The suite's
 automated assertions only cover that the push arrives and is drawn; the tap itself,
 and where it lands, is a manual step. Send `f3_deeplink_foreground` and

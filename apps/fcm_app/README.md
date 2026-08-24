@@ -36,8 +36,8 @@ upgrade` or a conflict-driven re-resolution that drifts the lock below that
 floor breaks every target in this suite instantly — check both versions agree
 before assuming a broken run is the app's fault.
 
-20 of the 66 scenarios run. The other 46 are skipped with a reason taken from the
-catalogue — 40 wait on a `ScenarioNeed` the app has not built, 4 need a physical
+22 of the 66 scenarios run. The other 44 are skipped with a reason taken from the
+catalogue — 38 wait on a `ScenarioNeed` the app has not built, 4 need a physical
 iPhone, and `b3_killed` and `f5_deeplink_killed` would each have to kill the app the
 test runs inside. The split is pinned by `test/integration_coverage_test.dart`, which
 runs in the ordinary gate, so a scenario becoming unblocked shows up as a failing

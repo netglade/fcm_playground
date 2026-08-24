@@ -258,7 +258,7 @@ priority and delivery window, channels and importance, appearance,
 interaction, groups and badges, intrusive delivery, silent and data,
 targeting, and edge cases.
 
-**26 of the 66 work today.** The rest carry a marker naming what they still need —
+**28 of the 66 work today.** The rest carry a marker naming what they still need —
 notification channels, notification styles, notification actions, a launcher
 badge, a device registry, a manual step, or approval from Apple or the OS that
 this project cannot grant itself. That count is asserted by a test, so this
@@ -319,7 +319,7 @@ Ten events, nine of which are recorded today:
 | `received_bg` | the background handler — **data payloads only**, since a notification-only push never wakes it |
 | `displayed` | after the local notification is actually drawn, never before |
 | `opened` | a tap, carrying which of `foreground` / `background` / `killed` the app was in. On Android the tap is reported as the app resumes, *before* the payload carrying the trace id exists, so it is held and reported once that arrives |
-| `action` | pressing an action button, but **Android only** — iOS takes actions from a `UNNotificationCategory` registered at startup, and a per-message payload cannot reach one |
+| `action` | pressing an action button or an inline reply, but **Android only** — iOS takes actions from a `UNNotificationCategory` registered at startup, and a per-message payload cannot reach one |
 | `dismissed` | a swipe, but **Android only** — the plugin's dismissal report lives on `AndroidNotificationDetails` alone, so iOS has no route to it — and only for notifications the app itself drew, and only while the process is still running |
 | `not_received` | the one event a human asserts, and the only evidence available when the interesting answer is silence |
 
@@ -332,7 +332,9 @@ tray entry, reaches no isolate at all and shows a permanently blank row. `action
 carries the same Android-only limitation, for the same underlying reason as the
 buttons themselves: iOS takes actions from a `UNNotificationCategory` registered at
 startup, and a per-message payload cannot reach one, so no iOS device ever
-produces this event.
+produces this event. That includes an inline reply — it is still an
+`AndroidNotificationAction`, just one that takes typed input rather than a bare
+press, and it reaches this same event with `detail: 'reply'`.
 
 **Events buffer on the device and flush to `POST /events`.** They are deleted only
 once the API acknowledges them, and only the ones acknowledged — a blanket clear
@@ -535,8 +537,8 @@ and nothing else — the inbox still fills.
 
 ## Verified on this machine
 
-`melos run ci` passes clean — 33 `core` tests, 238 `fcm_gallery_shared` tests, 218
-`fcm_api` tests and 583 `fcm_app` tests. `fvm flutter build web --release` succeeds
+`melos run ci` passes clean — 39 `core` tests, 238 `fcm_gallery_shared` tests, 218
+`fcm_api` tests and 605 `fcm_app` tests. `fvm flutter build web --release` succeeds
 (a compile check only: the web build cannot receive FCM pushes without a VAPID
 key). `fvm flutter build apk --debug` succeeds too — see below for the plugin
 that used to break it. The iOS build has **not** been verified here either;
@@ -546,8 +548,8 @@ There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patr
 suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
 Android device**, needs the API serving with `GOOGLE_APPLICATION_CREDENTIALS` set,
 and is deliberately excluded from the gate because a device-dependent suite has no
-business in a hermetic one. Of the catalogue's 66 scenarios, 20 run there; the other
-46 are skipped with a stated reason — 40 wait on a `ScenarioNeed` the app has not
+business in a hermetic one. Of the catalogue's 66 scenarios, 22 run there; the other
+44 are skipped with a stated reason — 38 wait on a `ScenarioNeed` the app has not
 built, 4 need a physical iPhone, and two (`b3_killed` and `f5_deeplink_killed`) would
 each have to kill the app the test runs inside. That split has not been run on this
 machine either — no Android device is attached — so it is asserted by

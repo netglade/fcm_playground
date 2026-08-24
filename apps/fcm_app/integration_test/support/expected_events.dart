@@ -55,10 +55,10 @@ const _sendRefused = {TelemetryEventType.queued, TelemetryEventType.sendFailed};
 
 /// Per-scenario expectations, keyed by [Scenario.id].
 ///
-/// Twenty-four entries: the twenty that run on Android plus the four iOS-only ones,
-/// which are written so that unblocking iOS is a skip-policy change rather than a
-/// table rewrite. `b3_killed` and `f5_deeplink_killed` have no entry on purpose —
-/// [skipReasonFor] turns each away before the table is consulted.
+/// Twenty-six entries: the twenty-two that run on Android plus the four iOS-only
+/// ones, which are written so that unblocking iOS is a skip-policy change rather
+/// than a table rewrite. `b3_killed` and `f5_deeplink_killed` have no entry on
+/// purpose — [skipReasonFor] turns each away before the table is consulted.
 ///
 /// **Derived from reading the code, not from watching a device.** See
 /// `integration_test/CALIBRATION.md` for how to settle it.
@@ -152,6 +152,15 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
+  // f2 is data-only too, so the same delivery assertions apply. Typing the
+  // reply is a human step, exactly like pressing f1's button, which is why
+  // `action` (the reply is recorded as one, with detail `reply`) stays in
+  // `_quiet` here as well. Patrol cannot type into the notification shade, so
+  // this expectation covers delivery and drawing only — see CALIBRATION.md.
+  'f2_inline_reply': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
   // Group F — the two deep links that run. The tap itself is a human step, so
   // `opened` stays in `_quiet`; what these assert is that the push arrives and is
   // drawn, the same as any other notification payload.
@@ -160,6 +169,14 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
   'f4_deeplink_background': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  // f6 is drawn through the plugin while the app is foregrounded — the only
+  // state a swipe can be detected in — so the delivery assertions are the same
+  // as any other notification payload. Swiping it is a human step, which is
+  // why `dismissed` stays in `_quiet`; see CALIBRATION.md.
+  'f6_delete_intent': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),

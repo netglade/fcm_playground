@@ -37,11 +37,21 @@ const groupF = <Scenario>[
     description:
         'Type a reply without opening the app. Watch that the notification '
         'shows a sending state and then updates.',
+    expectation:
+        'Data-only, so the app draws it and the button exists in every state. '
+        'The reply never opens the app: it is handled in its own isolate, which '
+        'updates the notification in place and hands the text to the app at the '
+        'next launch or resume. There is no server — the pause between '
+        '"Sending…" and "Sent" is simulated. No `opened` event is recorded, '
+        'because nothing opened. Android only.',
     payloadTemplate: {
-      'notification': {'title': 'Ada', 'body': 'ready when you are'},
-      'data': {'reply_to': 'thread-42', 'actions': 'reply:Reply'},
+      'data': {
+        'title': 'Ada',
+        'body': 'ready when you are',
+        'actions': 'reply:Reply:input',
+        'reply_to': 'thread-42',
+      },
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'f3_deeplink_foreground',
@@ -92,11 +102,15 @@ const groupF = <Scenario>[
     description:
         'The delete intent fires when the user dismisses without tapping. Watch '
         'that it is distinguishable from a tap.',
+    expectation:
+        'Detected only while the app is on screen, because only then did the '
+        'app draw the notification through the plugin. Backgrounded, FCM draws '
+        'the tray entry itself and a swipe on it reports nothing; killed, there '
+        'is no isolate left to report to. The limit is Android\'s, not a gap.',
     payloadTemplate: {
       'notification': {'title': 'Dismiss me', 'body': 'Swipe, do not tap.'},
       'data': {'track_dismiss': 'true'},
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'f7_ongoing',
