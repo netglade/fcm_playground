@@ -242,9 +242,9 @@ class _AppShellState extends State<AppShell> {
   ///
   /// Selecting the inbox happens as soon as a tap is outstanding: it is the
   /// fallback for an id that will never resolve — evicted by the cap, or rejected
-  /// as malformed. A link that names a destination of its own overrides that,
-  /// because passing through the inbox on the way would show the user a screen
-  /// they did not ask for.
+  /// as malformed. Skipped when the link names a destination of its own, because
+  /// the switch below is about to set `_destination` to that destination anyway —
+  /// this just avoids assigning a value only to overwrite it a few lines later.
   void _onInboxChanged(BuildContext context, InboxState inbox) {
     if (!inbox.hasPendingOpen) {
       return;

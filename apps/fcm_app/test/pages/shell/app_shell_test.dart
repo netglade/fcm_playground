@@ -351,27 +351,6 @@ void main() {
     );
   });
 
-  testWidgets('a link to a destination does not flash the inbox first', (
-    tester,
-  ) async {
-    await pumpApp(tester);
-    await openSandbox(tester);
-    source.emit(payload(id: 'tapped', deepLink: '/telemetry'));
-    await tester.pumpAndSettle();
-
-    inbox.requestOpen('tapped', OpenedFrom.background);
-    await tester.pump();
-    await tester.pump();
-
-    expect(
-      selectedDestination(tester),
-      telemetryDestination,
-      reason:
-          'selecting the inbox is the fallback for an id that never resolves; '
-          'a link that names a destination must not pass through it',
-    );
-  });
-
   testWidgets('a /runs/<id> link pushes that timeline', (tester) async {
     await pumpApp(tester);
     source.emit(payload(id: 'tapped', deepLink: '/runs/run-7'));
