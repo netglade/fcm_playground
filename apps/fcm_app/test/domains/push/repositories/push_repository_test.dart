@@ -1069,5 +1069,35 @@ void main() {
             'isolate payload has been drained',
       );
     });
+
+    test('is durable the moment it arrives, before its payload does', () async {
+      final repository = build();
+
+      repository.requestOpen('msg-1', OpenedFrom.killed, actionId: 'retry');
+      await pumpEventQueue();
+
+      expect(
+        (await pressed.load())['msg-1']?.actionId,
+        'retry',
+        reason:
+            'a process death between the press and its payload must not '
+            'lose the record — waiting for the payload to persist it would '
+            'leave exactly the window this store exists to close',
+      );
+    });
+
+    test(
+      'an unresolved warm-start tap with no action id records nothing',
+      () async {
+        final repository = build();
+
+        repository.requestOpen('msg-1', OpenedFrom.killed);
+        await pumpEventQueue();
+        pressSource.emit(payload(id: 'msg-1'));
+        await pumpEventQueue();
+
+        expect(repository.state.pressedActions, isEmpty);
+      },
+    );
   });
 }

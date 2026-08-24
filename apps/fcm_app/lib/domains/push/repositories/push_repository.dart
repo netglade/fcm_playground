@@ -61,8 +61,8 @@ class PushRepository {
   /// has been drained.
   ///
   /// The state travels with the id, because by the time the payload turns up nothing
-  /// else remembers which channel the tap came through. Cleared once reported, so one
-  /// press cannot record two opens.
+  /// else remembers which channel the tap came through, or which action button — if
+  /// any — was pressed. Cleared once reported, so one press cannot record two opens.
   ({String id, OpenedFrom from, String? actionId})? _unreportedOpen;
 
   Stream<InboxState> get changes => _changes.stream;
@@ -97,10 +97,6 @@ class PushRepository {
 
   void requestOpen(String id, OpenedFrom from, {String? actionId}) {
     _pendingOpenId = id;
-    if (actionId != null) {
-      _pressed[id] = PressedAction(actionId: actionId, from: from);
-      unawaited(_savePressed());
-    }
     // A tap is handled whether or not it can be reported. The trace id lives on the
     // payload, so an unresolvable tap is held until the payload turns up rather than
     // recorded against a fabricated trace.
@@ -108,6 +104,13 @@ class PushRepository {
     _unreportedOpen = opened == null
         ? (id: id, from: from, actionId: actionId)
         : null;
+    // Written after `_unreportedOpen`, so `_savePressed`'s prune — which runs
+    // synchronously up to its first `await` — sees this tap as outstanding rather
+    // than deleting the press it was just given.
+    if (actionId != null) {
+      _pressed[id] = PressedAction(actionId: actionId, from: from);
+      unawaited(_savePressed());
+    }
     if (opened != null) {
       unawaited(
         reportAndFlush(
@@ -294,13 +297,20 @@ class PushRepository {
   Future<void> _save() =>
       _store.saveInbox(_accepted.map((push) => push.payload).toList());
 
-  /// Writes the presses for messages still held, dropping the rest.
+  /// Writes the presses for messages still held, or still awaiting one, dropping
+  /// the rest.
   ///
   /// Pruning here rather than on a timer keeps the store bounded by
   /// [maxStoredMessages] without inventing a second cap: a press whose message
-  /// the cap evicted can never be shown again.
+  /// the cap evicted can never be shown again. The [_unreportedOpen] exception
+  /// can push the store one entry past that cap — at most one tap is ever
+  /// outstanding at a time — and it clears the moment its payload lands or
+  /// another tap replaces it, so the store settles back within the cap on its
+  /// own.
   Future<void> _savePressed() async {
-    _pressed.removeWhere((id, _) => _acceptedFor(id) == null);
+    _pressed.removeWhere(
+      (id, _) => _acceptedFor(id) == null && id != _unreportedOpen?.id,
+    );
 
     await _pressedActions.save(Map.of(_pressed));
   }
