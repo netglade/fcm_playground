@@ -267,7 +267,12 @@ class _AppShellState extends State<AppShell> {
     context.read<InboxCubit>().clearPendingOpen();
     unawaited(
       Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => MessageDetailPage(message)),
+        MaterialPageRoute<void>(
+          builder: (_) => MessageDetailPage(
+            message,
+            pressedAction: inbox.pressedActions[message.id],
+          ),
+        ),
       ),
     );
   }

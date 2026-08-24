@@ -1,15 +1,24 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../../domains/push/entities/pressed_action.dart';
+
 /// One received message in full.
 ///
 /// A page rather than a destination, pushed over the shell, because it is reached
 /// from two places that both mean "look at this one message": an inbox row, and a
 /// notification the user tapped.
 class MessageDetailPage extends StatelessWidget {
-  const MessageDetailPage(this.message, {super.key});
+  const MessageDetailPage(this.message, {this.pressedAction, super.key});
 
   final PushMessage message;
+
+  /// The action button this message's notification was opened by, if it was.
+  ///
+  /// Passed in rather than read from a store, so this page stays a
+  /// `StatelessWidget` that both its call sites can build from state they
+  /// already hold.
+  final PressedAction? pressedAction;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +33,31 @@ class MessageDetailPage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            if (pressedAction case final pressed?)
+              Card(
+                color: theme.colorScheme.secondaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Opened by action: '
+                        '${notificationActionLabel(message.data[notificationActionsKey], pressed.actionId)}',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                      Text(
+                        'from: ${pressed.from.wireName}',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Text(message.body, style: theme.textTheme.bodyLarge),
             const Divider(height: 32),
             Text('Sent', style: theme.textTheme.labelMedium),

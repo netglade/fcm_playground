@@ -1,5 +1,7 @@
 import 'package:core/core.dart';
+import 'package:fcm_app/domains/push/entities/pressed_action.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
+import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -83,5 +85,71 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('open'), findsOne);
+  });
+
+  testWidgets('names the pressed action by its label and its state', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MessageDetailPage(
+          PushMessage(
+            id: 'msg-1',
+            title: 'Build failed',
+            body: 'Retry or open?',
+            sentAt: DateTime.utc(2026, 8, 24, 9),
+            data: const {'actions': 'retry:Retry|open:Open build'},
+          ),
+          pressedAction: const PressedAction(
+            actionId: 'retry',
+            from: OpenedFrom.killed,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Opened by action: Retry'), findsOne);
+    expect(find.text('from: killed'), findsOne);
+  });
+
+  testWidgets('says nothing when no action was pressed', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MessageDetailPage(
+          PushMessage(
+            id: 'msg-1',
+            title: 'Build failed',
+            body: 'Retry or open?',
+            sentAt: DateTime.utc(2026, 8, 24, 9),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.textContaining('Opened by action'), findsNothing);
+  });
+
+  testWidgets('falls back to the id when the payload names no such action', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MessageDetailPage(
+          PushMessage(
+            id: 'msg-1',
+            title: 'Build failed',
+            body: 'Retry or open?',
+            sentAt: DateTime.utc(2026, 8, 24, 9),
+            data: const {'actions': 'open:Open build'},
+          ),
+          pressedAction: const PressedAction(
+            actionId: 'retry',
+            from: OpenedFrom.foreground,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Opened by action: retry'), findsOne);
   });
 }

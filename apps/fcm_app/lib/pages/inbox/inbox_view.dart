@@ -37,7 +37,10 @@ class InboxView extends StatelessWidget {
                     onTap: (message) => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (_) => MessageDetailPage(message),
+                        builder: (_) => MessageDetailPage(
+                          message,
+                          pressedAction: state.pressedActions[message.id],
+                        ),
                       ),
                     ),
                   ),
