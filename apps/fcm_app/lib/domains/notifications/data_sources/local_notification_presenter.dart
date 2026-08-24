@@ -37,10 +37,14 @@ class LocalNotificationPresenter implements NotificationPresenter {
   ///
   /// The plugin documents `getNotificationAppLaunchDetails` as the route for a
   /// notification that started the process and `onDidReceiveNotificationResponse`
-  /// as the route for one pressed while it was already running — but on Android
-  /// the callback has been observed firing for the launching press as well. Two
-  /// `opened` events for one press would be a telemetry bug, so the first
-  /// response matching this is dropped.
+  /// as the route for one pressed while it was already running. Not reproducible
+  /// on the pinned Android plugin version — `didReceiveNotificationResponse` is
+  /// invoked only from `onNewIntent`, and `onAttachedToActivity` deliberately does
+  /// not re-dispatch the launch intent — so this is insurance against a future
+  /// plugin version re-delivering the launching press through both routes, not a
+  /// workaround for something observed. Two `opened` events for one press would
+  /// be a telemetry bug, so the first response matching this is dropped, however
+  /// much later it arrives.
   ({String id, String? actionId})? _launchResponse;
 
   @override
@@ -111,9 +115,12 @@ class LocalNotificationPresenter implements NotificationPresenter {
         return;
       }
 
-      // Consumed by the first response either way: only the echo of the
-      // launching press is suppressed, so pressing the same button again a
-      // moment later still counts.
+      // Consumed by the first response either way, whenever it arrives: the
+      // guard is a one-shot check against `(id, actionId)`, not a check against
+      // *when* the response came in. `cancelNotification: true` makes a genuine
+      // re-press of the same button nearly unreachable, so in practice this
+      // drops the echo and nothing else — but that is a consequence of the
+      // guard, not what it tests for.
       if (_launchResponse case final launch?) {
         _launchResponse = null;
         if (launch.id == id && launch.actionId == response.actionId) {
