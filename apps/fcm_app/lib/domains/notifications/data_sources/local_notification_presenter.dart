@@ -78,7 +78,17 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
     // Last, so the channel exists and both streams are live before a press that
     // started the process is announced on them.
-    handleLaunchDetails(await _plugin.getNotificationAppLaunchDetails());
+    //
+    // Caught locally rather than left to propagate: a throw here would reach
+    // `_startPresenter`, which reacts to *any* failure of `initialize()` by
+    // discarding this presenter for a `SilentNotificationPresenter` — no banners
+    // for the rest of the session. A launch press this call cannot read is one
+    // lost tap, not a reason to go silent for everything that follows.
+    try {
+      handleLaunchDetails(await _plugin.getNotificationAppLaunchDetails());
+    } on Object catch (error) {
+      debugPrint('Could not read the launch details: $error');
+    }
   }
 
   @override

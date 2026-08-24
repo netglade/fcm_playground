@@ -109,15 +109,19 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
   if (buffer == null) {
     return;
   }
+  final reporter = telemetryReporterOn(
+    buffer,
+    SharedPreferencesDeviceIdentity(),
+  );
   try {
     await reportWithoutFlushing(
-      telemetryReporterOn(buffer, SharedPreferencesDeviceIdentity()),
+      reporter,
       TelemetryEventType.receivedBg,
       payload,
     );
     if (drawn) {
       await reportWithoutFlushing(
-        telemetryReporterOn(buffer, SharedPreferencesDeviceIdentity()),
+        reporter,
         TelemetryEventType.displayed,
         payload,
       );
