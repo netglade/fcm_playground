@@ -15,10 +15,12 @@ import 'pending_reply.dart';
 /// appended reply vanishes) or replayed (the response isolate reads a stale
 /// list and writes it back after the UI already cleared it). The window is
 /// narrow in practice — a reply action deliberately does not foreground the
-/// app, so the press and the next drain are rarely close together — and a
-/// replay is harmless because the merged map is keyed by message id, so
-/// re-merging the same reply is idempotent. Only the loss case costs anything,
-/// and it costs at most one reply.
+/// app, so the press and the next drain are rarely close together — but a
+/// replay is not free: the merged map write is idempotent, so the stored text
+/// is unaffected, but `PushRepository._mergeReplies` also reports the `action`
+/// telemetry event on every pass, so a replayed reply double-records that
+/// event against the same trace id. Only the loss case costs a reply; the
+/// replay case costs a telemetry figure.
 ///
 /// `SharedPreferencesPushPayloadStore.takePending` has the identical race; a
 /// future fix should close both at once rather than diverging them.
