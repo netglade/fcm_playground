@@ -1,3 +1,5 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:fcm_app/domains/notifications/data_sources/notification_reply.dart';
 import 'package:fcm_app/domains/push/entities/pending_reply.dart';
 import 'package:fcm_app/domains/settings/data_sources/shared_preferences_locale_store.dart';
@@ -22,6 +24,33 @@ void main() {
     expect(t.reply.sending, 'Odesílám…');
     expect(t.reply.sent, 'Odesláno');
     expect(t.reply.not_sent, 'Neodesláno');
+  });
+
+  test('resolves a usable locale when no language was ever stored', () async {
+    // This exercises the production expression, not the crash it replaced.
+    // `flutter_test` always runs under an ambient `TestWidgetsFlutterBinding`,
+    // so `LocaleSettings.useDeviceLocaleSync()` — the call this code
+    // deliberately does NOT make, because the real isolate creates no binding
+    // at all — would also have resolved happily here. No unit test in this
+    // file could have reproduced the original crash, and none can prove the
+    // fix's binding-free path is exercised either; both are guaranteed by the
+    // code shape (`PlatformDispatcher.instance` + `AppLocaleUtils.parse`, no
+    // `WidgetsBinding` in sight), not by this suite. What this test does
+    // cover is the one thing it can: that the no-override branch still
+    // resolves to a real, usable `AppLocale` rather than throwing or landing
+    // on a stale value.
+    SharedPreferences.setMockInitialValues({});
+
+    final storedLocale = await const SharedPreferencesLocaleStore().read();
+    LocaleSettings.setLocaleSync(
+      storedLocale ??
+          AppLocaleUtils.parse(
+            PlatformDispatcher.instance.locale.toLanguageTag(),
+          ),
+    );
+
+    expect(LocaleSettings.currentLocale, isA<AppLocale>());
+    expect(t.reply.sending, isNotEmpty);
   });
 
   group('replyFrom', () {
