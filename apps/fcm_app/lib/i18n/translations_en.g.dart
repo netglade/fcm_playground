@@ -690,7 +690,7 @@ class Translations$api$en {
 
 	late final Translations$api$item$en item = Translations$api$item$en._(_root);
 
-	/// Shown when a decoded JSON value used as a map is not one; reached from http_run_scheduler.dart and http_telemetry_reader.dart. The identical case in http_notification_sender.dart is caught internally and replaced by api.answered_unreadable before it can reach a user, so it was not in the brief's Step 1 list and keeps its own literal, unlocalized
+	/// A decoded JSON value used as a map that is not one. All THREE throw sites take this key, http_notification_sender.dart included: its local `on FormatException` does not discard the message, it forwards error.message into api.answered_unreadable, so a bare literal there would surface as an English fragment inside a Czech sentence
 	///
 	/// en: 'Expected a JSON object, got $type.'
 	String expected_object({required Object type}) => 'Expected a JSON object, got ${type}.';

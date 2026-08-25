@@ -70,7 +70,7 @@ ApiError _errorFrom(http.Response response) {
 Map<String, dynamic> _decodeObject(String body) {
   final decoded = jsonDecode(body);
   if (decoded is! Map<String, dynamic>) {
-    throw FormatException('Expected a JSON object, got ${decoded.runtimeType}');
+    throw FormatException(t.api.expected_object(type: decoded.runtimeType));
   }
 
   return decoded;

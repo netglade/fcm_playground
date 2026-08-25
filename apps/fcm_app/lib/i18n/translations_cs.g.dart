@@ -540,8 +540,8 @@ class _Translations$api$cs implements Translations$api$en {
 
 	@override late final _Translations$api$item$cs item = _Translations$api$item$cs._(_root);
 
-	/// Shown when a decoded JSON value used as a map is not one; reached from http_run_scheduler.dart and http_telemetry_reader.dart. The identical case in http_notification_sender.dart is caught internally and replaced by api.answered_unreadable before it can reach a user, so it was not in the brief's Step 1 list and keeps its own literal, unlocalized
-	@override String expected_object({required Object type}) => 'Byl očekáván JSON objekt, ale přišel typ ${type}.';
+	/// A decoded JSON value used as a map that is not one. All THREE throw sites take this key, http_notification_sender.dart included: its local `on FormatException` does not discard the message, it forwards error.message into api.answered_unreadable, so a bare literal there would surface as an English fragment inside a Czech sentence
+	@override String expected_object({required Object type}) => 'Byl přijat typ ${type}, kde se čekal JSON objekt.';
 }
 
 // Path: shell.title
@@ -737,7 +737,7 @@ extension on TranslationsCs {
 			'api.answered_unreadable_item' => ({required Object what, required Object error}) => 'API odpovědělo 200 s ${what}, co tento build neumí přečíst: ${error}',
 			'api.item.event' => 'událost',
 			'api.item.latency_row' => 'řádek latence',
-			'api.expected_object' => ({required Object type}) => 'Byl očekáván JSON objekt, ale přišel typ ${type}.',
+			'api.expected_object' => ({required Object type}) => 'Byl přijat typ ${type}, kde se čekal JSON objekt.',
 			_ => null,
 		};
 	}
