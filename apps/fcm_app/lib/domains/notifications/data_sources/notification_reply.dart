@@ -24,8 +24,19 @@ PendingReply? replyFrom(NotificationResponse response) {
 
 /// Redraws the notification to show where the reply has got to.
 ///
-/// The same [notificationIdFor] the original used, so this replaces rather than
-/// stacks.
+/// Keyed on [messageId] alone, via [notificationIdFor] rather than
+/// `notificationIdOf` — this isolate gets only the payload string off the
+/// notification response, never the `PushMessage` a tag lives on. For every
+/// scenario that uses inline reply the original message carries no tag, so
+/// `notificationIdOf` reduces to the same id and this still replaces it as
+/// intended.
+///
+/// Known limitation: a tagged message breaks that agreement. The original draw
+/// was keyed on the tag, this redraw is keyed on the id, and the two disagree —
+/// the progress notification lands beside the original instead of replacing it.
+/// Left alone rather than plumbed through, because reaching it means
+/// hand-composing a Sandbox payload that pairs a tag with a reply action; no
+/// catalogue scenario does.
 ///
 /// The original title is not restored, because this isolate does not have it —
 /// finding it would mean reading the payload store's pending queue, which the UI
