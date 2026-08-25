@@ -31,6 +31,10 @@ class RecordingNotificationPresenter implements NotificationPresenter {
   /// Whether [initialize] ran, so a test can prove the app set the channel up.
   bool initialized = false;
 
+  /// How many times [clearAll] ran, so a widget test can prove a button reached
+  /// this presenter.
+  var cleared = 0;
+
   @override
   Stream<PushTap> get taps => _taps.stream;
 
@@ -56,6 +60,11 @@ class RecordingNotificationPresenter implements NotificationPresenter {
   /// Acts as though the user tapped the banner for [id]. Always foreground, because
   /// that is the only kind of banner this presenter stands in for.
   void emitTap(String id) => _taps.add(PushTap(id, OpenedFrom.foreground));
+
+  @override
+  Future<void> clearAll() async {
+    cleared++;
+  }
 
   @override
   Future<void> dispose() async {
