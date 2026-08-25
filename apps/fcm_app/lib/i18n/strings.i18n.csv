@@ -30,3 +30,21 @@ message_tile.no_title,(no title),(bez titulku),Stand-in headline for a message w
 message_tile.body_with_data,"$body
 data: $keys","$body
 data: $keys",Tile subtitle when the message carries a data map
+scenarios.no_token,"No registration token yet, so there is nowhere to send. Open the Inbox once the app has registered.","Zatím není registrační token, takže není kam posílat. Otevři Doručené, až se aplikace zaregistruje.",Banner when the device has not registered
+scenario_card.needs_work,needs work,potřebuje práci,Chip on a scenario whose needs are unmet
+common.needs_killed_app,Needs the app killed,Vyžaduje zabitou aplikaci,"Badge on a scenario that only means something with the app killed; used on the card and in the Sandbox"
+selection_bar.select_for_batch,Select for a batch,Vybrat pro dávku,Button that enters multi-select
+selection_bar.selected_count.one,$n selected,$n vybrán,Count of scenarios picked for a batch
+selection_bar.selected_count.few,$n selected,$n vybrány,Count of scenarios picked for a batch
+selection_bar.selected_count.other,$n selected,$n vybráno,Count of scenarios picked for a batch
+common.cancel,Cancel,Zrušit,"Dismisses a sheet or leaves selection mode; used in several places"
+common.schedule_ellipsis,Schedule…,Naplánovat…,"Opens the schedule sheet; used on the selection bar and the send footer"
+runs.empty,Nothing scheduled yet. Pick a scenario and choose Schedule.,Zatím nic naplánováno. Vyber scénář a zvol Naplánovat.,Empty state on the Runs page
+run_timeline.title,Run,Běh,AppBar title of a single run's timeline
+common.reload,Reload,Znovu načíst,"Refresh action; used on the run timeline and on Telemetry"
+run_tile.sends.one,$n send,$n odeslání,How many messages a run holds
+run_tile.sends.other,$n sends,$n odeslání,How many messages a run holds
+run_tile.next_due,next due $time,další v $time,When the run's next message goes out
+run_item.composed_by_hand,(composed by hand),(složeno ručně),Stands in for a run item with no scenario id
+run_item.due,due $time,v $time,When one run item goes out
+run_item.nothing_recorded,Nothing recorded yet.,Zatím nic nezaznamenáno.,Empty state for a run item's events

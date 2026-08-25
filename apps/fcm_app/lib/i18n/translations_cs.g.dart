@@ -44,6 +44,14 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$inbox$cs inbox = _Translations$inbox$cs._(_root);
 	@override late final _Translations$message_detail$cs message_detail = _Translations$message_detail$cs._(_root);
 	@override late final _Translations$message_tile$cs message_tile = _Translations$message_tile$cs._(_root);
+	@override late final _Translations$scenarios$cs scenarios = _Translations$scenarios$cs._(_root);
+	@override late final _Translations$scenario_card$cs scenario_card = _Translations$scenario_card$cs._(_root);
+	@override late final _Translations$common$cs common = _Translations$common$cs._(_root);
+	@override late final _Translations$selection_bar$cs selection_bar = _Translations$selection_bar$cs._(_root);
+	@override late final _Translations$runs$cs runs = _Translations$runs$cs._(_root);
+	@override late final _Translations$run_timeline$cs run_timeline = _Translations$run_timeline$cs._(_root);
+	@override late final _Translations$run_tile$cs run_tile = _Translations$run_tile$cs._(_root);
+	@override late final _Translations$run_item$cs run_item = _Translations$run_item$cs._(_root);
 }
 
 // Path: app
@@ -179,6 +187,127 @@ class _Translations$message_tile$cs implements Translations$message_tile$en {
 	@override String body_with_data({required Object body, required Object keys}) => '${body}\ndata: ${keys}';
 }
 
+// Path: scenarios
+class _Translations$scenarios$cs implements Translations$scenarios$en {
+	_Translations$scenarios$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Banner when the device has not registered
+	@override String get no_token => 'Zatím není registrační token, takže není kam posílat. Otevři Doručené, až se aplikace zaregistruje.';
+}
+
+// Path: scenario_card
+class _Translations$scenario_card$cs implements Translations$scenario_card$en {
+	_Translations$scenario_card$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Chip on a scenario whose needs are unmet
+	@override String get needs_work => 'potřebuje práci';
+}
+
+// Path: common
+class _Translations$common$cs implements Translations$common$en {
+	_Translations$common$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Badge on a scenario that only means something with the app killed; used on the card and in the Sandbox
+	@override String get needs_killed_app => 'Vyžaduje zabitou aplikaci';
+
+	/// Dismisses a sheet or leaves selection mode; used in several places
+	@override String get cancel => 'Zrušit';
+
+	/// Opens the schedule sheet; used on the selection bar and the send footer
+	@override String get schedule_ellipsis => 'Naplánovat…';
+
+	/// Refresh action; used on the run timeline and on Telemetry
+	@override String get reload => 'Znovu načíst';
+}
+
+// Path: selection_bar
+class _Translations$selection_bar$cs implements Translations$selection_bar$en {
+	_Translations$selection_bar$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Button that enters multi-select
+	@override String get select_for_batch => 'Vybrat pro dávku';
+
+	@override String selected_count({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n,
+		one: '${n} vybrán',
+		few: '${n} vybrány',
+		other: '${n} vybráno',
+	);
+}
+
+// Path: runs
+class _Translations$runs$cs implements Translations$runs$en {
+	_Translations$runs$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Empty state on the Runs page
+	@override String get empty => 'Zatím nic naplánováno. Vyber scénář a zvol Naplánovat.';
+}
+
+// Path: run_timeline
+class _Translations$run_timeline$cs implements Translations$run_timeline$en {
+	_Translations$run_timeline$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// AppBar title of a single run's timeline
+	@override String get title => 'Běh';
+}
+
+// Path: run_tile
+class _Translations$run_tile$cs implements Translations$run_tile$en {
+	_Translations$run_tile$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+	@override String sends({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n,
+		one: '${n} odeslání',
+		other: '${n} odeslání',
+	);
+
+	/// When the run's next message goes out
+	@override String next_due({required Object time}) => 'další v ${time}';
+}
+
+// Path: run_item
+class _Translations$run_item$cs implements Translations$run_item$en {
+	_Translations$run_item$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Stands in for a run item with no scenario id
+	@override String get composed_by_hand => '(složeno ručně)';
+
+	/// When one run item goes out
+	@override String due({required Object time}) => 'v ${time}';
+
+	/// Empty state for a run item's events
+	@override String get nothing_recorded => 'Zatím nic nezaznamenáno.';
+}
+
 // Path: shell.title
 class _Translations$shell$title$cs implements Translations$shell$title$en {
 	_Translations$shell$title$cs._(this._root);
@@ -238,6 +367,21 @@ extension on TranslationsCs {
 			'message_detail.no_extra_data' => 'Žádné extra klíče.',
 			'message_tile.no_title' => '(bez titulku)',
 			'message_tile.body_with_data' => ({required Object body, required Object keys}) => '${body}\ndata: ${keys}',
+			'scenarios.no_token' => 'Zatím není registrační token, takže není kam posílat. Otevři Doručené, až se aplikace zaregistruje.',
+			'scenario_card.needs_work' => 'potřebuje práci',
+			'common.needs_killed_app' => 'Vyžaduje zabitou aplikaci',
+			'common.cancel' => 'Zrušit',
+			'common.schedule_ellipsis' => 'Naplánovat…',
+			'common.reload' => 'Znovu načíst',
+			'selection_bar.select_for_batch' => 'Vybrat pro dávku',
+			'selection_bar.selected_count' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '${n} vybrán', few: '${n} vybrány', other: '${n} vybráno', ), 
+			'runs.empty' => 'Zatím nic naplánováno. Vyber scénář a zvol Naplánovat.',
+			'run_timeline.title' => 'Běh',
+			'run_tile.sends' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '${n} odeslání', other: '${n} odeslání', ), 
+			'run_tile.next_due' => ({required Object time}) => 'další v ${time}',
+			'run_item.composed_by_hand' => '(složeno ručně)',
+			'run_item.due' => ({required Object time}) => 'v ${time}',
+			'run_item.nothing_recorded' => 'Zatím nic nezaznamenáno.',
 			_ => null,
 		};
 	}

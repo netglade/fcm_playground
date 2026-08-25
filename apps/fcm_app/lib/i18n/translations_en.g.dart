@@ -47,6 +47,14 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$inbox$en inbox = Translations$inbox$en._(_root);
 	late final Translations$message_detail$en message_detail = Translations$message_detail$en._(_root);
 	late final Translations$message_tile$en message_tile = Translations$message_tile$en._(_root);
+	late final Translations$scenarios$en scenarios = Translations$scenarios$en._(_root);
+	late final Translations$scenario_card$en scenario_card = Translations$scenario_card$en._(_root);
+	late final Translations$common$en common = Translations$common$en._(_root);
+	late final Translations$selection_bar$en selection_bar = Translations$selection_bar$en._(_root);
+	late final Translations$runs$en runs = Translations$runs$en._(_root);
+	late final Translations$run_timeline$en run_timeline = Translations$run_timeline$en._(_root);
+	late final Translations$run_tile$en run_tile = Translations$run_tile$en._(_root);
+	late final Translations$run_item$en run_item = Translations$run_item$en._(_root);
 }
 
 // Path: app
@@ -225,6 +233,156 @@ class Translations$message_tile$en {
 	String body_with_data({required Object body, required Object keys}) => '${body}\ndata: ${keys}';
 }
 
+// Path: scenarios
+class Translations$scenarios$en {
+	Translations$scenarios$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Banner when the device has not registered
+	///
+	/// en: 'No registration token yet, so there is nowhere to send. Open the Inbox once the app has registered.'
+	String get no_token => 'No registration token yet, so there is nowhere to send. Open the Inbox once the app has registered.';
+}
+
+// Path: scenario_card
+class Translations$scenario_card$en {
+	Translations$scenario_card$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Chip on a scenario whose needs are unmet
+	///
+	/// en: 'needs work'
+	String get needs_work => 'needs work';
+}
+
+// Path: common
+class Translations$common$en {
+	Translations$common$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Badge on a scenario that only means something with the app killed; used on the card and in the Sandbox
+	///
+	/// en: 'Needs the app killed'
+	String get needs_killed_app => 'Needs the app killed';
+
+	/// Dismisses a sheet or leaves selection mode; used in several places
+	///
+	/// en: 'Cancel'
+	String get cancel => 'Cancel';
+
+	/// Opens the schedule sheet; used on the selection bar and the send footer
+	///
+	/// en: 'Schedule…'
+	String get schedule_ellipsis => 'Schedule…';
+
+	/// Refresh action; used on the run timeline and on Telemetry
+	///
+	/// en: 'Reload'
+	String get reload => 'Reload';
+}
+
+// Path: selection_bar
+class Translations$selection_bar$en {
+	Translations$selection_bar$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Button that enters multi-select
+	///
+	/// en: 'Select for a batch'
+	String get select_for_batch => 'Select for a batch';
+
+	/// en: '(one) {$n selected} (few) {$n selected} (other) {$n selected}'
+	String selected_count({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} selected',
+		few: '${n} selected',
+		other: '${n} selected',
+	);
+}
+
+// Path: runs
+class Translations$runs$en {
+	Translations$runs$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Empty state on the Runs page
+	///
+	/// en: 'Nothing scheduled yet. Pick a scenario and choose Schedule.'
+	String get empty => 'Nothing scheduled yet. Pick a scenario and choose Schedule.';
+}
+
+// Path: run_timeline
+class Translations$run_timeline$en {
+	Translations$run_timeline$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// AppBar title of a single run's timeline
+	///
+	/// en: 'Run'
+	String get title => 'Run';
+}
+
+// Path: run_tile
+class Translations$run_tile$en {
+	Translations$run_tile$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: '(one) {$n send} (other) {$n sends}'
+	String sends({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} send',
+		other: '${n} sends',
+	);
+
+	/// When the run's next message goes out
+	///
+	/// en: 'next due $time'
+	String next_due({required Object time}) => 'next due ${time}';
+}
+
+// Path: run_item
+class Translations$run_item$en {
+	Translations$run_item$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Stands in for a run item with no scenario id
+	///
+	/// en: '(composed by hand)'
+	String get composed_by_hand => '(composed by hand)';
+
+	/// When one run item goes out
+	///
+	/// en: 'due $time'
+	String due({required Object time}) => 'due ${time}';
+
+	/// Empty state for a run item's events
+	///
+	/// en: 'Nothing recorded yet.'
+	String get nothing_recorded => 'Nothing recorded yet.';
+}
+
 // Path: shell.title
 class Translations$shell$title$en {
 	Translations$shell$title$en._(this._root);
@@ -294,6 +452,21 @@ extension on Translations {
 			'message_detail.no_extra_data' => 'No extra data keys.',
 			'message_tile.no_title' => '(no title)',
 			'message_tile.body_with_data' => ({required Object body, required Object keys}) => '${body}\ndata: ${keys}',
+			'scenarios.no_token' => 'No registration token yet, so there is nowhere to send. Open the Inbox once the app has registered.',
+			'scenario_card.needs_work' => 'needs work',
+			'common.needs_killed_app' => 'Needs the app killed',
+			'common.cancel' => 'Cancel',
+			'common.schedule_ellipsis' => 'Schedule…',
+			'common.reload' => 'Reload',
+			'selection_bar.select_for_batch' => 'Select for a batch',
+			'selection_bar.selected_count' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} selected', few: '${n} selected', other: '${n} selected', ), 
+			'runs.empty' => 'Nothing scheduled yet. Pick a scenario and choose Schedule.',
+			'run_timeline.title' => 'Run',
+			'run_tile.sends' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} send', other: '${n} sends', ), 
+			'run_tile.next_due' => ({required Object time}) => 'next due ${time}',
+			'run_item.composed_by_hand' => '(composed by hand)',
+			'run_item.due' => ({required Object time}) => 'due ${time}',
+			'run_item.nothing_recorded' => 'Nothing recorded yet.',
 			_ => null,
 		};
 	}

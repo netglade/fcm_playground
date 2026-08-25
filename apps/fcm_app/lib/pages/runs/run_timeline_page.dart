@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domains/runs/entities/run_scheduler.dart';
+import '../../i18n/translations.g.dart';
 import 'cubit/run_timeline_cubit.dart';
 import 'cubit/run_timeline_state.dart';
 import 'widgets/run_item_card.dart';
@@ -22,37 +23,41 @@ class RunTimelinePage extends StatelessWidget {
   final String runId;
 
   @override
-  Widget build(BuildContext context) => BlocProvider(
-    create: (_) => RunTimelineCubit(scheduler, runId)..load(),
-    child: BlocBuilder<RunTimelineCubit, RunTimelineState>(
-      builder: (context, state) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Run'),
-          actions: [
-            IconButton(
-              // The arrival of a push is reported by the device, not by this
-              // page, so refreshing is how a timeline grows.
-              onPressed: context.read<RunTimelineCubit>().load,
-              icon: const Icon(Icons.refresh),
-              tooltip: 'Reload',
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return BlocProvider(
+      create: (_) => RunTimelineCubit(scheduler, runId)..load(),
+      child: BlocBuilder<RunTimelineCubit, RunTimelineState>(
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(
+            title: Text(t.run_timeline.title),
+            actions: [
+              IconButton(
+                // The arrival of a push is reported by the device, not by this
+                // page, so refreshing is how a timeline grows.
+                onPressed: context.read<RunTimelineCubit>().load,
+                icon: const Icon(Icons.refresh),
+                tooltip: t.common.reload,
+              ),
+            ],
+          ),
+          body: switch (state) {
+            RunTimelineState(isLoading: true) => const Center(
+              child: CircularProgressIndicator(),
             ),
-          ],
+            RunTimelineState(error: final error?) => Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(error),
+            ),
+            RunTimelineState(run: final run?) => ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              children: [for (final item in run.items) RunItemCard(item: item)],
+            ),
+            _ => const SizedBox.shrink(),
+          },
         ),
-        body: switch (state) {
-          RunTimelineState(isLoading: true) => const Center(
-            child: CircularProgressIndicator(),
-          ),
-          RunTimelineState(error: final error?) => Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(error),
-          ),
-          RunTimelineState(run: final run?) => ListView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            children: [for (final item in run.items) RunItemCard(item: item)],
-          ),
-          _ => const SizedBox.shrink(),
-        },
       ),
-    ),
-  );
+    );
+  }
 }
