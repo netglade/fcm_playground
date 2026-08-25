@@ -57,7 +57,7 @@ Future<void> drawBackgroundNotification(PushMessage message) async {
       );
 
   await plugin.show(
-    id: notificationIdFor(message.id),
+    id: notificationIdOf(message),
     title: message.title,
     body: message.body,
     notificationDetails: buildNotificationDetails(message),

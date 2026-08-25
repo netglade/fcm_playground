@@ -226,4 +226,38 @@ void main() {
       expect(PushMessageParser.requiredKeys, isNot(contains('trace_id')));
     });
   });
+
+  group('tag, the real android.notification.tag field', () {
+    test('reads the tag and keeps it out of the data rows', () {
+      final message = parser.parse(
+        validPayload(overrides: {'tag': 'build-128'}),
+      );
+
+      expect(message.tag, 'build-128');
+      expect(
+        message.data,
+        isEmpty,
+        reason:
+            'the tag is plumbing the app reads, not something the sender typed '
+            'into data — showing it as an extra row would present our own '
+            'detail as the sender\'s',
+      );
+    });
+
+    test('leaves the tag null when the payload carries none', () {
+      expect(parser.parse(validPayload()).tag, isNull);
+    });
+
+    test('treats a blank tag as none', () {
+      final message = parser.parse(validPayload(overrides: {'tag': '  '}));
+
+      expect(
+        message.tag,
+        isNull,
+        reason:
+            'a blank tag would key every such notification to the same id and '
+            'make unrelated messages replace each other',
+      );
+    });
+  });
 }

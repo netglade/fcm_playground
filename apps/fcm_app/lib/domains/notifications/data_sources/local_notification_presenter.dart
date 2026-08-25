@@ -95,7 +95,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   @override
   Future<void> show(PushMessage message) => _plugin.show(
-    id: notificationIdFor(message.id),
+    id: notificationIdOf(message),
     title: message.title,
     body: message.body,
     notificationDetails: buildNotificationDetails(message),

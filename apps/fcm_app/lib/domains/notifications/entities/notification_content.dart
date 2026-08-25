@@ -1,3 +1,5 @@
+import 'package:core/core.dart';
+
 /// The Android channel every notification from this app goes to.
 ///
 /// Importance high is what makes a banner pop instead of landing silently in the
@@ -13,3 +15,12 @@ const notificationChannelDescription = 'Pushes received by the FCM sample app.';
 /// id so re-showing the same message replaces its banner instead of stacking a
 /// second one. Masked to 31 bits because Android's `notify` takes a Java `int`.
 int notificationIdFor(String messageId) => messageId.hashCode & 0x7fffffff;
+
+/// The notification id for [message]: its tag when it has one, its message id
+/// otherwise.
+///
+/// The tag is what makes a second send replace the first rather than stacking
+/// beside it. FCM already behaves this way for the notifications it draws
+/// itself; this is how the app's own drawing agrees with it.
+int notificationIdOf(PushMessage message) =>
+    notificationIdFor(message.tag ?? message.id);
