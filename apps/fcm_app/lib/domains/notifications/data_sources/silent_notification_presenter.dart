@@ -21,5 +21,8 @@ class SilentNotificationPresenter implements NotificationPresenter {
   Stream<String> get dismissals => const Stream.empty();
 
   @override
+  Future<void> clearAll() => Future<void>.value();
+
+  @override
   Future<void> dispose() => Future<void>.value();
 }

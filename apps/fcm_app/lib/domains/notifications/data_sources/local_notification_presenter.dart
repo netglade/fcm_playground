@@ -7,9 +7,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../push/entities/push_tap.dart';
 import '../entities/notification_content.dart';
+import '../entities/notification_group_store.dart';
 import '../entities/notification_presenter.dart';
 import 'notification_details_builder.dart';
+import 'notification_group_summary.dart';
 import 'notification_reply.dart';
+import 'shared_preferences_notification_group_store.dart';
 
 /// A [NotificationPresenter] over `flutter_local_notifications`, needed only
 /// because Android shows nothing for a message that arrives while the app is in
@@ -18,14 +21,20 @@ class LocalNotificationPresenter implements NotificationPresenter {
   LocalNotificationPresenter({
     FlutterLocalNotificationsPlugin? plugin,
     AppLifecycleState Function()? lifecycleState,
+    NotificationGroupStore? groups,
   }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
-       _lifecycleState = lifecycleState ?? _bindingLifecycleState;
+       _lifecycleState = lifecycleState ?? _bindingLifecycleState,
+       _groups = groups ?? SharedPreferencesNotificationGroupStore();
 
   final FlutterLocalNotificationsPlugin _plugin;
 
   /// Injected so the tests can say which state a press arrived in. There is no
   /// other way to drive `WidgetsBinding`'s lifecycle from a unit test.
   final AppLifecycleState Function() _lifecycleState;
+
+  /// The same store [postGroupSummary] writes to, so [clearAll] can forget what
+  /// it forgot to draw.
+  final NotificationGroupStore _groups;
 
   // Single-subscription, not broadcast: initialize() emits the launching press
   // before anything subscribes, and a broadcast controller discards events added
@@ -94,15 +103,26 @@ class LocalNotificationPresenter implements NotificationPresenter {
   }
 
   @override
-  Future<void> show(PushMessage message) => _plugin.show(
-    id: notificationIdFor(message.id),
-    title: message.title,
-    body: message.body,
-    notificationDetails: buildNotificationDetails(message),
-    // The payload is the message id, which is how a tap resolves back to a
-    // message the inbox already holds.
-    payload: message.id,
-  );
+  Future<void> show(PushMessage message) async {
+    await _plugin.show(
+      id: notificationIdOf(message),
+      title: message.title,
+      body: message.body,
+      notificationDetails: buildNotificationDetails(message),
+      // The payload is the message id, which is how a tap resolves back to a
+      // message the inbox already holds.
+      payload: message.id,
+    );
+    await postGroupSummary(message, plugin: _plugin, store: _groups);
+  }
+
+  @override
+  Future<void> clearAll() async {
+    // The plugin call first: if it throws, the store still describes what the
+    // tray still shows, which is the truthful order.
+    await _plugin.cancelAll();
+    await _groups.clear();
+  }
 
   @override
   Future<void> dispose() async {

@@ -119,11 +119,23 @@ const groupF = <Scenario>[
     description:
         'Watch that it cannot be swiped away, and confirm there is a way to '
         'clear it — an ongoing notification with no exit is a support ticket.',
+    expectation:
+        'Data-only, so the app draws it and the ongoing flag applies in every '
+        'state — FCM has no field for it at all. The flag asks Android not to '
+        'let the user swipe it away; on Android 14 and later the platform '
+        'grants that only to call, device-policy and media notifications, and '
+        'lets the user dismiss an otherwise-ongoing notification anyway. The '
+        'way out either way is the Clear notifications button on the Inbox '
+        'page, which wipes the tray and leaves the inbox alone — an ongoing '
+        'notification with no exit is a support ticket, so the exit is part of '
+        'the scenario.',
     payloadTemplate: {
-      'notification': {'title': 'Syncing', 'body': 'Cannot be dismissed.'},
-      'data': {'ongoing': 'true'},
+      'data': {
+        'title': 'Syncing',
+        'body': 'Cannot be dismissed.',
+        'ongoing': 'true',
+      },
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'f8_full_screen_intent',

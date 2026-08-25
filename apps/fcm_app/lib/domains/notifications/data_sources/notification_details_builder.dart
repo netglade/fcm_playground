@@ -23,6 +23,11 @@ NotificationDetails buildNotificationDetails(
     // only the message id, and `dismissed` has to be recorded against the
     // trace id on the stored payload.
     dismissIsolate: NotificationDismissedIsolate.main,
+    // Only the documented value. See `notificationOngoingKey`.
+    ongoing: message.data[notificationOngoingKey] == 'true',
+    // An ongoing notification a tap removes is not ongoing.
+    autoCancel: message.data[notificationOngoingKey] != 'true',
+    groupKey: message.data[notificationGroupKey],
     actions: [
       for (final action in parseNotificationActions(
         message.data[notificationActionsKey],

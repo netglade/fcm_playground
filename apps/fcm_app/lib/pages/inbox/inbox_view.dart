@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domains/notifications/entities/notification_presenter.dart';
 import 'cubit/inbox_cubit.dart';
 import 'cubit/inbox_state.dart';
 import 'message_detail_page.dart';
@@ -27,6 +30,19 @@ class InboxView extends StatelessWidget {
             title: const Text('Registration token'),
             subtitle: Text(token, maxLines: 2, overflow: TextOverflow.ellipsis),
           ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: OutlinedButton.icon(
+            // The way out of an ongoing notification, which cannot be swiped
+            // away — and of anything else stuck in the tray. Clears the tray
+            // only: the inbox below keeps every message, because the tray and
+            // the inbox are different lists.
+            onPressed: () =>
+                unawaited(context.read<NotificationPresenter>().clearAll()),
+            icon: const Icon(Icons.clear_all_outlined),
+            label: const Text('Clear notifications'),
+          ),
+        ),
         Expanded(
           child: state.messages.isEmpty
               ? const Center(child: Text('No pushes received yet.'))

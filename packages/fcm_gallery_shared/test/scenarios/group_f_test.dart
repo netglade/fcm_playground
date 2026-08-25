@@ -33,13 +33,13 @@ void main() {
       ]);
     });
 
-    test('three of the nine are still blocked on interaction work', () {
+    test('two of the nine are still blocked on interaction work', () {
       // `contains(interaction)` alone passes on an entry that ALSO carries
       // channels or styles, which would file this group's work under the wrong
       // sub-project. So needs are pinned exactly, and the literal counts back
       // the words: f1 was unblocked by the notification-actions cycle, the
-      // three deep links by that cycle, f2 and f6 by this one, and the
-      // remaining three are the sub-projects still to come.
+      // three deep links by that cycle, f2, f6 and f7 by this one, and the
+      // remaining two are the sub-projects still to come.
       expect(groupF, hasLength(9));
 
       const expected = {
@@ -49,7 +49,7 @@ void main() {
         'f4_deeplink_background': <ScenarioNeed>[],
         'f5_deeplink_killed': <ScenarioNeed>[],
         'f6_delete_intent': <ScenarioNeed>[],
-        'f7_ongoing': [ScenarioNeed.interaction],
+        'f7_ongoing': <ScenarioNeed>[],
         'f8_full_screen_intent': [
           ScenarioNeed.interaction,
           ScenarioNeed.externalApproval,

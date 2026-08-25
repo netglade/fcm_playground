@@ -10,6 +10,7 @@ class PushMessage {
     required this.body,
     required this.sentAt,
     this.data = const {},
+    this.tag,
   });
 
   /// Used to drop duplicate deliveries, which FCM does not guarantee against.
@@ -27,6 +28,13 @@ class PushMessage {
   /// Payload keys beyond the reserved ones, passed through untouched.
   final Map<String, String> data;
 
+  /// The `android.notification.tag` the sender set, if any.
+  ///
+  /// FCM honours this itself when it draws the tray entry: a second message with
+  /// the same tag replaces the first. The app reads it so its own drawing agrees
+  /// rather than stacking — see `notificationIdOf`.
+  final String? tag;
+
   @override
   bool operator ==(Object other) {
     if (other is! PushMessage) {
@@ -37,11 +45,12 @@ class PushMessage {
         title == other.title &&
         body == other.body &&
         sentAt == other.sentAt &&
+        tag == other.tag &&
         _mapEquals(data, other.data);
   }
 
   @override
-  int get hashCode => Object.hash(id, title, body, sentAt, data.length);
+  int get hashCode => Object.hash(id, title, body, sentAt, tag, data.length);
 
   @override
   String toString() => 'PushMessage(id: $id, title: $title, sentAt: $sentAt)';

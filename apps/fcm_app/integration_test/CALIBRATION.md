@@ -141,3 +141,33 @@ respectively — rather than the message detail page. `f5_deeplink_killed` needs
 delayed send and a real app kill to exercise at all, and is the one most worth doing
 by hand: `getInitialMessage` is the route nobody exercises by accident, so it is the
 one most likely to have quietly broken.
+
+**`f7_ongoing`'s automated assertions cover delivery and drawing only; the ongoing
+behaviour itself is a manual pass.** It is data-only, so the app draws it itself and
+the ongoing flag applies whichever state you send it in — app state does not matter
+here, unlike `g2` below. Nothing in the telemetry stream distinguishes an ongoing
+notification from any other — `displayed` fires the same way either way — so send it
+and try to swipe it away by hand. On Android 13 and earlier it should refuse; on
+Android 14 and later the platform lets the user dismiss it anyway (the exemptions are
+`CallStyle`, device-policy and media notifications, and a plain ongoing flag is not
+among them), so a swipe succeeding there is the OS working as documented, not a bug.
+Either way, open the Inbox and press **Clear notifications**, and confirm the
+notification is gone from the tray while the Inbox's messages are untouched.
+
+**`g1_group_summary`'s automated assertions cover delivery and drawing only; the
+collapse under a summary, and the climbing count, are both manual passes.** It is
+data-only, so the app draws it and posts the summary itself whichever state you send
+it in — app state does not matter here, unlike `g2` below. Nothing about the summary
+reaches telemetry — a send of the fifth looks the same on the wire as the first. Send
+it five times by hand and confirm all five collapse under one summary row, and that
+the row's count reads 5 by the time the fifth arrives. If this device already has a
+"builds" summary standing from an earlier pass, clear it first: the store only forgets
+a group when Clear notifications is pressed, never when a member notification is
+merely swiped or tapped away, so a count that starts above 5 or climbs past it is that
+leftover state, not a miscount.
+
+**`g2_update_same_id`'s automated assertions cover delivery and drawing only; that
+the second send replaces rather than stacks is a manual pass.** Telemetry records
+two separate deliveries either way, so send it twice by hand — with the app
+backgrounded, then again with it on screen — and confirm the tray shows one
+notification, not two, after each pair.

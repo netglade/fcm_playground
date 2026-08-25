@@ -13,5 +13,6 @@ Map<String, Object?> remoteMessageToPayload(RemoteMessage message) => {
   'title': message.notification?.title ?? '',
   'body': message.notification?.body ?? '',
   'sentAt': (message.sentTime ?? DateTime.now()).toUtc().toIso8601String(),
+  'tag': message.notification?.android?.tag,
   ...message.data,
 };

@@ -1,3 +1,4 @@
+import 'package:fcm_app/domains/notifications/entities/notification_presenter.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
@@ -5,6 +6,7 @@ import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
+import 'package:fcm_app/pages/inbox/widgets/message_tile.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/shell/app_shell.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +20,7 @@ import '../../fakes/fake_push_source.dart';
 import '../../fakes/fake_run_scheduler.dart';
 import '../../fakes/fake_telemetry_reader.dart';
 import '../../fakes/in_memory_active_run_store.dart';
+import '../../fakes/recording_notification_presenter.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
   'id': id,
@@ -34,6 +37,7 @@ void main() {
   late PushRepository repository;
   late InboxCubit inbox;
   late SandboxCubit sandbox;
+  late RecordingNotificationPresenter presenter;
 
   // The shell under this test's own cubits: `App`'s providers build theirs
   // out of `getIt`, which no widget test configures. The shell rather than
@@ -58,6 +62,7 @@ void main() {
             RepositoryProvider<TelemetryReader>.value(
               value: FakeTelemetryReader(),
             ),
+            RepositoryProvider<NotificationPresenter>.value(value: presenter),
           ],
           child: MultiBlocProvider(
             providers: [
@@ -74,6 +79,7 @@ void main() {
 
   setUp(() {
     source = FakePushSource();
+    presenter = RecordingNotificationPresenter();
   });
 
   tearDown(() async {
@@ -81,6 +87,7 @@ void main() {
     await inbox.close();
     repository.dispose();
     await source.dispose();
+    await presenter.dispose();
   });
 
   testWidgets('shows an empty state before anything arrives', (tester) async {
@@ -193,5 +200,28 @@ void main() {
 
     expect(find.byType(MessageDetailPage), findsNothing);
     expect(find.widgetWithText(AppBar, 'Push inbox'), findsOne);
+  });
+
+  testWidgets('clears the tray without emptying the inbox', (tester) async {
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = InboxCubit(repository);
+    await pumpApp(tester);
+    source.emit(payload());
+    await tester.pumpAndSettle();
+    // A message is present before the tap, and must still be after it.
+    expect(find.byType(MessageTile), findsWidgets);
+
+    await tester.tap(find.text('Clear notifications'));
+    await tester.pumpAndSettle();
+
+    expect(presenter.cleared, 1);
+    expect(
+      find.byType(MessageTile),
+      findsWidgets,
+      reason:
+          'the tray and the inbox are different lists — clearing one must not '
+          'destroy the record of what arrived',
+    );
   });
 }

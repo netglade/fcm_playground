@@ -55,10 +55,11 @@ const _sendRefused = {TelemetryEventType.queued, TelemetryEventType.sendFailed};
 
 /// Per-scenario expectations, keyed by [Scenario.id].
 ///
-/// Twenty-six entries: the twenty-two that run on Android plus the four iOS-only
-/// ones, which are written so that unblocking iOS is a skip-policy change rather
-/// than a table rewrite. `b3_killed` and `f5_deeplink_killed` have no entry on
-/// purpose — [skipReasonFor] turns each away before the table is consulted.
+/// Twenty-nine entries: the twenty-five that run on Android plus the four
+/// iOS-only ones, which are written so that unblocking iOS is a skip-policy
+/// change rather than a table rewrite. `b3_killed` and `f5_deeplink_killed`
+/// have no entry on purpose — [skipReasonFor] turns each away before the
+/// table is consulted.
 ///
 /// **Derived from reading the code, not from watching a device.** See
 /// `integration_test/CALIBRATION.md` for how to settle it.
@@ -177,6 +178,29 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
   // as any other notification payload. Swiping it is a human step, which is
   // why `dismissed` stays in `_quiet`; see CALIBRATION.md.
   'f6_delete_intent': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  // f7 is ongoing, which affects only whether a swipe dismisses it — delivery
+  // and drawing happen exactly as for any other notification, so this is the
+  // same pair as every other entry. Whether it actually resists a swipe (it
+  // should, short of Android 14+'s own exemption), and that Clear
+  // notifications removes it either way, are both things a human watches in
+  // the tray; see CALIBRATION.md.
+  'f7_ongoing': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+
+  // Group G — groups, badge and updates. g1's summary and rising count, and
+  // g2's replace-in-place, are both observed by looking at the tray, not
+  // through telemetry — each send still delivers and draws exactly as any
+  // other push, so nothing extra is asserted here; see CALIBRATION.md.
+  'g1_group_summary': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  'g2_update_same_id': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),

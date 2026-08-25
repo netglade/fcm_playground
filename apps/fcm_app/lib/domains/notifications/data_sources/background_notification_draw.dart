@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../entities/notification_content.dart';
 import 'notification_details_builder.dart';
+import 'notification_group_summary.dart';
 import 'notification_reply.dart';
 
 /// Whether the background isolate should draw [message] itself.
@@ -57,7 +58,7 @@ Future<void> drawBackgroundNotification(PushMessage message) async {
       );
 
   await plugin.show(
-    id: notificationIdFor(message.id),
+    id: notificationIdOf(message),
     title: message.title,
     body: message.body,
     notificationDetails: buildNotificationDetails(message),
@@ -65,4 +66,5 @@ Future<void> drawBackgroundNotification(PushMessage message) async {
     // message through exactly one code path.
     payload: message.id,
   );
+  await postGroupSummary(message, plugin: plugin);
 }
