@@ -175,5 +175,32 @@ void main() {
     test('leaves groupKey null when the payload names no group', () {
       expect(buildNotificationDetails(message()).android?.groupKey, isNull);
     });
+
+    test('asks for a full-screen intent when the payload does', () {
+      final details = buildNotificationDetails(
+        message(data: const {'full_screen': 'true'}),
+      );
+
+      expect(details.android?.fullScreenIntent, isTrue);
+    });
+
+    test('leaves an ordinary notification alone', () {
+      expect(
+        buildNotificationDetails(message()).android?.fullScreenIntent,
+        isFalse,
+      );
+    });
+
+    test('treats any value other than true as no request', () {
+      expect(
+        buildNotificationDetails(
+          message(data: const {'full_screen': 'yes'}),
+        ).android?.fullScreenIntent,
+        isFalse,
+        reason:
+            'the Sandbox accepts any text; only the documented value asks to '
+            'take over the screen',
+      );
+    });
   });
 }

@@ -28,6 +28,8 @@ NotificationDetails buildNotificationDetails(
     // An ongoing notification a tap removes is not ongoing.
     autoCancel: message.data[notificationOngoingKey] != 'true',
     groupKey: message.data[notificationGroupKey],
+    // Only the documented value. See `notificationFullScreenKey`.
+    fullScreenIntent: message.data[notificationFullScreenKey] == 'true',
     actions: [
       for (final action in parseNotificationActions(
         message.data[notificationActionsKey],

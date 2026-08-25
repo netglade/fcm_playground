@@ -2,6 +2,11 @@
     <!-- Held by the countdown screen so the display cannot sleep before the user has
          had a chance to swipe the app out of recents. -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- Asked for by f8_full_screen_intent. Android 14+ grants this only to
+         calling and alarm apps, so this gallery expects to be refused — the
+         declaration is what makes the refusal observable rather than a silent
+         no-op. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
     <application
         android:label="fcm_app"
         android:name="${applicationName}"

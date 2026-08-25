@@ -20,6 +20,15 @@ const notificationOngoingKey = 'ongoing';
 /// The `data` key naming the group a notification collapses into.
 const notificationGroupKey = 'group';
 
+/// The `data` key asking a notification to take over the screen.
+///
+/// Only the exact string `true` counts, for the same reason
+/// [notificationOngoingKey] does. Android 14 and later grant the permission
+/// behind this only to calling and alarm apps, so for this gallery the request
+/// is expected to be refused — that refusal is what `f8_full_screen_intent`
+/// exists to show.
+const notificationFullScreenKey = 'full_screen';
+
 /// The integer id `flutter_local_notifications` requires, derived from the payload
 /// id so re-showing the same message replaces its banner instead of stacking a
 /// second one. Masked to 31 bits because Android's `notify` takes a Java `int`.
