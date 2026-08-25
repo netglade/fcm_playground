@@ -31,12 +31,16 @@ PendingReply? replyFrom(NotificationResponse response) {
 /// `notificationIdOf` reduces to the same id and this still replaces it as
 /// intended.
 ///
-/// Known limitation: a tagged message breaks that agreement. The original draw
-/// was keyed on the tag, this redraw is keyed on the id, and the two disagree —
-/// the progress notification lands beside the original instead of replacing it.
-/// Left alone rather than plumbed through, because reaching it means
-/// hand-composing a Sandbox payload that pairs a tag with a reply action; no
-/// catalogue scenario does.
+/// Known limitation: the redraw below builds a fixed `NotificationDetails`
+/// that carries neither the original's tag, group nor ongoing flag, so all
+/// three diverge from the original draw. A tagged message's progress
+/// notification lands beside the original instead of replacing it. A grouped
+/// message's progress notification leaves its group — it stops counting
+/// toward the summary's total even though the store still counts it as a
+/// member. An ongoing message's progress notification becomes dismissable.
+/// Left alone rather than plumbed through, because reaching any of the three
+/// means hand-composing a Sandbox payload that pairs a reply action with a
+/// tag, a group or the ongoing flag; no catalogue scenario does.
 ///
 /// The original title is not restored, because this isolate does not have it —
 /// finding it would mean reading the payload store's pending queue, which the UI
