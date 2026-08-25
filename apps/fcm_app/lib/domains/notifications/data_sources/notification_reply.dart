@@ -3,8 +3,10 @@ import 'dart:ui' show DartPluginRegistrant;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../../i18n/translations.g.dart';
 import '../../push/data_sources/shared_preferences_reply_store.dart';
 import '../../push/entities/pending_reply.dart';
+import '../../settings/data_sources/shared_preferences_locale_store.dart';
 import '../entities/notification_content.dart';
 
 /// The reply [response] carries, or null when it carries none.
@@ -35,7 +37,8 @@ Future<void> showReplyProgress(
   String messageId,
   String text, {
   required bool sent,
-}) => _draw(messageId, title: sent ? 'Sent' : 'Sending…', body: text);
+}) =>
+    _draw(messageId, title: sent ? t.reply.sent : t.reply.sending, body: text);
 
 /// Redraws the notification to say the reply did not go through.
 ///
@@ -44,7 +47,7 @@ Future<void> showReplyProgress(
 /// app will never see a reply that never reached storage. "Not sent" is the
 /// honest reading — worse-looking than "Sent", but not false.
 Future<void> _showReplyFailed(String messageId, String text) =>
-    _draw(messageId, title: 'Not sent', body: text);
+    _draw(messageId, title: t.reply.not_sent, body: text);
 
 /// The plugin call both draw functions share, built fresh each time: this runs
 /// in an isolate where `configureDependencies` has not run, so there is no
@@ -130,6 +133,17 @@ Future<void> onNotificationReply(NotificationResponse response) async {
   // it is constructed, and every reply is lost with only a `debugPrint` to show
   // for it.
   DartPluginRegistrant.ensureInitialized();
+
+  // The isolate starts cold — main() never ran here — and the store is the only
+  // thing that knows the user's choice. Falling back to the device locale matches
+  // what main() does when there is no override. Without this the one notification a
+  // user gets for a reply would be the single English thing in a Czech app.
+  final storedLocale = await const SharedPreferencesLocaleStore().read();
+  if (storedLocale == null) {
+    LocaleSettings.useDeviceLocaleSync();
+  } else {
+    LocaleSettings.setLocaleSync(storedLocale);
+  }
 
   final reply = replyFrom(response);
   if (reply == null) {

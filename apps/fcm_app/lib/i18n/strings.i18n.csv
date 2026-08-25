@@ -26,6 +26,9 @@ message_detail.sent,Sent,Odesláno,Label above the send timestamp
 message_detail.payload_id,Payload id,ID payloadu,Label above the message id
 message_detail.extra_data,Extra data,Extra data,Label above the data map
 message_detail.no_extra_data,No extra data keys.,Žádné extra klíče.,Shown when the data map is empty
+reply.sending,Sending…,Odesílám…,Title of the notification shown while an inline reply is in flight
+reply.sent,Sent,Odesláno,Title of the notification once the reply went out
+reply.not_sent,Not sent,Neodesláno,Title of the notification when the reply failed
 message_tile.no_title,(no title),(bez titulku),Stand-in headline for a message with an empty title
 message_tile.body_with_data,"$body
 data: $keys","$body

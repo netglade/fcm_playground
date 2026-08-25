@@ -76,6 +76,34 @@ void main() {
       }
     });
 
+    // These came from Dart literals until the previous task and now come from CSV
+    // cells, where a leading or trailing space survives quoting unnoticed. Nothing
+    // else in the suite would catch one: a padded string still resolves, still
+    // renders, and still passes every `contains` assertion. Restores and widens a
+    // guard the shared package's own test used to carry for `ScenarioNeed.label`.
+    test('no translated string carries stray outer whitespace', () {
+      final cs = AppLocale.cs.buildSync();
+
+      for (final translations in [en, cs]) {
+        for (final scenario in scenarioGallery) {
+          final values = <String>[
+            translations.scenarioTitle(scenario.l10nKey),
+            translations.scenarioDescription(scenario.l10nKey),
+            ?translations.scenarioExpectation(scenario.l10nKey),
+            ?translations.scenarioManualSteps(scenario.l10nKey),
+          ];
+          for (final value in values) {
+            expect(value.trim(), value, reason: scenario.id);
+          }
+        }
+
+        for (final need in ScenarioNeed.values) {
+          final label = translations.scenarioNeedLabel(need);
+          expect(label.trim(), label, reason: need.name);
+        }
+      }
+    });
+
     // Moved from scenario_gallery_test.dart.
     test('a manual-step scenario says what the step is', () {
       for (final scenario in scenarioGallery) {

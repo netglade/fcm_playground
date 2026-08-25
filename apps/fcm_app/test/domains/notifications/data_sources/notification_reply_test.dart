@@ -1,9 +1,29 @@
 import 'package:fcm_app/domains/notifications/data_sources/notification_reply.dart';
 import 'package:fcm_app/domains/push/entities/pending_reply.dart';
+import 'package:fcm_app/domains/settings/data_sources/shared_preferences_locale_store.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  // `LocaleSettings` is global process state; a test that leaves it on Czech
+  // would break whichever English-asserting test the runner reaches next.
+  tearDown(() => LocaleSettings.setLocaleSync(AppLocale.en));
+
+  test('draws the reply notification in the stored language', () async {
+    // The third isolate has no BuildContext and no widget tree, so the store is
+    // the only place the locale can come from.
+    SharedPreferences.setMockInitialValues({localeKey: 'cs'});
+
+    final storedLocale = await const SharedPreferencesLocaleStore().read();
+    LocaleSettings.setLocaleSync(storedLocale!);
+
+    expect(t.reply.sending, 'Odesílám…');
+    expect(t.reply.sent, 'Odesláno');
+    expect(t.reply.not_sent, 'Neodesláno');
+  });
+
   group('replyFrom', () {
     test(
       'takes the message id from the payload and the text from the input',

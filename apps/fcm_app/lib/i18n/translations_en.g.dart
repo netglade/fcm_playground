@@ -46,6 +46,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$drawer$en drawer = Translations$drawer$en._(_root);
 	late final Translations$inbox$en inbox = Translations$inbox$en._(_root);
 	late final Translations$message_detail$en message_detail = Translations$message_detail$en._(_root);
+	late final Translations$reply$en reply = Translations$reply$en._(_root);
 	late final Translations$message_tile$en message_tile = Translations$message_tile$en._(_root);
 	late final Translations$scenarios$en scenarios = Translations$scenarios$en._(_root);
 	late final Translations$scenario_card$en scenario_card = Translations$scenario_card$en._(_root);
@@ -225,6 +226,30 @@ class Translations$message_detail$en {
 	///
 	/// en: 'No extra data keys.'
 	String get no_extra_data => 'No extra data keys.';
+}
+
+// Path: reply
+class Translations$reply$en {
+	Translations$reply$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of the notification shown while an inline reply is in flight
+	///
+	/// en: 'Sending…'
+	String get sending => 'Sending…';
+
+	/// Title of the notification once the reply went out
+	///
+	/// en: 'Sent'
+	String get sent => 'Sent';
+
+	/// Title of the notification when the reply failed
+	///
+	/// en: 'Not sent'
+	String get not_sent => 'Not sent';
 }
 
 // Path: message_tile
@@ -2454,6 +2479,9 @@ extension on Translations {
 			'message_detail.payload_id' => 'Payload id',
 			'message_detail.extra_data' => 'Extra data',
 			'message_detail.no_extra_data' => 'No extra data keys.',
+			'reply.sending' => 'Sending…',
+			'reply.sent' => 'Sent',
+			'reply.not_sent' => 'Not sent',
 			'message_tile.no_title' => '(no title)',
 			'message_tile.body_with_data' => ({required Object body, required Object keys}) => '${body}\ndata: ${keys}',
 			'scenarios.no_token' => 'No registration token yet, so there is nowhere to send. Open the Inbox once the app has registered.',

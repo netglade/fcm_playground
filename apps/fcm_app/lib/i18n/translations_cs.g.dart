@@ -43,6 +43,7 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$drawer$cs drawer = _Translations$drawer$cs._(_root);
 	@override late final _Translations$inbox$cs inbox = _Translations$inbox$cs._(_root);
 	@override late final _Translations$message_detail$cs message_detail = _Translations$message_detail$cs._(_root);
+	@override late final _Translations$reply$cs reply = _Translations$reply$cs._(_root);
 	@override late final _Translations$message_tile$cs message_tile = _Translations$message_tile$cs._(_root);
 	@override late final _Translations$scenarios$cs scenarios = _Translations$scenarios$cs._(_root);
 	@override late final _Translations$scenario_card$cs scenario_card = _Translations$scenario_card$cs._(_root);
@@ -183,6 +184,24 @@ class _Translations$message_detail$cs implements Translations$message_detail$en 
 
 	/// Shown when the data map is empty
 	@override String get no_extra_data => 'Žádné extra klíče.';
+}
+
+// Path: reply
+class _Translations$reply$cs implements Translations$reply$en {
+	_Translations$reply$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of the notification shown while an inline reply is in flight
+	@override String get sending => 'Odesílám…';
+
+	/// Title of the notification once the reply went out
+	@override String get sent => 'Odesláno';
+
+	/// Title of the notification when the reply failed
+	@override String get not_sent => 'Neodesláno';
 }
 
 // Path: message_tile
@@ -1905,6 +1924,9 @@ extension on TranslationsCs {
 			'message_detail.payload_id' => 'ID payloadu',
 			'message_detail.extra_data' => 'Extra data',
 			'message_detail.no_extra_data' => 'Žádné extra klíče.',
+			'reply.sending' => 'Odesílám…',
+			'reply.sent' => 'Odesláno',
+			'reply.not_sent' => 'Neodesláno',
 			'message_tile.no_title' => '(bez titulku)',
 			'message_tile.body_with_data' => ({required Object body, required Object keys}) => '${body}\ndata: ${keys}',
 			'scenarios.no_token' => 'Zatím není registrační token, takže není kam posílat. Otevři Doručené, až se aplikace zaregistruje.',
