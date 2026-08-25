@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'di/service_locator.dart';
 import 'domains/push/repositories/push_repository.dart';
@@ -9,6 +10,7 @@ import 'domains/runs/start_run.dart';
 import 'domains/sandbox/entities/notification_sender.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
 import 'domains/telemetry/entities/telemetry_reader.dart';
+import 'i18n/translations.g.dart';
 import 'pages/inbox/cubit/inbox_cubit.dart';
 import 'pages/sandbox/cubit/sandbox_cubit.dart';
 import 'pages/shell/app_shell.dart';
@@ -60,7 +62,10 @@ class App extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'FCM Sample',
+        onGenerateTitle: (context) => context.t.app.title,
+        locale: TranslationProvider.of(context).flutterLocale,
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: AppLocaleUtils.supportedLocales,
         theme: ThemeData(colorSchemeSeed: Colors.indigo),
         home: const AppShell(),
       ),

@@ -20,6 +20,7 @@ import 'domains/telemetry/data_sources/shared_preferences_device_identity.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
 import 'domains/telemetry/report_push_event.dart';
 import 'firebase_options.dart';
+import 'i18n/translations.g.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,7 +53,7 @@ Future<void> main() async {
   // through the plugin, so nothing reports when one of those is swiped away.
   getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
 
-  runApp(const App());
+  runApp(TranslationProvider(child: const App()));
 }
 
 Future<void> _flushQuietly(PushTelemetry telemetry) async {

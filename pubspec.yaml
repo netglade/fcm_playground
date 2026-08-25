@@ -67,6 +67,18 @@ melos:
       packageFilters:
         dependsOn: drift_dev
 
+    l10n:
+      description: >-
+        Regenerate the typed translations from
+        apps/fcm_app/lib/i18n/strings.i18n.csv. Run after editing the CSV.
+      # Not part of `ci`, for the same reason `generate` is not: the output is
+      # committed, so a fresh clone analyses and tests without a codegen step. The
+      # forgotten-regeneration case is caught by test/i18n/csv_coverage_test.dart
+      # instead, which is where the person who forgot will be looking.
+      run: |
+        cd apps/fcm_app || exit 1
+        fvm dart run slang
+
     api:serve:
       description: >-
         Run the send API on 127.0.0.1:8080. Needs GOOGLE_APPLICATION_CREDENTIALS
