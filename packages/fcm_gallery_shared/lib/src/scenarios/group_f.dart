@@ -12,6 +12,7 @@ import 'scenario_need.dart';
 const groupF = <Scenario>[
   Scenario(
     id: 'f1_actions',
+    l10nKey: 'f1_actions',
     group: 'F — Interaction',
     title: 'Two or three action buttons',
     description:
@@ -32,6 +33,7 @@ const groupF = <Scenario>[
   ),
   Scenario(
     id: 'f2_inline_reply',
+    l10nKey: 'f2_inline_reply',
     group: 'F — Interaction',
     title: 'Inline reply with RemoteInput',
     description:
@@ -55,6 +57,7 @@ const groupF = <Scenario>[
   ),
   Scenario(
     id: 'f3_deeplink_foreground',
+    l10nKey: 'f3_deeplink_foreground',
     group: 'F — Interaction',
     title: 'Tap while the app is running',
     description:
@@ -68,6 +71,7 @@ const groupF = <Scenario>[
   ),
   Scenario(
     id: 'f4_deeplink_background',
+    l10nKey: 'f4_deeplink_background',
     group: 'F — Interaction',
     title: 'Tap while the app is backgrounded',
     description:
@@ -81,6 +85,7 @@ const groupF = <Scenario>[
   ),
   Scenario(
     id: 'f5_deeplink_killed',
+    l10nKey: 'f5_deeplink_killed',
     group: 'F — Interaction',
     title: 'Tap with the app killed',
     description:
@@ -97,6 +102,7 @@ const groupF = <Scenario>[
   ),
   Scenario(
     id: 'f6_delete_intent',
+    l10nKey: 'f6_delete_intent',
     group: 'F — Interaction',
     title: 'Detecting a swipe-away',
     description:
@@ -114,6 +120,7 @@ const groupF = <Scenario>[
   ),
   Scenario(
     id: 'f7_ongoing',
+    l10nKey: 'f7_ongoing',
     group: 'F — Interaction',
     title: 'An ongoing, undismissable notification',
     description:
@@ -127,6 +134,7 @@ const groupF = <Scenario>[
   ),
   Scenario(
     id: 'f8_full_screen_intent',
+    l10nKey: 'f8_full_screen_intent',
     group: 'F — Interaction',
     title: 'Full-screen intent, as an incoming call',
     description:
@@ -148,6 +156,7 @@ const groupF = <Scenario>[
   ),
   Scenario(
     id: 'f9_trampoline',
+    l10nKey: 'f9_trampoline',
     group: 'F — Interaction',
     title: 'A notification trampoline, which should fail',
     description:

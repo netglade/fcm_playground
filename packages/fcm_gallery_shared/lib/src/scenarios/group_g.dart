@@ -11,6 +11,7 @@ import 'scenario_need.dart';
 const groupG = <Scenario>[
   Scenario(
     id: 'g1_group_summary',
+    l10nKey: 'g1_group_summary',
     group: 'G — Groups, badge, updates',
     title: 'Five notifications with a summary',
     description:
@@ -27,6 +28,7 @@ const groupG = <Scenario>[
   ),
   Scenario(
     id: 'g2_update_same_id',
+    l10nKey: 'g2_update_same_id',
     group: 'G — Groups, badge, updates',
     title: 'Replacing a notification in place',
     description:
@@ -42,6 +44,7 @@ const groupG = <Scenario>[
   ),
   Scenario(
     id: 'g3_badge',
+    l10nKey: 'g3_badge',
     group: 'G — Groups, badge, updates',
     title: 'A count on the launcher icon',
     description:
@@ -63,6 +66,7 @@ const groupG = <Scenario>[
   ),
   Scenario(
     id: 'g4_badge_ios',
+    l10nKey: 'g4_badge_ios',
     group: 'G — Groups, badge, updates',
     title: 'The iOS badge via aps.badge',
     description:

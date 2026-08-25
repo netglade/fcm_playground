@@ -13,6 +13,7 @@ import 'scenario_need.dart';
 const groupD = <Scenario>[
   Scenario(
     id: 'd1_importance_high',
+    l10nKey: 'd1_importance_high',
     group: 'D — Channels and importance',
     title: 'IMPORTANCE_HIGH — heads-up banner',
     description:
@@ -28,6 +29,7 @@ const groupD = <Scenario>[
   ),
   Scenario(
     id: 'd2_importance_default',
+    l10nKey: 'd2_importance_default',
     group: 'D — Channels and importance',
     title: 'IMPORTANCE_DEFAULT — sound, no banner',
     description: 'Watch for a sound and a tray entry, but nothing floating.',
@@ -41,6 +43,7 @@ const groupD = <Scenario>[
   ),
   Scenario(
     id: 'd3_importance_low',
+    l10nKey: 'd3_importance_low',
     group: 'D — Channels and importance',
     title: 'IMPORTANCE_LOW — silent',
     description:
@@ -56,6 +59,7 @@ const groupD = <Scenario>[
   ),
   Scenario(
     id: 'd4_importance_min',
+    l10nKey: 'd4_importance_min',
     group: 'D — Channels and importance',
     title: 'IMPORTANCE_MIN — status bar only',
     description:
@@ -71,6 +75,7 @@ const groupD = <Scenario>[
   ),
   Scenario(
     id: 'd5_custom_sound',
+    l10nKey: 'd5_custom_sound',
     group: 'D — Channels and importance',
     title: 'A custom sound on the channel',
     description:
@@ -89,6 +94,7 @@ const groupD = <Scenario>[
   ),
   Scenario(
     id: 'd6_vibration_pattern',
+    l10nKey: 'd6_vibration_pattern',
     group: 'D — Channels and importance',
     title: 'A custom vibration pattern',
     description:
@@ -108,6 +114,7 @@ const groupD = <Scenario>[
   ),
   Scenario(
     id: 'd7_channel_immutability',
+    l10nKey: 'd7_channel_immutability',
     group: 'D — Channels and importance',
     title: 'Changing an existing channel — Android will ignore it',
     description:
@@ -127,6 +134,7 @@ const groupD = <Scenario>[
   ),
   Scenario(
     id: 'd8_channel_group',
+    l10nKey: 'd8_channel_group',
     group: 'D — Channels and importance',
     title: 'Channels collected into a group',
     description:

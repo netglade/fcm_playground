@@ -10,6 +10,7 @@ import 'scenario_need.dart';
 const groupE = <Scenario>[
   Scenario(
     id: 'e1_long_text',
+    l10nKey: 'e1_long_text',
     group: 'E — Appearance',
     title: 'BigTextStyle with ~800 characters',
     description:
@@ -37,6 +38,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e2_image_remote',
+    l10nKey: 'e2_image_remote',
     group: 'E — Appearance',
     title: 'notification.image — fetched by the platform',
     description:
@@ -55,6 +57,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e3_image_local',
+    l10nKey: 'e3_image_local',
     group: 'E — Appearance',
     title: 'Image downloaded by the data handler',
     description:
@@ -72,6 +75,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e4_image_huge',
+    l10nKey: 'e4_image_huge',
     group: 'E — Appearance',
     title: 'A 4000×3000 image',
     description:
@@ -87,6 +91,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e5_image_404',
+    l10nKey: 'e5_image_404',
     group: 'E — Appearance',
     title: 'An image URL that does not resolve',
     description:
@@ -102,6 +107,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e6_large_icon',
+    l10nKey: 'e6_large_icon',
     group: 'E — Appearance',
     title: 'A large icon beside the text',
     description:
@@ -119,6 +125,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e7_inbox_style',
+    l10nKey: 'e7_inbox_style',
     group: 'E — Appearance',
     title: 'InboxStyle with seven lines',
     description:
@@ -137,6 +144,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e8_messaging_style',
+    l10nKey: 'e8_messaging_style',
     group: 'E — Appearance',
     title: 'MessagingStyle with several senders',
     description:
@@ -153,6 +161,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e9_progress',
+    l10nKey: 'e9_progress',
     group: 'E — Appearance',
     title: 'A progress bar, updated in place',
     description:
@@ -170,6 +179,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e10_color_and_icon',
+    l10nKey: 'e10_color_and_icon',
     group: 'E — Appearance',
     title: 'Accent colour and a monochrome icon',
     description:
@@ -187,6 +197,7 @@ const groupE = <Scenario>[
   ),
   Scenario(
     id: 'e11_emoji_rtl',
+    l10nKey: 'e11_emoji_rtl',
     group: 'E — Appearance',
     title: 'Emoji, right-to-left text and unbreakable words',
     description:

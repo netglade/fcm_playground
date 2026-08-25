@@ -10,6 +10,7 @@ import 'scenario_need.dart';
 const groupB = <Scenario>[
   Scenario(
     id: 'b1_foreground',
+    l10nKey: 'b1_foreground',
     group: 'B — Application states',
     title: 'Delivered with the app in the foreground',
     description:
@@ -22,6 +23,7 @@ const groupB = <Scenario>[
   ),
   Scenario(
     id: 'b2_background',
+    l10nKey: 'b2_background',
     group: 'B — Application states',
     title: 'App backgrounded, screen locked',
     description:
@@ -37,6 +39,7 @@ const groupB = <Scenario>[
   ),
   Scenario(
     id: 'b3_killed',
+    l10nKey: 'b3_killed',
     group: 'B — Application states',
     title: 'App swiped out of recents',
     description:
@@ -51,6 +54,7 @@ const groupB = <Scenario>[
   ),
   Scenario(
     id: 'b4_after_reboot',
+    l10nKey: 'b4_after_reboot',
     group: 'B — Application states',
     title: 'After a reboot, app never opened',
     description:
@@ -67,6 +71,7 @@ const groupB = <Scenario>[
   ),
   Scenario(
     id: 'b5_force_stopped',
+    l10nKey: 'b5_force_stopped',
     group: 'B — Application states',
     title: 'After Force stop',
     description:
@@ -87,6 +92,7 @@ const groupB = <Scenario>[
   ),
   Scenario(
     id: 'b6_token_refresh',
+    l10nKey: 'b6_token_refresh',
     group: 'B — Application states',
     title: 'Token rotated by a reinstall or clear-data',
     description:

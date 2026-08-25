@@ -66,6 +66,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$countdown$en countdown = Translations$countdown$en._(_root);
 	late final Translations$telemetry$en telemetry = Translations$telemetry$en._(_root);
 	late final Translations$api$en api = Translations$api$en._(_root);
+	late final Translations$scenario$en scenario = Translations$scenario$en._(_root);
+	late final Translations$scenario_group$en scenario_group = Translations$scenario_group$en._(_root);
+	late final Translations$scenario_need$en scenario_need = Translations$scenario_need$en._(_root);
 }
 
 // Path: app
@@ -696,6 +699,185 @@ class Translations$api$en {
 	String expected_object({required Object type}) => 'Expected a JSON object, got ${type}.';
 }
 
+// Path: scenario
+class Translations$scenario$en {
+	Translations$scenario$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$scenario$a1_notification_only$en a1_notification_only = Translations$scenario$a1_notification_only$en._(_root);
+	late final Translations$scenario$a2_data_only$en a2_data_only = Translations$scenario$a2_data_only$en._(_root);
+	late final Translations$scenario$a3_hybrid$en a3_hybrid = Translations$scenario$a3_hybrid$en._(_root);
+	late final Translations$scenario$a4_no_display$en a4_no_display = Translations$scenario$a4_no_display$en._(_root);
+	late final Translations$scenario$b1_foreground$en b1_foreground = Translations$scenario$b1_foreground$en._(_root);
+	late final Translations$scenario$b2_background$en b2_background = Translations$scenario$b2_background$en._(_root);
+	late final Translations$scenario$b3_killed$en b3_killed = Translations$scenario$b3_killed$en._(_root);
+	late final Translations$scenario$b4_after_reboot$en b4_after_reboot = Translations$scenario$b4_after_reboot$en._(_root);
+	late final Translations$scenario$b5_force_stopped$en b5_force_stopped = Translations$scenario$b5_force_stopped$en._(_root);
+	late final Translations$scenario$b6_token_refresh$en b6_token_refresh = Translations$scenario$b6_token_refresh$en._(_root);
+	late final Translations$scenario$c1_priority_high$en c1_priority_high = Translations$scenario$c1_priority_high$en._(_root);
+	late final Translations$scenario$c2_priority_normal$en c2_priority_normal = Translations$scenario$c2_priority_normal$en._(_root);
+	late final Translations$scenario$c3_ttl_zero$en c3_ttl_zero = Translations$scenario$c3_ttl_zero$en._(_root);
+	late final Translations$scenario$c4_ttl_long$en c4_ttl_long = Translations$scenario$c4_ttl_long$en._(_root);
+	late final Translations$scenario$c5_collapse_key$en c5_collapse_key = Translations$scenario$c5_collapse_key$en._(_root);
+	late final Translations$scenario$c6_doze_test$en c6_doze_test = Translations$scenario$c6_doze_test$en._(_root);
+	late final Translations$scenario$c7_standby_bucket$en c7_standby_bucket = Translations$scenario$c7_standby_bucket$en._(_root);
+	late final Translations$scenario$d1_importance_high$en d1_importance_high = Translations$scenario$d1_importance_high$en._(_root);
+	late final Translations$scenario$d2_importance_default$en d2_importance_default = Translations$scenario$d2_importance_default$en._(_root);
+	late final Translations$scenario$d3_importance_low$en d3_importance_low = Translations$scenario$d3_importance_low$en._(_root);
+	late final Translations$scenario$d4_importance_min$en d4_importance_min = Translations$scenario$d4_importance_min$en._(_root);
+	late final Translations$scenario$d5_custom_sound$en d5_custom_sound = Translations$scenario$d5_custom_sound$en._(_root);
+	late final Translations$scenario$d6_vibration_pattern$en d6_vibration_pattern = Translations$scenario$d6_vibration_pattern$en._(_root);
+	late final Translations$scenario$d7_channel_immutability$en d7_channel_immutability = Translations$scenario$d7_channel_immutability$en._(_root);
+	late final Translations$scenario$d8_channel_group$en d8_channel_group = Translations$scenario$d8_channel_group$en._(_root);
+	late final Translations$scenario$e1_long_text$en e1_long_text = Translations$scenario$e1_long_text$en._(_root);
+	late final Translations$scenario$e2_image_remote$en e2_image_remote = Translations$scenario$e2_image_remote$en._(_root);
+	late final Translations$scenario$e3_image_local$en e3_image_local = Translations$scenario$e3_image_local$en._(_root);
+	late final Translations$scenario$e4_image_huge$en e4_image_huge = Translations$scenario$e4_image_huge$en._(_root);
+	late final Translations$scenario$e5_image_404$en e5_image_404 = Translations$scenario$e5_image_404$en._(_root);
+	late final Translations$scenario$e6_large_icon$en e6_large_icon = Translations$scenario$e6_large_icon$en._(_root);
+	late final Translations$scenario$e7_inbox_style$en e7_inbox_style = Translations$scenario$e7_inbox_style$en._(_root);
+	late final Translations$scenario$e8_messaging_style$en e8_messaging_style = Translations$scenario$e8_messaging_style$en._(_root);
+	late final Translations$scenario$e9_progress$en e9_progress = Translations$scenario$e9_progress$en._(_root);
+	late final Translations$scenario$e10_color_and_icon$en e10_color_and_icon = Translations$scenario$e10_color_and_icon$en._(_root);
+	late final Translations$scenario$e11_emoji_rtl$en e11_emoji_rtl = Translations$scenario$e11_emoji_rtl$en._(_root);
+	late final Translations$scenario$f1_actions$en f1_actions = Translations$scenario$f1_actions$en._(_root);
+	late final Translations$scenario$f2_inline_reply$en f2_inline_reply = Translations$scenario$f2_inline_reply$en._(_root);
+	late final Translations$scenario$f3_deeplink_foreground$en f3_deeplink_foreground = Translations$scenario$f3_deeplink_foreground$en._(_root);
+	late final Translations$scenario$f4_deeplink_background$en f4_deeplink_background = Translations$scenario$f4_deeplink_background$en._(_root);
+	late final Translations$scenario$f5_deeplink_killed$en f5_deeplink_killed = Translations$scenario$f5_deeplink_killed$en._(_root);
+	late final Translations$scenario$f6_delete_intent$en f6_delete_intent = Translations$scenario$f6_delete_intent$en._(_root);
+	late final Translations$scenario$f7_ongoing$en f7_ongoing = Translations$scenario$f7_ongoing$en._(_root);
+	late final Translations$scenario$f8_full_screen_intent$en f8_full_screen_intent = Translations$scenario$f8_full_screen_intent$en._(_root);
+	late final Translations$scenario$f9_trampoline$en f9_trampoline = Translations$scenario$f9_trampoline$en._(_root);
+	late final Translations$scenario$g1_group_summary$en g1_group_summary = Translations$scenario$g1_group_summary$en._(_root);
+	late final Translations$scenario$g2_update_same_id$en g2_update_same_id = Translations$scenario$g2_update_same_id$en._(_root);
+	late final Translations$scenario$g3_badge$en g3_badge = Translations$scenario$g3_badge$en._(_root);
+	late final Translations$scenario$g4_badge_ios$en g4_badge_ios = Translations$scenario$g4_badge_ios$en._(_root);
+	late final Translations$scenario$h1_dnd_bypass$en h1_dnd_bypass = Translations$scenario$h1_dnd_bypass$en._(_root);
+	late final Translations$scenario$h2_category_alarm$en h2_category_alarm = Translations$scenario$h2_category_alarm$en._(_root);
+	late final Translations$scenario$h3_ios_time_sensitive$en h3_ios_time_sensitive = Translations$scenario$h3_ios_time_sensitive$en._(_root);
+	late final Translations$scenario$h4_ios_critical$en h4_ios_critical = Translations$scenario$h4_ios_critical$en._(_root);
+	late final Translations$scenario$h5_ios_passive$en h5_ios_passive = Translations$scenario$h5_ios_passive$en._(_root);
+	late final Translations$scenario$i1_silent_no_sound$en i1_silent_no_sound = Translations$scenario$i1_silent_no_sound$en._(_root);
+	late final Translations$scenario$i2_silent_data_sync$en i2_silent_data_sync = Translations$scenario$i2_silent_data_sync$en._(_root);
+	late final Translations$scenario$i3_ios_content_available$en i3_ios_content_available = Translations$scenario$i3_ios_content_available$en._(_root);
+	late final Translations$scenario$i4_burst$en i4_burst = Translations$scenario$i4_burst$en._(_root);
+	late final Translations$scenario$j1_topic$en j1_topic = Translations$scenario$j1_topic$en._(_root);
+	late final Translations$scenario$j2_condition$en j2_condition = Translations$scenario$j2_condition$en._(_root);
+	late final Translations$scenario$j3_multicast$en j3_multicast = Translations$scenario$j3_multicast$en._(_root);
+	late final Translations$scenario$k1_payload_oversize$en k1_payload_oversize = Translations$scenario$k1_payload_oversize$en._(_root);
+	late final Translations$scenario$k2_invalid_token$en k2_invalid_token = Translations$scenario$k2_invalid_token$en._(_root);
+	late final Translations$scenario$k3_permission_denied$en k3_permission_denied = Translations$scenario$k3_permission_denied$en._(_root);
+	late final Translations$scenario$k4_notifications_disabled$en k4_notifications_disabled = Translations$scenario$k4_notifications_disabled$en._(_root);
+	late final Translations$scenario$k5_battery_restricted$en k5_battery_restricted = Translations$scenario$k5_battery_restricted$en._(_root);
+}
+
+// Path: scenario_group
+class Translations$scenario_group$en {
+	Translations$scenario_group$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Display name of scenario group A
+	///
+	/// en: 'A — Basic delivery'
+	String get a => 'A — Basic delivery';
+
+	/// Display name of scenario group B
+	///
+	/// en: 'B — Application states'
+	String get b => 'B — Application states';
+
+	/// Display name of scenario group C
+	///
+	/// en: 'C — Priority and delivery window'
+	String get c => 'C — Priority and delivery window';
+
+	/// Display name of scenario group D
+	///
+	/// en: 'D — Channels and importance'
+	String get d => 'D — Channels and importance';
+
+	/// Display name of scenario group E
+	///
+	/// en: 'E — Appearance'
+	String get e => 'E — Appearance';
+
+	/// Display name of scenario group F
+	///
+	/// en: 'F — Interaction'
+	String get f => 'F — Interaction';
+
+	/// Display name of scenario group G
+	///
+	/// en: 'G — Groups, badge, updates'
+	String get g => 'G — Groups, badge, updates';
+
+	/// Display name of scenario group H
+	///
+	/// en: 'H — Intrusive and priority'
+	String get h => 'H — Intrusive and priority';
+
+	/// Display name of scenario group I
+	///
+	/// en: 'I — Silent and data'
+	String get i => 'I — Silent and data';
+
+	/// Display name of scenario group J
+	///
+	/// en: 'J — Targeting'
+	String get j => 'J — Targeting';
+
+	/// Display name of scenario group K
+	///
+	/// en: 'K — Edge cases and errors'
+	String get k => 'K — Edge cases and errors';
+}
+
+// Path: scenario_need
+class Translations$scenario_need$en {
+	Translations$scenario_need$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Label for the channels scenario need
+	///
+	/// en: 'notification channels'
+	String get channels => 'notification channels';
+
+	/// Label for the styles scenario need
+	///
+	/// en: 'notification styles'
+	String get styles => 'notification styles';
+
+	/// Label for the interaction scenario need
+	///
+	/// en: 'notification actions'
+	String get interaction => 'notification actions';
+
+	/// Label for the badge scenario need
+	///
+	/// en: 'launcher badge'
+	String get badge => 'launcher badge';
+
+	/// Label for the targeting scenario need
+	///
+	/// en: 'a device registry'
+	String get targeting => 'a device registry';
+
+	/// en: 'a manual step'
+	String get manual_step => 'a manual step';
+
+	/// en: 'external approval'
+	String get external_approval => 'external approval';
+}
+
 // Path: shell.title
 class Translations$shell$title$en {
 	Translations$shell$title$en._(this._root);
@@ -820,6 +1002,1435 @@ class Translations$api$item$en {
 	String get latency_row => 'a latency row';
 }
 
+// Path: scenario.a1_notification_only
+class Translations$scenario$a1_notification_only$en {
+	Translations$scenario$a1_notification_only$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario a1_notification_only
+	///
+	/// en: 'Notification-only payload'
+	String get title => 'Notification-only payload';
+
+	/// Description of scenario a1_notification_only
+	///
+	/// en: 'Watch which layer drew it — the system while backgrounded, the app while foregrounded — and how the icon and accent colour come out.'
+	String get description => 'Watch which layer drew it — the system while backgrounded, the app while foregrounded — and how the icon and accent colour come out.';
+}
+
+// Path: scenario.a2_data_only
+class Translations$scenario$a2_data_only$en {
+	Translations$scenario$a2_data_only$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario a2_data_only
+	///
+	/// en: 'Data-only payload, drawn locally'
+	String get title => 'Data-only payload, drawn locally';
+
+	/// Description of scenario a2_data_only
+	///
+	/// en: 'Nothing draws this but the app. Watch whether it arrives at all with the app killed, which is the case data-only delivery exists for.'
+	String get description => 'Nothing draws this but the app. Watch whether it arrives at all with the app killed, which is the case data-only delivery exists for.';
+
+	/// Expectation caveat for scenario a2_data_only
+	///
+	/// en: 'On iOS a data-only push needs content-available and is throttled; see i3_ios_content_available.'
+	String get expectation => 'On iOS a data-only push needs content-available and is throttled; see i3_ios_content_available.';
+}
+
+// Path: scenario.a3_hybrid
+class Translations$scenario$a3_hybrid$en {
+	Translations$scenario$a3_hybrid$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario a3_hybrid
+	///
+	/// en: 'notification and data together'
+	String get title => 'notification and data together';
+
+	/// Description of scenario a3_hybrid
+	///
+	/// en: 'The common shape in production. Watch whether the data map reaches the handler after a tap, which is where deep links get their arguments.'
+	String get description => 'The common shape in production. Watch whether the data map reaches the handler after a tap, which is where deep links get their arguments.';
+}
+
+// Path: scenario.a4_no_display
+class Translations$scenario$a4_no_display$en {
+	Translations$scenario$a4_no_display$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario a4_no_display
+	///
+	/// en: 'Data logged silently, drawn blank'
+	String get title => 'Data logged silently, drawn blank';
+
+	/// Description of scenario a4_no_display
+	///
+	/// en: 'A silent synchronisation: the handler runs and writes a log line. Nothing suppresses a titleless banner, so a tray entry still appears — icon and app name, no text. The observable difference from a1 is the missing text, not a missing notification. Watch the inbox for the log line; the tray has nothing to read.'
+	String get description => 'A silent synchronisation: the handler runs and writes a log line. Nothing suppresses a titleless banner, so a tray entry still appears — icon and app name, no text. The observable difference from a1 is the missing text, not a missing notification. Watch the inbox for the log line; the tray has nothing to read.';
+}
+
+// Path: scenario.b1_foreground
+class Translations$scenario$b1_foreground$en {
+	Translations$scenario$b1_foreground$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b1_foreground
+	///
+	/// en: 'Delivered with the app in the foreground'
+	String get title => 'Delivered with the app in the foreground';
+
+	/// Description of scenario b1_foreground
+	///
+	/// en: 'onMessage fires and nothing is drawn by the system, so the app must draw it. Watch that a banner appears at all.'
+	String get description => 'onMessage fires and nothing is drawn by the system, so the app must draw it. Watch that a banner appears at all.';
+}
+
+// Path: scenario.b2_background
+class Translations$scenario$b2_background$en {
+	Translations$scenario$b2_background$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b2_background
+	///
+	/// en: 'App backgrounded, screen locked'
+	String get title => 'App backgrounded, screen locked';
+
+	/// Description of scenario b2_background
+	///
+	/// en: 'The system draws this one. Watch whether it reaches the lock screen and how much of it is shown there.'
+	String get description => 'The system draws this one. Watch whether it reaches the lock screen and how much of it is shown there.';
+
+	/// Manual steps for scenario b2_background
+	///
+	/// en: 'Background the app with the home button, then lock the screen. Send from another machine, or use validate-only first to check the payload.'
+	String get manual_steps => 'Background the app with the home button, then lock the screen. Send from another machine, or use validate-only first to check the payload.';
+}
+
+// Path: scenario.b3_killed
+class Translations$scenario$b3_killed$en {
+	Translations$scenario$b3_killed$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b3_killed
+	///
+	/// en: 'App swiped out of recents'
+	String get title => 'App swiped out of recents';
+
+	/// Description of scenario b3_killed
+	///
+	/// en: 'The hardest case, and the reason delayed sending exists: the send has to happen after the app is gone. Watch whether the data handler runs.'
+	String get description => 'The hardest case, and the reason delayed sending exists: the send has to happen after the app is gone. Watch whether the data handler runs.';
+}
+
+// Path: scenario.b4_after_reboot
+class Translations$scenario$b4_after_reboot$en {
+	Translations$scenario$b4_after_reboot$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b4_after_reboot
+	///
+	/// en: 'After a reboot, app never opened'
+	String get title => 'After a reboot, app never opened';
+
+	/// Description of scenario b4_after_reboot
+	///
+	/// en: 'Until the app is opened once after boot, some manufacturers hold its background work entirely. Watch whether anything arrives.'
+	String get description => 'Until the app is opened once after boot, some manufacturers hold its background work entirely. Watch whether anything arrives.';
+
+	/// Manual steps for scenario b4_after_reboot
+	///
+	/// en: 'adb reboot — then do NOT open the app. Wait for the lock screen and send.'
+	String get manual_steps => 'adb reboot — then do NOT open the app. Wait for the lock screen and send.';
+}
+
+// Path: scenario.b5_force_stopped
+class Translations$scenario$b5_force_stopped$en {
+	Translations$scenario$b5_force_stopped$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b5_force_stopped
+	///
+	/// en: 'After Force stop'
+	String get title => 'After Force stop';
+
+	/// Description of scenario b5_force_stopped
+	///
+	/// en: 'Force stop revokes the app's ability to be woken. This scenario exists to prove we know that, rather than to be debugged.'
+	String get description => 'Force stop revokes the app\'s ability to be woken. This scenario exists to prove we know that, rather than to be debugged.';
+
+	/// Expectation caveat for scenario b5_force_stopped
+	///
+	/// en: 'Expected to arrive: nothing. A force-stopped app receives no pushes at all until it is launched by hand. If something does arrive, that is the surprise worth investigating.'
+	String get expectation => 'Expected to arrive: nothing. A force-stopped app receives no pushes at all until it is launched by hand. If something does arrive, that is the surprise worth investigating.';
+
+	/// Manual steps for scenario b5_force_stopped
+	///
+	/// en: 'Settings › Apps › FCM Sample › Force stop. Then send, and expect nothing.'
+	String get manual_steps => 'Settings › Apps › FCM Sample › Force stop. Then send, and expect nothing.';
+}
+
+// Path: scenario.b6_token_refresh
+class Translations$scenario$b6_token_refresh$en {
+	Translations$scenario$b6_token_refresh$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b6_token_refresh
+	///
+	/// en: 'Token rotated by a reinstall or clear-data'
+	String get title => 'Token rotated by a reinstall or clear-data';
+
+	/// Description of scenario b6_token_refresh
+	///
+	/// en: 'The old token is dead and sending to it must fail loudly. Watch the Inbox page for the new token, and compare it with the old one.'
+	String get description => 'The old token is dead and sending to it must fail loudly. Watch the Inbox page for the new token, and compare it with the old one.';
+
+	/// Manual steps for scenario b6_token_refresh
+	///
+	/// en: 'adb shell pm clear cz.netglade.fcm_app — reopen the app and read the new token off the Inbox page. Sending to the old one should give UNREGISTERED, which is k2_invalid_token.'
+	String get manual_steps => 'adb shell pm clear cz.netglade.fcm_app — reopen the app and read the new token off the Inbox page. Sending to the old one should give UNREGISTERED, which is k2_invalid_token.';
+}
+
+// Path: scenario.c1_priority_high
+class Translations$scenario$c1_priority_high$en {
+	Translations$scenario$c1_priority_high$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c1_priority_high
+	///
+	/// en: 'android.priority HIGH'
+	String get title => 'android.priority HIGH';
+
+	/// Description of scenario c1_priority_high
+	///
+	/// en: 'Wakes a dozing device. Watch how quickly it lands with the screen off compared with c2.'
+	String get description => 'Wakes a dozing device. Watch how quickly it lands with the screen off compared with c2.';
+}
+
+// Path: scenario.c2_priority_normal
+class Translations$scenario$c2_priority_normal$en {
+	Translations$scenario$c2_priority_normal$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c2_priority_normal
+	///
+	/// en: 'android.priority NORMAL'
+	String get title => 'android.priority NORMAL';
+
+	/// Description of scenario c2_priority_normal
+	///
+	/// en: 'May wait for the next maintenance window. Watch for a delay with the screen off — this is the usual cause of a "missing" push.'
+	String get description => 'May wait for the next maintenance window. Watch for a delay with the screen off — this is the usual cause of a "missing" push.';
+}
+
+// Path: scenario.c3_ttl_zero
+class Translations$scenario$c3_ttl_zero$en {
+	Translations$scenario$c3_ttl_zero$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c3_ttl_zero
+	///
+	/// en: 'android.ttl 0s — now or never'
+	String get title => 'android.ttl 0s — now or never';
+
+	/// Description of scenario c3_ttl_zero
+	///
+	/// en: 'FCM makes one attempt and discards the message if the device is not reachable. Watch that an offline device never receives it.'
+	String get description => 'FCM makes one attempt and discards the message if the device is not reachable. Watch that an offline device never receives it.';
+}
+
+// Path: scenario.c4_ttl_long
+class Translations$scenario$c4_ttl_long$en {
+	Translations$scenario$c4_ttl_long$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c4_ttl_long
+	///
+	/// en: 'android.ttl 86400s — a day of retries'
+	String get title => 'android.ttl 86400s — a day of retries';
+
+	/// Description of scenario c4_ttl_long
+	///
+	/// en: 'Held for 24 hours. Watch it arrive when the network comes back, long after it was sent.'
+	String get description => 'Held for 24 hours. Watch it arrive when the network comes back, long after it was sent.';
+}
+
+// Path: scenario.c5_collapse_key
+class Translations$scenario$c5_collapse_key$en {
+	Translations$scenario$c5_collapse_key$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c5_collapse_key
+	///
+	/// en: 'Five sends sharing a collapse_key, offline'
+	String get title => 'Five sends sharing a collapse_key, offline';
+
+	/// Description of scenario c5_collapse_key
+	///
+	/// en: 'Only the last should survive. Watch that one notification appears, not five, once the network returns.'
+	String get description => 'Only the last should survive. Watch that one notification appears, not five, once the network returns.';
+
+	/// Manual steps for scenario c5_collapse_key
+	///
+	/// en: 'Put the device in airplane mode. Send five times, changing the body each time. Restore the network: exactly one notification should appear, carrying the last body.'
+	String get manual_steps => 'Put the device in airplane mode. Send five times, changing the body each time. Restore the network: exactly one notification should appear, carrying the last body.';
+}
+
+// Path: scenario.c6_doze_test
+class Translations$scenario$c6_doze_test$en {
+	Translations$scenario$c6_doze_test$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c6_doze_test
+	///
+	/// en: 'Delivery while the device is in Doze'
+	String get title => 'Delivery while the device is in Doze';
+
+	/// Description of scenario c6_doze_test
+	///
+	/// en: 'Real Doze behaviour, not a simulation. Watch which priorities break through and which are held.'
+	String get description => 'Real Doze behaviour, not a simulation. Watch which priorities break through and which are held.';
+
+	/// Manual steps for scenario c6_doze_test
+	///
+	/// en: 'adb shell dumpsys deviceidle force-idle — send, then adb shell dumpsys deviceidle unforce to restore.'
+	String get manual_steps => 'adb shell dumpsys deviceidle force-idle — send, then adb shell dumpsys deviceidle unforce to restore.';
+}
+
+// Path: scenario.c7_standby_bucket
+class Translations$scenario$c7_standby_bucket$en {
+	Translations$scenario$c7_standby_bucket$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c7_standby_bucket
+	///
+	/// en: 'App in the restricted standby bucket'
+	String get title => 'App in the restricted standby bucket';
+
+	/// Description of scenario c7_standby_bucket
+	///
+	/// en: 'The harshest state Android imposes on an unused app. Watch whether a HIGH priority push still arrives.'
+	String get description => 'The harshest state Android imposes on an unused app. Watch whether a HIGH priority push still arrives.';
+
+	/// Manual steps for scenario c7_standby_bucket
+	///
+	/// en: 'adb shell am set-standby-bucket cz.netglade.fcm_app restricted — check with adb shell am get-standby-bucket cz.netglade.fcm_app.'
+	String get manual_steps => 'adb shell am set-standby-bucket cz.netglade.fcm_app restricted — check with adb shell am get-standby-bucket cz.netglade.fcm_app.';
+}
+
+// Path: scenario.d1_importance_high
+class Translations$scenario$d1_importance_high$en {
+	Translations$scenario$d1_importance_high$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d1_importance_high
+	///
+	/// en: 'IMPORTANCE_HIGH — heads-up banner'
+	String get title => 'IMPORTANCE_HIGH — heads-up banner';
+
+	/// Description of scenario d1_importance_high
+	///
+	/// en: 'Watch for a banner that floats over the current app, with sound.'
+	String get description => 'Watch for a banner that floats over the current app, with sound.';
+}
+
+// Path: scenario.d2_importance_default
+class Translations$scenario$d2_importance_default$en {
+	Translations$scenario$d2_importance_default$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d2_importance_default
+	///
+	/// en: 'IMPORTANCE_DEFAULT — sound, no banner'
+	String get title => 'IMPORTANCE_DEFAULT — sound, no banner';
+
+	/// Description of scenario d2_importance_default
+	///
+	/// en: 'Watch for a sound and a tray entry, but nothing floating.'
+	String get description => 'Watch for a sound and a tray entry, but nothing floating.';
+}
+
+// Path: scenario.d3_importance_low
+class Translations$scenario$d3_importance_low$en {
+	Translations$scenario$d3_importance_low$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d3_importance_low
+	///
+	/// en: 'IMPORTANCE_LOW — silent'
+	String get title => 'IMPORTANCE_LOW — silent';
+
+	/// Description of scenario d3_importance_low
+	///
+	/// en: 'Visible but with no sound and no vibration. Watch that it is genuinely silent rather than quiet.'
+	String get description => 'Visible but with no sound and no vibration. Watch that it is genuinely silent rather than quiet.';
+}
+
+// Path: scenario.d4_importance_min
+class Translations$scenario$d4_importance_min$en {
+	Translations$scenario$d4_importance_min$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d4_importance_min
+	///
+	/// en: 'IMPORTANCE_MIN — status bar only'
+	String get title => 'IMPORTANCE_MIN — status bar only';
+
+	/// Description of scenario d4_importance_min
+	///
+	/// en: 'No icon in the status bar on some versions; only in the shade. Watch where it appears at all.'
+	String get description => 'No icon in the status bar on some versions; only in the shade. Watch where it appears at all.';
+}
+
+// Path: scenario.d5_custom_sound
+class Translations$scenario$d5_custom_sound$en {
+	Translations$scenario$d5_custom_sound$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d5_custom_sound
+	///
+	/// en: 'A custom sound on the channel'
+	String get title => 'A custom sound on the channel';
+
+	/// Description of scenario d5_custom_sound
+	///
+	/// en: 'The sound is a channel property, so changing it needs a new channel. Watch that the custom sound plays rather than the default.'
+	String get description => 'The sound is a channel property, so changing it needs a new channel. Watch that the custom sound plays rather than the default.';
+
+	/// Expectation caveat for scenario d5_custom_sound
+	///
+	/// en: 'The named resource must exist in android/app/src/main/res/raw. A missing file falls back to the default sound silently.'
+	String get expectation => 'The named resource must exist in android/app/src/main/res/raw. A missing file falls back to the default sound silently.';
+}
+
+// Path: scenario.d6_vibration_pattern
+class Translations$scenario$d6_vibration_pattern$en {
+	Translations$scenario$d6_vibration_pattern$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d6_vibration_pattern
+	///
+	/// en: 'A custom vibration pattern'
+	String get title => 'A custom vibration pattern';
+
+	/// Description of scenario d6_vibration_pattern
+	///
+	/// en: 'Alternating vibrate and pause durations. Watch that the pattern is the one asked for rather than the channel default.'
+	String get description => 'Alternating vibrate and pause durations. Watch that the pattern is the one asked for rather than the channel default.';
+}
+
+// Path: scenario.d7_channel_immutability
+class Translations$scenario$d7_channel_immutability$en {
+	Translations$scenario$d7_channel_immutability$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d7_channel_immutability
+	///
+	/// en: 'Changing an existing channel — Android will ignore it'
+	String get title => 'Changing an existing channel — Android will ignore it';
+
+	/// Description of scenario d7_channel_immutability
+	///
+	/// en: 'Re-create chat_v1 with a different importance and watch Android ignore the change completely. This is the demonstration of why channels carry a version in their id.'
+	String get description => 'Re-create chat_v1 with a different importance and watch Android ignore the change completely. This is the demonstration of why channels carry a version in their id.';
+
+	/// Expectation caveat for scenario d7_channel_immutability
+	///
+	/// en: 'The importance shown on the channel screen stays at its original value. The only fix is a new channel — chat_v2 — which is what d8 uses.'
+	String get expectation => 'The importance shown on the channel screen stays at its original value. The only fix is a new channel — chat_v2 — which is what d8 uses.';
+}
+
+// Path: scenario.d8_channel_group
+class Translations$scenario$d8_channel_group$en {
+	Translations$scenario$d8_channel_group$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d8_channel_group
+	///
+	/// en: 'Channels collected into a group'
+	String get title => 'Channels collected into a group';
+
+	/// Description of scenario d8_channel_group
+	///
+	/// en: 'Watch the system notification settings: the channels should appear nested under a named group rather than as a flat list.'
+	String get description => 'Watch the system notification settings: the channels should appear nested under a named group rather than as a flat list.';
+}
+
+// Path: scenario.e1_long_text
+class Translations$scenario$e1_long_text$en {
+	Translations$scenario$e1_long_text$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e1_long_text
+	///
+	/// en: 'BigTextStyle with ~800 characters'
+	String get title => 'BigTextStyle with ~800 characters';
+
+	/// Description of scenario e1_long_text
+	///
+	/// en: 'Watch where the text is cut in the collapsed view, and whether expanding shows all of it. Diacritics are included because byte-length and character-length limits behave differently.'
+	String get description => 'Watch where the text is cut in the collapsed view, and whether expanding shows all of it. Diacritics are included because byte-length and character-length limits behave differently.';
+}
+
+// Path: scenario.e2_image_remote
+class Translations$scenario$e2_image_remote$en {
+	Translations$scenario$e2_image_remote$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e2_image_remote
+	///
+	/// en: 'notification.image — fetched by the platform'
+	String get title => 'notification.image — fetched by the platform';
+
+	/// Description of scenario e2_image_remote
+	///
+	/// en: 'FCM passes a URL and the platform downloads it. Watch that it appears expanded, and how long it takes on a slow connection.'
+	String get description => 'FCM passes a URL and the platform downloads it. Watch that it appears expanded, and how long it takes on a slow connection.';
+
+	/// Expectation caveat for scenario e2_image_remote
+	///
+	/// en: 'Android does this natively. iOS requires a Notification Service Extension, which this app does not ship, so nothing will render there.'
+	String get expectation => 'Android does this natively. iOS requires a Notification Service Extension, which this app does not ship, so nothing will render there.';
+}
+
+// Path: scenario.e3_image_local
+class Translations$scenario$e3_image_local$en {
+	Translations$scenario$e3_image_local$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e3_image_local
+	///
+	/// en: 'Image downloaded by the data handler'
+	String get title => 'Image downloaded by the data handler';
+
+	/// Description of scenario e3_image_local
+	///
+	/// en: 'The app fetches the URL itself and builds a BigPictureStyle. Compare the result and the timing against e2.'
+	String get description => 'The app fetches the URL itself and builds a BigPictureStyle. Compare the result and the timing against e2.';
+}
+
+// Path: scenario.e4_image_huge
+class Translations$scenario$e4_image_huge$en {
+	Translations$scenario$e4_image_huge$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e4_image_huge
+	///
+	/// en: 'A 4000×3000 image'
+	String get title => 'A 4000×3000 image';
+
+	/// Description of scenario e4_image_huge
+	///
+	/// en: 'Watch for a resize, an out-of-memory kill, or a silent failure where the text arrives and the picture does not.'
+	String get description => 'Watch for a resize, an out-of-memory kill, or a silent failure where the text arrives and the picture does not.';
+}
+
+// Path: scenario.e5_image_404
+class Translations$scenario$e5_image_404$en {
+	Translations$scenario$e5_image_404$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e5_image_404
+	///
+	/// en: 'An image URL that does not resolve'
+	String get title => 'An image URL that does not resolve';
+
+	/// Description of scenario e5_image_404
+	///
+	/// en: 'The important question is whether the text still arrives. A push that vanishes because its picture 404s is a bad failure mode.'
+	String get description => 'The important question is whether the text still arrives. A push that vanishes because its picture 404s is a bad failure mode.';
+}
+
+// Path: scenario.e6_large_icon
+class Translations$scenario$e6_large_icon$en {
+	Translations$scenario$e6_large_icon$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e6_large_icon
+	///
+	/// en: 'A large icon beside the text'
+	String get title => 'A large icon beside the text';
+
+	/// Description of scenario e6_large_icon
+	///
+	/// en: 'The round avatar slot, distinct from the small status-bar icon. Watch that it is circular and not stretched.'
+	String get description => 'The round avatar slot, distinct from the small status-bar icon. Watch that it is circular and not stretched.';
+}
+
+// Path: scenario.e7_inbox_style
+class Translations$scenario$e7_inbox_style$en {
+	Translations$scenario$e7_inbox_style$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e7_inbox_style
+	///
+	/// en: 'InboxStyle with seven lines'
+	String get title => 'InboxStyle with seven lines';
+
+	/// Description of scenario e7_inbox_style
+	///
+	/// en: 'Watch how many lines are actually shown when expanded — Android caps it, and the cap is lower than most people expect.'
+	String get description => 'Watch how many lines are actually shown when expanded — Android caps it, and the cap is lower than most people expect.';
+}
+
+// Path: scenario.e8_messaging_style
+class Translations$scenario$e8_messaging_style$en {
+	Translations$scenario$e8_messaging_style$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e8_messaging_style
+	///
+	/// en: 'MessagingStyle with several senders'
+	String get title => 'MessagingStyle with several senders';
+
+	/// Description of scenario e8_messaging_style
+	///
+	/// en: 'The chat layout, with a name and avatar per message. Watch the grouping and the ordering.'
+	String get description => 'The chat layout, with a name and avatar per message. Watch the grouping and the ordering.';
+}
+
+// Path: scenario.e9_progress
+class Translations$scenario$e9_progress$en {
+	Translations$scenario$e9_progress$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e9_progress
+	///
+	/// en: 'A progress bar, updated in place'
+	String get title => 'A progress bar, updated in place';
+
+	/// Description of scenario e9_progress
+	///
+	/// en: 'Several pushes updating one notification. Watch that it updates rather than stacking, and what happens when it completes.'
+	String get description => 'Several pushes updating one notification. Watch that it updates rather than stacking, and what happens when it completes.';
+}
+
+// Path: scenario.e10_color_and_icon
+class Translations$scenario$e10_color_and_icon$en {
+	Translations$scenario$e10_color_and_icon$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e10_color_and_icon
+	///
+	/// en: 'Accent colour and a monochrome icon'
+	String get title => 'Accent colour and a monochrome icon';
+
+	/// Description of scenario e10_color_and_icon
+	///
+	/// en: 'The classic Xiaomi white-square bug: a small icon that is not a flat monochrome alpha mask renders as a filled block. Watch the status bar.'
+	String get description => 'The classic Xiaomi white-square bug: a small icon that is not a flat monochrome alpha mask renders as a filled block. Watch the status bar.';
+
+	/// Expectation caveat for scenario e10_color_and_icon
+	///
+	/// en: 'The icon must be a monochrome drawable with transparency. A full-colour launcher icon is what produces the white square.'
+	String get expectation => 'The icon must be a monochrome drawable with transparency. A full-colour launcher icon is what produces the white square.';
+}
+
+// Path: scenario.e11_emoji_rtl
+class Translations$scenario$e11_emoji_rtl$en {
+	Translations$scenario$e11_emoji_rtl$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e11_emoji_rtl
+	///
+	/// en: 'Emoji, right-to-left text and unbreakable words'
+	String get title => 'Emoji, right-to-left text and unbreakable words';
+
+	/// Description of scenario e11_emoji_rtl
+	///
+	/// en: 'Watch the text direction of the Arabic line, whether the emoji render in colour, and where a word with no spaces is broken.'
+	String get description => 'Watch the text direction of the Arabic line, whether the emoji render in colour, and where a word with no spaces is broken.';
+}
+
+// Path: scenario.f1_actions
+class Translations$scenario$f1_actions$en {
+	Translations$scenario$f1_actions$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f1_actions
+	///
+	/// en: 'Two or three action buttons'
+	String get title => 'Two or three action buttons';
+
+	/// Description of scenario f1_actions
+	///
+	/// en: 'Watch whether the buttons survive a reboot of the notification shade, and what happens to the notification when one is pressed.'
+	String get description => 'Watch whether the buttons survive a reboot of the notification shade, and what happens to the notification when one is pressed.';
+
+	/// Expectation caveat for scenario f1_actions
+	///
+	/// en: 'Data-only on purpose: an FCM-drawn tray entry cannot carry action buttons, so the app draws this one itself in every state. Android only — iOS actions come from a category registered at startup.'
+	String get expectation => 'Data-only on purpose: an FCM-drawn tray entry cannot carry action buttons, so the app draws this one itself in every state. Android only — iOS actions come from a category registered at startup.';
+}
+
+// Path: scenario.f2_inline_reply
+class Translations$scenario$f2_inline_reply$en {
+	Translations$scenario$f2_inline_reply$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f2_inline_reply
+	///
+	/// en: 'Inline reply with RemoteInput'
+	String get title => 'Inline reply with RemoteInput';
+
+	/// Description of scenario f2_inline_reply
+	///
+	/// en: 'Type a reply without opening the app. Watch that the notification shows a sending state and then updates.'
+	String get description => 'Type a reply without opening the app. Watch that the notification shows a sending state and then updates.';
+
+	/// Expectation caveat for scenario f2_inline_reply
+	///
+	/// en: 'Data-only, so the app draws it and the button exists in every state. The reply never opens the app: it is handled in its own isolate, which updates the notification in place and hands the text to the app at the next launch or resume. There is no server — the pause between "Sending…" and "Sent" is simulated. No `opened` event is recorded, because nothing opened. Android only.'
+	String get expectation => 'Data-only, so the app draws it and the button exists in every state. The reply never opens the app: it is handled in its own isolate, which updates the notification in place and hands the text to the app at the next launch or resume. There is no server — the pause between "Sending…" and "Sent" is simulated. No `opened` event is recorded, because nothing opened. Android only.';
+}
+
+// Path: scenario.f3_deeplink_foreground
+class Translations$scenario$f3_deeplink_foreground$en {
+	Translations$scenario$f3_deeplink_foreground$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f3_deeplink_foreground
+	///
+	/// en: 'Tap while the app is running'
+	String get title => 'Tap while the app is running';
+
+	/// Description of scenario f3_deeplink_foreground
+	///
+	/// en: 'Routing from onMessage, with the app already on screen. Watch that the current screen is not lost.'
+	String get description => 'Routing from onMessage, with the app already on screen. Watch that the current screen is not lost.';
+
+	/// Expectation caveat for scenario f3_deeplink_foreground
+	///
+	/// en: 'Opens the Telemetry page.'
+	String get expectation => 'Opens the Telemetry page.';
+}
+
+// Path: scenario.f4_deeplink_background
+class Translations$scenario$f4_deeplink_background$en {
+	Translations$scenario$f4_deeplink_background$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f4_deeplink_background
+	///
+	/// en: 'Tap while the app is backgrounded'
+	String get title => 'Tap while the app is backgrounded';
+
+	/// Description of scenario f4_deeplink_background
+	///
+	/// en: 'Routing from onMessageOpenedApp. Watch that the app resumes on the linked screen rather than where it was left.'
+	String get description => 'Routing from onMessageOpenedApp. Watch that the app resumes on the linked screen rather than where it was left.';
+
+	/// Expectation caveat for scenario f4_deeplink_background
+	///
+	/// en: 'Opens the Sandbox.'
+	String get expectation => 'Opens the Sandbox.';
+}
+
+// Path: scenario.f5_deeplink_killed
+class Translations$scenario$f5_deeplink_killed$en {
+	Translations$scenario$f5_deeplink_killed$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f5_deeplink_killed
+	///
+	/// en: 'Tap with the app killed'
+	String get title => 'Tap with the app killed';
+
+	/// Description of scenario f5_deeplink_killed
+	///
+	/// en: 'Routing from getInitialMessage, which runs once at startup and is the commonest source of deep-link bugs — it is easy to forget, and it fails only in the one state nobody tests by hand.'
+	String get description => 'Routing from getInitialMessage, which runs once at startup and is the commonest source of deep-link bugs — it is easy to forget, and it fails only in the one state nobody tests by hand.';
+
+	/// Expectation caveat for scenario f5_deeplink_killed
+	///
+	/// en: 'Opens the Runs page.'
+	String get expectation => 'Opens the Runs page.';
+}
+
+// Path: scenario.f6_delete_intent
+class Translations$scenario$f6_delete_intent$en {
+	Translations$scenario$f6_delete_intent$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f6_delete_intent
+	///
+	/// en: 'Detecting a swipe-away'
+	String get title => 'Detecting a swipe-away';
+
+	/// Description of scenario f6_delete_intent
+	///
+	/// en: 'The delete intent fires when the user dismisses without tapping. Watch that it is distinguishable from a tap.'
+	String get description => 'The delete intent fires when the user dismisses without tapping. Watch that it is distinguishable from a tap.';
+
+	/// Expectation caveat for scenario f6_delete_intent
+	///
+	/// en: 'Detected only while the app is on screen, because only then did the app draw the notification through the plugin. Backgrounded, FCM draws the tray entry itself and a swipe on it reports nothing; killed, there is no isolate left to report to. The limit is Android's, not a gap.'
+	String get expectation => 'Detected only while the app is on screen, because only then did the app draw the notification through the plugin. Backgrounded, FCM draws the tray entry itself and a swipe on it reports nothing; killed, there is no isolate left to report to. The limit is Android\'s, not a gap.';
+}
+
+// Path: scenario.f7_ongoing
+class Translations$scenario$f7_ongoing$en {
+	Translations$scenario$f7_ongoing$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f7_ongoing
+	///
+	/// en: 'An ongoing, undismissable notification'
+	String get title => 'An ongoing, undismissable notification';
+
+	/// Description of scenario f7_ongoing
+	///
+	/// en: 'Watch that it cannot be swiped away, and confirm there is a way to clear it — an ongoing notification with no exit is a support ticket.'
+	String get description => 'Watch that it cannot be swiped away, and confirm there is a way to clear it — an ongoing notification with no exit is a support ticket.';
+}
+
+// Path: scenario.f8_full_screen_intent
+class Translations$scenario$f8_full_screen_intent$en {
+	Translations$scenario$f8_full_screen_intent$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f8_full_screen_intent
+	///
+	/// en: 'Full-screen intent, as an incoming call'
+	String get title => 'Full-screen intent, as an incoming call';
+
+	/// Description of scenario f8_full_screen_intent
+	///
+	/// en: 'Takes over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.'
+	String get description => 'Takes over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.';
+
+	/// Expectation caveat for scenario f8_full_screen_intent
+	///
+	/// en: 'Needs the USE_FULL_SCREEN_INTENT permission, which Android 14+ grants only to calling and alarm apps. Expect a degraded heads-up notification rather than a takeover here.'
+	String get expectation => 'Needs the USE_FULL_SCREEN_INTENT permission, which Android 14+ grants only to calling and alarm apps. Expect a degraded heads-up notification rather than a takeover here.';
+}
+
+// Path: scenario.f9_trampoline
+class Translations$scenario$f9_trampoline$en {
+	Translations$scenario$f9_trampoline$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f9_trampoline
+	///
+	/// en: 'A notification trampoline, which should fail'
+	String get title => 'A notification trampoline, which should fail';
+
+	/// Description of scenario f9_trampoline
+	///
+	/// en: 'Starting an activity from a service or broadcast receiver after a tap. Banned since Android 12. Watch for the failure and its log line.'
+	String get description => 'Starting an activity from a service or broadcast receiver after a tap. Banned since Android 12. Watch for the failure and its log line.';
+
+	/// Expectation caveat for scenario f9_trampoline
+	///
+	/// en: 'Expected to fail on Android 12 and later. The demonstration is the error, not a working route.'
+	String get expectation => 'Expected to fail on Android 12 and later. The demonstration is the error, not a working route.';
+}
+
+// Path: scenario.g1_group_summary
+class Translations$scenario$g1_group_summary$en {
+	Translations$scenario$g1_group_summary$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario g1_group_summary
+	///
+	/// en: 'Five notifications with a summary'
+	String get title => 'Five notifications with a summary';
+
+	/// Description of scenario g1_group_summary
+	///
+	/// en: 'Watch that they collapse under one summary row, and what the summary says when the fifth arrives.'
+	String get description => 'Watch that they collapse under one summary row, and what the summary says when the fifth arrives.';
+}
+
+// Path: scenario.g2_update_same_id
+class Translations$scenario$g2_update_same_id$en {
+	Translations$scenario$g2_update_same_id$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario g2_update_same_id
+	///
+	/// en: 'Replacing a notification in place'
+	String get title => 'Replacing a notification in place';
+
+	/// Description of scenario g2_update_same_id
+	///
+	/// en: 'Send twice with the same tag. Watch that the second replaces the first rather than stacking, and whether it re-alerts.'
+	String get description => 'Send twice with the same tag. Watch that the second replaces the first rather than stacking, and whether it re-alerts.';
+}
+
+// Path: scenario.g3_badge
+class Translations$scenario$g3_badge$en {
+	Translations$scenario$g3_badge$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario g3_badge
+	///
+	/// en: 'A count on the launcher icon'
+	String get title => 'A count on the launcher icon';
+
+	/// Description of scenario g3_badge
+	///
+	/// en: 'The least portable thing here. Watch whether the launcher shows the number, a dot, or nothing at all.'
+	String get description => 'The least portable thing here. Watch whether the launcher shows the number, a dot, or nothing at all.';
+
+	/// Expectation caveat for scenario g3_badge
+	///
+	/// en: 'Behaviour differs per manufacturer: One UI, MIUI and the Pixel launcher all disagree, and several require the user to enable badges per app.'
+	String get expectation => 'Behaviour differs per manufacturer: One UI, MIUI and the Pixel launcher all disagree, and several require the user to enable badges per app.';
+}
+
+// Path: scenario.g4_badge_ios
+class Translations$scenario$g4_badge_ios$en {
+	Translations$scenario$g4_badge_ios$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario g4_badge_ios
+	///
+	/// en: 'The iOS badge via aps.badge'
+	String get title => 'The iOS badge via aps.badge';
+
+	/// Description of scenario g4_badge_ios
+	///
+	/// en: 'One well-defined number, set by the sender. Watch that it replaces rather than increments — iOS does not add.'
+	String get description => 'One well-defined number, set by the sender. Watch that it replaces rather than increments — iOS does not add.';
+}
+
+// Path: scenario.h1_dnd_bypass
+class Translations$scenario$h1_dnd_bypass$en {
+	Translations$scenario$h1_dnd_bypass$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h1_dnd_bypass
+	///
+	/// en: 'A channel that bypasses Do Not Disturb'
+	String get title => 'A channel that bypasses Do Not Disturb';
+
+	/// Description of scenario h1_dnd_bypass
+	///
+	/// en: 'Watch that it sounds while DND is on. Setting the flag is not enough — the user must have granted notification-policy access.'
+	String get description => 'Watch that it sounds while DND is on. Setting the flag is not enough — the user must have granted notification-policy access.';
+
+	/// Expectation caveat for scenario h1_dnd_bypass
+	///
+	/// en: 'Requires Notification Policy Access, granted by the user in system settings. Without it the flag is accepted and silently ignored.'
+	String get expectation => 'Requires Notification Policy Access, granted by the user in system settings. Without it the flag is accepted and silently ignored.';
+}
+
+// Path: scenario.h2_category_alarm
+class Translations$scenario$h2_category_alarm$en {
+	Translations$scenario$h2_category_alarm$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h2_category_alarm
+	///
+	/// en: 'CATEGORY_ALARM'
+	String get title => 'CATEGORY_ALARM';
+
+	/// Description of scenario h2_category_alarm
+	///
+	/// en: 'Alarms are treated as a special class by DND. Watch whether the category alone changes anything without policy access.'
+	String get description => 'Alarms are treated as a special class by DND. Watch whether the category alone changes anything without policy access.';
+
+	/// Expectation caveat for scenario h2_category_alarm
+	///
+	/// en: 'FCM has no field for the notification category — it is set by the client when building the local notification, which is why this needs the channel work.'
+	String get expectation => 'FCM has no field for the notification category — it is set by the client when building the local notification, which is why this needs the channel work.';
+}
+
+// Path: scenario.h3_ios_time_sensitive
+class Translations$scenario$h3_ios_time_sensitive$en {
+	Translations$scenario$h3_ios_time_sensitive$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h3_ios_time_sensitive
+	///
+	/// en: 'iOS time-sensitive — breaks through Focus'
+	String get title => 'iOS time-sensitive — breaks through Focus';
+
+	/// Description of scenario h3_ios_time_sensitive
+	///
+	/// en: 'Watch that it arrives during a Focus mode that would hold an ordinary notification.'
+	String get description => 'Watch that it arrives during a Focus mode that would hold an ordinary notification.';
+}
+
+// Path: scenario.h4_ios_critical
+class Translations$scenario$h4_ios_critical$en {
+	Translations$scenario$h4_ios_critical$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h4_ios_critical
+	///
+	/// en: 'iOS critical — through Focus and the mute switch'
+	String get title => 'iOS critical — through Focus and the mute switch';
+
+	/// Description of scenario h4_ios_critical
+	///
+	/// en: 'The most intrusive delivery Apple offers. Watch that it sounds even when the device is muted.'
+	String get description => 'The most intrusive delivery Apple offers. Watch that it sounds even when the device is muted.';
+
+	/// Expectation caveat for scenario h4_ios_critical
+	///
+	/// en: 'Requires a critical-alert entitlement that Apple must approve for the app. Without it APNs rejects the push, so this stays untestable here — listed for completeness rather than scheduled.'
+	String get expectation => 'Requires a critical-alert entitlement that Apple must approve for the app. Without it APNs rejects the push, so this stays untestable here — listed for completeness rather than scheduled.';
+}
+
+// Path: scenario.h5_ios_passive
+class Translations$scenario$h5_ios_passive$en {
+	Translations$scenario$h5_ios_passive$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h5_ios_passive
+	///
+	/// en: 'iOS passive — no sound, no wake'
+	String get title => 'iOS passive — no sound, no wake';
+
+	/// Description of scenario h5_ios_passive
+	///
+	/// en: 'The quietest level: it appears in the list without alerting. Watch that the screen does not light up.'
+	String get description => 'The quietest level: it appears in the list without alerting. Watch that the screen does not light up.';
+}
+
+// Path: scenario.i1_silent_no_sound
+class Translations$scenario$i1_silent_no_sound$en {
+	Translations$scenario$i1_silent_no_sound$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario i1_silent_no_sound
+	///
+	/// en: 'Visible but silent'
+	String get title => 'Visible but silent';
+
+	/// Description of scenario i1_silent_no_sound
+	///
+	/// en: 'Appears in the tray with no sound and no vibration. Watch that it is silent but still lights the screen or not.'
+	String get description => 'Appears in the tray with no sound and no vibration. Watch that it is silent but still lights the screen or not.';
+}
+
+// Path: scenario.i2_silent_data_sync
+class Translations$scenario$i2_silent_data_sync$en {
+	Translations$scenario$i2_silent_data_sync$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario i2_silent_data_sync
+	///
+	/// en: 'Silent sync, drawn blank'
+	String get title => 'Silent sync, drawn blank';
+
+	/// Description of scenario i2_silent_data_sync
+	///
+	/// en: 'The handler writes a row; that is the effect this scenario is about. A tray entry still appears — icon and app name, no title or body — since nothing suppresses a titleless banner. Watch the Inbox page for the row; the tray entry has no text to read.'
+	String get description => 'The handler writes a row; that is the effect this scenario is about. A tray entry still appears — icon and app name, no title or body — since nothing suppresses a titleless banner. Watch the Inbox page for the row; the tray entry has no text to read.';
+}
+
+// Path: scenario.i3_ios_content_available
+class Translations$scenario$i3_ios_content_available$en {
+	Translations$scenario$i3_ios_content_available$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario i3_ios_content_available
+	///
+	/// en: 'iOS background refresh via content-available'
+	String get title => 'iOS background refresh via content-available';
+
+	/// Description of scenario i3_ios_content_available
+	///
+	/// en: 'Wakes the app to fetch without showing anything. Watch how often iOS actually honours it — it throttles this aggressively.'
+	String get description => 'Wakes the app to fetch without showing anything. Watch how often iOS actually honours it — it throttles this aggressively.';
+
+	/// Expectation caveat for scenario i3_ios_content_available
+	///
+	/// en: 'iOS may delay or drop these entirely depending on battery and usage. A missed one is not necessarily a bug.'
+	String get expectation => 'iOS may delay or drop these entirely depending on battery and usage. A missed one is not necessarily a bug.';
+}
+
+// Path: scenario.i4_burst
+class Translations$scenario$i4_burst$en {
+	Translations$scenario$i4_burst$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario i4_burst
+	///
+	/// en: 'Twenty messages in ten seconds'
+	String get title => 'Twenty messages in ten seconds';
+
+	/// Description of scenario i4_burst
+	///
+	/// en: 'Watch for rate limiting, coalescing, and manufacturer caps. MIUI will usually start dropping before FCM does.'
+	String get description => 'Watch for rate limiting, coalescing, and manufacturer caps. MIUI will usually start dropping before FCM does.';
+
+	/// Manual steps for scenario i4_burst
+	///
+	/// en: 'Send this 20 times within 10 seconds and count what arrives. Vary the body so collapsing is visible.'
+	String get manual_steps => 'Send this 20 times within 10 seconds and count what arrives. Vary the body so collapsing is visible.';
+}
+
+// Path: scenario.j1_topic
+class Translations$scenario$j1_topic$en {
+	Translations$scenario$j1_topic$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario j1_topic
+	///
+	/// en: 'Send to a topic'
+	String get title => 'Send to a topic';
+
+	/// Description of scenario j1_topic
+	///
+	/// en: 'Subscribe the device, then send to the topic rather than the token. Watch that it arrives without the sender knowing any token at all.'
+	String get description => 'Subscribe the device, then send to the topic rather than the token. Watch that it arrives without the sender knowing any token at all.';
+
+	/// Expectation caveat for scenario j1_topic
+	///
+	/// en: 'Sending works now and FCM answers 200, but nothing is delivered until the app can subscribe to a topic.'
+	String get expectation => 'Sending works now and FCM answers 200, but nothing is delivered until the app can subscribe to a topic.';
+}
+
+// Path: scenario.j2_condition
+class Translations$scenario$j2_condition$en {
+	Translations$scenario$j2_condition$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario j2_condition
+	///
+	/// en: 'Send to a boolean topic condition'
+	String get title => 'Send to a boolean topic condition';
+
+	/// Description of scenario j2_condition
+	///
+	/// en: 'A device must be in both topics to receive this. Watch that subscribing to only one excludes it.'
+	String get description => 'A device must be in both topics to receive this. Watch that subscribing to only one excludes it.';
+
+	/// Expectation caveat for scenario j2_condition
+	///
+	/// en: 'Like j1, sending works now and FCM answers 200 — but nothing is delivered until the app can subscribe to both topics.'
+	String get expectation => 'Like j1, sending works now and FCM answers 200 — but nothing is delivered until the app can subscribe to both topics.';
+}
+
+// Path: scenario.j3_multicast
+class Translations$scenario$j3_multicast$en {
+	Translations$scenario$j3_multicast$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario j3_multicast
+	///
+	/// en: 'Send to every registered device'
+	String get title => 'Send to every registered device';
+
+	/// Description of scenario j3_multicast
+	///
+	/// en: 'The main tool for comparing behaviour across handsets: one send, every device, and the differences are the result.'
+	String get description => 'The main tool for comparing behaviour across handsets: one send, every device, and the differences are the result.';
+
+	/// Expectation caveat for scenario j3_multicast
+	///
+	/// en: 'FCM has no "all devices" audience, so this needs a token registry the API does not have. Sending it now returns 501 with that reason rather than quietly delivering to one device.'
+	String get expectation => 'FCM has no "all devices" audience, so this needs a token registry the API does not have. Sending it now returns 501 with that reason rather than quietly delivering to one device.';
+}
+
+// Path: scenario.k1_payload_oversize
+class Translations$scenario$k1_payload_oversize$en {
+	Translations$scenario$k1_payload_oversize$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k1_payload_oversize
+	///
+	/// en: 'A payload over FCM's 4 KB limit'
+	String get title => 'A payload over FCM\'s 4 KB limit';
+
+	/// Description of scenario k1_payload_oversize
+	///
+	/// en: 'Watch that the API surfaces FCM's error with a usable message rather than a bare 400.'
+	String get description => 'Watch that the API surfaces FCM\'s error with a usable message rather than a bare 400.';
+
+	/// Expectation caveat for scenario k1_payload_oversize
+	///
+	/// en: 'FCM rejects this with INVALID_ARGUMENT. The send should fail before anything reaches the device.'
+	String get expectation => 'FCM rejects this with INVALID_ARGUMENT. The send should fail before anything reaches the device.';
+}
+
+// Path: scenario.k2_invalid_token
+class Translations$scenario$k2_invalid_token$en {
+	Translations$scenario$k2_invalid_token$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k2_invalid_token
+	///
+	/// en: 'A token that is no longer registered'
+	String get title => 'A token that is no longer registered';
+
+	/// Description of scenario k2_invalid_token
+	///
+	/// en: 'The everyday production failure. Watch that the API reports it as UNREGISTERED rather than a generic 404, which is what tells a real backend to delete the row.'
+	String get description => 'The everyday production failure. Watch that the API reports it as UNREGISTERED rather than a generic 404, which is what tells a real backend to delete the row.';
+
+	/// Expectation caveat for scenario k2_invalid_token
+	///
+	/// en: 'FCM answers with UNREGISTERED, which this API maps to 404 with its own wording. The errorCode in error.details takes precedence over the top-level NOT_FOUND status.'
+	String get expectation => 'FCM answers with UNREGISTERED, which this API maps to 404 with its own wording. The errorCode in error.details takes precedence over the top-level NOT_FOUND status.';
+}
+
+// Path: scenario.k3_permission_denied
+class Translations$scenario$k3_permission_denied$en {
+	Translations$scenario$k3_permission_denied$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k3_permission_denied
+	///
+	/// en: 'POST_NOTIFICATIONS denied on Android 13+'
+	String get title => 'POST_NOTIFICATIONS denied on Android 13+';
+
+	/// Description of scenario k3_permission_denied
+	///
+	/// en: 'Watch that the data handler still runs and the inbox still fills, even though nothing can be drawn.'
+	String get description => 'Watch that the data handler still runs and the inbox still fills, even though nothing can be drawn.';
+
+	/// Manual steps for scenario k3_permission_denied
+	///
+	/// en: 'adb shell pm revoke cz.netglade.fcm_app android.permission.POST_NOTIFICATIONS — then send, and check the Inbox page rather than the tray.'
+	String get manual_steps => 'adb shell pm revoke cz.netglade.fcm_app android.permission.POST_NOTIFICATIONS — then send, and check the Inbox page rather than the tray.';
+}
+
+// Path: scenario.k4_notifications_disabled
+class Translations$scenario$k4_notifications_disabled$en {
+	Translations$scenario$k4_notifications_disabled$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k4_notifications_disabled
+	///
+	/// en: 'Notifications switched off in system settings'
+	String get title => 'Notifications switched off in system settings';
+
+	/// Description of scenario k4_notifications_disabled
+	///
+	/// en: 'Distinct from a denied permission: the app has the grant and the user has turned it off. Watch that data delivery is unaffected.'
+	String get description => 'Distinct from a denied permission: the app has the grant and the user has turned it off. Watch that data delivery is unaffected.';
+
+	/// Manual steps for scenario k4_notifications_disabled
+	///
+	/// en: 'Settings › Apps › FCM Sample › Notifications › off. Send, then confirm the row appears in the Inbox page.'
+	String get manual_steps => 'Settings › Apps › FCM Sample › Notifications › off. Send, then confirm the row appears in the Inbox page.';
+}
+
+// Path: scenario.k5_battery_restricted
+class Translations$scenario$k5_battery_restricted$en {
+	Translations$scenario$k5_battery_restricted$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k5_battery_restricted
+	///
+	/// en: 'App in Restricted battery mode'
+	String get title => 'App in Restricted battery mode';
+
+	/// Description of scenario k5_battery_restricted
+	///
+	/// en: 'The state a user reaches by tapping "restrict" in battery settings. Watch whether a HIGH priority push still wakes the app.'
+	String get description => 'The state a user reaches by tapping "restrict" in battery settings. Watch whether a HIGH priority push still wakes the app.';
+
+	/// Manual steps for scenario k5_battery_restricted
+	///
+	/// en: 'Settings › Apps › FCM Sample › Battery › Restricted. Send and compare the delay against c1_priority_high in the unrestricted state.'
+	String get manual_steps => 'Settings › Apps › FCM Sample › Battery › Restricted. Send and compare the delay against c1_priority_high in the unrestricted state.';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -918,6 +2529,191 @@ extension on Translations {
 			'api.item.event' => 'an event',
 			'api.item.latency_row' => 'a latency row',
 			'api.expected_object' => ({required Object type}) => 'Expected a JSON object, got ${type}.',
+			'scenario.a1_notification_only.title' => 'Notification-only payload',
+			'scenario.a1_notification_only.description' => 'Watch which layer drew it — the system while backgrounded, the app while foregrounded — and how the icon and accent colour come out.',
+			'scenario.a2_data_only.title' => 'Data-only payload, drawn locally',
+			'scenario.a2_data_only.description' => 'Nothing draws this but the app. Watch whether it arrives at all with the app killed, which is the case data-only delivery exists for.',
+			'scenario.a2_data_only.expectation' => 'On iOS a data-only push needs content-available and is throttled; see i3_ios_content_available.',
+			'scenario.a3_hybrid.title' => 'notification and data together',
+			'scenario.a3_hybrid.description' => 'The common shape in production. Watch whether the data map reaches the handler after a tap, which is where deep links get their arguments.',
+			'scenario.a4_no_display.title' => 'Data logged silently, drawn blank',
+			'scenario.a4_no_display.description' => 'A silent synchronisation: the handler runs and writes a log line. Nothing suppresses a titleless banner, so a tray entry still appears — icon and app name, no text. The observable difference from a1 is the missing text, not a missing notification. Watch the inbox for the log line; the tray has nothing to read.',
+			'scenario.b1_foreground.title' => 'Delivered with the app in the foreground',
+			'scenario.b1_foreground.description' => 'onMessage fires and nothing is drawn by the system, so the app must draw it. Watch that a banner appears at all.',
+			'scenario.b2_background.title' => 'App backgrounded, screen locked',
+			'scenario.b2_background.description' => 'The system draws this one. Watch whether it reaches the lock screen and how much of it is shown there.',
+			'scenario.b2_background.manual_steps' => 'Background the app with the home button, then lock the screen. Send from another machine, or use validate-only first to check the payload.',
+			'scenario.b3_killed.title' => 'App swiped out of recents',
+			'scenario.b3_killed.description' => 'The hardest case, and the reason delayed sending exists: the send has to happen after the app is gone. Watch whether the data handler runs.',
+			'scenario.b4_after_reboot.title' => 'After a reboot, app never opened',
+			'scenario.b4_after_reboot.description' => 'Until the app is opened once after boot, some manufacturers hold its background work entirely. Watch whether anything arrives.',
+			'scenario.b4_after_reboot.manual_steps' => 'adb reboot — then do NOT open the app. Wait for the lock screen and send.',
+			'scenario.b5_force_stopped.title' => 'After Force stop',
+			'scenario.b5_force_stopped.description' => 'Force stop revokes the app\'s ability to be woken. This scenario exists to prove we know that, rather than to be debugged.',
+			'scenario.b5_force_stopped.expectation' => 'Expected to arrive: nothing. A force-stopped app receives no pushes at all until it is launched by hand. If something does arrive, that is the surprise worth investigating.',
+			'scenario.b5_force_stopped.manual_steps' => 'Settings › Apps › FCM Sample › Force stop. Then send, and expect nothing.',
+			'scenario.b6_token_refresh.title' => 'Token rotated by a reinstall or clear-data',
+			'scenario.b6_token_refresh.description' => 'The old token is dead and sending to it must fail loudly. Watch the Inbox page for the new token, and compare it with the old one.',
+			'scenario.b6_token_refresh.manual_steps' => 'adb shell pm clear cz.netglade.fcm_app — reopen the app and read the new token off the Inbox page. Sending to the old one should give UNREGISTERED, which is k2_invalid_token.',
+			'scenario.c1_priority_high.title' => 'android.priority HIGH',
+			'scenario.c1_priority_high.description' => 'Wakes a dozing device. Watch how quickly it lands with the screen off compared with c2.',
+			'scenario.c2_priority_normal.title' => 'android.priority NORMAL',
+			'scenario.c2_priority_normal.description' => 'May wait for the next maintenance window. Watch for a delay with the screen off — this is the usual cause of a "missing" push.',
+			'scenario.c3_ttl_zero.title' => 'android.ttl 0s — now or never',
+			'scenario.c3_ttl_zero.description' => 'FCM makes one attempt and discards the message if the device is not reachable. Watch that an offline device never receives it.',
+			'scenario.c4_ttl_long.title' => 'android.ttl 86400s — a day of retries',
+			'scenario.c4_ttl_long.description' => 'Held for 24 hours. Watch it arrive when the network comes back, long after it was sent.',
+			'scenario.c5_collapse_key.title' => 'Five sends sharing a collapse_key, offline',
+			'scenario.c5_collapse_key.description' => 'Only the last should survive. Watch that one notification appears, not five, once the network returns.',
+			'scenario.c5_collapse_key.manual_steps' => 'Put the device in airplane mode. Send five times, changing the body each time. Restore the network: exactly one notification should appear, carrying the last body.',
+			'scenario.c6_doze_test.title' => 'Delivery while the device is in Doze',
+			'scenario.c6_doze_test.description' => 'Real Doze behaviour, not a simulation. Watch which priorities break through and which are held.',
+			'scenario.c6_doze_test.manual_steps' => 'adb shell dumpsys deviceidle force-idle — send, then adb shell dumpsys deviceidle unforce to restore.',
+			'scenario.c7_standby_bucket.title' => 'App in the restricted standby bucket',
+			'scenario.c7_standby_bucket.description' => 'The harshest state Android imposes on an unused app. Watch whether a HIGH priority push still arrives.',
+			'scenario.c7_standby_bucket.manual_steps' => 'adb shell am set-standby-bucket cz.netglade.fcm_app restricted — check with adb shell am get-standby-bucket cz.netglade.fcm_app.',
+			'scenario.d1_importance_high.title' => 'IMPORTANCE_HIGH — heads-up banner',
+			'scenario.d1_importance_high.description' => 'Watch for a banner that floats over the current app, with sound.',
+			'scenario.d2_importance_default.title' => 'IMPORTANCE_DEFAULT — sound, no banner',
+			'scenario.d2_importance_default.description' => 'Watch for a sound and a tray entry, but nothing floating.',
+			'scenario.d3_importance_low.title' => 'IMPORTANCE_LOW — silent',
+			'scenario.d3_importance_low.description' => 'Visible but with no sound and no vibration. Watch that it is genuinely silent rather than quiet.',
+			'scenario.d4_importance_min.title' => 'IMPORTANCE_MIN — status bar only',
+			'scenario.d4_importance_min.description' => 'No icon in the status bar on some versions; only in the shade. Watch where it appears at all.',
+			'scenario.d5_custom_sound.title' => 'A custom sound on the channel',
+			'scenario.d5_custom_sound.description' => 'The sound is a channel property, so changing it needs a new channel. Watch that the custom sound plays rather than the default.',
+			'scenario.d5_custom_sound.expectation' => 'The named resource must exist in android/app/src/main/res/raw. A missing file falls back to the default sound silently.',
+			'scenario.d6_vibration_pattern.title' => 'A custom vibration pattern',
+			'scenario.d6_vibration_pattern.description' => 'Alternating vibrate and pause durations. Watch that the pattern is the one asked for rather than the channel default.',
+			'scenario.d7_channel_immutability.title' => 'Changing an existing channel — Android will ignore it',
+			'scenario.d7_channel_immutability.description' => 'Re-create chat_v1 with a different importance and watch Android ignore the change completely. This is the demonstration of why channels carry a version in their id.',
+			'scenario.d7_channel_immutability.expectation' => 'The importance shown on the channel screen stays at its original value. The only fix is a new channel — chat_v2 — which is what d8 uses.',
+			'scenario.d8_channel_group.title' => 'Channels collected into a group',
+			'scenario.d8_channel_group.description' => 'Watch the system notification settings: the channels should appear nested under a named group rather than as a flat list.',
+			'scenario.e1_long_text.title' => 'BigTextStyle with ~800 characters',
+			'scenario.e1_long_text.description' => 'Watch where the text is cut in the collapsed view, and whether expanding shows all of it. Diacritics are included because byte-length and character-length limits behave differently.',
+			'scenario.e2_image_remote.title' => 'notification.image — fetched by the platform',
+			'scenario.e2_image_remote.description' => 'FCM passes a URL and the platform downloads it. Watch that it appears expanded, and how long it takes on a slow connection.',
+			'scenario.e2_image_remote.expectation' => 'Android does this natively. iOS requires a Notification Service Extension, which this app does not ship, so nothing will render there.',
+			'scenario.e3_image_local.title' => 'Image downloaded by the data handler',
+			'scenario.e3_image_local.description' => 'The app fetches the URL itself and builds a BigPictureStyle. Compare the result and the timing against e2.',
+			'scenario.e4_image_huge.title' => 'A 4000×3000 image',
+			'scenario.e4_image_huge.description' => 'Watch for a resize, an out-of-memory kill, or a silent failure where the text arrives and the picture does not.',
+			'scenario.e5_image_404.title' => 'An image URL that does not resolve',
+			'scenario.e5_image_404.description' => 'The important question is whether the text still arrives. A push that vanishes because its picture 404s is a bad failure mode.',
+			'scenario.e6_large_icon.title' => 'A large icon beside the text',
+			'scenario.e6_large_icon.description' => 'The round avatar slot, distinct from the small status-bar icon. Watch that it is circular and not stretched.',
+			'scenario.e7_inbox_style.title' => 'InboxStyle with seven lines',
+			'scenario.e7_inbox_style.description' => 'Watch how many lines are actually shown when expanded — Android caps it, and the cap is lower than most people expect.',
+			'scenario.e8_messaging_style.title' => 'MessagingStyle with several senders',
+			'scenario.e8_messaging_style.description' => 'The chat layout, with a name and avatar per message. Watch the grouping and the ordering.',
+			'scenario.e9_progress.title' => 'A progress bar, updated in place',
+			'scenario.e9_progress.description' => 'Several pushes updating one notification. Watch that it updates rather than stacking, and what happens when it completes.',
+			'scenario.e10_color_and_icon.title' => 'Accent colour and a monochrome icon',
+			'scenario.e10_color_and_icon.description' => 'The classic Xiaomi white-square bug: a small icon that is not a flat monochrome alpha mask renders as a filled block. Watch the status bar.',
+			'scenario.e10_color_and_icon.expectation' => 'The icon must be a monochrome drawable with transparency. A full-colour launcher icon is what produces the white square.',
+			'scenario.e11_emoji_rtl.title' => 'Emoji, right-to-left text and unbreakable words',
+			'scenario.e11_emoji_rtl.description' => 'Watch the text direction of the Arabic line, whether the emoji render in colour, and where a word with no spaces is broken.',
+			'scenario.f1_actions.title' => 'Two or three action buttons',
+			'scenario.f1_actions.description' => 'Watch whether the buttons survive a reboot of the notification shade, and what happens to the notification when one is pressed.',
+			'scenario.f1_actions.expectation' => 'Data-only on purpose: an FCM-drawn tray entry cannot carry action buttons, so the app draws this one itself in every state. Android only — iOS actions come from a category registered at startup.',
+			'scenario.f2_inline_reply.title' => 'Inline reply with RemoteInput',
+			'scenario.f2_inline_reply.description' => 'Type a reply without opening the app. Watch that the notification shows a sending state and then updates.',
+			'scenario.f2_inline_reply.expectation' => 'Data-only, so the app draws it and the button exists in every state. The reply never opens the app: it is handled in its own isolate, which updates the notification in place and hands the text to the app at the next launch or resume. There is no server — the pause between "Sending…" and "Sent" is simulated. No `opened` event is recorded, because nothing opened. Android only.',
+			'scenario.f3_deeplink_foreground.title' => 'Tap while the app is running',
+			'scenario.f3_deeplink_foreground.description' => 'Routing from onMessage, with the app already on screen. Watch that the current screen is not lost.',
+			'scenario.f3_deeplink_foreground.expectation' => 'Opens the Telemetry page.',
+			'scenario.f4_deeplink_background.title' => 'Tap while the app is backgrounded',
+			'scenario.f4_deeplink_background.description' => 'Routing from onMessageOpenedApp. Watch that the app resumes on the linked screen rather than where it was left.',
+			'scenario.f4_deeplink_background.expectation' => 'Opens the Sandbox.',
+			'scenario.f5_deeplink_killed.title' => 'Tap with the app killed',
+			'scenario.f5_deeplink_killed.description' => 'Routing from getInitialMessage, which runs once at startup and is the commonest source of deep-link bugs — it is easy to forget, and it fails only in the one state nobody tests by hand.',
+			'scenario.f5_deeplink_killed.expectation' => 'Opens the Runs page.',
+			'scenario.f6_delete_intent.title' => 'Detecting a swipe-away',
+			'scenario.f6_delete_intent.description' => 'The delete intent fires when the user dismisses without tapping. Watch that it is distinguishable from a tap.',
+			'scenario.f6_delete_intent.expectation' => 'Detected only while the app is on screen, because only then did the app draw the notification through the plugin. Backgrounded, FCM draws the tray entry itself and a swipe on it reports nothing; killed, there is no isolate left to report to. The limit is Android\'s, not a gap.',
+			'scenario.f7_ongoing.title' => 'An ongoing, undismissable notification',
+			'scenario.f7_ongoing.description' => 'Watch that it cannot be swiped away, and confirm there is a way to clear it — an ongoing notification with no exit is a support ticket.',
+			'scenario.f8_full_screen_intent.title' => 'Full-screen intent, as an incoming call',
+			'scenario.f8_full_screen_intent.description' => 'Takes over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.',
+			'scenario.f8_full_screen_intent.expectation' => 'Needs the USE_FULL_SCREEN_INTENT permission, which Android 14+ grants only to calling and alarm apps. Expect a degraded heads-up notification rather than a takeover here.',
+			'scenario.f9_trampoline.title' => 'A notification trampoline, which should fail',
+			'scenario.f9_trampoline.description' => 'Starting an activity from a service or broadcast receiver after a tap. Banned since Android 12. Watch for the failure and its log line.',
+			'scenario.f9_trampoline.expectation' => 'Expected to fail on Android 12 and later. The demonstration is the error, not a working route.',
+			'scenario.g1_group_summary.title' => 'Five notifications with a summary',
+			'scenario.g1_group_summary.description' => 'Watch that they collapse under one summary row, and what the summary says when the fifth arrives.',
+			'scenario.g2_update_same_id.title' => 'Replacing a notification in place',
+			'scenario.g2_update_same_id.description' => 'Send twice with the same tag. Watch that the second replaces the first rather than stacking, and whether it re-alerts.',
+			'scenario.g3_badge.title' => 'A count on the launcher icon',
+			'scenario.g3_badge.description' => 'The least portable thing here. Watch whether the launcher shows the number, a dot, or nothing at all.',
+			'scenario.g3_badge.expectation' => 'Behaviour differs per manufacturer: One UI, MIUI and the Pixel launcher all disagree, and several require the user to enable badges per app.',
+			'scenario.g4_badge_ios.title' => 'The iOS badge via aps.badge',
+			'scenario.g4_badge_ios.description' => 'One well-defined number, set by the sender. Watch that it replaces rather than increments — iOS does not add.',
+			'scenario.h1_dnd_bypass.title' => 'A channel that bypasses Do Not Disturb',
+			'scenario.h1_dnd_bypass.description' => 'Watch that it sounds while DND is on. Setting the flag is not enough — the user must have granted notification-policy access.',
+			'scenario.h1_dnd_bypass.expectation' => 'Requires Notification Policy Access, granted by the user in system settings. Without it the flag is accepted and silently ignored.',
+			'scenario.h2_category_alarm.title' => 'CATEGORY_ALARM',
+			'scenario.h2_category_alarm.description' => 'Alarms are treated as a special class by DND. Watch whether the category alone changes anything without policy access.',
+			'scenario.h2_category_alarm.expectation' => 'FCM has no field for the notification category — it is set by the client when building the local notification, which is why this needs the channel work.',
+			'scenario.h3_ios_time_sensitive.title' => 'iOS time-sensitive — breaks through Focus',
+			'scenario.h3_ios_time_sensitive.description' => 'Watch that it arrives during a Focus mode that would hold an ordinary notification.',
+			'scenario.h4_ios_critical.title' => 'iOS critical — through Focus and the mute switch',
+			'scenario.h4_ios_critical.description' => 'The most intrusive delivery Apple offers. Watch that it sounds even when the device is muted.',
+			'scenario.h4_ios_critical.expectation' => 'Requires a critical-alert entitlement that Apple must approve for the app. Without it APNs rejects the push, so this stays untestable here — listed for completeness rather than scheduled.',
+			'scenario.h5_ios_passive.title' => 'iOS passive — no sound, no wake',
+			'scenario.h5_ios_passive.description' => 'The quietest level: it appears in the list without alerting. Watch that the screen does not light up.',
+			'scenario.i1_silent_no_sound.title' => 'Visible but silent',
+			'scenario.i1_silent_no_sound.description' => 'Appears in the tray with no sound and no vibration. Watch that it is silent but still lights the screen or not.',
+			'scenario.i2_silent_data_sync.title' => 'Silent sync, drawn blank',
+			'scenario.i2_silent_data_sync.description' => 'The handler writes a row; that is the effect this scenario is about. A tray entry still appears — icon and app name, no title or body — since nothing suppresses a titleless banner. Watch the Inbox page for the row; the tray entry has no text to read.',
+			'scenario.i3_ios_content_available.title' => 'iOS background refresh via content-available',
+			'scenario.i3_ios_content_available.description' => 'Wakes the app to fetch without showing anything. Watch how often iOS actually honours it — it throttles this aggressively.',
+			'scenario.i3_ios_content_available.expectation' => 'iOS may delay or drop these entirely depending on battery and usage. A missed one is not necessarily a bug.',
+			'scenario.i4_burst.title' => 'Twenty messages in ten seconds',
+			'scenario.i4_burst.description' => 'Watch for rate limiting, coalescing, and manufacturer caps. MIUI will usually start dropping before FCM does.',
+			'scenario.i4_burst.manual_steps' => 'Send this 20 times within 10 seconds and count what arrives. Vary the body so collapsing is visible.',
+			'scenario.j1_topic.title' => 'Send to a topic',
+			'scenario.j1_topic.description' => 'Subscribe the device, then send to the topic rather than the token. Watch that it arrives without the sender knowing any token at all.',
+			'scenario.j1_topic.expectation' => 'Sending works now and FCM answers 200, but nothing is delivered until the app can subscribe to a topic.',
+			'scenario.j2_condition.title' => 'Send to a boolean topic condition',
+			'scenario.j2_condition.description' => 'A device must be in both topics to receive this. Watch that subscribing to only one excludes it.',
+			'scenario.j2_condition.expectation' => 'Like j1, sending works now and FCM answers 200 — but nothing is delivered until the app can subscribe to both topics.',
+			'scenario.j3_multicast.title' => 'Send to every registered device',
+			'scenario.j3_multicast.description' => 'The main tool for comparing behaviour across handsets: one send, every device, and the differences are the result.',
+			'scenario.j3_multicast.expectation' => 'FCM has no "all devices" audience, so this needs a token registry the API does not have. Sending it now returns 501 with that reason rather than quietly delivering to one device.',
+			'scenario.k1_payload_oversize.title' => 'A payload over FCM\'s 4 KB limit',
+			'scenario.k1_payload_oversize.description' => 'Watch that the API surfaces FCM\'s error with a usable message rather than a bare 400.',
+			'scenario.k1_payload_oversize.expectation' => 'FCM rejects this with INVALID_ARGUMENT. The send should fail before anything reaches the device.',
+			'scenario.k2_invalid_token.title' => 'A token that is no longer registered',
+			'scenario.k2_invalid_token.description' => 'The everyday production failure. Watch that the API reports it as UNREGISTERED rather than a generic 404, which is what tells a real backend to delete the row.',
+			'scenario.k2_invalid_token.expectation' => 'FCM answers with UNREGISTERED, which this API maps to 404 with its own wording. The errorCode in error.details takes precedence over the top-level NOT_FOUND status.',
+			'scenario.k3_permission_denied.title' => 'POST_NOTIFICATIONS denied on Android 13+',
+			'scenario.k3_permission_denied.description' => 'Watch that the data handler still runs and the inbox still fills, even though nothing can be drawn.',
+			'scenario.k3_permission_denied.manual_steps' => 'adb shell pm revoke cz.netglade.fcm_app android.permission.POST_NOTIFICATIONS — then send, and check the Inbox page rather than the tray.',
+			'scenario.k4_notifications_disabled.title' => 'Notifications switched off in system settings',
+			'scenario.k4_notifications_disabled.description' => 'Distinct from a denied permission: the app has the grant and the user has turned it off. Watch that data delivery is unaffected.',
+			'scenario.k4_notifications_disabled.manual_steps' => 'Settings › Apps › FCM Sample › Notifications › off. Send, then confirm the row appears in the Inbox page.',
+			'scenario.k5_battery_restricted.title' => 'App in Restricted battery mode',
+			'scenario.k5_battery_restricted.description' => 'The state a user reaches by tapping "restrict" in battery settings. Watch whether a HIGH priority push still wakes the app.',
+			'scenario.k5_battery_restricted.manual_steps' => 'Settings › Apps › FCM Sample › Battery › Restricted. Send and compare the delay against c1_priority_high in the unrestricted state.',
+			'scenario_group.a' => 'A — Basic delivery',
+			'scenario_group.b' => 'B — Application states',
+			'scenario_group.c' => 'C — Priority and delivery window',
+			'scenario_group.d' => 'D — Channels and importance',
+			'scenario_group.e' => 'E — Appearance',
+			'scenario_group.f' => 'F — Interaction',
+			'scenario_group.g' => 'G — Groups, badge, updates',
+			'scenario_group.h' => 'H — Intrusive and priority',
+			'scenario_group.i' => 'I — Silent and data',
+			'scenario_group.j' => 'J — Targeting',
+			'scenario_group.k' => 'K — Edge cases and errors',
+			'scenario_need.channels' => 'notification channels',
+			'scenario_need.styles' => 'notification styles',
+			'scenario_need.interaction' => 'notification actions',
+			'scenario_need.badge' => 'launcher badge',
+			'scenario_need.targeting' => 'a device registry',
+			'scenario_need.manual_step' => 'a manual step',
+			'scenario_need.external_approval' => 'external approval',
 			_ => null,
 		};
 	}

@@ -11,6 +11,7 @@ import 'scenario_need.dart';
 const groupH = <Scenario>[
   Scenario(
     id: 'h1_dnd_bypass',
+    l10nKey: 'h1_dnd_bypass',
     group: 'H — Intrusive and priority',
     title: 'A channel that bypasses Do Not Disturb',
     description:
@@ -30,6 +31,7 @@ const groupH = <Scenario>[
   ),
   Scenario(
     id: 'h2_category_alarm',
+    l10nKey: 'h2_category_alarm',
     group: 'H — Intrusive and priority',
     title: 'CATEGORY_ALARM',
     description:
@@ -51,6 +53,7 @@ const groupH = <Scenario>[
   ),
   Scenario(
     id: 'h3_ios_time_sensitive',
+    l10nKey: 'h3_ios_time_sensitive',
     group: 'H — Intrusive and priority',
     title: 'iOS time-sensitive — breaks through Focus',
     description:
@@ -75,6 +78,7 @@ const groupH = <Scenario>[
   ),
   Scenario(
     id: 'h4_ios_critical',
+    l10nKey: 'h4_ios_critical',
     group: 'H — Intrusive and priority',
     title: 'iOS critical — through Focus and the mute switch',
     description:
@@ -103,6 +107,7 @@ const groupH = <Scenario>[
   ),
   Scenario(
     id: 'h5_ios_passive',
+    l10nKey: 'h5_ios_passive',
     group: 'H — Intrusive and priority',
     title: 'iOS passive — no sound, no wake',
     description:

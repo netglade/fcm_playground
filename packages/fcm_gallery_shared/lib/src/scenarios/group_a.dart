@@ -10,6 +10,7 @@ import 'scenario.dart';
 const groupA = <Scenario>[
   Scenario(
     id: 'a1_notification_only',
+    l10nKey: 'a1_notification_only',
     group: 'A — Basic delivery',
     title: 'Notification-only payload',
     description:
@@ -24,6 +25,7 @@ const groupA = <Scenario>[
   ),
   Scenario(
     id: 'a2_data_only',
+    l10nKey: 'a2_data_only',
     group: 'A — Basic delivery',
     title: 'Data-only payload, drawn locally',
     description:
@@ -42,6 +44,7 @@ const groupA = <Scenario>[
   ),
   Scenario(
     id: 'a3_hybrid',
+    l10nKey: 'a3_hybrid',
     group: 'A — Basic delivery',
     title: 'notification and data together',
     description:
@@ -57,6 +60,7 @@ const groupA = <Scenario>[
   ),
   Scenario(
     id: 'a4_no_display',
+    l10nKey: 'a4_no_display',
     group: 'A — Basic delivery',
     title: 'Data logged silently, drawn blank',
     description:

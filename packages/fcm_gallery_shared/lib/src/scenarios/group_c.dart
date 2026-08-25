@@ -10,6 +10,7 @@ import 'scenario_need.dart';
 const groupC = <Scenario>[
   Scenario(
     id: 'c1_priority_high',
+    l10nKey: 'c1_priority_high',
     group: 'C — Priority and delivery window',
     title: 'android.priority HIGH',
     description:
@@ -22,6 +23,7 @@ const groupC = <Scenario>[
   ),
   Scenario(
     id: 'c2_priority_normal',
+    l10nKey: 'c2_priority_normal',
     group: 'C — Priority and delivery window',
     title: 'android.priority NORMAL',
     description:
@@ -34,6 +36,7 @@ const groupC = <Scenario>[
   ),
   Scenario(
     id: 'c3_ttl_zero',
+    l10nKey: 'c3_ttl_zero',
     group: 'C — Priority and delivery window',
     title: 'android.ttl 0s — now or never',
     description:
@@ -46,6 +49,7 @@ const groupC = <Scenario>[
   ),
   Scenario(
     id: 'c4_ttl_long',
+    l10nKey: 'c4_ttl_long',
     group: 'C — Priority and delivery window',
     title: 'android.ttl 86400s — a day of retries',
     description:
@@ -58,6 +62,7 @@ const groupC = <Scenario>[
   ),
   Scenario(
     id: 'c5_collapse_key',
+    l10nKey: 'c5_collapse_key',
     group: 'C — Priority and delivery window',
     title: 'Five sends sharing a collapse_key, offline',
     description:
@@ -75,6 +80,7 @@ const groupC = <Scenario>[
   ),
   Scenario(
     id: 'c6_doze_test',
+    l10nKey: 'c6_doze_test',
     group: 'C — Priority and delivery window',
     title: 'Delivery while the device is in Doze',
     description:
@@ -94,6 +100,7 @@ const groupC = <Scenario>[
   ),
   Scenario(
     id: 'c7_standby_bucket',
+    l10nKey: 'c7_standby_bucket',
     group: 'C — Priority and delivery window',
     title: 'App in the restricted standby bucket',
     description:

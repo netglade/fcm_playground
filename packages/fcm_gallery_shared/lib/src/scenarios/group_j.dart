@@ -16,6 +16,7 @@ import 'scenario_need.dart';
 const groupJ = <Scenario>[
   Scenario(
     id: 'j1_topic',
+    l10nKey: 'j1_topic',
     group: 'J — Targeting',
     title: 'Send to a topic',
     description:
@@ -32,6 +33,7 @@ const groupJ = <Scenario>[
   ),
   Scenario(
     id: 'j2_condition',
+    l10nKey: 'j2_condition',
     group: 'J — Targeting',
     title: 'Send to a boolean topic condition',
     description:
@@ -48,6 +50,7 @@ const groupJ = <Scenario>[
   ),
   Scenario(
     id: 'j3_multicast',
+    l10nKey: 'j3_multicast',
     group: 'J — Targeting',
     title: 'Send to every registered device',
     description:

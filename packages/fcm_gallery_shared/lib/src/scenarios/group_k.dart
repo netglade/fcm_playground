@@ -11,6 +11,7 @@ import 'scenario_need.dart';
 const groupK = <Scenario>[
   Scenario(
     id: 'k1_payload_oversize',
+    l10nKey: 'k1_payload_oversize',
     group: 'K — Edge cases and errors',
     title: 'A payload over FCM\'s 4 KB limit',
     description:
@@ -109,6 +110,7 @@ const groupK = <Scenario>[
   ),
   Scenario(
     id: 'k2_invalid_token',
+    l10nKey: 'k2_invalid_token',
     group: 'K — Edge cases and errors',
     title: 'A token that is no longer registered',
     description:
@@ -128,6 +130,7 @@ const groupK = <Scenario>[
   ),
   Scenario(
     id: 'k3_permission_denied',
+    l10nKey: 'k3_permission_denied',
     group: 'K — Edge cases and errors',
     title: 'POST_NOTIFICATIONS denied on Android 13+',
     description:
@@ -145,6 +148,7 @@ const groupK = <Scenario>[
   ),
   Scenario(
     id: 'k4_notifications_disabled',
+    l10nKey: 'k4_notifications_disabled',
     group: 'K — Edge cases and errors',
     title: 'Notifications switched off in system settings',
     description:
@@ -161,6 +165,7 @@ const groupK = <Scenario>[
   ),
   Scenario(
     id: 'k5_battery_restricted',
+    l10nKey: 'k5_battery_restricted',
     group: 'K — Edge cases and errors',
     title: 'App in Restricted battery mode',
     description:

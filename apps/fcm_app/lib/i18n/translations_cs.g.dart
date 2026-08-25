@@ -63,6 +63,9 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$countdown$cs countdown = _Translations$countdown$cs._(_root);
 	@override late final _Translations$telemetry$cs telemetry = _Translations$telemetry$cs._(_root);
 	@override late final _Translations$api$cs api = _Translations$api$cs._(_root);
+	@override late final _Translations$scenario$cs scenario = _Translations$scenario$cs._(_root);
+	@override late final _Translations$scenario_group$cs scenario_group = _Translations$scenario_group$cs._(_root);
+	@override late final _Translations$scenario_need$cs scenario_need = _Translations$scenario_need$cs._(_root);
 }
 
 // Path: app
@@ -544,6 +547,150 @@ class _Translations$api$cs implements Translations$api$en {
 	@override String expected_object({required Object type}) => 'Byl přijat typ ${type}, kde se čekal JSON objekt.';
 }
 
+// Path: scenario
+class _Translations$scenario$cs implements Translations$scenario$en {
+	_Translations$scenario$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$scenario$a1_notification_only$cs a1_notification_only = _Translations$scenario$a1_notification_only$cs._(_root);
+	@override late final _Translations$scenario$a2_data_only$cs a2_data_only = _Translations$scenario$a2_data_only$cs._(_root);
+	@override late final _Translations$scenario$a3_hybrid$cs a3_hybrid = _Translations$scenario$a3_hybrid$cs._(_root);
+	@override late final _Translations$scenario$a4_no_display$cs a4_no_display = _Translations$scenario$a4_no_display$cs._(_root);
+	@override late final _Translations$scenario$b1_foreground$cs b1_foreground = _Translations$scenario$b1_foreground$cs._(_root);
+	@override late final _Translations$scenario$b2_background$cs b2_background = _Translations$scenario$b2_background$cs._(_root);
+	@override late final _Translations$scenario$b3_killed$cs b3_killed = _Translations$scenario$b3_killed$cs._(_root);
+	@override late final _Translations$scenario$b4_after_reboot$cs b4_after_reboot = _Translations$scenario$b4_after_reboot$cs._(_root);
+	@override late final _Translations$scenario$b5_force_stopped$cs b5_force_stopped = _Translations$scenario$b5_force_stopped$cs._(_root);
+	@override late final _Translations$scenario$b6_token_refresh$cs b6_token_refresh = _Translations$scenario$b6_token_refresh$cs._(_root);
+	@override late final _Translations$scenario$c1_priority_high$cs c1_priority_high = _Translations$scenario$c1_priority_high$cs._(_root);
+	@override late final _Translations$scenario$c2_priority_normal$cs c2_priority_normal = _Translations$scenario$c2_priority_normal$cs._(_root);
+	@override late final _Translations$scenario$c3_ttl_zero$cs c3_ttl_zero = _Translations$scenario$c3_ttl_zero$cs._(_root);
+	@override late final _Translations$scenario$c4_ttl_long$cs c4_ttl_long = _Translations$scenario$c4_ttl_long$cs._(_root);
+	@override late final _Translations$scenario$c5_collapse_key$cs c5_collapse_key = _Translations$scenario$c5_collapse_key$cs._(_root);
+	@override late final _Translations$scenario$c6_doze_test$cs c6_doze_test = _Translations$scenario$c6_doze_test$cs._(_root);
+	@override late final _Translations$scenario$c7_standby_bucket$cs c7_standby_bucket = _Translations$scenario$c7_standby_bucket$cs._(_root);
+	@override late final _Translations$scenario$d1_importance_high$cs d1_importance_high = _Translations$scenario$d1_importance_high$cs._(_root);
+	@override late final _Translations$scenario$d2_importance_default$cs d2_importance_default = _Translations$scenario$d2_importance_default$cs._(_root);
+	@override late final _Translations$scenario$d3_importance_low$cs d3_importance_low = _Translations$scenario$d3_importance_low$cs._(_root);
+	@override late final _Translations$scenario$d4_importance_min$cs d4_importance_min = _Translations$scenario$d4_importance_min$cs._(_root);
+	@override late final _Translations$scenario$d5_custom_sound$cs d5_custom_sound = _Translations$scenario$d5_custom_sound$cs._(_root);
+	@override late final _Translations$scenario$d6_vibration_pattern$cs d6_vibration_pattern = _Translations$scenario$d6_vibration_pattern$cs._(_root);
+	@override late final _Translations$scenario$d7_channel_immutability$cs d7_channel_immutability = _Translations$scenario$d7_channel_immutability$cs._(_root);
+	@override late final _Translations$scenario$d8_channel_group$cs d8_channel_group = _Translations$scenario$d8_channel_group$cs._(_root);
+	@override late final _Translations$scenario$e1_long_text$cs e1_long_text = _Translations$scenario$e1_long_text$cs._(_root);
+	@override late final _Translations$scenario$e2_image_remote$cs e2_image_remote = _Translations$scenario$e2_image_remote$cs._(_root);
+	@override late final _Translations$scenario$e3_image_local$cs e3_image_local = _Translations$scenario$e3_image_local$cs._(_root);
+	@override late final _Translations$scenario$e4_image_huge$cs e4_image_huge = _Translations$scenario$e4_image_huge$cs._(_root);
+	@override late final _Translations$scenario$e5_image_404$cs e5_image_404 = _Translations$scenario$e5_image_404$cs._(_root);
+	@override late final _Translations$scenario$e6_large_icon$cs e6_large_icon = _Translations$scenario$e6_large_icon$cs._(_root);
+	@override late final _Translations$scenario$e7_inbox_style$cs e7_inbox_style = _Translations$scenario$e7_inbox_style$cs._(_root);
+	@override late final _Translations$scenario$e8_messaging_style$cs e8_messaging_style = _Translations$scenario$e8_messaging_style$cs._(_root);
+	@override late final _Translations$scenario$e9_progress$cs e9_progress = _Translations$scenario$e9_progress$cs._(_root);
+	@override late final _Translations$scenario$e10_color_and_icon$cs e10_color_and_icon = _Translations$scenario$e10_color_and_icon$cs._(_root);
+	@override late final _Translations$scenario$e11_emoji_rtl$cs e11_emoji_rtl = _Translations$scenario$e11_emoji_rtl$cs._(_root);
+	@override late final _Translations$scenario$f1_actions$cs f1_actions = _Translations$scenario$f1_actions$cs._(_root);
+	@override late final _Translations$scenario$f2_inline_reply$cs f2_inline_reply = _Translations$scenario$f2_inline_reply$cs._(_root);
+	@override late final _Translations$scenario$f3_deeplink_foreground$cs f3_deeplink_foreground = _Translations$scenario$f3_deeplink_foreground$cs._(_root);
+	@override late final _Translations$scenario$f4_deeplink_background$cs f4_deeplink_background = _Translations$scenario$f4_deeplink_background$cs._(_root);
+	@override late final _Translations$scenario$f5_deeplink_killed$cs f5_deeplink_killed = _Translations$scenario$f5_deeplink_killed$cs._(_root);
+	@override late final _Translations$scenario$f6_delete_intent$cs f6_delete_intent = _Translations$scenario$f6_delete_intent$cs._(_root);
+	@override late final _Translations$scenario$f7_ongoing$cs f7_ongoing = _Translations$scenario$f7_ongoing$cs._(_root);
+	@override late final _Translations$scenario$f8_full_screen_intent$cs f8_full_screen_intent = _Translations$scenario$f8_full_screen_intent$cs._(_root);
+	@override late final _Translations$scenario$f9_trampoline$cs f9_trampoline = _Translations$scenario$f9_trampoline$cs._(_root);
+	@override late final _Translations$scenario$g1_group_summary$cs g1_group_summary = _Translations$scenario$g1_group_summary$cs._(_root);
+	@override late final _Translations$scenario$g2_update_same_id$cs g2_update_same_id = _Translations$scenario$g2_update_same_id$cs._(_root);
+	@override late final _Translations$scenario$g3_badge$cs g3_badge = _Translations$scenario$g3_badge$cs._(_root);
+	@override late final _Translations$scenario$g4_badge_ios$cs g4_badge_ios = _Translations$scenario$g4_badge_ios$cs._(_root);
+	@override late final _Translations$scenario$h1_dnd_bypass$cs h1_dnd_bypass = _Translations$scenario$h1_dnd_bypass$cs._(_root);
+	@override late final _Translations$scenario$h2_category_alarm$cs h2_category_alarm = _Translations$scenario$h2_category_alarm$cs._(_root);
+	@override late final _Translations$scenario$h3_ios_time_sensitive$cs h3_ios_time_sensitive = _Translations$scenario$h3_ios_time_sensitive$cs._(_root);
+	@override late final _Translations$scenario$h4_ios_critical$cs h4_ios_critical = _Translations$scenario$h4_ios_critical$cs._(_root);
+	@override late final _Translations$scenario$h5_ios_passive$cs h5_ios_passive = _Translations$scenario$h5_ios_passive$cs._(_root);
+	@override late final _Translations$scenario$i1_silent_no_sound$cs i1_silent_no_sound = _Translations$scenario$i1_silent_no_sound$cs._(_root);
+	@override late final _Translations$scenario$i2_silent_data_sync$cs i2_silent_data_sync = _Translations$scenario$i2_silent_data_sync$cs._(_root);
+	@override late final _Translations$scenario$i3_ios_content_available$cs i3_ios_content_available = _Translations$scenario$i3_ios_content_available$cs._(_root);
+	@override late final _Translations$scenario$i4_burst$cs i4_burst = _Translations$scenario$i4_burst$cs._(_root);
+	@override late final _Translations$scenario$j1_topic$cs j1_topic = _Translations$scenario$j1_topic$cs._(_root);
+	@override late final _Translations$scenario$j2_condition$cs j2_condition = _Translations$scenario$j2_condition$cs._(_root);
+	@override late final _Translations$scenario$j3_multicast$cs j3_multicast = _Translations$scenario$j3_multicast$cs._(_root);
+	@override late final _Translations$scenario$k1_payload_oversize$cs k1_payload_oversize = _Translations$scenario$k1_payload_oversize$cs._(_root);
+	@override late final _Translations$scenario$k2_invalid_token$cs k2_invalid_token = _Translations$scenario$k2_invalid_token$cs._(_root);
+	@override late final _Translations$scenario$k3_permission_denied$cs k3_permission_denied = _Translations$scenario$k3_permission_denied$cs._(_root);
+	@override late final _Translations$scenario$k4_notifications_disabled$cs k4_notifications_disabled = _Translations$scenario$k4_notifications_disabled$cs._(_root);
+	@override late final _Translations$scenario$k5_battery_restricted$cs k5_battery_restricted = _Translations$scenario$k5_battery_restricted$cs._(_root);
+}
+
+// Path: scenario_group
+class _Translations$scenario_group$cs implements Translations$scenario_group$en {
+	_Translations$scenario_group$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Display name of scenario group A
+	@override String get a => 'A — Základní doručení';
+
+	/// Display name of scenario group B
+	@override String get b => 'B — Stavy aplikace';
+
+	/// Display name of scenario group C
+	@override String get c => 'C — Priorita a doručovací okno';
+
+	/// Display name of scenario group D
+	@override String get d => 'D — Kanály a důležitost';
+
+	/// Display name of scenario group E
+	@override String get e => 'E — Vzhled';
+
+	/// Display name of scenario group F
+	@override String get f => 'F — Interakce';
+
+	/// Display name of scenario group G
+	@override String get g => 'G — Skupiny, odznak, aktualizace';
+
+	/// Display name of scenario group H
+	@override String get h => 'H — Rušivost a priorita';
+
+	/// Display name of scenario group I
+	@override String get i => 'I — Tiché a datové';
+
+	/// Display name of scenario group J
+	@override String get j => 'J — Cílení';
+
+	/// Display name of scenario group K
+	@override String get k => 'K — Krajní případy a chyby';
+}
+
+// Path: scenario_need
+class _Translations$scenario_need$cs implements Translations$scenario_need$en {
+	_Translations$scenario_need$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Label for the channels scenario need
+	@override String get channels => 'notifikační kanály';
+
+	/// Label for the styles scenario need
+	@override String get styles => 'styly notifikací';
+
+	/// Label for the interaction scenario need
+	@override String get interaction => 'akce notifikací';
+
+	/// Label for the badge scenario need
+	@override String get badge => 'odznak na ikoně aplikace';
+
+	/// Label for the targeting scenario need
+	@override String get targeting => 'registr zařízení';
+
+	@override String get manual_step => 'manuální krok';
+	@override String get external_approval => 'externí schválení';
+}
+
 // Path: shell.title
 class _Translations$shell$title$cs implements Translations$shell$title$en {
 	_Translations$shell$title$cs._(this._root);
@@ -638,6 +785,1101 @@ class _Translations$api$item$cs implements Translations$api$item$en {
 
 	/// Names the item kind in api.answered_unreadable_item
 	@override String get latency_row => 'řádek latence';
+}
+
+// Path: scenario.a1_notification_only
+class _Translations$scenario$a1_notification_only$cs implements Translations$scenario$a1_notification_only$en {
+	_Translations$scenario$a1_notification_only$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario a1_notification_only
+	@override String get title => 'Payload jen s notification';
+
+	/// Description of scenario a1_notification_only
+	@override String get description => 'Sleduj, která vrstva ho vykreslila — systém, když je aplikace na pozadí, aplikace, když je na popředí — a jak vyjdou ikona a barva zvýraznění.';
+}
+
+// Path: scenario.a2_data_only
+class _Translations$scenario$a2_data_only$cs implements Translations$scenario$a2_data_only$en {
+	_Translations$scenario$a2_data_only$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario a2_data_only
+	@override String get title => 'Payload jen s daty, vykreslený lokálně';
+
+	/// Description of scenario a2_data_only
+	@override String get description => 'Tohle nevykreslí nic jiného než aplikace. Sleduj, jestli push dorazí i se zabitou aplikací — přesně pro tenhle případ data-only doručení existuje.';
+
+	/// Expectation caveat for scenario a2_data_only
+	@override String get expectation => 'Na iOS potřebuje data-only push content-available a je omezovaný (throttling); viz i3_ios_content_available.';
+}
+
+// Path: scenario.a3_hybrid
+class _Translations$scenario$a3_hybrid$cs implements Translations$scenario$a3_hybrid$en {
+	_Translations$scenario$a3_hybrid$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario a3_hybrid
+	@override String get title => 'notification a data společně';
+
+	/// Description of scenario a3_hybrid
+	@override String get description => 'Běžný tvar v produkci. Sleduj, jestli data mapa dorazí do handleru po tapnutí — přesně tam si deep linky berou svoje argumenty.';
+}
+
+// Path: scenario.a4_no_display
+class _Translations$scenario$a4_no_display$cs implements Translations$scenario$a4_no_display$en {
+	_Translations$scenario$a4_no_display$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario a4_no_display
+	@override String get title => 'Data zalogovaná tiše, vykreslení prázdné';
+
+	/// Description of scenario a4_no_display
+	@override String get description => 'Tichá synchronizace: handler se spustí a zapíše řádek do logu. Banner bez titulku nic nezastaví, takže se v liště i tak objeví záznam — ikona a název aplikace, žádný text. Pozorovatelný rozdíl oproti a1 je chybějící text, ne chybějící notifikace. Sleduj Doručené kvůli řádku v logu; lišta nemá co zobrazit.';
+}
+
+// Path: scenario.b1_foreground
+class _Translations$scenario$b1_foreground$cs implements Translations$scenario$b1_foreground$en {
+	_Translations$scenario$b1_foreground$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b1_foreground
+	@override String get title => 'Doručeno s aplikací na popředí';
+
+	/// Description of scenario b1_foreground
+	@override String get description => 'Spustí se onMessage a systém nic nevykresluje, takže to musí zajistit aplikace. Sleduj, jestli se banner objeví vůbec.';
+}
+
+// Path: scenario.b2_background
+class _Translations$scenario$b2_background$cs implements Translations$scenario$b2_background$en {
+	_Translations$scenario$b2_background$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b2_background
+	@override String get title => 'Aplikace na pozadí, zamčená obrazovka';
+
+	/// Description of scenario b2_background
+	@override String get description => 'Tenhle vykreslí systém. Sleduj, jestli se dostane až na zamčenou obrazovku a kolik z něj se tam zobrazí.';
+
+	/// Manual steps for scenario b2_background
+	@override String get manual_steps => 'Dej aplikaci na pozadí tlačítkem home, pak zamkni obrazovku. Pošli z jiného zařízení, nebo nejdřív ověř payload přes validate-only.';
+}
+
+// Path: scenario.b3_killed
+class _Translations$scenario$b3_killed$cs implements Translations$scenario$b3_killed$en {
+	_Translations$scenario$b3_killed$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b3_killed
+	@override String get title => 'Aplikace odsunutá z posledních';
+
+	/// Description of scenario b3_killed
+	@override String get description => 'Nejtěžší případ, a důvod, proč existuje zpožděné odesílání: odeslání musí proběhnout až po tom, co je aplikace pryč. Sleduj, jestli se spustí data handler.';
+}
+
+// Path: scenario.b4_after_reboot
+class _Translations$scenario$b4_after_reboot$cs implements Translations$scenario$b4_after_reboot$en {
+	_Translations$scenario$b4_after_reboot$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b4_after_reboot
+	@override String get title => 'Po restartu, aplikace nikdy neotevřená';
+
+	/// Description of scenario b4_after_reboot
+	@override String get description => 'Dokud se aplikace po startu telefonu ani jednou neotevře, někteří výrobci jí úplně zablokují práci na pozadí. Sleduj, jestli něco dorazí.';
+
+	/// Manual steps for scenario b4_after_reboot
+	@override String get manual_steps => 'adb reboot — a pak aplikaci NEOTVÍREJ. Počkej na zamčenou obrazovku a pošli.';
+}
+
+// Path: scenario.b5_force_stopped
+class _Translations$scenario$b5_force_stopped$cs implements Translations$scenario$b5_force_stopped$en {
+	_Translations$scenario$b5_force_stopped$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b5_force_stopped
+	@override String get title => 'Po Force stop';
+
+	/// Description of scenario b5_force_stopped
+	@override String get description => 'Force stop aplikaci odebere možnost být vzbuzena. Tenhle scénář existuje, aby to dokázal, ne aby se debugoval.';
+
+	/// Expectation caveat for scenario b5_force_stopped
+	@override String get expectation => 'Očekávaný výsledek: nic. Aplikace po Force stop nedostane žádný push, dokud ji uživatel ručně nespustí. Pokud něco přesto dorazí, stojí za to to vyšetřit.';
+
+	/// Manual steps for scenario b5_force_stopped
+	@override String get manual_steps => 'Nastavení › Aplikace › FCM Sample › Force stop. Pak pošli a nečekej nic.';
+}
+
+// Path: scenario.b6_token_refresh
+class _Translations$scenario$b6_token_refresh$cs implements Translations$scenario$b6_token_refresh$en {
+	_Translations$scenario$b6_token_refresh$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario b6_token_refresh
+	@override String get title => 'Token obměněný přeinstalací nebo vymazáním dat';
+
+	/// Description of scenario b6_token_refresh
+	@override String get description => 'Starý token je mrtvý a odeslání na něj musí hlasitě selhat. Sleduj stránku Doručené pro nový token a porovnej ho se starým.';
+
+	/// Manual steps for scenario b6_token_refresh
+	@override String get manual_steps => 'adb shell pm clear cz.netglade.fcm_app — znovu otevři aplikaci a přečti nový token ze stránky Doručené. Odeslání na starý by mělo vrátit UNREGISTERED, což je k2_invalid_token.';
+}
+
+// Path: scenario.c1_priority_high
+class _Translations$scenario$c1_priority_high$cs implements Translations$scenario$c1_priority_high$en {
+	_Translations$scenario$c1_priority_high$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c1_priority_high
+	@override String get title => 'android.priority HIGH';
+
+	/// Description of scenario c1_priority_high
+	@override String get description => 'Vzbudí zařízení v Doze. Sleduj, jak rychle dorazí se zhasnutou obrazovkou ve srovnání s c2.';
+}
+
+// Path: scenario.c2_priority_normal
+class _Translations$scenario$c2_priority_normal$cs implements Translations$scenario$c2_priority_normal$en {
+	_Translations$scenario$c2_priority_normal$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c2_priority_normal
+	@override String get title => 'android.priority NORMAL';
+
+	/// Description of scenario c2_priority_normal
+	@override String get description => 'Může počkat na další údržbové okno. Sleduj zpoždění se zhasnutou obrazovkou — to je obvyklá příčina „chybějícího“ pushe.';
+}
+
+// Path: scenario.c3_ttl_zero
+class _Translations$scenario$c3_ttl_zero$cs implements Translations$scenario$c3_ttl_zero$en {
+	_Translations$scenario$c3_ttl_zero$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c3_ttl_zero
+	@override String get title => 'android.ttl 0s — teď, nebo nikdy';
+
+	/// Description of scenario c3_ttl_zero
+	@override String get description => 'FCM to zkusí jednou a zprávu zahodí, pokud zařízení není dostupné. Sleduj, že offline zařízení zprávu nikdy nedostane.';
+}
+
+// Path: scenario.c4_ttl_long
+class _Translations$scenario$c4_ttl_long$cs implements Translations$scenario$c4_ttl_long$en {
+	_Translations$scenario$c4_ttl_long$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c4_ttl_long
+	@override String get title => 'android.ttl 86400s — den opakovaných pokusů';
+
+	/// Description of scenario c4_ttl_long
+	@override String get description => 'Držena 24 hodin. Sleduj, jak dorazí, až se vrátí síť — dlouho po odeslání.';
+}
+
+// Path: scenario.c5_collapse_key
+class _Translations$scenario$c5_collapse_key$cs implements Translations$scenario$c5_collapse_key$en {
+	_Translations$scenario$c5_collapse_key$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c5_collapse_key
+	@override String get title => 'Pět odeslání se stejným collapse_key, offline';
+
+	/// Description of scenario c5_collapse_key
+	@override String get description => 'Přežít by mělo jen to poslední. Sleduj, že se po návratu sítě objeví jedna notifikace, ne pět.';
+
+	/// Manual steps for scenario c5_collapse_key
+	@override String get manual_steps => 'Přepni zařízení do režimu letadlo. Pošli pětkrát, pokaždé se změněným textem těla. Obnov síť: měla by se objevit přesně jedna notifikace s posledním textem.';
+}
+
+// Path: scenario.c6_doze_test
+class _Translations$scenario$c6_doze_test$cs implements Translations$scenario$c6_doze_test$en {
+	_Translations$scenario$c6_doze_test$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c6_doze_test
+	@override String get title => 'Doručení, když je zařízení v Doze';
+
+	/// Description of scenario c6_doze_test
+	@override String get description => 'Skutečné chování Doze, ne simulace. Sleduj, které priority se prosadí a které se pozdrží.';
+
+	/// Manual steps for scenario c6_doze_test
+	@override String get manual_steps => 'adb shell dumpsys deviceidle force-idle — pošli, pak obnov pomocí adb shell dumpsys deviceidle unforce.';
+}
+
+// Path: scenario.c7_standby_bucket
+class _Translations$scenario$c7_standby_bucket$cs implements Translations$scenario$c7_standby_bucket$en {
+	_Translations$scenario$c7_standby_bucket$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario c7_standby_bucket
+	@override String get title => 'Aplikace v omezeném standby bucketu';
+
+	/// Description of scenario c7_standby_bucket
+	@override String get description => 'Nejtvrdší stav, který Android uvalí na nevyužívanou aplikaci. Sleduj, jestli push s prioritou HIGH i tak dorazí.';
+
+	/// Manual steps for scenario c7_standby_bucket
+	@override String get manual_steps => 'adb shell am set-standby-bucket cz.netglade.fcm_app restricted — ověř pomocí adb shell am get-standby-bucket cz.netglade.fcm_app.';
+}
+
+// Path: scenario.d1_importance_high
+class _Translations$scenario$d1_importance_high$cs implements Translations$scenario$d1_importance_high$en {
+	_Translations$scenario$d1_importance_high$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d1_importance_high
+	@override String get title => 'IMPORTANCE_HIGH — plovoucí (heads-up) banner';
+
+	/// Description of scenario d1_importance_high
+	@override String get description => 'Sleduj banner, který se objeví nad aktuální aplikací, se zvukem.';
+}
+
+// Path: scenario.d2_importance_default
+class _Translations$scenario$d2_importance_default$cs implements Translations$scenario$d2_importance_default$en {
+	_Translations$scenario$d2_importance_default$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d2_importance_default
+	@override String get title => 'IMPORTANCE_DEFAULT — zvuk, bez banneru';
+
+	/// Description of scenario d2_importance_default
+	@override String get description => 'Sleduj zvuk a záznam v liště, ale nic plovoucího.';
+}
+
+// Path: scenario.d3_importance_low
+class _Translations$scenario$d3_importance_low$cs implements Translations$scenario$d3_importance_low$en {
+	_Translations$scenario$d3_importance_low$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d3_importance_low
+	@override String get title => 'IMPORTANCE_LOW — tichá';
+
+	/// Description of scenario d3_importance_low
+	@override String get description => 'Viditelná, ale beze zvuku a bez vibrací. Sleduj, že je opravdu tichá, ne jen potichlejší.';
+}
+
+// Path: scenario.d4_importance_min
+class _Translations$scenario$d4_importance_min$cs implements Translations$scenario$d4_importance_min$en {
+	_Translations$scenario$d4_importance_min$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d4_importance_min
+	@override String get title => 'IMPORTANCE_MIN — jen stavový řádek';
+
+	/// Description of scenario d4_importance_min
+	@override String get description => 'Na některých verzích žádná ikona ve stavovém řádku; jen v shade (rozbalovací liště). Sleduj, kde se vůbec objeví.';
+}
+
+// Path: scenario.d5_custom_sound
+class _Translations$scenario$d5_custom_sound$cs implements Translations$scenario$d5_custom_sound$en {
+	_Translations$scenario$d5_custom_sound$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d5_custom_sound
+	@override String get title => 'Vlastní zvuk na kanálu';
+
+	/// Description of scenario d5_custom_sound
+	@override String get description => 'Zvuk je vlastnost kanálu, takže jeho změna vyžaduje nový kanál. Sleduj, že se přehraje vlastní zvuk, a ne výchozí.';
+
+	/// Expectation caveat for scenario d5_custom_sound
+	@override String get expectation => 'Pojmenovaný zdroj musí existovat v android/app/src/main/res/raw. Chybějící soubor se tiše přepne na výchozí zvuk.';
+}
+
+// Path: scenario.d6_vibration_pattern
+class _Translations$scenario$d6_vibration_pattern$cs implements Translations$scenario$d6_vibration_pattern$en {
+	_Translations$scenario$d6_vibration_pattern$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d6_vibration_pattern
+	@override String get title => 'Vlastní vibrační vzor';
+
+	/// Description of scenario d6_vibration_pattern
+	@override String get description => 'Střídání délek vibrace a pauzy. Sleduj, že se použije požadovaný vzor, a ne výchozí hodnota kanálu.';
+}
+
+// Path: scenario.d7_channel_immutability
+class _Translations$scenario$d7_channel_immutability$cs implements Translations$scenario$d7_channel_immutability$en {
+	_Translations$scenario$d7_channel_immutability$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d7_channel_immutability
+	@override String get title => 'Změna existujícího kanálu — Android to ignoruje';
+
+	/// Description of scenario d7_channel_immutability
+	@override String get description => 'Znovu vytvoř chat_v1 s jinou importance a sleduj, že to Android úplně ignoruje. Tohle je ukázka toho, proč mají kanály ve svém id verzi.';
+
+	/// Expectation caveat for scenario d7_channel_immutability
+	@override String get expectation => 'Importance zobrazená na obrazovce kanálu zůstane na své původní hodnotě. Jediná oprava je nový kanál — chat_v2 — a přesně ten používá d8.';
+}
+
+// Path: scenario.d8_channel_group
+class _Translations$scenario$d8_channel_group$cs implements Translations$scenario$d8_channel_group$en {
+	_Translations$scenario$d8_channel_group$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario d8_channel_group
+	@override String get title => 'Kanály sdružené do skupiny';
+
+	/// Description of scenario d8_channel_group
+	@override String get description => 'Sleduj systémová nastavení notifikací: kanály by se měly zobrazit vnořené pod pojmenovanou skupinou, ne jako plochý seznam.';
+}
+
+// Path: scenario.e1_long_text
+class _Translations$scenario$e1_long_text$cs implements Translations$scenario$e1_long_text$en {
+	_Translations$scenario$e1_long_text$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e1_long_text
+	@override String get title => 'BigTextStyle s ~800 znaky';
+
+	/// Description of scenario e1_long_text
+	@override String get description => 'Sleduj, kde se text zkrátí ve sbaleném zobrazení a jestli rozbalení ukáže celý text. Diakritika je součástí záměrně, protože limity na délku v bajtech a v znacích se chovají jinak.';
+}
+
+// Path: scenario.e2_image_remote
+class _Translations$scenario$e2_image_remote$cs implements Translations$scenario$e2_image_remote$en {
+	_Translations$scenario$e2_image_remote$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e2_image_remote
+	@override String get title => 'notification.image — stažený platformou';
+
+	/// Description of scenario e2_image_remote
+	@override String get description => 'FCM předá URL a platforma ho stáhne. Sleduj, že se zobrazí v rozbaleném stavu, a jak dlouho to trvá na pomalém připojení.';
+
+	/// Expectation caveat for scenario e2_image_remote
+	@override String get expectation => 'Android to umí nativně. iOS potřebuje Notification Service Extension, kterou tahle aplikace neobsahuje, takže se tam nic nezobrazí.';
+}
+
+// Path: scenario.e3_image_local
+class _Translations$scenario$e3_image_local$cs implements Translations$scenario$e3_image_local$en {
+	_Translations$scenario$e3_image_local$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e3_image_local
+	@override String get title => 'Obrázek stažený data handlerem';
+
+	/// Description of scenario e3_image_local
+	@override String get description => 'Aplikace si URL stáhne sama a sestaví BigPictureStyle. Porovnej výsledek a časování s e2.';
+}
+
+// Path: scenario.e4_image_huge
+class _Translations$scenario$e4_image_huge$cs implements Translations$scenario$e4_image_huge$en {
+	_Translations$scenario$e4_image_huge$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e4_image_huge
+	@override String get title => 'Obrázek 4000×3000';
+
+	/// Description of scenario e4_image_huge
+	@override String get description => 'Sleduj zmenšení, pád na out-of-memory, nebo tichý neúspěch, kdy dorazí text, ale obrázek ne.';
+}
+
+// Path: scenario.e5_image_404
+class _Translations$scenario$e5_image_404$cs implements Translations$scenario$e5_image_404$en {
+	_Translations$scenario$e5_image_404$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e5_image_404
+	@override String get title => 'URL obrázku, které nejde načíst';
+
+	/// Description of scenario e5_image_404
+	@override String get description => 'Důležitá otázka je, jestli text i tak dorazí. Push, který zmizí, protože jeho obrázek vrátí 404, je špatný způsob selhání.';
+}
+
+// Path: scenario.e6_large_icon
+class _Translations$scenario$e6_large_icon$cs implements Translations$scenario$e6_large_icon$en {
+	_Translations$scenario$e6_large_icon$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e6_large_icon
+	@override String get title => 'Velká ikona vedle textu';
+
+	/// Description of scenario e6_large_icon
+	@override String get description => 'Kulatý slot pro avatar, odlišný od malé ikony ve stavovém řádku. Sleduj, že je kulatý a není roztažený.';
+}
+
+// Path: scenario.e7_inbox_style
+class _Translations$scenario$e7_inbox_style$cs implements Translations$scenario$e7_inbox_style$en {
+	_Translations$scenario$e7_inbox_style$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e7_inbox_style
+	@override String get title => 'InboxStyle se sedmi řádky';
+
+	/// Description of scenario e7_inbox_style
+	@override String get description => 'Sleduj, kolik řádků se po rozbalení skutečně zobrazí — Android to omezuje, a limit je nižší, než většina lidí čeká.';
+}
+
+// Path: scenario.e8_messaging_style
+class _Translations$scenario$e8_messaging_style$cs implements Translations$scenario$e8_messaging_style$en {
+	_Translations$scenario$e8_messaging_style$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e8_messaging_style
+	@override String get title => 'MessagingStyle s několika odesílateli';
+
+	/// Description of scenario e8_messaging_style
+	@override String get description => 'Chatové rozvržení, se jménem a avatarem u každé zprávy. Sleduj seskupování a pořadí.';
+}
+
+// Path: scenario.e9_progress
+class _Translations$scenario$e9_progress$cs implements Translations$scenario$e9_progress$en {
+	_Translations$scenario$e9_progress$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e9_progress
+	@override String get title => 'Ukazatel průběhu, aktualizovaný na místě';
+
+	/// Description of scenario e9_progress
+	@override String get description => 'Několik pushů aktualizujících jednu notifikaci. Sleduj, že se aktualizuje, a ne hromadí, a co se stane po dokončení.';
+}
+
+// Path: scenario.e10_color_and_icon
+class _Translations$scenario$e10_color_and_icon$cs implements Translations$scenario$e10_color_and_icon$en {
+	_Translations$scenario$e10_color_and_icon$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e10_color_and_icon
+	@override String get title => 'Barva zvýraznění a monochromatická ikona';
+
+	/// Description of scenario e10_color_and_icon
+	@override String get description => 'Klasický Xiaomi bug s bílým čtverečkem: malá ikona, která není plochá monochromatická alpha maska, se vykreslí jako vyplněný blok. Sleduj stavový řádek.';
+
+	/// Expectation caveat for scenario e10_color_and_icon
+	@override String get expectation => 'Ikona musí být monochromatický drawable s průhledností. Bílý čtvereček vzniká právě z plnobarevné ikony launcheru.';
+}
+
+// Path: scenario.e11_emoji_rtl
+class _Translations$scenario$e11_emoji_rtl$cs implements Translations$scenario$e11_emoji_rtl$en {
+	_Translations$scenario$e11_emoji_rtl$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario e11_emoji_rtl
+	@override String get title => 'Emoji, text zprava doleva a nezalomitelná slova';
+
+	/// Description of scenario e11_emoji_rtl
+	@override String get description => 'Sleduj směr textu u arabského řádku, jestli se emoji vykreslí barevně, a kde se zlomí slovo bez mezer.';
+}
+
+// Path: scenario.f1_actions
+class _Translations$scenario$f1_actions$cs implements Translations$scenario$f1_actions$en {
+	_Translations$scenario$f1_actions$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f1_actions
+	@override String get title => 'Dvě nebo tři akční tlačítka';
+
+	/// Description of scenario f1_actions
+	@override String get description => 'Sleduj, jestli tlačítka přežijí restart notifikační lišty, a co se stane s notifikací po stisknutí jednoho z nich.';
+
+	/// Expectation caveat for scenario f1_actions
+	@override String get expectation => 'Záměrně jen data: záznam vykreslený přímo FCM nemůže nést akční tlačítka, takže tenhle si aplikace vykresluje sama, a to v každém stavu. Jen Android — akce na iOS pocházejí z kategorie registrované při startu.';
+}
+
+// Path: scenario.f2_inline_reply
+class _Translations$scenario$f2_inline_reply$cs implements Translations$scenario$f2_inline_reply$en {
+	_Translations$scenario$f2_inline_reply$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f2_inline_reply
+	@override String get title => 'Inline odpověď přes RemoteInput';
+
+	/// Description of scenario f2_inline_reply
+	@override String get description => 'Napiš odpověď bez otevření aplikace. Sleduj, že notifikace zobrazí stav odesílání a pak se aktualizuje.';
+
+	/// Expectation caveat for scenario f2_inline_reply
+	@override String get expectation => 'Jen data, takže si ji vykresluje aplikace a tlačítko existuje v každém stavu. Odpověď aplikaci nikdy neotevře: zpracuje se ve vlastním isolate, který notifikaci aktualizuje na místě a text předá aplikaci při dalším spuštění nebo obnovení. Žádný server neexistuje — pauza mezi „Sending…“ a „Sent“ je simulovaná. Neuloží se žádná událost `opened`, protože se nic neotevřelo. Jen Android.';
+}
+
+// Path: scenario.f3_deeplink_foreground
+class _Translations$scenario$f3_deeplink_foreground$cs implements Translations$scenario$f3_deeplink_foreground$en {
+	_Translations$scenario$f3_deeplink_foreground$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f3_deeplink_foreground
+	@override String get title => 'Tap, když aplikace běží';
+
+	/// Description of scenario f3_deeplink_foreground
+	@override String get description => 'Routing z onMessage, s aplikací už na obrazovce. Sleduj, že se neztratí aktuální obrazovka.';
+
+	/// Expectation caveat for scenario f3_deeplink_foreground
+	@override String get expectation => 'Otevře stránku Telemetrie.';
+}
+
+// Path: scenario.f4_deeplink_background
+class _Translations$scenario$f4_deeplink_background$cs implements Translations$scenario$f4_deeplink_background$en {
+	_Translations$scenario$f4_deeplink_background$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f4_deeplink_background
+	@override String get title => 'Tap, když je aplikace na pozadí';
+
+	/// Description of scenario f4_deeplink_background
+	@override String get description => 'Routing z onMessageOpenedApp. Sleduj, že se aplikace obnoví na provázané obrazovce, a ne tam, kde skončila.';
+
+	/// Expectation caveat for scenario f4_deeplink_background
+	@override String get expectation => 'Otevře Sandbox.';
+}
+
+// Path: scenario.f5_deeplink_killed
+class _Translations$scenario$f5_deeplink_killed$cs implements Translations$scenario$f5_deeplink_killed$en {
+	_Translations$scenario$f5_deeplink_killed$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f5_deeplink_killed
+	@override String get title => 'Tap se zabitou aplikací';
+
+	/// Description of scenario f5_deeplink_killed
+	@override String get description => 'Routing z getInitialMessage, který se spustí jednou při startu a je nejčastějším zdrojem chyb v deep linkách — snadno se na něj zapomene a selhává právě jen v tom jednom stavu, který nikdo ručně netestuje.';
+
+	/// Expectation caveat for scenario f5_deeplink_killed
+	@override String get expectation => 'Otevře stránku Běhy.';
+}
+
+// Path: scenario.f6_delete_intent
+class _Translations$scenario$f6_delete_intent$cs implements Translations$scenario$f6_delete_intent$en {
+	_Translations$scenario$f6_delete_intent$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f6_delete_intent
+	@override String get title => 'Detekce odsunutí (swipe-away)';
+
+	/// Description of scenario f6_delete_intent
+	@override String get description => 'Delete intent se spustí, když uživatel notifikaci zavře bez tapnutí. Sleduj, že to lze rozlišit od tapnutí.';
+
+	/// Expectation caveat for scenario f6_delete_intent
+	@override String get expectation => 'Zjistí se jen tehdy, když je aplikace na obrazovce, protože jen tehdy notifikaci vykreslila sama aplikace přes plugin. Na pozadí vykresluje záznam v liště přímo FCM a odsunutí u něj nic nenahlásí; se zabitou aplikací už nezbyl žádný isolate, kterému by se to nahlásilo. Je to omezení Androidu, ne mezera v aplikaci.';
+}
+
+// Path: scenario.f7_ongoing
+class _Translations$scenario$f7_ongoing$cs implements Translations$scenario$f7_ongoing$en {
+	_Translations$scenario$f7_ongoing$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f7_ongoing
+	@override String get title => 'Trvalá notifikace, kterou nelze zavřít';
+
+	/// Description of scenario f7_ongoing
+	@override String get description => 'Sleduj, že ji nelze odsunout, a ověř, že existuje způsob, jak ji zrušit — trvalá notifikace bez úniku je jistý tiket na podporu.';
+}
+
+// Path: scenario.f8_full_screen_intent
+class _Translations$scenario$f8_full_screen_intent$cs implements Translations$scenario$f8_full_screen_intent$en {
+	_Translations$scenario$f8_full_screen_intent$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f8_full_screen_intent
+	@override String get title => 'Full-screen intent jako příchozí hovor';
+
+	/// Description of scenario f8_full_screen_intent
+	@override String get description => 'Převezme celou zamčenou obrazovku. Sleduj, jestli je vůbec povolen, a na co se degraduje, když je zamítnut.';
+
+	/// Expectation caveat for scenario f8_full_screen_intent
+	@override String get expectation => 'Potřebuje oprávnění USE_FULL_SCREEN_INTENT, které Android 14+ uděluje jen telefonním a budíkovým aplikacím. Zde čekej degradovanou heads-up notifikaci, ne převzetí obrazovky.';
+}
+
+// Path: scenario.f9_trampoline
+class _Translations$scenario$f9_trampoline$cs implements Translations$scenario$f9_trampoline$en {
+	_Translations$scenario$f9_trampoline$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario f9_trampoline
+	@override String get title => 'Notification trampoline, který má selhat';
+
+	/// Description of scenario f9_trampoline
+	@override String get description => 'Spuštění activity ze service nebo broadcast receiveru po tapnutí. Od Androidu 12 zakázáno. Sleduj chybu a její řádek v logu.';
+
+	/// Expectation caveat for scenario f9_trampoline
+	@override String get expectation => 'Na Androidu 12 a novějším má selhat. Ukázkou je právě ta chyba, ne funkční trasa.';
+}
+
+// Path: scenario.g1_group_summary
+class _Translations$scenario$g1_group_summary$cs implements Translations$scenario$g1_group_summary$en {
+	_Translations$scenario$g1_group_summary$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario g1_group_summary
+	@override String get title => 'Pět notifikací se souhrnem';
+
+	/// Description of scenario g1_group_summary
+	@override String get description => 'Sleduj, že se sbalí pod jeden souhrnný řádek, a co souhrn říká, když dorazí pátá.';
+}
+
+// Path: scenario.g2_update_same_id
+class _Translations$scenario$g2_update_same_id$cs implements Translations$scenario$g2_update_same_id$en {
+	_Translations$scenario$g2_update_same_id$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario g2_update_same_id
+	@override String get title => 'Nahrazení notifikace na místě';
+
+	/// Description of scenario g2_update_same_id
+	@override String get description => 'Pošli dvakrát se stejným tagem. Sleduj, že druhá nahradí první, a ne že se hromadí, a jestli znovu upozorní.';
+}
+
+// Path: scenario.g3_badge
+class _Translations$scenario$g3_badge$cs implements Translations$scenario$g3_badge$en {
+	_Translations$scenario$g3_badge$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario g3_badge
+	@override String get title => 'Číslo na ikoně launcheru';
+
+	/// Description of scenario g3_badge
+	@override String get description => 'Nejméně přenositelná věc z celého katalogu. Sleduj, jestli launcher zobrazí číslo, tečku, nebo vůbec nic.';
+
+	/// Expectation caveat for scenario g3_badge
+	@override String get expectation => 'Chování se liší podle výrobce: One UI, MIUI a Pixel launcher se v tom neshodnou, a několik z nich navíc vyžaduje, aby uživatel odznaky povolil pro každou aplikaci zvlášť.';
+}
+
+// Path: scenario.g4_badge_ios
+class _Translations$scenario$g4_badge_ios$cs implements Translations$scenario$g4_badge_ios$en {
+	_Translations$scenario$g4_badge_ios$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario g4_badge_ios
+	@override String get title => 'Odznak na iOS přes aps.badge';
+
+	/// Description of scenario g4_badge_ios
+	@override String get description => 'Jedno jasně definované číslo, nastavené odesílatelem. Sleduj, že se nahradí, a ne přičte — iOS nesčítá.';
+}
+
+// Path: scenario.h1_dnd_bypass
+class _Translations$scenario$h1_dnd_bypass$cs implements Translations$scenario$h1_dnd_bypass$en {
+	_Translations$scenario$h1_dnd_bypass$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h1_dnd_bypass
+	@override String get title => 'Kanál, který obchází Nerušit';
+
+	/// Description of scenario h1_dnd_bypass
+	@override String get description => 'Sleduj, že se ozve i s aktivním Nerušit. Nastavení flagu nestačí — uživatel musí navíc udělit přístup k notification policy.';
+
+	/// Expectation caveat for scenario h1_dnd_bypass
+	@override String get expectation => 'Vyžaduje Notification Policy Access, který uživatel udělí v systémovém nastavení. Bez něj se flag přijme, ale tiše se ignoruje.';
+}
+
+// Path: scenario.h2_category_alarm
+class _Translations$scenario$h2_category_alarm$cs implements Translations$scenario$h2_category_alarm$en {
+	_Translations$scenario$h2_category_alarm$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h2_category_alarm
+	@override String get title => 'CATEGORY_ALARM';
+
+	/// Description of scenario h2_category_alarm
+	@override String get description => 'Nerušit zachází s alarmy jako se speciální třídou. Sleduj, jestli samotná kategorie něco změní i bez přístupu k policy.';
+
+	/// Expectation caveat for scenario h2_category_alarm
+	@override String get expectation => 'FCM nemá pole pro kategorii notifikace — nastavuje ji klient při sestavování lokální notifikace, a proto je potřeba práce s kanály.';
+}
+
+// Path: scenario.h3_ios_time_sensitive
+class _Translations$scenario$h3_ios_time_sensitive$cs implements Translations$scenario$h3_ios_time_sensitive$en {
+	_Translations$scenario$h3_ios_time_sensitive$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h3_ios_time_sensitive
+	@override String get title => 'iOS time-sensitive — proniká přes Focus';
+
+	/// Description of scenario h3_ios_time_sensitive
+	@override String get description => 'Sleduj, že dorazí i během režimu Focus, který by běžnou notifikaci zadržel.';
+}
+
+// Path: scenario.h4_ios_critical
+class _Translations$scenario$h4_ios_critical$cs implements Translations$scenario$h4_ios_critical$en {
+	_Translations$scenario$h4_ios_critical$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h4_ios_critical
+	@override String get title => 'iOS critical — přes Focus i vypínač zvuku';
+
+	/// Description of scenario h4_ios_critical
+	@override String get description => 'Nejrušivější doručení, jaké Apple nabízí. Sleduj, že se ozve i se zařízením v tichém režimu.';
+
+	/// Expectation caveat for scenario h4_ios_critical
+	@override String get expectation => 'Vyžaduje critical-alert entitlement, který musí Apple pro aplikaci schválit. Bez něj APNs push odmítne, takže tady zůstává neodzkoušený — uvedený jen pro úplnost, ne k naplánování.';
+}
+
+// Path: scenario.h5_ios_passive
+class _Translations$scenario$h5_ios_passive$cs implements Translations$scenario$h5_ios_passive$en {
+	_Translations$scenario$h5_ios_passive$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario h5_ios_passive
+	@override String get title => 'iOS passive — bez zvuku, bez probuzení';
+
+	/// Description of scenario h5_ios_passive
+	@override String get description => 'Nejtišší úroveň: objeví se v seznamu, aniž by na sebe upozornila. Sleduj, že se obrazovka nerozsvítí.';
+}
+
+// Path: scenario.i1_silent_no_sound
+class _Translations$scenario$i1_silent_no_sound$cs implements Translations$scenario$i1_silent_no_sound$en {
+	_Translations$scenario$i1_silent_no_sound$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario i1_silent_no_sound
+	@override String get title => 'Viditelná, ale tichá';
+
+	/// Description of scenario i1_silent_no_sound
+	@override String get description => 'Objeví se v liště beze zvuku a bez vibrací. Sleduj, jestli je tichá, a přesto rozsvítí obrazovku, nebo ne.';
+}
+
+// Path: scenario.i2_silent_data_sync
+class _Translations$scenario$i2_silent_data_sync$cs implements Translations$scenario$i2_silent_data_sync$en {
+	_Translations$scenario$i2_silent_data_sync$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario i2_silent_data_sync
+	@override String get title => 'Tichá synchronizace, vykreslení prázdné';
+
+	/// Description of scenario i2_silent_data_sync
+	@override String get description => 'Handler zapíše řádek; přesně o tom tenhle scénář je. V liště se i tak objeví záznam — ikona a název aplikace, bez titulku a textu — protože nic nezabrání banneru bez titulku. Sleduj stránku Doručené kvůli řádku; záznam v liště nemá co zobrazit.';
+}
+
+// Path: scenario.i3_ios_content_available
+class _Translations$scenario$i3_ios_content_available$cs implements Translations$scenario$i3_ios_content_available$en {
+	_Translations$scenario$i3_ios_content_available$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario i3_ios_content_available
+	@override String get title => 'iOS background refresh přes content-available';
+
+	/// Description of scenario i3_ios_content_available
+	@override String get description => 'Vzbudí aplikaci, aby si stáhla data, aniž by cokoliv zobrazila. Sleduj, jak často to iOS skutečně respektuje — agresivně to omezuje (throttling).';
+
+	/// Expectation caveat for scenario i3_ios_content_available
+	@override String get expectation => 'iOS je může podle stavu baterie a používání zpozdit, nebo úplně zahodit. Chybějící push tu není nutně bug.';
+}
+
+// Path: scenario.i4_burst
+class _Translations$scenario$i4_burst$cs implements Translations$scenario$i4_burst$en {
+	_Translations$scenario$i4_burst$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario i4_burst
+	@override String get title => 'Dvacet zpráv za deset sekund';
+
+	/// Description of scenario i4_burst
+	@override String get description => 'Sleduj rate limiting, slučování (coalescing) a limity výrobců. MIUI obvykle začne zahazovat dřív než FCM.';
+
+	/// Manual steps for scenario i4_burst
+	@override String get manual_steps => 'Pošli tohle 20krát během 10 sekund a spočítej, co dorazí. Měň tělo zprávy, aby bylo slučování vidět.';
+}
+
+// Path: scenario.j1_topic
+class _Translations$scenario$j1_topic$cs implements Translations$scenario$j1_topic$en {
+	_Translations$scenario$j1_topic$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario j1_topic
+	@override String get title => 'Odeslání do tématu';
+
+	/// Description of scenario j1_topic
+	@override String get description => 'Přihlas zařízení k tématu a pak pošli na téma, ne na token. Sleduj, že push dorazí, aniž by odesílatel znal jakýkoli token.';
+
+	/// Expectation caveat for scenario j1_topic
+	@override String get expectation => 'Odeslání dnes funguje a FCM odpoví 200, ale nic se nedoručí, dokud aplikace neumí přihlásit se k tématu.';
+}
+
+// Path: scenario.j2_condition
+class _Translations$scenario$j2_condition$cs implements Translations$scenario$j2_condition$en {
+	_Translations$scenario$j2_condition$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario j2_condition
+	@override String get title => 'Odeslání na booleovskou podmínku témat';
+
+	/// Description of scenario j2_condition
+	@override String get description => 'Zařízení musí být přihlášeno k oběma tématům, aby tohle dostalo. Sleduj, že přihlášení jen k jednomu ho vyloučí.';
+
+	/// Expectation caveat for scenario j2_condition
+	@override String get expectation => 'Stejně jako u j1, odeslání dnes funguje a FCM odpoví 200 — ale nic se nedoručí, dokud se aplikace neumí přihlásit k oběma tématům.';
+}
+
+// Path: scenario.j3_multicast
+class _Translations$scenario$j3_multicast$cs implements Translations$scenario$j3_multicast$en {
+	_Translations$scenario$j3_multicast$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario j3_multicast
+	@override String get title => 'Odeslání na všechna registrovaná zařízení';
+
+	/// Description of scenario j3_multicast
+	@override String get description => 'Hlavní nástroj pro porovnání chování mezi telefony: jedno odeslání, všechna zařízení, a výsledkem jsou rozdíly mezi nimi.';
+
+	/// Expectation caveat for scenario j3_multicast
+	@override String get expectation => 'FCM nemá publikum „všechna zařízení“, takže tohle potřebuje registr tokenů, který API zatím nemá. Odeslání teď vrátí 501 s tímto důvodem, místo aby tiše doručilo na jedno zařízení.';
+}
+
+// Path: scenario.k1_payload_oversize
+class _Translations$scenario$k1_payload_oversize$cs implements Translations$scenario$k1_payload_oversize$en {
+	_Translations$scenario$k1_payload_oversize$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k1_payload_oversize
+	@override String get title => 'Payload nad limit FCM 4 KB';
+
+	/// Description of scenario k1_payload_oversize
+	@override String get description => 'Sleduj, že API předá chybu FCM s použitelnou zprávou, a ne holé 400.';
+
+	/// Expectation caveat for scenario k1_payload_oversize
+	@override String get expectation => 'FCM tohle odmítne s INVALID_ARGUMENT. Odeslání by mělo selhat dřív, než cokoliv dorazí na zařízení.';
+}
+
+// Path: scenario.k2_invalid_token
+class _Translations$scenario$k2_invalid_token$cs implements Translations$scenario$k2_invalid_token$en {
+	_Translations$scenario$k2_invalid_token$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k2_invalid_token
+	@override String get title => 'Token, který už není registrovaný';
+
+	/// Description of scenario k2_invalid_token
+	@override String get description => 'Běžná produkční chyba. Sleduj, že API to nahlásí jako UNREGISTERED, a ne jako obecné 404 — právě to řekne skutečnému backendu, že má řádek smazat.';
+
+	/// Expectation caveat for scenario k2_invalid_token
+	@override String get expectation => 'FCM odpoví UNREGISTERED, což tohle API mapuje na 404 s vlastním zněním. errorCode v error.details má přednost před stavem NOT_FOUND na nejvyšší úrovni.';
+}
+
+// Path: scenario.k3_permission_denied
+class _Translations$scenario$k3_permission_denied$cs implements Translations$scenario$k3_permission_denied$en {
+	_Translations$scenario$k3_permission_denied$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k3_permission_denied
+	@override String get title => 'POST_NOTIFICATIONS zamítnuto na Androidu 13+';
+
+	/// Description of scenario k3_permission_denied
+	@override String get description => 'Sleduj, že data handler stejně běží a Doručené se stejně plní, i když se nic nedá vykreslit.';
+
+	/// Manual steps for scenario k3_permission_denied
+	@override String get manual_steps => 'adb shell pm revoke cz.netglade.fcm_app android.permission.POST_NOTIFICATIONS — pak pošli a kontroluj stránku Doručené, ne lištu.';
+}
+
+// Path: scenario.k4_notifications_disabled
+class _Translations$scenario$k4_notifications_disabled$cs implements Translations$scenario$k4_notifications_disabled$en {
+	_Translations$scenario$k4_notifications_disabled$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k4_notifications_disabled
+	@override String get title => 'Notifikace vypnuté v systémovém nastavení';
+
+	/// Description of scenario k4_notifications_disabled
+	@override String get description => 'Jiný případ než zamítnuté oprávnění: aplikace oprávnění má, ale uživatel je vypnul. Sleduj, že doručení dat tím není ovlivněno.';
+
+	/// Manual steps for scenario k4_notifications_disabled
+	@override String get manual_steps => 'Nastavení › Aplikace › FCM Sample › Notifikace › vypnout. Pošli a ověř, že se řádek objeví na stránce Doručené.';
+}
+
+// Path: scenario.k5_battery_restricted
+class _Translations$scenario$k5_battery_restricted$cs implements Translations$scenario$k5_battery_restricted$en {
+	_Translations$scenario$k5_battery_restricted$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Title of scenario k5_battery_restricted
+	@override String get title => 'Aplikace v omezeném režimu baterie';
+
+	/// Description of scenario k5_battery_restricted
+	@override String get description => 'Stav, do kterého se uživatel dostane tapnutím na „omezit“ v nastavení baterie. Sleduj, jestli push s prioritou HIGH aplikaci i tak vzbudí.';
+
+	/// Manual steps for scenario k5_battery_restricted
+	@override String get manual_steps => 'Nastavení › Aplikace › FCM Sample › Baterie › Omezený. Pošli a porovnej zpoždění s c1_priority_high v neomezeném stavu.';
 }
 
 /// The flat map containing all translations for locale <cs>.
@@ -738,6 +1980,191 @@ extension on TranslationsCs {
 			'api.item.event' => 'událost',
 			'api.item.latency_row' => 'řádek latence',
 			'api.expected_object' => ({required Object type}) => 'Byl přijat typ ${type}, kde se čekal JSON objekt.',
+			'scenario.a1_notification_only.title' => 'Payload jen s notification',
+			'scenario.a1_notification_only.description' => 'Sleduj, která vrstva ho vykreslila — systém, když je aplikace na pozadí, aplikace, když je na popředí — a jak vyjdou ikona a barva zvýraznění.',
+			'scenario.a2_data_only.title' => 'Payload jen s daty, vykreslený lokálně',
+			'scenario.a2_data_only.description' => 'Tohle nevykreslí nic jiného než aplikace. Sleduj, jestli push dorazí i se zabitou aplikací — přesně pro tenhle případ data-only doručení existuje.',
+			'scenario.a2_data_only.expectation' => 'Na iOS potřebuje data-only push content-available a je omezovaný (throttling); viz i3_ios_content_available.',
+			'scenario.a3_hybrid.title' => 'notification a data společně',
+			'scenario.a3_hybrid.description' => 'Běžný tvar v produkci. Sleduj, jestli data mapa dorazí do handleru po tapnutí — přesně tam si deep linky berou svoje argumenty.',
+			'scenario.a4_no_display.title' => 'Data zalogovaná tiše, vykreslení prázdné',
+			'scenario.a4_no_display.description' => 'Tichá synchronizace: handler se spustí a zapíše řádek do logu. Banner bez titulku nic nezastaví, takže se v liště i tak objeví záznam — ikona a název aplikace, žádný text. Pozorovatelný rozdíl oproti a1 je chybějící text, ne chybějící notifikace. Sleduj Doručené kvůli řádku v logu; lišta nemá co zobrazit.',
+			'scenario.b1_foreground.title' => 'Doručeno s aplikací na popředí',
+			'scenario.b1_foreground.description' => 'Spustí se onMessage a systém nic nevykresluje, takže to musí zajistit aplikace. Sleduj, jestli se banner objeví vůbec.',
+			'scenario.b2_background.title' => 'Aplikace na pozadí, zamčená obrazovka',
+			'scenario.b2_background.description' => 'Tenhle vykreslí systém. Sleduj, jestli se dostane až na zamčenou obrazovku a kolik z něj se tam zobrazí.',
+			'scenario.b2_background.manual_steps' => 'Dej aplikaci na pozadí tlačítkem home, pak zamkni obrazovku. Pošli z jiného zařízení, nebo nejdřív ověř payload přes validate-only.',
+			'scenario.b3_killed.title' => 'Aplikace odsunutá z posledních',
+			'scenario.b3_killed.description' => 'Nejtěžší případ, a důvod, proč existuje zpožděné odesílání: odeslání musí proběhnout až po tom, co je aplikace pryč. Sleduj, jestli se spustí data handler.',
+			'scenario.b4_after_reboot.title' => 'Po restartu, aplikace nikdy neotevřená',
+			'scenario.b4_after_reboot.description' => 'Dokud se aplikace po startu telefonu ani jednou neotevře, někteří výrobci jí úplně zablokují práci na pozadí. Sleduj, jestli něco dorazí.',
+			'scenario.b4_after_reboot.manual_steps' => 'adb reboot — a pak aplikaci NEOTVÍREJ. Počkej na zamčenou obrazovku a pošli.',
+			'scenario.b5_force_stopped.title' => 'Po Force stop',
+			'scenario.b5_force_stopped.description' => 'Force stop aplikaci odebere možnost být vzbuzena. Tenhle scénář existuje, aby to dokázal, ne aby se debugoval.',
+			'scenario.b5_force_stopped.expectation' => 'Očekávaný výsledek: nic. Aplikace po Force stop nedostane žádný push, dokud ji uživatel ručně nespustí. Pokud něco přesto dorazí, stojí za to to vyšetřit.',
+			'scenario.b5_force_stopped.manual_steps' => 'Nastavení › Aplikace › FCM Sample › Force stop. Pak pošli a nečekej nic.',
+			'scenario.b6_token_refresh.title' => 'Token obměněný přeinstalací nebo vymazáním dat',
+			'scenario.b6_token_refresh.description' => 'Starý token je mrtvý a odeslání na něj musí hlasitě selhat. Sleduj stránku Doručené pro nový token a porovnej ho se starým.',
+			'scenario.b6_token_refresh.manual_steps' => 'adb shell pm clear cz.netglade.fcm_app — znovu otevři aplikaci a přečti nový token ze stránky Doručené. Odeslání na starý by mělo vrátit UNREGISTERED, což je k2_invalid_token.',
+			'scenario.c1_priority_high.title' => 'android.priority HIGH',
+			'scenario.c1_priority_high.description' => 'Vzbudí zařízení v Doze. Sleduj, jak rychle dorazí se zhasnutou obrazovkou ve srovnání s c2.',
+			'scenario.c2_priority_normal.title' => 'android.priority NORMAL',
+			'scenario.c2_priority_normal.description' => 'Může počkat na další údržbové okno. Sleduj zpoždění se zhasnutou obrazovkou — to je obvyklá příčina „chybějícího“ pushe.',
+			'scenario.c3_ttl_zero.title' => 'android.ttl 0s — teď, nebo nikdy',
+			'scenario.c3_ttl_zero.description' => 'FCM to zkusí jednou a zprávu zahodí, pokud zařízení není dostupné. Sleduj, že offline zařízení zprávu nikdy nedostane.',
+			'scenario.c4_ttl_long.title' => 'android.ttl 86400s — den opakovaných pokusů',
+			'scenario.c4_ttl_long.description' => 'Držena 24 hodin. Sleduj, jak dorazí, až se vrátí síť — dlouho po odeslání.',
+			'scenario.c5_collapse_key.title' => 'Pět odeslání se stejným collapse_key, offline',
+			'scenario.c5_collapse_key.description' => 'Přežít by mělo jen to poslední. Sleduj, že se po návratu sítě objeví jedna notifikace, ne pět.',
+			'scenario.c5_collapse_key.manual_steps' => 'Přepni zařízení do režimu letadlo. Pošli pětkrát, pokaždé se změněným textem těla. Obnov síť: měla by se objevit přesně jedna notifikace s posledním textem.',
+			'scenario.c6_doze_test.title' => 'Doručení, když je zařízení v Doze',
+			'scenario.c6_doze_test.description' => 'Skutečné chování Doze, ne simulace. Sleduj, které priority se prosadí a které se pozdrží.',
+			'scenario.c6_doze_test.manual_steps' => 'adb shell dumpsys deviceidle force-idle — pošli, pak obnov pomocí adb shell dumpsys deviceidle unforce.',
+			'scenario.c7_standby_bucket.title' => 'Aplikace v omezeném standby bucketu',
+			'scenario.c7_standby_bucket.description' => 'Nejtvrdší stav, který Android uvalí na nevyužívanou aplikaci. Sleduj, jestli push s prioritou HIGH i tak dorazí.',
+			'scenario.c7_standby_bucket.manual_steps' => 'adb shell am set-standby-bucket cz.netglade.fcm_app restricted — ověř pomocí adb shell am get-standby-bucket cz.netglade.fcm_app.',
+			'scenario.d1_importance_high.title' => 'IMPORTANCE_HIGH — plovoucí (heads-up) banner',
+			'scenario.d1_importance_high.description' => 'Sleduj banner, který se objeví nad aktuální aplikací, se zvukem.',
+			'scenario.d2_importance_default.title' => 'IMPORTANCE_DEFAULT — zvuk, bez banneru',
+			'scenario.d2_importance_default.description' => 'Sleduj zvuk a záznam v liště, ale nic plovoucího.',
+			'scenario.d3_importance_low.title' => 'IMPORTANCE_LOW — tichá',
+			'scenario.d3_importance_low.description' => 'Viditelná, ale beze zvuku a bez vibrací. Sleduj, že je opravdu tichá, ne jen potichlejší.',
+			'scenario.d4_importance_min.title' => 'IMPORTANCE_MIN — jen stavový řádek',
+			'scenario.d4_importance_min.description' => 'Na některých verzích žádná ikona ve stavovém řádku; jen v shade (rozbalovací liště). Sleduj, kde se vůbec objeví.',
+			'scenario.d5_custom_sound.title' => 'Vlastní zvuk na kanálu',
+			'scenario.d5_custom_sound.description' => 'Zvuk je vlastnost kanálu, takže jeho změna vyžaduje nový kanál. Sleduj, že se přehraje vlastní zvuk, a ne výchozí.',
+			'scenario.d5_custom_sound.expectation' => 'Pojmenovaný zdroj musí existovat v android/app/src/main/res/raw. Chybějící soubor se tiše přepne na výchozí zvuk.',
+			'scenario.d6_vibration_pattern.title' => 'Vlastní vibrační vzor',
+			'scenario.d6_vibration_pattern.description' => 'Střídání délek vibrace a pauzy. Sleduj, že se použije požadovaný vzor, a ne výchozí hodnota kanálu.',
+			'scenario.d7_channel_immutability.title' => 'Změna existujícího kanálu — Android to ignoruje',
+			'scenario.d7_channel_immutability.description' => 'Znovu vytvoř chat_v1 s jinou importance a sleduj, že to Android úplně ignoruje. Tohle je ukázka toho, proč mají kanály ve svém id verzi.',
+			'scenario.d7_channel_immutability.expectation' => 'Importance zobrazená na obrazovce kanálu zůstane na své původní hodnotě. Jediná oprava je nový kanál — chat_v2 — a přesně ten používá d8.',
+			'scenario.d8_channel_group.title' => 'Kanály sdružené do skupiny',
+			'scenario.d8_channel_group.description' => 'Sleduj systémová nastavení notifikací: kanály by se měly zobrazit vnořené pod pojmenovanou skupinou, ne jako plochý seznam.',
+			'scenario.e1_long_text.title' => 'BigTextStyle s ~800 znaky',
+			'scenario.e1_long_text.description' => 'Sleduj, kde se text zkrátí ve sbaleném zobrazení a jestli rozbalení ukáže celý text. Diakritika je součástí záměrně, protože limity na délku v bajtech a v znacích se chovají jinak.',
+			'scenario.e2_image_remote.title' => 'notification.image — stažený platformou',
+			'scenario.e2_image_remote.description' => 'FCM předá URL a platforma ho stáhne. Sleduj, že se zobrazí v rozbaleném stavu, a jak dlouho to trvá na pomalém připojení.',
+			'scenario.e2_image_remote.expectation' => 'Android to umí nativně. iOS potřebuje Notification Service Extension, kterou tahle aplikace neobsahuje, takže se tam nic nezobrazí.',
+			'scenario.e3_image_local.title' => 'Obrázek stažený data handlerem',
+			'scenario.e3_image_local.description' => 'Aplikace si URL stáhne sama a sestaví BigPictureStyle. Porovnej výsledek a časování s e2.',
+			'scenario.e4_image_huge.title' => 'Obrázek 4000×3000',
+			'scenario.e4_image_huge.description' => 'Sleduj zmenšení, pád na out-of-memory, nebo tichý neúspěch, kdy dorazí text, ale obrázek ne.',
+			'scenario.e5_image_404.title' => 'URL obrázku, které nejde načíst',
+			'scenario.e5_image_404.description' => 'Důležitá otázka je, jestli text i tak dorazí. Push, který zmizí, protože jeho obrázek vrátí 404, je špatný způsob selhání.',
+			'scenario.e6_large_icon.title' => 'Velká ikona vedle textu',
+			'scenario.e6_large_icon.description' => 'Kulatý slot pro avatar, odlišný od malé ikony ve stavovém řádku. Sleduj, že je kulatý a není roztažený.',
+			'scenario.e7_inbox_style.title' => 'InboxStyle se sedmi řádky',
+			'scenario.e7_inbox_style.description' => 'Sleduj, kolik řádků se po rozbalení skutečně zobrazí — Android to omezuje, a limit je nižší, než většina lidí čeká.',
+			'scenario.e8_messaging_style.title' => 'MessagingStyle s několika odesílateli',
+			'scenario.e8_messaging_style.description' => 'Chatové rozvržení, se jménem a avatarem u každé zprávy. Sleduj seskupování a pořadí.',
+			'scenario.e9_progress.title' => 'Ukazatel průběhu, aktualizovaný na místě',
+			'scenario.e9_progress.description' => 'Několik pushů aktualizujících jednu notifikaci. Sleduj, že se aktualizuje, a ne hromadí, a co se stane po dokončení.',
+			'scenario.e10_color_and_icon.title' => 'Barva zvýraznění a monochromatická ikona',
+			'scenario.e10_color_and_icon.description' => 'Klasický Xiaomi bug s bílým čtverečkem: malá ikona, která není plochá monochromatická alpha maska, se vykreslí jako vyplněný blok. Sleduj stavový řádek.',
+			'scenario.e10_color_and_icon.expectation' => 'Ikona musí být monochromatický drawable s průhledností. Bílý čtvereček vzniká právě z plnobarevné ikony launcheru.',
+			'scenario.e11_emoji_rtl.title' => 'Emoji, text zprava doleva a nezalomitelná slova',
+			'scenario.e11_emoji_rtl.description' => 'Sleduj směr textu u arabského řádku, jestli se emoji vykreslí barevně, a kde se zlomí slovo bez mezer.',
+			'scenario.f1_actions.title' => 'Dvě nebo tři akční tlačítka',
+			'scenario.f1_actions.description' => 'Sleduj, jestli tlačítka přežijí restart notifikační lišty, a co se stane s notifikací po stisknutí jednoho z nich.',
+			'scenario.f1_actions.expectation' => 'Záměrně jen data: záznam vykreslený přímo FCM nemůže nést akční tlačítka, takže tenhle si aplikace vykresluje sama, a to v každém stavu. Jen Android — akce na iOS pocházejí z kategorie registrované při startu.',
+			'scenario.f2_inline_reply.title' => 'Inline odpověď přes RemoteInput',
+			'scenario.f2_inline_reply.description' => 'Napiš odpověď bez otevření aplikace. Sleduj, že notifikace zobrazí stav odesílání a pak se aktualizuje.',
+			'scenario.f2_inline_reply.expectation' => 'Jen data, takže si ji vykresluje aplikace a tlačítko existuje v každém stavu. Odpověď aplikaci nikdy neotevře: zpracuje se ve vlastním isolate, který notifikaci aktualizuje na místě a text předá aplikaci při dalším spuštění nebo obnovení. Žádný server neexistuje — pauza mezi „Sending…“ a „Sent“ je simulovaná. Neuloží se žádná událost `opened`, protože se nic neotevřelo. Jen Android.',
+			'scenario.f3_deeplink_foreground.title' => 'Tap, když aplikace běží',
+			'scenario.f3_deeplink_foreground.description' => 'Routing z onMessage, s aplikací už na obrazovce. Sleduj, že se neztratí aktuální obrazovka.',
+			'scenario.f3_deeplink_foreground.expectation' => 'Otevře stránku Telemetrie.',
+			'scenario.f4_deeplink_background.title' => 'Tap, když je aplikace na pozadí',
+			'scenario.f4_deeplink_background.description' => 'Routing z onMessageOpenedApp. Sleduj, že se aplikace obnoví na provázané obrazovce, a ne tam, kde skončila.',
+			'scenario.f4_deeplink_background.expectation' => 'Otevře Sandbox.',
+			'scenario.f5_deeplink_killed.title' => 'Tap se zabitou aplikací',
+			'scenario.f5_deeplink_killed.description' => 'Routing z getInitialMessage, který se spustí jednou při startu a je nejčastějším zdrojem chyb v deep linkách — snadno se na něj zapomene a selhává právě jen v tom jednom stavu, který nikdo ručně netestuje.',
+			'scenario.f5_deeplink_killed.expectation' => 'Otevře stránku Běhy.',
+			'scenario.f6_delete_intent.title' => 'Detekce odsunutí (swipe-away)',
+			'scenario.f6_delete_intent.description' => 'Delete intent se spustí, když uživatel notifikaci zavře bez tapnutí. Sleduj, že to lze rozlišit od tapnutí.',
+			'scenario.f6_delete_intent.expectation' => 'Zjistí se jen tehdy, když je aplikace na obrazovce, protože jen tehdy notifikaci vykreslila sama aplikace přes plugin. Na pozadí vykresluje záznam v liště přímo FCM a odsunutí u něj nic nenahlásí; se zabitou aplikací už nezbyl žádný isolate, kterému by se to nahlásilo. Je to omezení Androidu, ne mezera v aplikaci.',
+			'scenario.f7_ongoing.title' => 'Trvalá notifikace, kterou nelze zavřít',
+			'scenario.f7_ongoing.description' => 'Sleduj, že ji nelze odsunout, a ověř, že existuje způsob, jak ji zrušit — trvalá notifikace bez úniku je jistý tiket na podporu.',
+			'scenario.f8_full_screen_intent.title' => 'Full-screen intent jako příchozí hovor',
+			'scenario.f8_full_screen_intent.description' => 'Převezme celou zamčenou obrazovku. Sleduj, jestli je vůbec povolen, a na co se degraduje, když je zamítnut.',
+			'scenario.f8_full_screen_intent.expectation' => 'Potřebuje oprávnění USE_FULL_SCREEN_INTENT, které Android 14+ uděluje jen telefonním a budíkovým aplikacím. Zde čekej degradovanou heads-up notifikaci, ne převzetí obrazovky.',
+			'scenario.f9_trampoline.title' => 'Notification trampoline, který má selhat',
+			'scenario.f9_trampoline.description' => 'Spuštění activity ze service nebo broadcast receiveru po tapnutí. Od Androidu 12 zakázáno. Sleduj chybu a její řádek v logu.',
+			'scenario.f9_trampoline.expectation' => 'Na Androidu 12 a novějším má selhat. Ukázkou je právě ta chyba, ne funkční trasa.',
+			'scenario.g1_group_summary.title' => 'Pět notifikací se souhrnem',
+			'scenario.g1_group_summary.description' => 'Sleduj, že se sbalí pod jeden souhrnný řádek, a co souhrn říká, když dorazí pátá.',
+			'scenario.g2_update_same_id.title' => 'Nahrazení notifikace na místě',
+			'scenario.g2_update_same_id.description' => 'Pošli dvakrát se stejným tagem. Sleduj, že druhá nahradí první, a ne že se hromadí, a jestli znovu upozorní.',
+			'scenario.g3_badge.title' => 'Číslo na ikoně launcheru',
+			'scenario.g3_badge.description' => 'Nejméně přenositelná věc z celého katalogu. Sleduj, jestli launcher zobrazí číslo, tečku, nebo vůbec nic.',
+			'scenario.g3_badge.expectation' => 'Chování se liší podle výrobce: One UI, MIUI a Pixel launcher se v tom neshodnou, a několik z nich navíc vyžaduje, aby uživatel odznaky povolil pro každou aplikaci zvlášť.',
+			'scenario.g4_badge_ios.title' => 'Odznak na iOS přes aps.badge',
+			'scenario.g4_badge_ios.description' => 'Jedno jasně definované číslo, nastavené odesílatelem. Sleduj, že se nahradí, a ne přičte — iOS nesčítá.',
+			'scenario.h1_dnd_bypass.title' => 'Kanál, který obchází Nerušit',
+			'scenario.h1_dnd_bypass.description' => 'Sleduj, že se ozve i s aktivním Nerušit. Nastavení flagu nestačí — uživatel musí navíc udělit přístup k notification policy.',
+			'scenario.h1_dnd_bypass.expectation' => 'Vyžaduje Notification Policy Access, který uživatel udělí v systémovém nastavení. Bez něj se flag přijme, ale tiše se ignoruje.',
+			'scenario.h2_category_alarm.title' => 'CATEGORY_ALARM',
+			'scenario.h2_category_alarm.description' => 'Nerušit zachází s alarmy jako se speciální třídou. Sleduj, jestli samotná kategorie něco změní i bez přístupu k policy.',
+			'scenario.h2_category_alarm.expectation' => 'FCM nemá pole pro kategorii notifikace — nastavuje ji klient při sestavování lokální notifikace, a proto je potřeba práce s kanály.',
+			'scenario.h3_ios_time_sensitive.title' => 'iOS time-sensitive — proniká přes Focus',
+			'scenario.h3_ios_time_sensitive.description' => 'Sleduj, že dorazí i během režimu Focus, který by běžnou notifikaci zadržel.',
+			'scenario.h4_ios_critical.title' => 'iOS critical — přes Focus i vypínač zvuku',
+			'scenario.h4_ios_critical.description' => 'Nejrušivější doručení, jaké Apple nabízí. Sleduj, že se ozve i se zařízením v tichém režimu.',
+			'scenario.h4_ios_critical.expectation' => 'Vyžaduje critical-alert entitlement, který musí Apple pro aplikaci schválit. Bez něj APNs push odmítne, takže tady zůstává neodzkoušený — uvedený jen pro úplnost, ne k naplánování.',
+			'scenario.h5_ios_passive.title' => 'iOS passive — bez zvuku, bez probuzení',
+			'scenario.h5_ios_passive.description' => 'Nejtišší úroveň: objeví se v seznamu, aniž by na sebe upozornila. Sleduj, že se obrazovka nerozsvítí.',
+			'scenario.i1_silent_no_sound.title' => 'Viditelná, ale tichá',
+			'scenario.i1_silent_no_sound.description' => 'Objeví se v liště beze zvuku a bez vibrací. Sleduj, jestli je tichá, a přesto rozsvítí obrazovku, nebo ne.',
+			'scenario.i2_silent_data_sync.title' => 'Tichá synchronizace, vykreslení prázdné',
+			'scenario.i2_silent_data_sync.description' => 'Handler zapíše řádek; přesně o tom tenhle scénář je. V liště se i tak objeví záznam — ikona a název aplikace, bez titulku a textu — protože nic nezabrání banneru bez titulku. Sleduj stránku Doručené kvůli řádku; záznam v liště nemá co zobrazit.',
+			'scenario.i3_ios_content_available.title' => 'iOS background refresh přes content-available',
+			'scenario.i3_ios_content_available.description' => 'Vzbudí aplikaci, aby si stáhla data, aniž by cokoliv zobrazila. Sleduj, jak často to iOS skutečně respektuje — agresivně to omezuje (throttling).',
+			'scenario.i3_ios_content_available.expectation' => 'iOS je může podle stavu baterie a používání zpozdit, nebo úplně zahodit. Chybějící push tu není nutně bug.',
+			'scenario.i4_burst.title' => 'Dvacet zpráv za deset sekund',
+			'scenario.i4_burst.description' => 'Sleduj rate limiting, slučování (coalescing) a limity výrobců. MIUI obvykle začne zahazovat dřív než FCM.',
+			'scenario.i4_burst.manual_steps' => 'Pošli tohle 20krát během 10 sekund a spočítej, co dorazí. Měň tělo zprávy, aby bylo slučování vidět.',
+			'scenario.j1_topic.title' => 'Odeslání do tématu',
+			'scenario.j1_topic.description' => 'Přihlas zařízení k tématu a pak pošli na téma, ne na token. Sleduj, že push dorazí, aniž by odesílatel znal jakýkoli token.',
+			'scenario.j1_topic.expectation' => 'Odeslání dnes funguje a FCM odpoví 200, ale nic se nedoručí, dokud aplikace neumí přihlásit se k tématu.',
+			'scenario.j2_condition.title' => 'Odeslání na booleovskou podmínku témat',
+			'scenario.j2_condition.description' => 'Zařízení musí být přihlášeno k oběma tématům, aby tohle dostalo. Sleduj, že přihlášení jen k jednomu ho vyloučí.',
+			'scenario.j2_condition.expectation' => 'Stejně jako u j1, odeslání dnes funguje a FCM odpoví 200 — ale nic se nedoručí, dokud se aplikace neumí přihlásit k oběma tématům.',
+			'scenario.j3_multicast.title' => 'Odeslání na všechna registrovaná zařízení',
+			'scenario.j3_multicast.description' => 'Hlavní nástroj pro porovnání chování mezi telefony: jedno odeslání, všechna zařízení, a výsledkem jsou rozdíly mezi nimi.',
+			'scenario.j3_multicast.expectation' => 'FCM nemá publikum „všechna zařízení“, takže tohle potřebuje registr tokenů, který API zatím nemá. Odeslání teď vrátí 501 s tímto důvodem, místo aby tiše doručilo na jedno zařízení.',
+			'scenario.k1_payload_oversize.title' => 'Payload nad limit FCM 4 KB',
+			'scenario.k1_payload_oversize.description' => 'Sleduj, že API předá chybu FCM s použitelnou zprávou, a ne holé 400.',
+			'scenario.k1_payload_oversize.expectation' => 'FCM tohle odmítne s INVALID_ARGUMENT. Odeslání by mělo selhat dřív, než cokoliv dorazí na zařízení.',
+			'scenario.k2_invalid_token.title' => 'Token, který už není registrovaný',
+			'scenario.k2_invalid_token.description' => 'Běžná produkční chyba. Sleduj, že API to nahlásí jako UNREGISTERED, a ne jako obecné 404 — právě to řekne skutečnému backendu, že má řádek smazat.',
+			'scenario.k2_invalid_token.expectation' => 'FCM odpoví UNREGISTERED, což tohle API mapuje na 404 s vlastním zněním. errorCode v error.details má přednost před stavem NOT_FOUND na nejvyšší úrovni.',
+			'scenario.k3_permission_denied.title' => 'POST_NOTIFICATIONS zamítnuto na Androidu 13+',
+			'scenario.k3_permission_denied.description' => 'Sleduj, že data handler stejně běží a Doručené se stejně plní, i když se nic nedá vykreslit.',
+			'scenario.k3_permission_denied.manual_steps' => 'adb shell pm revoke cz.netglade.fcm_app android.permission.POST_NOTIFICATIONS — pak pošli a kontroluj stránku Doručené, ne lištu.',
+			'scenario.k4_notifications_disabled.title' => 'Notifikace vypnuté v systémovém nastavení',
+			'scenario.k4_notifications_disabled.description' => 'Jiný případ než zamítnuté oprávnění: aplikace oprávnění má, ale uživatel je vypnul. Sleduj, že doručení dat tím není ovlivněno.',
+			'scenario.k4_notifications_disabled.manual_steps' => 'Nastavení › Aplikace › FCM Sample › Notifikace › vypnout. Pošli a ověř, že se řádek objeví na stránce Doručené.',
+			'scenario.k5_battery_restricted.title' => 'Aplikace v omezeném režimu baterie',
+			'scenario.k5_battery_restricted.description' => 'Stav, do kterého se uživatel dostane tapnutím na „omezit“ v nastavení baterie. Sleduj, jestli push s prioritou HIGH aplikaci i tak vzbudí.',
+			'scenario.k5_battery_restricted.manual_steps' => 'Nastavení › Aplikace › FCM Sample › Baterie › Omezený. Pošli a porovnej zpoždění s c1_priority_high v neomezeném stavu.',
+			'scenario_group.a' => 'A — Základní doručení',
+			'scenario_group.b' => 'B — Stavy aplikace',
+			'scenario_group.c' => 'C — Priorita a doručovací okno',
+			'scenario_group.d' => 'D — Kanály a důležitost',
+			'scenario_group.e' => 'E — Vzhled',
+			'scenario_group.f' => 'F — Interakce',
+			'scenario_group.g' => 'G — Skupiny, odznak, aktualizace',
+			'scenario_group.h' => 'H — Rušivost a priorita',
+			'scenario_group.i' => 'I — Tiché a datové',
+			'scenario_group.j' => 'J — Cílení',
+			'scenario_group.k' => 'K — Krajní případy a chyby',
+			'scenario_need.channels' => 'notifikační kanály',
+			'scenario_need.styles' => 'styly notifikací',
+			'scenario_need.interaction' => 'akce notifikací',
+			'scenario_need.badge' => 'odznak na ikoně aplikace',
+			'scenario_need.targeting' => 'registr zařízení',
+			'scenario_need.manual_step' => 'manuální krok',
+			'scenario_need.external_approval' => 'externí schválení',
 			_ => null,
 		};
 	}

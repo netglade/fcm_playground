@@ -6,6 +6,7 @@ import 'scenario_need.dart';
 class Scenario {
   const Scenario({
     required this.id,
+    required this.l10nKey,
     required this.group,
     required this.title,
     required this.description,
@@ -20,6 +21,17 @@ class Scenario {
 
   /// Stable slug, used as a widget key and in tests.
   final String id;
+
+  /// The key its prose is filed under in the app's `strings.i18n.csv`.
+  ///
+  /// Equal to [id] for every scenario today, and still its own field: [id] is a
+  /// *protocol* value. It rides in `data.scenario_id` on every push, it is what
+  /// telemetry rows join on, and the server reads it. A field renamed for a protocol
+  /// reason would silently repoint that scenario's prose at a key the CSV does not
+  /// have, and the failure would surface as a missing translation rather than as the
+  /// wire change it was. Two names that happen to match are cheaper than one name
+  /// serving two masters.
+  final String l10nKey;
 
   final String group;
 

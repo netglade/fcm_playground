@@ -12,6 +12,7 @@ void main() {
   test('a scenario with no needs is supported', () {
     const scenario = Scenario(
       id: 'x',
+      l10nKey: 'x',
       group: 'A',
       title: 't',
       description: 'd',
@@ -27,6 +28,7 @@ void main() {
   test('a scenario with a need is not supported', () {
     const scenario = Scenario(
       id: 'x',
+      l10nKey: 'x',
       group: 'A',
       title: 't',
       description: 'd',
@@ -40,6 +42,7 @@ void main() {
   test('a scenario can name its own audience', () {
     const scenario = Scenario(
       id: 'x',
+      l10nKey: 'x',
       group: 'J',
       title: 't',
       description: 'd',

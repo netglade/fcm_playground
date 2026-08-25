@@ -13,6 +13,7 @@ import 'scenario_need.dart';
 const groupI = <Scenario>[
   Scenario(
     id: 'i1_silent_no_sound',
+    l10nKey: 'i1_silent_no_sound',
     group: 'I — Silent and data',
     title: 'Visible but silent',
     description:
@@ -28,6 +29,7 @@ const groupI = <Scenario>[
   ),
   Scenario(
     id: 'i2_silent_data_sync',
+    l10nKey: 'i2_silent_data_sync',
     group: 'I — Silent and data',
     title: 'Silent sync, drawn blank',
     description:
@@ -49,6 +51,7 @@ const groupI = <Scenario>[
   ),
   Scenario(
     id: 'i3_ios_content_available',
+    l10nKey: 'i3_ios_content_available',
     group: 'I — Silent and data',
     title: 'iOS background refresh via content-available',
     description:
@@ -77,6 +80,7 @@ const groupI = <Scenario>[
   ),
   Scenario(
     id: 'i4_burst',
+    l10nKey: 'i4_burst',
     group: 'I — Silent and data',
     title: 'Twenty messages in ten seconds',
     description:
