@@ -30,10 +30,10 @@ void main() {
       // `contains(nativeCode)` alone passes on an entry that ALSO carries
       // channels or styles, which would file this group's work under the wrong
       // sub-project. So needs are pinned exactly, and the literal counts back
-      // the words: f1 and the three deep links were unblocked by the
-      // notification-actions cycle, f2 and f6 by the inline-reply cycle, f7 by
-      // the grouping cycle, f8 by this one, and the remaining one names work
-      // this project has decided never to do.
+      // the words: f1 was unblocked by the notification-actions cycle, the
+      // three deep links by the deep-link cycle, f2 and f6 by the inline-reply
+      // cycle, f7 by the grouping cycle, f8 by this one, and the remaining one
+      // names work this project has decided never to do.
       expect(groupF, hasLength(9));
 
       const expected = {

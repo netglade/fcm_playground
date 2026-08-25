@@ -127,8 +127,12 @@ class AndroidNotification {
   /// Read aloud by accessibility services as the notification arrives.
   final String? ticker;
 
-  /// Whether the notification stays until the user acts, rather than being
-  /// swipeable away.
+  /// Whether the notification survives being tapped, rather than dismissing
+  /// itself.
+  ///
+  /// Not Android's ongoing flag, despite the name: a sticky notification is
+  /// still swipeable. FCM has no field for a genuinely undismissable
+  /// notification, which is why `f7_ongoing` is data-only and drawn by the app.
   final bool? sticky;
 
   /// A proto timestamp like `"2026-08-11T09:30:00Z"`, kept as text rather than

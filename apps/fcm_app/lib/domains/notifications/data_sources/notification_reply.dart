@@ -31,20 +31,29 @@ PendingReply? replyFrom(NotificationResponse response) {
 /// `notificationIdOf` reduces to the same id and this still replaces it as
 /// intended.
 ///
-/// Known limitation: the redraw below builds a fixed `NotificationDetails`
-/// that carries none of the original's tag, group, ongoing flag or
-/// full-screen request, so all four diverge from the original draw. A tagged
-/// message's progress notification lands beside the original instead of
-/// replacing it. A grouped message's progress notification leaves its group —
-/// it stops counting toward the summary's total even though the store still
-/// counts it as a member. An ongoing message's progress notification becomes
-/// dismissable. A full-screen one stops asking to take over the screen, which
-/// is the one divergence worth keeping: a "Sending…" redraw seizing the lock
-/// screen would be worse than the flag being dropped.
-/// Left alone rather than plumbed through, because reaching any of the four
-/// means hand-composing a Sandbox payload that pairs a reply action with a
-/// tag, a group, the ongoing flag or a full-screen request; no catalogue
-/// scenario does.
+/// Known limitation: the redraw below builds a fixed `NotificationDetails`, so
+/// it diverges from the original draw in six ways.
+///
+/// Four are reachable only by hand. A tagged message's progress notification
+/// lands beside the original instead of replacing it. A grouped one leaves its
+/// group — it stops counting toward the summary's total even though the store
+/// still counts it as a member. An ongoing one becomes dismissable. A
+/// full-screen one stops asking to take over the screen, which is the one
+/// divergence worth keeping: a "Sending…" redraw seizing the lock screen would
+/// be worse than the flag being dropped. Reaching any of the four means
+/// hand-composing a Sandbox payload that pairs a reply action with a tag, a
+/// group, the ongoing flag or a full-screen request, and no catalogue scenario
+/// does: `f2_inline_reply` is the only entry carrying an input action, and its
+/// payload carries none of the four.
+///
+/// The other two are reached by f2 itself, every time. The redraw carries no
+/// `actions`, so the Reply button does not come back once the reply is sent.
+/// And it carries no `dismissIsolate`, which the plugin documents as "do not
+/// report it" — so swiping the progress notification away records nothing, and
+/// the `dismissed` event `f6_delete_intent` exists to show is off on exactly
+/// the notification `f2_inline_reply` produces. Both stay as they are because
+/// the alternative is plumbing the original payload into an isolate that
+/// receives only a message id.
 ///
 /// The original title is not restored, because this isolate does not have it —
 /// finding it would mean reading the payload store's pending queue, which the UI

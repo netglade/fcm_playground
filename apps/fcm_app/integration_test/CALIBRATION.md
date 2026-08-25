@@ -162,7 +162,7 @@ That second condition decides the test: a full-screen intent launches its activi
 only when the user is not already using the device, so on an unlocked handset
 Android shows a heads-up **even where it has granted the permission** — and a
 heads-up is exactly what a refusal looks like. Run this unlocked and you record
-"refused" whatever really happened, which is the one observation this scenario
+"refused" whatever really happened, destroying the one observation this scenario
 exists to produce. On Android 14 and later expect a heads-up rather than a
 lock-screen takeover: the platform grants `USE_FULL_SCREEN_INTENT` only to calling
 and alarm apps, and that refusal is the demonstration. On Android 13 and earlier the
@@ -171,9 +171,9 @@ not a broken expectation. A user can also grant it by hand under Settings → Ap
 Special app access → Full screen intents, so check there before recording a surprise
 on your own handset. Record what you see either way — a device that does grant the
 takeover is a valid observation about that device, not a failure of the scenario.
-Confirm separately that the notification is drawn at all:
-it is data-only now, so nothing appearing means the app's own drawing did not run,
-which is a different failure from a refused permission and must not be read as one.
+Confirm separately that the notification is drawn at all: it is data-only now, so
+nothing appearing means the app's own drawing did not run, which is a different
+failure from a refused permission and must not be read as one.
 
 **`f9_trampoline` has no device step at all.** It is not built — demonstrating the
 Android 12 ban means starting an activity from a broadcast receiver or service,

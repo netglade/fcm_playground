@@ -149,9 +149,11 @@ const groupF = <Scenario>[
         'at all — FCM has no field for one. The app declares '
         'USE_FULL_SCREEN_INTENT, which Android 14 and later grant only to '
         'calling and alarm apps, so expect a degraded heads-up notification '
-        'rather than a takeover. The refusal is the demonstration. A device '
-        'that does grant it will take over instead, which is also a valid '
-        'observation.',
+        'rather than a takeover. The refusal is the demonstration. Watch with '
+        'the screen locked or off: a full-screen intent shows a heads-up on a '
+        'handset already in use even where it was granted, so an unlocked '
+        'phone cannot tell the two apart. A device that does grant it will '
+        'take over instead, which is also a valid observation.',
     payloadTemplate: {
       'android': {'priority': 'HIGH'},
       'data': {

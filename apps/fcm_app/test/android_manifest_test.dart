@@ -10,19 +10,29 @@ import 'package:flutter_test/flutter_test.dart';
 /// green while the app quietly changes behaviour on a device. Both failures are
 /// also invisible by eye — a notification still arrives, it just arrives wrong —
 /// which is what makes them worth a test that reads the file as text.
+///
+/// Comments are stripped and the assertions are patterns rather than
+/// [String.contains], so that a line commented out, or a value that drifts away
+/// from the name it belongs to, fails rather than passes. Both files here
+/// explain themselves in comments that quote the very strings being matched.
 void main() {
   late String manifest;
 
   setUpAll(() {
     manifest = File(
       'android/app/src/main/AndroidManifest.xml',
-    ).readAsStringSync();
+    ).readAsStringSync().replaceAll(RegExp(r'<!--.*?-->', dotAll: true), '');
   });
 
   test('declares USE_FULL_SCREEN_INTENT', () {
     expect(
       manifest,
-      contains('android.permission.USE_FULL_SCREEN_INTENT'),
+      matches(
+        RegExp(
+          r'<uses-permission\s+android:name='
+          r'"android\.permission\.USE_FULL_SCREEN_INTENT"',
+        ),
+      ),
       reason:
           'Undeclared, Android never considers the full-screen request at all, '
           'so f8_full_screen_intent degrades to a heads-up for the wrong '
@@ -34,15 +44,19 @@ void main() {
   test('points FCM at the channel the app creates', () {
     expect(
       manifest,
-      contains('com.google.firebase.messaging.default_notification_channel_id'),
-    );
-    expect(
-      manifest,
-      contains('android:value="$notificationChannelId"'),
+      matches(
+        RegExp(
+          r'android:name='
+          r'"com\.google\.firebase\.messaging\.default_notification_channel_id"'
+          r'\s+android:value="'
+          '$notificationChannelId"',
+        ),
+      ),
       reason:
-          'FCM draws its own tray entries while the app is backgrounded, and '
-          'without this id they land on a default low-importance channel — '
-          'silent, where the same push is heads-up in the foreground',
+          'FCM draws its own tray entries while the app is backgrounded. '
+          'Without this id they land on its fallback channel at default '
+          'importance, so they arrive without popping as heads-up — where the '
+          'same push does pop in the foreground, which the app draws itself',
     );
   });
 }

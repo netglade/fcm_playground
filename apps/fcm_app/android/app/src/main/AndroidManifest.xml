@@ -35,7 +35,8 @@
         </activity>
         <!-- Makes the tray entries FCM draws while the app is backgrounded use
              the same high-importance channel the app creates, so they pop as
-             heads-up banners instead of landing silently. -->
+             heads-up banners. Without this they fall back to FCM's own channel
+             at default importance and arrive without popping at all. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="fcm_sample_high" />

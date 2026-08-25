@@ -262,9 +262,8 @@ targeting, and edge cases.
 notification channels, notification styles, a launcher badge, a device registry,
 a manual step, approval from Apple or the OS that this project cannot grant
 itself, or native code this Dart-only gallery has decided not to carry. That
-count is
-asserted by a test, so this README cannot drift from the code: if a scenario is
-quietly unmarked to look supported, the build fails.
+count is asserted by a test, so this README cannot drift from the code: if a
+scenario is quietly unmarked to look supported, the build fails.
 
 A blocked scenario is **still sendable**. The push is genuine and valid; only the
 behaviour it demonstrates is missing, and watching a client that has only one
@@ -517,7 +516,7 @@ tapping either the notification or an inbox row opens a detail page for it.
 | App backgrounded or terminated, payload is data-only | The background message isolate, via `shouldDrawInBackground`. Several scenarios are data-only on purpose: FCM's own draw has no field for action buttons, a group, an ongoing flag or a full-screen intent, so a scenario about any of those must be drawn by the app in every state. |
 | App in the foreground | `LocalNotificationPresenter`, because Android shows nothing itself in this case. On iOS a single `setForegroundNotificationPresentationOptions` call is enough. |
 
-Both use one high-importance Android channel, `fcm_sample_high`. The app creates
+All three use one high-importance Android channel, `fcm_sample_high`. The app creates
 it, and `AndroidManifest.xml` points FCM at the same id with
 `default_notification_channel_id` — without that, only the foreground banners
 would be heads-up.
@@ -530,8 +529,9 @@ resume — two keys rather than one, so neither isolate read-modify-writes the
 other's data.
 
 **A push is never notified twice.** Only messages arriving on the live foreground
-stream produce a banner; anything restored from storage was already shown by FCM
-while the app was away, so replaying it on launch is exactly what the code avoids.
+stream produce a banner; anything restored from storage was already shown while
+the app was away — by FCM, or by the background isolate where the payload was
+data-only — so replaying it on launch is exactly what the code avoids.
 
 Notification permission is requested at startup by `firebase_messaging`, which
 covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
