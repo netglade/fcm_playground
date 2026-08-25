@@ -241,7 +241,7 @@ class _Translations$selection_bar$cs implements Translations$selection_bar$en {
 	// Translations
 
 	/// Button that enters multi-select
-	@override String get select_for_batch => 'Vybrat pro dávku';
+	@override String get select_for_batch => 'Vybrat do dávky';
 
 	@override String selected_count({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n,
 		one: '${n} vybrán',
@@ -373,7 +373,7 @@ extension on TranslationsCs {
 			'common.cancel' => 'Zrušit',
 			'common.schedule_ellipsis' => 'Naplánovat…',
 			'common.reload' => 'Znovu načíst',
-			'selection_bar.select_for_batch' => 'Vybrat pro dávku',
+			'selection_bar.select_for_batch' => 'Vybrat do dávky',
 			'selection_bar.selected_count' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '${n} vybrán', few: '${n} vybrány', other: '${n} vybráno', ), 
 			'runs.empty' => 'Zatím nic naplánováno. Vyber scénář a zvol Naplánovat.',
 			'run_timeline.title' => 'Běh',

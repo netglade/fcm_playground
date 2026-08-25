@@ -33,7 +33,7 @@ data: $keys",Tile subtitle when the message carries a data map
 scenarios.no_token,"No registration token yet, so there is nowhere to send. Open the Inbox once the app has registered.","Zatím není registrační token, takže není kam posílat. Otevři Doručené, až se aplikace zaregistruje.",Banner when the device has not registered
 scenario_card.needs_work,needs work,potřebuje práci,Chip on a scenario whose needs are unmet
 common.needs_killed_app,Needs the app killed,Vyžaduje zabitou aplikaci,"Badge on a scenario that only means something with the app killed; used on the card and in the Sandbox"
-selection_bar.select_for_batch,Select for a batch,Vybrat pro dávku,Button that enters multi-select
+selection_bar.select_for_batch,Select for a batch,Vybrat do dávky,Button that enters multi-select
 selection_bar.selected_count.one,$n selected,$n vybrán,Count of scenarios picked for a batch
 selection_bar.selected_count.few,$n selected,$n vybrány,Count of scenarios picked for a batch
 selection_bar.selected_count.other,$n selected,$n vybráno,Count of scenarios picked for a batch

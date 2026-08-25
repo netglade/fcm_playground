@@ -49,6 +49,26 @@ void main() {
     expect(find.textContaining('1 pending'), findsOneWidget);
   });
 
+  testWidgets('reads a real singular for a one-item run', (tester) async {
+    await pump(
+      tester,
+      FakeRunScheduler(
+        summaries: [
+          summary('run-1', {RunItemState.sent: 1}),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('1 send'),
+      findsOneWidget,
+      reason:
+          'a one-item run used to read "1 sends"; this is the whole point '
+          'of making the count a real plural',
+    );
+  });
+
   testWidgets('hands the tapped run id to its caller', (tester) async {
     final tapped = <String>[];
     await pumpApp(
