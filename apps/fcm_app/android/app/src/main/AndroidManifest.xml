@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Held by the countdown screen so the display cannot sleep before the user has
-         had a chance to swipe the app out of recents. -->
+    <!-- Redundant: firebase_messaging declares WAKE_LOCK itself for its
+         background service, so removing this line changes nothing in the merged
+         manifest. It is also not what keeps the countdown screen awake — that is
+         FLAG_KEEP_SCREEN_ON, a window flag needing no permission. Kept so this
+         file states what the app relies on rather than inheriting it silently. -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <!-- Asked for by f8_full_screen_intent. Android 14+ grants this only to
          calling and alarm apps, so this gallery expects to be refused — the

@@ -494,10 +494,12 @@ whether FCM ever answered.
 **The countdown counts on the phone's clock**, not against the server's `due_at`.
 Disagreeing clocks are a documented fact here — `GET /latency` reports both
 timestamps rather than clamping — and a ten-second skew would show "40 s remaining"
-with thirty seconds left. It holds a wakelock so the screen does not sleep before you
-have swiped the app away. *"Dim the screen"* does not switch the display off: an
-ordinary Android app cannot, without DeviceAdmin. It dims and releases the lock, and
-the system's own timeout does the rest — which is what the button says.
+with thirty seconds left. It keeps the screen on so the display does not sleep
+before you have swiped the app away — `FLAG_KEEP_SCREEN_ON`, a window flag rather
+than a wakelock, which is why it needs no permission of its own. *"Dim the
+screen"* does not switch the display off: an ordinary Android app cannot, without
+DeviceAdmin. It dims and clears the flag, and the system's own timeout does the
+rest — which is what the button says.
 
 **Coming back**, the app reopens the run it was waiting on, from an id in
 `shared_preferences` — the only thing that survives being swiped away. That timing is
@@ -520,8 +522,8 @@ All three use one high-importance Android channel, `fcm_sample_high`. The app cr
 it, and `AndroidManifest.xml` points FCM at the same id with
 `default_notification_channel_id` — without that, FCM's own background entries
 fall back to FCM's fallback channel at default importance and stop popping. The
-paths the app draws itself are unaffected, because the app creates the channel
-rather than naming it.
+paths the app draws itself are unaffected, because each names the channel
+outright and the app has already created it.
 
 The inbox is durable: the newest 100 payloads are kept in `shared_preferences`
 and reloaded at launch, so a push that arrived while the app was away is there

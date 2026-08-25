@@ -49,7 +49,7 @@ class CountdownBody extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 'An ordinary app cannot switch the display off — only dim it '
-                'and let go of the wakelock, so the system times out on its '
+                'and stop keeping it awake, so the system times out on its '
                 'own.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall,
