@@ -51,9 +51,9 @@ PendingReply? replyFrom(NotificationResponse response) {
 /// `actions`, so the Reply button does not come back once the reply is sent.
 /// And it carries no `dismissIsolate`, which the plugin documents as null
 /// meaning not to report a dismissal at all — so swiping the progress
-/// notification away records nothing, and
-/// the `dismissed` event `f6_delete_intent` exists to show is off on exactly
-/// the notification `f2_inline_reply` produces. Both stay as they are because
+/// notification away records nothing, and the `dismissed` event
+/// `f6_delete_intent` exists to show is off on exactly the notification
+/// `f2_inline_reply` produces. Both stay as they are because
 /// the alternative is plumbing the original payload into an isolate that
 /// receives only a message id.
 ///
