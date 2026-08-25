@@ -61,11 +61,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.textContaining('1 send'),
+      find.text('1 send'),
       findsOneWidget,
       reason:
-          'a one-item run used to read "1 sends"; this is the whole point '
-          'of making the count a real plural',
+          'a one-item run used to read "1 sends"; this is the whole point of '
+          'making the count a real plural',
+    );
+    expect(
+      find.textContaining('1 sends'),
+      findsNothing,
+      reason:
+          'find.text alone would not catch a regression that reintroduced the '
+          'plural form, because "1 send" is a prefix of "1 sends"',
     );
   });
 
