@@ -55,6 +55,15 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$run_timeline$en run_timeline = Translations$run_timeline$en._(_root);
 	late final Translations$run_tile$en run_tile = Translations$run_tile$en._(_root);
 	late final Translations$run_item$en run_item = Translations$run_item$en._(_root);
+	late final Translations$sandbox$en sandbox = Translations$sandbox$en._(_root);
+	late final Translations$send$en send = Translations$send$en._(_root);
+	late final Translations$send_target$en send_target = Translations$send_target$en._(_root);
+	late final Translations$schedule_sheet$en schedule_sheet = Translations$schedule_sheet$en._(_root);
+	late final Translations$preset_chip$en preset_chip = Translations$preset_chip$en._(_root);
+	late final Translations$not_received$en not_received = Translations$not_received$en._(_root);
+	late final Translations$scenario_needs$en scenario_needs = Translations$scenario_needs$en._(_root);
+	late final Translations$send_result$en send_result = Translations$send_result$en._(_root);
+	late final Translations$countdown$en countdown = Translations$countdown$en._(_root);
 }
 
 // Path: app
@@ -383,6 +392,234 @@ class Translations$run_item$en {
 	String get nothing_recorded => 'Nothing recorded yet.';
 }
 
+// Path: sandbox
+class Translations$sandbox$en {
+	Translations$sandbox$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Switch that asks FCM to validate without delivering
+	///
+	/// en: 'Validate only'
+	String get validate_only => 'Validate only';
+}
+
+// Path: send
+class Translations$send$en {
+	Translations$send$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Send button label
+	///
+	/// en: 'Send to this device'
+	String get to_this_device => 'Send to this device';
+
+	/// Send button label
+	///
+	/// en: 'Send to that token'
+	String get to_that_token => 'Send to that token';
+
+	/// Send button label
+	///
+	/// en: 'Send to topic "$topic"'
+	String to_topic({required Object topic}) => 'Send to topic "${topic}"';
+
+	/// Send button label
+	///
+	/// en: 'Send to the condition'
+	String get to_condition => 'Send to the condition';
+
+	/// Send button label
+	///
+	/// en: 'Send to every device'
+	String get to_every_device => 'Send to every device';
+}
+
+// Path: send_target
+class Translations$send_target$en {
+	Translations$send_target$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Label of the delivery-target dropdown
+	///
+	/// en: 'Send to'
+	String get label => 'Send to';
+
+	/// Delivery-target choice
+	///
+	/// en: 'This device'
+	String get this_device => 'This device';
+
+	/// Delivery-target choice; the FCM term
+	///
+	/// en: 'Token'
+	String get token => 'Token';
+
+	/// Delivery-target choice
+	///
+	/// en: 'Topic'
+	String get topic => 'Topic';
+
+	/// Delivery-target choice
+	///
+	/// en: 'Condition'
+	String get condition => 'Condition';
+
+	/// Delivery-target choice
+	///
+	/// en: 'All devices'
+	String get all_devices => 'All devices';
+
+	/// Warning under the all-devices choice
+	///
+	/// en: 'Sending to every device needs a token registry the API does not have yet, so this will be refused.'
+	String get all_devices_warning => 'Sending to every device needs a token registry the API does not have yet, so this will be refused.';
+}
+
+// Path: schedule_sheet
+class Translations$schedule_sheet$en {
+	Translations$schedule_sheet$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Section heading in the schedule sheet
+	///
+	/// en: 'Delay'
+	String get delay => 'Delay';
+
+	/// Section heading in the schedule sheet
+	///
+	/// en: 'Spacing'
+	String get spacing => 'Spacing';
+
+	/// Help text under Spacing
+	///
+	/// en: 'Added again for each message after the first, so a batch arrives spread out rather than as one burst.'
+	String get spacing_help => 'Added again for each message after the first, so a batch arrives spread out rather than as one burst.';
+
+	/// Confirm button in the schedule sheet; no ellipsis because this one acts
+	///
+	/// en: 'Schedule'
+	String get confirm => 'Schedule';
+}
+
+// Path: preset_chip
+class Translations$preset_chip$en {
+	Translations$preset_chip$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Delay preset chip
+	///
+	/// en: '$value s'
+	String seconds({required Object value}) => '${value} s';
+}
+
+// Path: not_received
+class Translations$not_received$en {
+	Translations$not_received$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Button reporting a push that did not show up
+	///
+	/// en: 'It never arrived'
+	String get button => 'It never arrived';
+
+	/// The same button once pressed
+	///
+	/// en: 'Reported as never arrived'
+	String get reported => 'Reported as never arrived';
+}
+
+// Path: scenario_needs
+class Translations$scenario_needs$en {
+	Translations$scenario_needs$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Banner listing what a scenario is missing
+	///
+	/// en: 'Needs $needs. The push will still be sent, but this scenario cannot be observed yet.'
+	String banner({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.';
+}
+
+// Path: send_result
+class Translations$send_result$en {
+	Translations$send_result$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Result card after a validate-only send
+	///
+	/// en: '✓ Validated · message $messageId · trace $traceId · the payload was validated, not sent'
+	String validated({required Object messageId, required Object traceId}) => '✓ Validated · message ${messageId} · trace ${traceId} · the payload was validated, not sent';
+
+	/// Result card after a send
+	///
+	/// en: '✓ Sent · message $messageId · trace $traceId · it should appear in the Inbox shortly'
+	String sent({required Object messageId, required Object traceId}) => '✓ Sent · message ${messageId} · trace ${traceId} · it should appear in the Inbox shortly';
+
+	/// en: '(one) {✓ Scheduled · run $runId · $n message · nothing has been sent yet} (few) {✓ Scheduled · run $runId · $n messages · nothing has been sent yet} (other) {✓ Scheduled · run $runId · $n messages · nothing has been sent yet}'
+	String scheduled({required num n, required Object runId}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '✓ Scheduled · run ${runId} · ${n} message · nothing has been sent yet',
+		few: '✓ Scheduled · run ${runId} · ${n} messages · nothing has been sent yet',
+		other: '✓ Scheduled · run ${runId} · ${n} messages · nothing has been sent yet',
+	);
+}
+
+// Path: countdown
+class Translations$countdown$en {
+	Translations$countdown$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Unit under the countdown's number
+	///
+	/// en: 'seconds'
+	String get seconds => 'seconds';
+
+	/// Instruction on the countdown screen
+	///
+	/// en: 'Swipe the app away from recents now. The push is already scheduled on the server, so it will arrive whether this app is running or not.'
+	String get swipe_away => 'Swipe the app away from recents now. The push is already scheduled on the server, so it will arrive whether this app is running or not.';
+
+	/// Explains why the button dims rather than switches off
+	///
+	/// en: 'An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.'
+	String get dim_note => 'An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.';
+
+	/// Button on the countdown screen
+	///
+	/// en: 'Dim the screen'
+	String get dim_screen => 'Dim the screen';
+
+	/// Opens the OS battery settings
+	///
+	/// en: 'Battery settings'
+	String get battery_settings => 'Battery settings';
+}
+
 // Path: shell.title
 class Translations$shell$title$en {
 	Translations$shell$title$en._(this._root);
@@ -467,6 +704,35 @@ extension on Translations {
 			'run_item.composed_by_hand' => '(composed by hand)',
 			'run_item.due' => ({required Object time}) => 'due ${time}',
 			'run_item.nothing_recorded' => 'Nothing recorded yet.',
+			'sandbox.validate_only' => 'Validate only',
+			'send.to_this_device' => 'Send to this device',
+			'send.to_that_token' => 'Send to that token',
+			'send.to_topic' => ({required Object topic}) => 'Send to topic "${topic}"',
+			'send.to_condition' => 'Send to the condition',
+			'send.to_every_device' => 'Send to every device',
+			'send_target.label' => 'Send to',
+			'send_target.this_device' => 'This device',
+			'send_target.token' => 'Token',
+			'send_target.topic' => 'Topic',
+			'send_target.condition' => 'Condition',
+			'send_target.all_devices' => 'All devices',
+			'send_target.all_devices_warning' => 'Sending to every device needs a token registry the API does not have yet, so this will be refused.',
+			'schedule_sheet.delay' => 'Delay',
+			'schedule_sheet.spacing' => 'Spacing',
+			'schedule_sheet.spacing_help' => 'Added again for each message after the first, so a batch arrives spread out rather than as one burst.',
+			'schedule_sheet.confirm' => 'Schedule',
+			'preset_chip.seconds' => ({required Object value}) => '${value} s',
+			'not_received.button' => 'It never arrived',
+			'not_received.reported' => 'Reported as never arrived',
+			'scenario_needs.banner' => ({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.',
+			'send_result.validated' => ({required Object messageId, required Object traceId}) => '✓ Validated · message ${messageId} · trace ${traceId} · the payload was validated, not sent',
+			'send_result.sent' => ({required Object messageId, required Object traceId}) => '✓ Sent · message ${messageId} · trace ${traceId} · it should appear in the Inbox shortly',
+			'send_result.scheduled' => ({required num n, required Object runId}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '✓ Scheduled · run ${runId} · ${n} message · nothing has been sent yet', few: '✓ Scheduled · run ${runId} · ${n} messages · nothing has been sent yet', other: '✓ Scheduled · run ${runId} · ${n} messages · nothing has been sent yet', ), 
+			'countdown.seconds' => 'seconds',
+			'countdown.swipe_away' => 'Swipe the app away from recents now. The push is already scheduled on the server, so it will arrive whether this app is running or not.',
+			'countdown.dim_note' => 'An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.',
+			'countdown.dim_screen' => 'Dim the screen',
+			'countdown.battery_settings' => 'Battery settings',
 			_ => null,
 		};
 	}

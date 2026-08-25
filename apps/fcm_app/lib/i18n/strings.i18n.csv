@@ -48,3 +48,34 @@ run_tile.next_due,next due $time,další v $time,When the run's next message goe
 run_item.composed_by_hand,(composed by hand),(složeno ručně),Stands in for a run item with no scenario id
 run_item.due,due $time,v $time,When one run item goes out
 run_item.nothing_recorded,Nothing recorded yet.,Zatím nic nezaznamenáno.,Empty state for a run item's events
+sandbox.validate_only,Validate only,Jen validovat,Switch that asks FCM to validate without delivering
+send.to_this_device,Send to this device,Poslat na toto zařízení,Send button label
+send.to_that_token,Send to that token,Poslat na ten token,Send button label
+send.to_topic,"Send to topic ""$topic""","Poslat do tématu „$topic“",Send button label
+send.to_condition,Send to the condition,Poslat na podmínku,Send button label
+send.to_every_device,Send to every device,Poslat na všechna zařízení,Send button label
+send_target.label,Send to,Poslat na,Label of the delivery-target dropdown
+send_target.this_device,This device,Toto zařízení,Delivery-target choice
+send_target.token,Token,Token,Delivery-target choice; the FCM term
+send_target.topic,Topic,Téma,Delivery-target choice
+send_target.condition,Condition,Podmínka,Delivery-target choice
+send_target.all_devices,All devices,Všechna zařízení,Delivery-target choice
+send_target.all_devices_warning,"Sending to every device needs a token registry the API does not have yet, so this will be refused.","Odeslání na všechna zařízení potřebuje registr tokenů, který API zatím nemá, takže bude odmítnuto.",Warning under the all-devices choice
+schedule_sheet.delay,Delay,Zpoždění,Section heading in the schedule sheet
+schedule_sheet.spacing,Spacing,Rozestup,Section heading in the schedule sheet
+schedule_sheet.spacing_help,"Added again for each message after the first, so a batch arrives spread out rather than as one burst.","Přičte se za každou zprávu po první, takže dávka dorazí rozprostřená, ne jako jeden shluk.",Help text under Spacing
+schedule_sheet.confirm,Schedule,Naplánovat,"Confirm button in the schedule sheet; no ellipsis because this one acts"
+preset_chip.seconds,$value s,$value s,Delay preset chip
+not_received.button,It never arrived,Nikdy nedorazilo,Button reporting a push that did not show up
+not_received.reported,Reported as never arrived,Nahlášeno jako nedoručené,The same button once pressed
+scenario_needs.banner,"Needs $needs. The push will still be sent, but this scenario cannot be observed yet.","Potřebuje $needs. Push se pošle, ale tento scénář se ještě nedá pozorovat.",Banner listing what a scenario is missing
+send_result.validated,"✓ Validated · message $messageId · trace $traceId · the payload was validated, not sent","✓ Zvalidováno · zpráva $messageId · trace $traceId · payload byl zvalidován, ne odeslán",Result card after a validate-only send
+send_result.sent,"✓ Sent · message $messageId · trace $traceId · it should appear in the Inbox shortly","✓ Odesláno · zpráva $messageId · trace $traceId · za chvíli by se mělo objevit v Doručených",Result card after a send
+send_result.scheduled.one,"✓ Scheduled · run $runId · $n message · nothing has been sent yet","✓ Naplánováno · běh $runId · $n zpráva · zatím nic neodesláno",Result card after scheduling a run
+send_result.scheduled.few,"✓ Scheduled · run $runId · $n messages · nothing has been sent yet","✓ Naplánováno · běh $runId · $n zprávy · zatím nic neodesláno",Result card after scheduling a run
+send_result.scheduled.other,"✓ Scheduled · run $runId · $n messages · nothing has been sent yet","✓ Naplánováno · běh $runId · $n zpráv · zatím nic neodesláno",Result card after scheduling a run
+countdown.seconds,seconds,sekund,Unit under the countdown's number
+countdown.swipe_away,"Swipe the app away from recents now. The push is already scheduled on the server, so it will arrive whether this app is running or not.","Teď odsuň aplikaci z posledních. Push je už naplánovaný na serveru, takže dorazí, ať aplikace běží nebo ne.",Instruction on the countdown screen
+countdown.dim_note,"An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.","Obyčejná aplikace nemůže vypnout displej — jen ho ztmavit a pustit wakelock, takže systém zhasne sám.",Explains why the button dims rather than switches off
+countdown.dim_screen,Dim the screen,Ztmavit displej,Button on the countdown screen
+countdown.battery_settings,Battery settings,Nastavení baterie,Opens the OS battery settings

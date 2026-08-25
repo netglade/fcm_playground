@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../domains/runs/entities/countdown_screen.dart';
+import '../../../i18n/translations.g.dart';
 import '../cubit/countdown_state.dart';
 
 /// The countdown's face: the seconds left, the instruction to swipe the app away,
@@ -25,6 +26,7 @@ class CountdownBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.t;
 
     return Scaffold(
       body: SafeArea(
@@ -37,20 +39,16 @@ class CountdownBody extends StatelessWidget {
                 '${state.remainingSeconds}',
                 style: theme.textTheme.displayLarge,
               ),
-              Text('seconds', style: theme.textTheme.titleMedium),
+              Text(t.countdown.seconds, style: theme.textTheme.titleMedium),
               const SizedBox(height: 32),
               Text(
-                'Swipe the app away from recents now. The push is already '
-                'scheduled on the server, so it will arrive whether this app '
-                'is running or not.',
+                t.countdown.swipe_away,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyLarge,
               ),
               const SizedBox(height: 24),
               Text(
-                'An ordinary app cannot switch the display off — only dim it '
-                'and let go of the wakelock, so the system times out on its '
-                'own.',
+                t.countdown.dim_note,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall,
               ),
@@ -61,11 +59,11 @@ class CountdownBody extends StatelessWidget {
                 children: [
                   OutlinedButton(
                     onPressed: screen.dim,
-                    child: const Text('Dim the screen'),
+                    child: Text(t.countdown.dim_screen),
                   ),
                   OutlinedButton(
                     onPressed: screen.openBatterySettings,
-                    child: const Text('Battery settings'),
+                    child: Text(t.countdown.battery_settings),
                   ),
                 ],
               ),
@@ -79,7 +77,8 @@ class CountdownBody extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: 24),
-              TextButton(onPressed: onCancel, child: const Text('Cancel')),
+              // The same key used wherever a sheet or selection can be dismissed.
+              TextButton(onPressed: onCancel, child: Text(t.common.cancel)),
             ],
           ),
         ),

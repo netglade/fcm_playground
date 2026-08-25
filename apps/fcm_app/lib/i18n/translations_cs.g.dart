@@ -52,6 +52,15 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$run_timeline$cs run_timeline = _Translations$run_timeline$cs._(_root);
 	@override late final _Translations$run_tile$cs run_tile = _Translations$run_tile$cs._(_root);
 	@override late final _Translations$run_item$cs run_item = _Translations$run_item$cs._(_root);
+	@override late final _Translations$sandbox$cs sandbox = _Translations$sandbox$cs._(_root);
+	@override late final _Translations$send$cs send = _Translations$send$cs._(_root);
+	@override late final _Translations$send_target$cs send_target = _Translations$send_target$cs._(_root);
+	@override late final _Translations$schedule_sheet$cs schedule_sheet = _Translations$schedule_sheet$cs._(_root);
+	@override late final _Translations$preset_chip$cs preset_chip = _Translations$preset_chip$cs._(_root);
+	@override late final _Translations$not_received$cs not_received = _Translations$not_received$cs._(_root);
+	@override late final _Translations$scenario_needs$cs scenario_needs = _Translations$scenario_needs$cs._(_root);
+	@override late final _Translations$send_result$cs send_result = _Translations$send_result$cs._(_root);
+	@override late final _Translations$countdown$cs countdown = _Translations$countdown$cs._(_root);
 }
 
 // Path: app
@@ -308,6 +317,177 @@ class _Translations$run_item$cs implements Translations$run_item$en {
 	@override String get nothing_recorded => 'Zatím nic nezaznamenáno.';
 }
 
+// Path: sandbox
+class _Translations$sandbox$cs implements Translations$sandbox$en {
+	_Translations$sandbox$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Switch that asks FCM to validate without delivering
+	@override String get validate_only => 'Jen validovat';
+}
+
+// Path: send
+class _Translations$send$cs implements Translations$send$en {
+	_Translations$send$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Send button label
+	@override String get to_this_device => 'Poslat na toto zařízení';
+
+	/// Send button label
+	@override String get to_that_token => 'Poslat na ten token';
+
+	/// Send button label
+	@override String to_topic({required Object topic}) => 'Poslat do tématu „${topic}“';
+
+	/// Send button label
+	@override String get to_condition => 'Poslat na podmínku';
+
+	/// Send button label
+	@override String get to_every_device => 'Poslat na všechna zařízení';
+}
+
+// Path: send_target
+class _Translations$send_target$cs implements Translations$send_target$en {
+	_Translations$send_target$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Label of the delivery-target dropdown
+	@override String get label => 'Poslat na';
+
+	/// Delivery-target choice
+	@override String get this_device => 'Toto zařízení';
+
+	/// Delivery-target choice; the FCM term
+	@override String get token => 'Token';
+
+	/// Delivery-target choice
+	@override String get topic => 'Téma';
+
+	/// Delivery-target choice
+	@override String get condition => 'Podmínka';
+
+	/// Delivery-target choice
+	@override String get all_devices => 'Všechna zařízení';
+
+	/// Warning under the all-devices choice
+	@override String get all_devices_warning => 'Odeslání na všechna zařízení potřebuje registr tokenů, který API zatím nemá, takže bude odmítnuto.';
+}
+
+// Path: schedule_sheet
+class _Translations$schedule_sheet$cs implements Translations$schedule_sheet$en {
+	_Translations$schedule_sheet$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Section heading in the schedule sheet
+	@override String get delay => 'Zpoždění';
+
+	/// Section heading in the schedule sheet
+	@override String get spacing => 'Rozestup';
+
+	/// Help text under Spacing
+	@override String get spacing_help => 'Přičte se za každou zprávu po první, takže dávka dorazí rozprostřená, ne jako jeden shluk.';
+
+	/// Confirm button in the schedule sheet; no ellipsis because this one acts
+	@override String get confirm => 'Naplánovat';
+}
+
+// Path: preset_chip
+class _Translations$preset_chip$cs implements Translations$preset_chip$en {
+	_Translations$preset_chip$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Delay preset chip
+	@override String seconds({required Object value}) => '${value} s';
+}
+
+// Path: not_received
+class _Translations$not_received$cs implements Translations$not_received$en {
+	_Translations$not_received$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Button reporting a push that did not show up
+	@override String get button => 'Nikdy nedorazilo';
+
+	/// The same button once pressed
+	@override String get reported => 'Nahlášeno jako nedoručené';
+}
+
+// Path: scenario_needs
+class _Translations$scenario_needs$cs implements Translations$scenario_needs$en {
+	_Translations$scenario_needs$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Banner listing what a scenario is missing
+	@override String banner({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.';
+}
+
+// Path: send_result
+class _Translations$send_result$cs implements Translations$send_result$en {
+	_Translations$send_result$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Result card after a validate-only send
+	@override String validated({required Object messageId, required Object traceId}) => '✓ Zvalidováno · zpráva ${messageId} · trace ${traceId} · payload byl zvalidován, ne odeslán';
+
+	/// Result card after a send
+	@override String sent({required Object messageId, required Object traceId}) => '✓ Odesláno · zpráva ${messageId} · trace ${traceId} · za chvíli by se mělo objevit v Doručených';
+
+	@override String scheduled({required num n, required Object runId}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n,
+		one: '✓ Naplánováno · běh ${runId} · ${n} zpráva · zatím nic neodesláno',
+		few: '✓ Naplánováno · běh ${runId} · ${n} zprávy · zatím nic neodesláno',
+		other: '✓ Naplánováno · běh ${runId} · ${n} zpráv · zatím nic neodesláno',
+	);
+}
+
+// Path: countdown
+class _Translations$countdown$cs implements Translations$countdown$en {
+	_Translations$countdown$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Unit under the countdown's number
+	@override String get seconds => 'sekund';
+
+	/// Instruction on the countdown screen
+	@override String get swipe_away => 'Teď odsuň aplikaci z posledních. Push je už naplánovaný na serveru, takže dorazí, ať aplikace běží nebo ne.';
+
+	/// Explains why the button dims rather than switches off
+	@override String get dim_note => 'Obyčejná aplikace nemůže vypnout displej — jen ho ztmavit a pustit wakelock, takže systém zhasne sám.';
+
+	/// Button on the countdown screen
+	@override String get dim_screen => 'Ztmavit displej';
+
+	/// Opens the OS battery settings
+	@override String get battery_settings => 'Nastavení baterie';
+}
+
 // Path: shell.title
 class _Translations$shell$title$cs implements Translations$shell$title$en {
 	_Translations$shell$title$cs._(this._root);
@@ -382,6 +562,35 @@ extension on TranslationsCs {
 			'run_item.composed_by_hand' => '(složeno ručně)',
 			'run_item.due' => ({required Object time}) => 'v ${time}',
 			'run_item.nothing_recorded' => 'Zatím nic nezaznamenáno.',
+			'sandbox.validate_only' => 'Jen validovat',
+			'send.to_this_device' => 'Poslat na toto zařízení',
+			'send.to_that_token' => 'Poslat na ten token',
+			'send.to_topic' => ({required Object topic}) => 'Poslat do tématu „${topic}“',
+			'send.to_condition' => 'Poslat na podmínku',
+			'send.to_every_device' => 'Poslat na všechna zařízení',
+			'send_target.label' => 'Poslat na',
+			'send_target.this_device' => 'Toto zařízení',
+			'send_target.token' => 'Token',
+			'send_target.topic' => 'Téma',
+			'send_target.condition' => 'Podmínka',
+			'send_target.all_devices' => 'Všechna zařízení',
+			'send_target.all_devices_warning' => 'Odeslání na všechna zařízení potřebuje registr tokenů, který API zatím nemá, takže bude odmítnuto.',
+			'schedule_sheet.delay' => 'Zpoždění',
+			'schedule_sheet.spacing' => 'Rozestup',
+			'schedule_sheet.spacing_help' => 'Přičte se za každou zprávu po první, takže dávka dorazí rozprostřená, ne jako jeden shluk.',
+			'schedule_sheet.confirm' => 'Naplánovat',
+			'preset_chip.seconds' => ({required Object value}) => '${value} s',
+			'not_received.button' => 'Nikdy nedorazilo',
+			'not_received.reported' => 'Nahlášeno jako nedoručené',
+			'scenario_needs.banner' => ({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.',
+			'send_result.validated' => ({required Object messageId, required Object traceId}) => '✓ Zvalidováno · zpráva ${messageId} · trace ${traceId} · payload byl zvalidován, ne odeslán',
+			'send_result.sent' => ({required Object messageId, required Object traceId}) => '✓ Odesláno · zpráva ${messageId} · trace ${traceId} · za chvíli by se mělo objevit v Doručených',
+			'send_result.scheduled' => ({required num n, required Object runId}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '✓ Naplánováno · běh ${runId} · ${n} zpráva · zatím nic neodesláno', few: '✓ Naplánováno · běh ${runId} · ${n} zprávy · zatím nic neodesláno', other: '✓ Naplánováno · běh ${runId} · ${n} zpráv · zatím nic neodesláno', ), 
+			'countdown.seconds' => 'sekund',
+			'countdown.swipe_away' => 'Teď odsuň aplikaci z posledních. Push je už naplánovaný na serveru, takže dorazí, ať aplikace běží nebo ne.',
+			'countdown.dim_note' => 'Obyčejná aplikace nemůže vypnout displej — jen ho ztmavit a pustit wakelock, takže systém zhasne sám.',
+			'countdown.dim_screen' => 'Ztmavit displej',
+			'countdown.battery_settings' => 'Nastavení baterie',
 			_ => null,
 		};
 	}

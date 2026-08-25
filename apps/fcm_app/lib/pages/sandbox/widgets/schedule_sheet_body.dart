@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
 import 'preset_chips.dart';
 import 'schedule_choice.dart';
 
@@ -34,44 +35,57 @@ class _ScheduleSheetBodyState extends State<ScheduleSheetBody> {
   int _spacing = 0;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(16),
-    child: SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Delay', style: Theme.of(context).textTheme.titleSmall),
-          PresetChips(
-            values: _delayPresets,
-            selected: _delay,
-            onSelected: (value) => setState(() => _delay = value),
-          ),
-          if (widget.withSpacing) ...[
-            const SizedBox(height: 12),
-            Text('Spacing', style: Theme.of(context).textTheme.titleSmall),
-            const Text(
-              'Added again for each message after the first, so a batch arrives '
-              'spread out rather than as one burst.',
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              t.schedule_sheet.delay,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
             PresetChips(
-              values: _spacingPresets,
-              selected: _spacing,
-              onSelected: (value) => setState(() => _spacing = value),
+              values: _delayPresets,
+              selected: _delay,
+              onSelected: (value) => setState(() => _delay = value),
+            ),
+            if (widget.withSpacing) ...[
+              const SizedBox(height: 12),
+              Text(
+                t.schedule_sheet.spacing,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              Text(t.schedule_sheet.spacing_help),
+              PresetChips(
+                values: _spacingPresets,
+                selected: _spacing,
+                onSelected: (value) => setState(() => _spacing = value),
+              ),
+            ],
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(
+                  ScheduleChoice(
+                    delaySeconds: _delay,
+                    spacingSeconds: _spacing,
+                  ),
+                ),
+                // Its own key, distinct from `common.schedule_ellipsis`: this
+                // button acts rather than opening a sheet, so it takes no
+                // ellipsis.
+                child: Text(t.schedule_sheet.confirm),
+              ),
             ),
           ],
-          const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(
-                ScheduleChoice(delaySeconds: _delay, spacingSeconds: _spacing),
-              ),
-              child: const Text('Schedule'),
-            ),
-          ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
