@@ -14,3 +14,8 @@ key_case: snake
 # never loaded — and the VM is where `flutter test` runs, where the background
 # isolate runs, and where the three http_* data sources build their diagnostics.
 lazy: false
+
+# No build timestamp in the generated header. With it, every regeneration rewrites
+# that line, so "regenerating changes nothing" could never be asserted — and the
+# committed output would churn on every run for no reason.
+timestamp: false
