@@ -13,8 +13,10 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// Comments are stripped and the assertions are patterns rather than
 /// [String.contains], so that a line commented out, or a value that drifts away
-/// from the name it belongs to, fails rather than passes. Both files here
-/// explain themselves in comments that quote the very strings being matched.
+/// from the name it belongs to, fails rather than passes. The stripping is what
+/// makes the first assertion real: the manifest explains itself in a comment
+/// that quotes `USE_FULL_SCREEN_INTENT`, so a `contains` check passes on a
+/// declaration someone has commented out.
 void main() {
   late String manifest;
 

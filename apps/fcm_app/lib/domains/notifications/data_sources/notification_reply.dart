@@ -31,8 +31,9 @@ PendingReply? replyFrom(NotificationResponse response) {
 /// `notificationIdOf` reduces to the same id and this still replaces it as
 /// intended.
 ///
-/// Known limitation: the redraw below builds a fixed `NotificationDetails`, so
-/// it diverges from the original draw in six ways.
+/// Known limitation: the redraw below diverges from the original draw in six
+/// ways — five because it builds a fixed `NotificationDetails`, and one because
+/// of the id it is keyed on, explained above.
 ///
 /// Four are reachable only by hand. A tagged message's progress notification
 /// lands beside the original instead of replacing it. A grouped one leaves its
@@ -48,8 +49,9 @@ PendingReply? replyFrom(NotificationResponse response) {
 ///
 /// The other two are reached by f2 itself, every time. The redraw carries no
 /// `actions`, so the Reply button does not come back once the reply is sent.
-/// And it carries no `dismissIsolate`, which the plugin documents as "do not
-/// report it" — so swiping the progress notification away records nothing, and
+/// And it carries no `dismissIsolate`, which the plugin documents as null
+/// meaning not to report a dismissal at all — so swiping the progress
+/// notification away records nothing, and
 /// the `dismissed` event `f6_delete_intent` exists to show is off on exactly
 /// the notification `f2_inline_reply` produces. Both stay as they are because
 /// the alternative is plumbing the original payload into an isolate that

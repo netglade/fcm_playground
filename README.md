@@ -518,8 +518,9 @@ tapping either the notification or an inbox row opens a detail page for it.
 
 All three use one high-importance Android channel, `fcm_sample_high`. The app creates
 it, and `AndroidManifest.xml` points FCM at the same id with
-`default_notification_channel_id` — without that, only the foreground banners
-would be heads-up.
+`default_notification_channel_id` — without that, FCM's own background entries
+fall back to its channel at default importance and stop popping. The two the app
+draws itself are unaffected, because they create the channel rather than name it.
 
 The inbox is durable: the newest 100 payloads are kept in `shared_preferences`
 and reloaded at launch, so a push that arrived while the app was away is there
