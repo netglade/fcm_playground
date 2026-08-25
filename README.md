@@ -495,8 +495,9 @@ whether FCM ever answered.
 Disagreeing clocks are a documented fact here — `GET /latency` reports both
 timestamps rather than clamping — and a ten-second skew would show "40 s remaining"
 with thirty seconds left. It keeps the screen on so the display does not sleep
-before you have swiped the app away — `FLAG_KEEP_SCREEN_ON`, a window flag rather
-than a wakelock, which is why it needs no permission of its own. *"Dim the
+before you have swiped the app away. On Android that is `FLAG_KEEP_SCREEN_ON`, a
+window flag rather than a wakelock, which is why it needs no permission of its
+own; on iOS it is the idle timer. *"Dim the
 screen"* does not switch the display off: an ordinary Android app cannot, without
 DeviceAdmin. It dims and clears the flag, and the system's own timeout does the
 rest — which is what the button says.
@@ -541,7 +542,11 @@ Notification permission is requested at startup by `firebase_messaging`, which
 covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
 and nothing else — the inbox still fills.
 
-Beside `WAKE_LOCK`, the manifest declares one further permission:
+The manifest also declares `WAKE_LOCK`, which nothing in this app uses directly:
+`firebase_messaging` declares it too, for the service that wakes the background
+handler, so the app's own line is redundant and kept only to say so out loud.
+
+Beside that, the manifest declares one further permission:
 `USE_FULL_SCREEN_INTENT`, purely so that `f8_full_screen_intent` has something
 to be refused. Android 14 and later grant it only to calling and alarm apps, so
 this one is expected to degrade to a heads-up notification rather than take over
