@@ -497,10 +497,10 @@ timestamps rather than clamping — and a ten-second skew would show "40 s remai
 with thirty seconds left. It keeps the screen on so the display does not sleep
 before you have swiped the app away. On Android that is `FLAG_KEEP_SCREEN_ON`, a
 window flag rather than a wakelock, which is why it needs no permission of its
-own; on iOS it is the idle timer. *"Dim the
-screen"* does not switch the display off: an ordinary Android app cannot, without
-DeviceAdmin. It dims and clears the flag, and the system's own timeout does the
-rest — which is what the button says.
+own; on iOS it is the idle timer. *"Dim the screen"* does not switch the display
+off: an ordinary Android app cannot, without DeviceAdmin. It dims and stops
+keeping the screen on, and the system's own timeout does the rest — which is what
+the screen says beside the button.
 
 **Coming back**, the app reopens the run it was waiting on, from an id in
 `shared_preferences` — the only thing that survives being swiped away. That timing is

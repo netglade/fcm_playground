@@ -7,9 +7,9 @@ import '../entities/countdown_screen.dart';
 
 /// The real [CountdownScreen].
 ///
-/// Every call is swallowed on failure. A handset that refuses to stay awake or a
-/// brightness change should cost the convenience, not the countdown — the send is
-/// already scheduled on the server by the time this screen exists.
+/// Every call is swallowed on failure. A handset that refuses to stay awake, or
+/// refuses a brightness change, should cost the convenience, not the countdown —
+/// the send is already scheduled on the server by the time this screen exists.
 class PluginCountdownScreen implements CountdownScreen {
   const PluginCountdownScreen();
 
