@@ -55,6 +55,13 @@ void main() {
   // outer test zone — which `testWidgets` does not drive, leaving the microtask
   // somewhere `pumpAndSettle` never flushes. Measured: the notification-tap tests
   // below go silent.
+  //
+  // Named `pumpApp` and built as a full `MaterialApp` of its own rather than routed
+  // through the shared `pump_app.dart` helper of the same name: this closure needs
+  // `navigatorObservers`, which is a `MaterialApp` constructor argument the helper's
+  // `child` slot cannot reach. `TranslationProvider` still wraps it directly, for the
+  // same reason the helper carries one: `AppShell` reads `context.t` for its
+  // language-switcher tooltip.
   Future<void> pumpApp(
     WidgetTester tester, {
     FakePushPayloadStore? store,
@@ -83,26 +90,28 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      MaterialApp(
-        navigatorObservers: [?observer],
-        home: MultiRepositoryProvider(
-          providers: [
-            RepositoryProvider<RunScheduler>.value(
-              value: scheduler ?? FakeRunScheduler(),
-            ),
-            RepositoryProvider<ActiveRunStore>.value(
-              value: active ?? InMemoryActiveRunStore(),
-            ),
-            RepositoryProvider<TelemetryReader>.value(
-              value: reader ?? FakeTelemetryReader(),
-            ),
-          ],
-          child: MultiBlocProvider(
+      TranslationProvider(
+        child: MaterialApp(
+          navigatorObservers: [?observer],
+          home: MultiRepositoryProvider(
             providers: [
-              BlocProvider.value(value: inbox),
-              BlocProvider.value(value: sandbox),
+              RepositoryProvider<RunScheduler>.value(
+                value: scheduler ?? FakeRunScheduler(),
+              ),
+              RepositoryProvider<ActiveRunStore>.value(
+                value: active ?? InMemoryActiveRunStore(),
+              ),
+              RepositoryProvider<TelemetryReader>.value(
+                value: reader ?? FakeTelemetryReader(),
+              ),
             ],
-            child: const AppShell(),
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: inbox),
+                BlocProvider.value(value: sandbox),
+              ],
+              child: const AppShell(),
+            ),
           ),
         ),
       ),
@@ -131,6 +140,10 @@ void main() {
 
   setUp(() {
     source = FakePushSource();
+    // Pinned rather than inherited: an assertion on English copy elsewhere in this
+    // file must not start failing because the host is Czech. The one test below that
+    // switches languages restores this in its own `addTearDown`.
+    LocaleSettings.setLocaleSync(AppLocale.en);
   });
 
   tearDown(() async {

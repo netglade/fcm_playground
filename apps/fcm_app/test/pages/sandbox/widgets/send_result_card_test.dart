@@ -4,6 +4,8 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/pump_app.dart';
+
 void main() {
   final response = SendMessageResponse(
     messageId: 'projects/p/messages/0:17',
@@ -15,15 +17,12 @@ void main() {
     WidgetTester tester,
     SandboxSendState state, {
     bool validateOnly = false,
-  }) => tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: SendResultCard(
-          state,
-          validateOnly: validateOnly,
-          onNotReceived: (_) => Future<void>.value(),
-        ),
-      ),
+  }) => pumpApp(
+    tester,
+    SendResultCard(
+      state,
+      validateOnly: validateOnly,
+      onNotReceived: (_) => Future<void>.value(),
     ),
   );
 

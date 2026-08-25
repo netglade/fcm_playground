@@ -3,18 +3,14 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/pump_app.dart';
+
 void main() {
   Scenario scenario(String id) => scenarioGallery.firstWhere((s) => s.id == id);
 
   Future<int> pump(WidgetTester tester, Scenario subject) async {
     var taps = 0;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ScenarioCard(scenario: subject, onTap: () => taps++),
-        ),
-      ),
-    );
+    await pumpApp(tester, ScenarioCard(scenario: subject, onTap: () => taps++));
 
     return taps;
   }
@@ -92,15 +88,9 @@ void main() {
     // The description is the largest part of the card, so a title-only tap target
     // would leave most of it dead.
     var taps = 0;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ScenarioCard(
-            scenario: scenario('a3_hybrid'),
-            onTap: () => taps++,
-          ),
-        ),
-      ),
+    await pumpApp(
+      tester,
+      ScenarioCard(scenario: scenario('a3_hybrid'), onTap: () => taps++),
     );
 
     await tester.tap(find.text(scenario('a3_hybrid').description));

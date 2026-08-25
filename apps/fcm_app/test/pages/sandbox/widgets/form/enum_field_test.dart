@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import '../../../../helpers/pump_app.dart';
 import 'enum_field_model.dart';
 
 void main() {
@@ -15,16 +16,13 @@ void main() {
     model = EnumFieldModel()..initialize();
   });
 
-  Future<void> pump(WidgetTester tester) => tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: EnumField<AndroidMessagePriority>(
-          label: 'Priority',
-          input: model.priority,
-          values: AndroidMessagePriority.values,
-          labelOf: (value) => value.wireName,
-        ),
-      ),
+  Future<void> pump(WidgetTester tester) => pumpApp(
+    tester,
+    EnumField<AndroidMessagePriority>(
+      label: 'Priority',
+      input: model.priority,
+      values: AndroidMessagePriority.values,
+      labelOf: (value) => value.wireName,
     ),
   );
 

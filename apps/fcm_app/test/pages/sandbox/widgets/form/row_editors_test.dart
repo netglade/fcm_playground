@@ -4,23 +4,21 @@ import 'package:fcm_app/pages/sandbox/widgets/form/string_map_rows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/pump_app.dart';
+
 void main() {
   group('StringMapRows', () {
     Map<String, String>? lastValue;
 
-    Future<void> pumpMap(WidgetTester tester, Map<String, String> value) {
-      return tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: StringMapRows(
-              label: 'Data',
-              value: value,
-              onChanged: (next) => lastValue = next,
-            ),
+    Future<void> pumpMap(WidgetTester tester, Map<String, String> value) =>
+        pumpApp(
+          tester,
+          StringMapRows(
+            label: 'Data',
+            value: value,
+            onChanged: (next) => lastValue = next,
           ),
-        ),
-      );
-    }
+        );
 
     testWidgets('starts with no rows when the value is empty', (tester) async {
       await pumpMap(tester, const {});
@@ -93,19 +91,14 @@ void main() {
   group('StringListRows', () {
     List<String>? lastList;
 
-    Future<void> pumpList(WidgetTester tester, List<String> value) {
-      return tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: StringListRows(
-              label: 'Args',
-              value: value,
-              onChanged: (next) => lastList = next,
-            ),
-          ),
-        ),
-      );
-    }
+    Future<void> pumpList(WidgetTester tester, List<String> value) => pumpApp(
+      tester,
+      StringListRows(
+        label: 'Args',
+        value: value,
+        onChanged: (next) => lastList = next,
+      ),
+    );
 
     testWidgets('starts with no rows when the value is empty', (tester) async {
       await pumpList(tester, const []);
@@ -178,15 +171,12 @@ void main() {
     Future<void> pumpPaths(WidgetTester tester, Map<String, Object?> value) {
       lastPaths = null;
 
-      return tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: PathRowsField(
-              label: 'Payload',
-              value: value,
-              onChanged: (next) => lastPaths = next,
-            ),
-          ),
+      return pumpApp(
+        tester,
+        PathRowsField(
+          label: 'Payload',
+          value: value,
+          onChanged: (next) => lastPaths = next,
         ),
       );
     }

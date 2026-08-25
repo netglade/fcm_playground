@@ -13,6 +13,7 @@ import 'package:glade_forms/glade_forms.dart';
 import '../../../fakes/fake_notification_sender.dart';
 import '../../../fakes/fake_run_scheduler.dart';
 import '../../../fakes/in_memory_active_run_store.dart';
+import '../../../helpers/pump_app.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
@@ -32,18 +33,15 @@ void main() {
   }
 
   Future<void> pump(WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: RepositoryProvider<RunScheduler>.value(
-          value: runs,
-          child: RepositoryProvider<ActiveRunStore>.value(
-            value: active,
-            child: Scaffold(
-              body: BlocProvider.value(
-                value: controller,
-                child: const SendFooter(),
-              ),
-            ),
+    await pumpApp(
+      tester,
+      RepositoryProvider<RunScheduler>.value(
+        value: runs,
+        child: RepositoryProvider<ActiveRunStore>.value(
+          value: active,
+          child: BlocProvider.value(
+            value: controller,
+            child: const SendFooter(),
           ),
         ),
       ),

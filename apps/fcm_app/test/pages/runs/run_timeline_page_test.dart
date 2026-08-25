@@ -1,9 +1,9 @@
 import 'package:fcm_app/pages/runs/run_timeline_page.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../fakes/fake_run_scheduler.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   final at = DateTime.utc(2026, 8, 17, 9, 0, 30);
@@ -33,10 +33,9 @@ void main() {
 
   Future<void> pump(WidgetTester tester, ScheduledRun run) async {
     final scheduler = FakeRunScheduler()..runs['run-1'] = run;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: RunTimelinePage(scheduler: scheduler, runId: 'run-1'),
-      ),
+    await pumpApp(
+      tester,
+      RunTimelinePage(scheduler: scheduler, runId: 'run-1'),
     );
     await tester.pumpAndSettle();
   }

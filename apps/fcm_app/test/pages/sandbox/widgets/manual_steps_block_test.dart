@@ -2,18 +2,15 @@ import 'package:fcm_app/pages/sandbox/widgets/manual_steps_block.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/pump_app.dart';
+
 void main() {
   testWidgets('shows the steps as selectable text, so a command can be copied', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: ManualStepsBlock(
-            steps: 'adb shell dumpsys deviceidle force-idle',
-          ),
-        ),
-      ),
+    await pumpApp(
+      tester,
+      const ManualStepsBlock(steps: 'adb shell dumpsys deviceidle force-idle'),
     );
 
     expect(find.byType(SelectableText), findsOne);
@@ -30,12 +27,9 @@ void main() {
   });
 
   testWidgets('sets the command in a monospace face', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: ManualStepsBlock(steps: 'adb shell am set-standby-bucket'),
-        ),
-      ),
+    await pumpApp(
+      tester,
+      const ManualStepsBlock(steps: 'adb shell am set-standby-bucket'),
     );
 
     expect(

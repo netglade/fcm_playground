@@ -3,13 +3,11 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/pump_app.dart';
+
 void main() {
   Future<void> pump(WidgetTester tester, Scenario? scenario) =>
-      tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: ScenarioNeedsBanner(scenario: scenario)),
-        ),
-      );
+      pumpApp(tester, ScenarioNeedsBanner(scenario: scenario));
 
   Scenario scenario(String id) =>
       scenarioGallery.firstWhere((scenario) => scenario.id == id);

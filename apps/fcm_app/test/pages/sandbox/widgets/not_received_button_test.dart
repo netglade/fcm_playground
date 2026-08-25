@@ -14,6 +14,7 @@ import '../../../fakes/fake_notification_sender.dart';
 import '../../../fakes/fake_run_scheduler.dart';
 import '../../../fakes/in_memory_active_run_store.dart';
 import '../../../fakes/recording_push_telemetry.dart';
+import '../../../helpers/pump_app.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
@@ -37,15 +38,9 @@ void main() {
   }
 
   Future<void> pump(WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: BlocProvider.value(
-            value: controller,
-            child: const SandboxView(),
-          ),
-        ),
-      ),
+    await pumpApp(
+      tester,
+      BlocProvider.value(value: controller, child: const SandboxView()),
     );
     await tester.pumpAndSettle();
   }
@@ -225,14 +220,11 @@ void main() {
     // Built without a page, so the shared `tearDown` has one of its own to dispose.
     build();
     final reported = <String>[];
-    Future<void> pumpFor(String traceId) => tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: NotReceivedButton(
-            traceId: traceId,
-            onNotReceived: (id) async => reported.add(id),
-          ),
-        ),
+    Future<void> pumpFor(String traceId) => pumpApp(
+      tester,
+      NotReceivedButton(
+        traceId: traceId,
+        onNotReceived: (id) async => reported.add(id),
       ),
     );
 

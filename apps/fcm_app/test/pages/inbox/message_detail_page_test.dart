@@ -5,6 +5,8 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/pump_app.dart';
+
 void main() {
   final message = PushMessage(
     id: 'api-1754812345678901',
@@ -15,7 +17,7 @@ void main() {
   );
 
   Future<void> pump(WidgetTester tester, PushMessage subject) =>
-      tester.pumpWidget(MaterialApp(home: MessageDetailPage(subject)));
+      pumpApp(tester, MessageDetailPage(subject));
 
   testWidgets('shows the title in the app bar and the body', (tester) async {
     await pump(tester, message);
@@ -62,18 +64,15 @@ void main() {
   });
 
   testWidgets('can be popped, so a tap is not a dead end', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => MessageDetailPage(message),
-              ),
-            ),
-            child: const Text('open'),
+    await pumpApp(
+      tester,
+      Builder(
+        builder: (context) => ElevatedButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (_) => MessageDetailPage(message)),
           ),
+          child: const Text('open'),
         ),
       ),
     );
@@ -90,20 +89,19 @@ void main() {
   testWidgets('names the pressed action by its label and its state', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MessageDetailPage(
-          PushMessage(
-            id: 'msg-1',
-            title: 'Build failed',
-            body: 'Retry or open?',
-            sentAt: DateTime.utc(2026, 8, 24, 9),
-            data: const {'actions': 'retry:Retry|open:Open build'},
-          ),
-          pressedAction: const PressedAction(
-            actionId: 'retry',
-            from: OpenedFrom.killed,
-          ),
+    await pumpApp(
+      tester,
+      MessageDetailPage(
+        PushMessage(
+          id: 'msg-1',
+          title: 'Build failed',
+          body: 'Retry or open?',
+          sentAt: DateTime.utc(2026, 8, 24, 9),
+          data: const {'actions': 'retry:Retry|open:Open build'},
+        ),
+        pressedAction: const PressedAction(
+          actionId: 'retry',
+          from: OpenedFrom.killed,
         ),
       ),
     );
@@ -113,15 +111,14 @@ void main() {
   });
 
   testWidgets('says nothing when no action was pressed', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MessageDetailPage(
-          PushMessage(
-            id: 'msg-1',
-            title: 'Build failed',
-            body: 'Retry or open?',
-            sentAt: DateTime.utc(2026, 8, 24, 9),
-          ),
+    await pumpApp(
+      tester,
+      MessageDetailPage(
+        PushMessage(
+          id: 'msg-1',
+          title: 'Build failed',
+          body: 'Retry or open?',
+          sentAt: DateTime.utc(2026, 8, 24, 9),
         ),
       ),
     );
@@ -132,20 +129,19 @@ void main() {
   testWidgets('falls back to the id when the payload names no such action', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MessageDetailPage(
-          PushMessage(
-            id: 'msg-1',
-            title: 'Build failed',
-            body: 'Retry or open?',
-            sentAt: DateTime.utc(2026, 8, 24, 9),
-            data: const {'actions': 'open:Open build'},
-          ),
-          pressedAction: const PressedAction(
-            actionId: 'retry',
-            from: OpenedFrom.foreground,
-          ),
+    await pumpApp(
+      tester,
+      MessageDetailPage(
+        PushMessage(
+          id: 'msg-1',
+          title: 'Build failed',
+          body: 'Retry or open?',
+          sentAt: DateTime.utc(2026, 8, 24, 9),
+          data: const {'actions': 'open:Open build'},
+        ),
+        pressedAction: const PressedAction(
+          actionId: 'retry',
+          from: OpenedFrom.foreground,
         ),
       ),
     );
@@ -154,17 +150,16 @@ void main() {
   });
 
   testWidgets('shows a reply the user typed in the shade', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MessageDetailPage(
-          PushMessage(
-            id: 'msg-1',
-            title: 'Ada',
-            body: 'ready when you are',
-            sentAt: DateTime.utc(2026, 8, 24, 9),
-          ),
-          reply: 'on my way',
+    await pumpApp(
+      tester,
+      MessageDetailPage(
+        PushMessage(
+          id: 'msg-1',
+          title: 'Ada',
+          body: 'ready when you are',
+          sentAt: DateTime.utc(2026, 8, 24, 9),
         ),
+        reply: 'on my way',
       ),
     );
 
@@ -174,22 +169,21 @@ void main() {
   testWidgets(
     'shows both cards when a message has a pressed action and a reply',
     (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MessageDetailPage(
-            PushMessage(
-              id: 'msg-1',
-              title: 'Build failed',
-              body: 'Retry or open?',
-              sentAt: DateTime.utc(2026, 8, 24, 9),
-              data: const {'actions': 'retry:Retry|open:Open build'},
-            ),
-            pressedAction: const PressedAction(
-              actionId: 'retry',
-              from: OpenedFrom.background,
-            ),
-            reply: 'on my way',
+      await pumpApp(
+        tester,
+        MessageDetailPage(
+          PushMessage(
+            id: 'msg-1',
+            title: 'Build failed',
+            body: 'Retry or open?',
+            sentAt: DateTime.utc(2026, 8, 24, 9),
+            data: const {'actions': 'retry:Retry|open:Open build'},
           ),
+          pressedAction: const PressedAction(
+            actionId: 'retry',
+            from: OpenedFrom.background,
+          ),
+          reply: 'on my way',
         ),
       );
 
@@ -200,15 +194,14 @@ void main() {
   );
 
   testWidgets('says nothing when there is no reply', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MessageDetailPage(
-          PushMessage(
-            id: 'msg-1',
-            title: 'Ada',
-            body: 'ready when you are',
-            sentAt: DateTime.utc(2026, 8, 24, 9),
-          ),
+    await pumpApp(
+      tester,
+      MessageDetailPage(
+        PushMessage(
+          id: 'msg-1',
+          title: 'Ada',
+          body: 'ready when you are',
+          sentAt: DateTime.utc(2026, 8, 24, 9),
         ),
       ),
     );

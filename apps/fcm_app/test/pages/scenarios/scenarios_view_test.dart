@@ -12,6 +12,7 @@ import 'package:glade_forms/glade_forms.dart';
 import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_run_scheduler.dart';
 import '../../fakes/in_memory_active_run_store.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
@@ -33,22 +34,19 @@ void main() {
   }
 
   Future<void> pump(WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MultiRepositoryProvider(
-          providers: [
-            RepositoryProvider<RunScheduler>.value(value: runs),
-            RepositoryProvider<ActiveRunStore>.value(value: active),
-            RepositoryProvider<StartRun>.value(
-              value: StartRun(scheduler: runs, active: active),
-            ),
-          ],
-          child: Scaffold(
-            body: BlocProvider.value(
-              value: controller,
-              child: ScenariosView(onScenarioSelected: () => selectedCount++),
-            ),
+    await pumpApp(
+      tester,
+      MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<RunScheduler>.value(value: runs),
+          RepositoryProvider<ActiveRunStore>.value(value: active),
+          RepositoryProvider<StartRun>.value(
+            value: StartRun(scheduler: runs, active: active),
           ),
+        ],
+        child: BlocProvider.value(
+          value: controller,
+          child: ScenariosView(onScenarioSelected: () => selectedCount++),
         ),
       ),
     );

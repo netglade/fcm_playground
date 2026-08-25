@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../fakes/fake_run_scheduler.dart';
 import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_countdown_screen.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   late StreamController<void> ticks;
@@ -36,19 +37,18 @@ void main() {
     final run = runOf();
     scheduler.runs['run-1'] = run;
 
-    return tester.pumpWidget(
-      MaterialApp(
-        home: CountdownPage(
-          cubit: CountdownCubit(
-            scheduler: scheduler,
-            run: run,
-            active: active,
-            delaySeconds: delaySeconds,
-            ticks: ticks.stream,
-          ),
-          onFinished: () => finished++,
-          screen: screen,
+    return pumpApp(
+      tester,
+      CountdownPage(
+        cubit: CountdownCubit(
+          scheduler: scheduler,
+          run: run,
+          active: active,
+          delaySeconds: delaySeconds,
+          ticks: ticks.stream,
         ),
+        onFinished: () => finished++,
+        screen: screen,
       ),
     );
   }
@@ -128,7 +128,9 @@ void main() {
     await pump(tester);
 
     // Replacing the tree disposes CountdownPage the same way leaving the route
-    // would, without depending on Cancel's own pop.
+    // would, without depending on Cancel's own pop. A bare `SizedBox` rather than
+    // `pumpApp` again: this unmounts everything, `TranslationProvider` included,
+    // and nothing here reads a translation to make that provider worth keeping.
     await tester.pumpWidget(const SizedBox.shrink());
 
     expect(screen.calls, contains('release'));
