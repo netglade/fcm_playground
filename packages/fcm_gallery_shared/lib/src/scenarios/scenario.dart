@@ -8,14 +8,10 @@ class Scenario {
     required this.id,
     required this.l10nKey,
     required this.group,
-    required this.title,
-    required this.description,
     required this.payloadTemplate,
-    this.expectation,
     this.requiresKilledApp = false,
     this.defaultDelaySeconds = 0,
     this.needs = const [],
-    this.manualSteps,
     this.target,
   });
 
@@ -33,15 +29,12 @@ class Scenario {
   /// serving two masters.
   final String l10nKey;
 
+  /// The single letter its source table is filed under — `'A'` through `'K'`.
+  ///
+  /// The display name that letter expands to (`'A — Basic delivery'`) is prose now,
+  /// read through `ScenarioText.scenarioGroupName` in the app; this field stays a
+  /// bare letter so grouping and ordering do not depend on the translations.
   final String group;
-
-  final String title;
-
-  /// What should happen, and what to watch for while it does.
-  final String description;
-
-  /// A device- or platform-specific caveat, when there is one.
-  final String? expectation;
 
   /// An FCM v1 message, without a delivery target — the server sets that.
   ///
@@ -61,10 +54,6 @@ class Scenario {
 
   /// Empty when the scenario works today.
   final List<ScenarioNeed> needs;
-
-  /// A step the user must perform by hand — an adb command, a settings change —
-  /// when the payload alone cannot produce the scenario.
-  final String? manualSteps;
 
   /// Who to deliver to, or null for this device, which is what all but four
   /// scenarios want.

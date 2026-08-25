@@ -68,15 +68,8 @@ void main() {
 
       expect(critical.needs, [ScenarioNeed.externalApproval]);
       expect(critical.isSupported, isFalse);
-
-      // `contains('entitlement')` passes on prose saying the opposite. The expectation
-      // is checked to attribute the block to Apple and to say the entry is listed
-      // rather than scheduled — the one thing that distinguishes externalApproval.
-      final expectation = critical.expectation;
-      expect(expectation, isNotNull);
-      expect(expectation, contains('critical-alert entitlement'));
-      expect(expectation, contains('Apple must approve'));
-      expect(expectation, contains('rather than scheduled'));
+      // What the expectation says about Apple's approval moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
     });
 
     test('the interruption level rides in the free-form aps dictionary', () {

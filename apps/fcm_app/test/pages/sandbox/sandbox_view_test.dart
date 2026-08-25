@@ -1,5 +1,7 @@
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
+import 'package:fcm_app/i18n/scenario_text.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/sandbox/sandbox_view.dart';
 import 'package:fcm_app/pages/sandbox/widgets/manual_steps_block.dart';
@@ -18,6 +20,12 @@ import '../../helpers/pump_app.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
+
+  // Built once: `pump_app.dart`'s helper pins the widget tree to English, so the
+  // finder text below has to agree with what it renders.
+  late Translations en;
+
+  setUpAll(() => en = AppLocale.en.buildSync());
 
   late FakeNotificationSender sender;
   late SandboxCubit controller;
@@ -130,7 +138,10 @@ void main() {
 
     await pump(tester);
 
-    expect(find.text(controller.state.selectedScenario!.title), findsNothing);
+    expect(
+      find.text(en.scenarioTitle(controller.state.selectedScenario!.l10nKey)),
+      findsNothing,
+    );
   });
 
   testWidgets('disables Send while a field is invalid', (tester) async {

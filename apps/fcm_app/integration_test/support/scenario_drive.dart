@@ -97,12 +97,17 @@ Future<void> _applyScenario(
 /// fresh app, so which groups are open is known rather than probed. It has to be:
 /// `ExpansionTile` keeps collapsed children in the tree behind an `Offstage`, so their
 /// mere existence proves nothing — and tapping the already-open group would close it.
+///
+/// Found by `Key('group-${scenario.group}')` rather than the tile's display text:
+/// that text is now localized prose, and keying removes the coupling to the copy
+/// rather than translating the finder — the app under test may be in either
+/// language.
 Future<void> _expandGroup(PatrolIntegrationTester $, Scenario scenario) async {
   if (scenario.group == scenarioGallery.first.group) {
     return;
   }
 
-  final title = $(scenario.group);
+  final title = $(Key('group-${scenario.group}'));
   await title.scrollTo(maxScrolls: _scenarioScrollMax);
   await title.tap();
 }

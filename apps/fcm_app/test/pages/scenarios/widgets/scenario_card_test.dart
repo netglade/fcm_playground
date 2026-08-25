@@ -1,3 +1,5 @@
+import 'package:fcm_app/i18n/scenario_text.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/scenarios/widgets/scenario_card.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,12 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../helpers/pump_app.dart';
 
 void main() {
+  // Built once: `pump_app.dart`'s helper pins the widget tree to English, so the
+  // finder text below has to agree with what it renders.
+  late Translations en;
+
+  setUpAll(() => en = AppLocale.en.buildSync());
+
   Scenario scenario(String id) => scenarioGallery.firstWhere((s) => s.id == id);
 
   Future<int> pump(WidgetTester tester, Scenario subject) async {
@@ -36,7 +44,7 @@ void main() {
     await pump(tester, scenario('c7_standby_bucket'));
 
     expect(find.text('c7_standby_bucket'), findsOne);
-    expect(find.text(scenario('c7_standby_bucket').title), findsOne);
+    expect(find.text(en.scenarioTitle('c7_standby_bucket')), findsOne);
   });
 
   testWidgets('reports the whole card body, not only the title', (
@@ -48,8 +56,8 @@ void main() {
 
     await pump(tester, subject);
 
-    expect(find.text(subject.description), findsOne);
-    expect(find.text(subject.expectation!), findsOne);
+    expect(find.text(en.scenarioDescription(subject.l10nKey)), findsOne);
+    expect(find.text(en.scenarioExpectation(subject.l10nKey)!), findsOne);
   });
 
   testWidgets('flags a scenario that cannot be demonstrated yet', (
@@ -93,7 +101,9 @@ void main() {
       ScenarioCard(scenario: scenario('a3_hybrid'), onTap: () => taps++),
     );
 
-    await tester.tap(find.text(scenario('a3_hybrid').description));
+    await tester.tap(
+      find.text(en.scenarioDescription(scenario('a3_hybrid').l10nKey)),
+    );
     await tester.pumpAndSettle();
 
     expect(taps, 1);

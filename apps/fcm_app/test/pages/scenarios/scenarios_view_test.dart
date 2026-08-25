@@ -1,6 +1,8 @@
 import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
+import 'package:fcm_app/i18n/scenario_text.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/scenarios/scenarios_view.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
@@ -16,6 +18,12 @@ import '../../helpers/pump_app.dart';
 
 void main() {
   setUpAll(GladeForms.initialize);
+
+  // Built once: `pump_app.dart`'s helper pins the widget tree to English, so the
+  // finder text below has to agree with what it renders.
+  late Translations en;
+
+  setUpAll(() => en = AppLocale.en.buildSync());
 
   late SandboxCubit controller;
   late FakeRunScheduler runs;
@@ -71,8 +79,8 @@ void main() {
 
     await pump(tester);
 
-    for (final group in scenarioGallery.map((s) => s.group).toSet()) {
-      expect(find.text(group), findsOne, reason: group);
+    for (final letter in scenarioGallery.map((s) => s.group).toSet()) {
+      expect(find.text(en.scenarioGroupName(letter)), findsOne, reason: letter);
     }
   });
 
@@ -83,8 +91,8 @@ void main() {
 
     await pump(tester);
 
-    expect(find.text(first.title), findsOne);
-    expect(find.text(first.description), findsOne);
+    expect(find.text(en.scenarioTitle(first.l10nKey)), findsOne);
+    expect(find.text(en.scenarioDescription(first.l10nKey)), findsOne);
   });
 
   testWidgets('shows an expectation when the scenario has one', (tester) async {
@@ -94,9 +102,13 @@ void main() {
 
     final withExpectation = scenarioGallery.firstWhere(
       (scenario) =>
-          scenario.group == first.group && scenario.expectation != null,
+          scenario.group == first.group &&
+          en.scenarioExpectation(scenario.l10nKey) != null,
     );
-    expect(find.text(withExpectation.expectation!), findsOne);
+    expect(
+      find.text(en.scenarioExpectation(withExpectation.l10nKey)!),
+      findsOne,
+    );
   });
 
   testWidgets('flags the rows that cannot be demonstrated yet', (tester) async {
@@ -116,14 +128,16 @@ void main() {
     final needy = scenarioGallery.firstWhere(
       (s) => s.id == 'd1_importance_high',
     );
-    await scrollIntoView(tester, find.text(needy.group));
-    await tester.tap(find.text(needy.group));
+    final needyGroupName = en.scenarioGroupName(needy.group);
+    await scrollIntoView(tester, find.text(needyGroupName));
+    await tester.tap(find.text(needyGroupName));
     await tester.pumpAndSettle();
-    await scrollIntoView(tester, find.text(needy.title));
+    final needyTitle = en.scenarioTitle(needy.l10nKey);
+    await scrollIntoView(tester, find.text(needyTitle));
 
     expect(
       find.descendant(
-        of: find.widgetWithText(ListTile, needy.title),
+        of: find.widgetWithText(ListTile, needyTitle),
         matching: find.text('needs work'),
       ),
       findsOne,
@@ -134,11 +148,12 @@ void main() {
     build();
     await pump(tester);
     final dataOnly = scenarioGallery.firstWhere((s) => s.id == 'a2_data_only');
+    final dataOnlyTitle = en.scenarioTitle(dataOnly.l10nKey);
 
     // Reaching a scenario below the first is a scroll within the gallery's own
     // page, unrelated to the Sandbox-page fold this change fixed.
-    await scrollIntoView(tester, find.text(dataOnly.title));
-    await tester.tap(find.text(dataOnly.title));
+    await scrollIntoView(tester, find.text(dataOnlyTitle));
+    await tester.tap(find.text(dataOnlyTitle));
     await tester.pumpAndSettle();
 
     expect(controller.state.selectedScenario?.id, dataOnly.id);
@@ -150,7 +165,7 @@ void main() {
     build();
     await pump(tester);
 
-    await tester.tap(find.text(first.title));
+    await tester.tap(find.text(en.scenarioTitle(first.l10nKey)));
     await tester.pumpAndSettle();
 
     expect(selectedCount, 1);
@@ -292,8 +307,9 @@ void main() {
         await startSelecting(tester);
         // Group J starts collapsed — only the first group opens on arrival —
         // so its scenarios are not in the tree until the group is expanded.
-        await scrollIntoView(tester, find.text('J — Targeting'));
-        await tester.tap(find.text('J — Targeting'));
+        final targetingGroupName = en.scenarioGroupName('J');
+        await scrollIntoView(tester, find.text(targetingGroupName));
+        await tester.tap(find.text(targetingGroupName));
         await tester.pumpAndSettle();
         await tick(tester, 'j1_topic');
 

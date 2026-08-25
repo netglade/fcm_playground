@@ -14,10 +14,9 @@ void main() {
     // The one assertion that catches an entry filed under the wrong table as
     // eleven files grow independently.
     for (final scenario in scenarioGallery) {
-      final letter = scenario.group.substring(0, 1).toLowerCase();
       expect(
         scenario.id,
-        startsWith(letter),
+        startsWith(scenario.group.toLowerCase()),
         reason: '${scenario.id} is filed under ${scenario.group}',
       );
     }
@@ -62,12 +61,9 @@ void main() {
     expect(targetKeysIn(inFreeForm, 'x'), ['x/apns/payload[0]/token']);
   });
 
-  test('every scenario has a non-blank title and description', () {
-    for (final scenario in scenarioGallery) {
-      expect(scenario.title.trim(), isNotEmpty, reason: scenario.id);
-      expect(scenario.description.trim(), isNotEmpty, reason: scenario.id);
-    }
-  });
+  // Whether every scenario resolves a non-blank title and description moved to
+  // apps/fcm_app/test/i18n/scenario_prose_test.dart: this package has no access
+  // to the translations that prose now lives in.
 
   test('a killed-app scenario says how long to hold the send', () {
     // Gives requiresKilledApp exactly one meaning: "meaningless unless the app is
@@ -85,13 +81,8 @@ void main() {
     }
   });
 
-  test('a manual-step scenario says what the step is', () {
-    for (final scenario in scenarioGallery) {
-      if (scenario.needs.contains(ScenarioNeed.manualStep)) {
-        expect(scenario.manualSteps, isNotNull, reason: scenario.id);
-      }
-    }
-  });
+  // Whether a manual-step scenario says what the step is moved to
+  // apps/fcm_app/test/i18n/scenario_prose_test.dart.
 
   test('the catalogue is complete: 66 scenarios in 11 groups', () {
     expect(scenarioGallery, hasLength(66));
@@ -139,9 +130,7 @@ void main() {
   });
 
   test('the groups appear in A to K order, each in one run', () {
-    final letters = scenarioGallery
-        .map((s) => s.group.substring(0, 1))
-        .toList();
+    final letters = scenarioGallery.map((s) => s.group).toList();
 
     // `toSet()` keeps insertion order, but deduplication is not harmless: A, B, A
     // collapses to [A, B] and would pass while group A was split in two. So the

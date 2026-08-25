@@ -68,9 +68,10 @@ void main() {
         (s) => s.needs.contains(ScenarioNeed.channels),
       );
 
-      // The reason comes from ScenarioNeed.label, so it reads as prose rather than
-      // as an enum name a reader has to decode.
-      expect(skipReasonFor(blocked), contains('notification channels'));
+      // The reason comes from ScenarioNeed.name now — a stable enum name rather
+      // than a localized label, which is right for a test report but means the
+      // word here is the bare enum member, not the prose the UI shows.
+      expect(skipReasonFor(blocked), contains('channels'));
     });
 
     test('an iOS-only scenario is skipped, naming the platform', () {

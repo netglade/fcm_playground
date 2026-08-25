@@ -6,6 +6,7 @@ import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/domains/settings/entities/locale_store.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
+import 'package:fcm_app/i18n/scenario_text.dart';
 import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
@@ -39,6 +40,12 @@ Map<String, Object?> payload({String id = 'msg-1', String? deepLink}) => {
 
 void main() {
   setUpAll(GladeForms.initialize);
+
+  // Built once: every test in this file pins the locale to English in its own
+  // `setUp`, so a scenario's finder text has to agree with what it renders.
+  late Translations en;
+
+  setUpAll(() => en = AppLocale.en.buildSync());
 
   late FakePushSource source;
   late PushRepository repository;
@@ -320,8 +327,9 @@ void main() {
 
     // Reaching a scenario below the first is a scroll within the gallery's own
     // page, unrelated to the Sandbox-page fold this change fixed.
-    await scrollIntoView(tester, find.text(dataOnly.title));
-    await tester.tap(find.text(dataOnly.title));
+    final dataOnlyTitle = en.scenarioTitle(dataOnly.l10nKey);
+    await scrollIntoView(tester, find.text(dataOnlyTitle));
+    await tester.tap(find.text(dataOnlyTitle));
     await tester.pumpAndSettle();
 
     expect(selectedDestination(tester), 2);
@@ -606,14 +614,23 @@ void main() {
     // on Czech. Restoring it is not tidiness: without it the next English-asserting
     // test the runner reaches fails, and the failure looks unrelated to this one.
     addTearDown(() => LocaleSettings.setLocaleSync(AppLocale.en));
-    await tester.pumpWidget(
-      TranslationProvider(child: const MaterialApp(home: AppShell())),
-    );
+    // Routed through the file's own `pumpApp` rather than a bare
+    // `TranslationProvider(child: MaterialApp(home: AppShell()))`: `AppShell`
+    // reads its repositories and blocs from providers `pumpApp` supplies, and a
+    // bare `MaterialApp` has none, which threw a `ProviderNotFoundException`
+    // before reaching the assertion below. `pumpApp` still wraps
+    // `TranslationProvider`, so `LocaleSettings.setLocaleSync` continues to
+    // drive the rebuild this test needs.
+    await pumpApp(tester);
 
     await tester.tap(find.byIcon(Icons.translate));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Čeština').last);
     await tester.pumpAndSettle();
+
+    // NavigationDrawer only builds its destinations once opened, so the Czech
+    // label is not in the tree to find before this.
+    await openDrawer(tester);
 
     expect(find.text('Doručené'), findsWidgets);
     expect(find.text('Inbox'), findsNothing);

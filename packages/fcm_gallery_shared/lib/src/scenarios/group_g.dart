@@ -12,11 +12,7 @@ const groupG = <Scenario>[
   Scenario(
     id: 'g1_group_summary',
     l10nKey: 'g1_group_summary',
-    group: 'G — Groups, badge, updates',
-    title: 'Five notifications with a summary',
-    description:
-        'Watch that they collapse under one summary row, and what the summary '
-        'says when the fifth arrives.',
+    group: 'G',
     payloadTemplate: {
       'notification': {'title': 'Build 128', 'body': 'Passed.'},
       'android': {
@@ -29,11 +25,7 @@ const groupG = <Scenario>[
   Scenario(
     id: 'g2_update_same_id',
     l10nKey: 'g2_update_same_id',
-    group: 'G — Groups, badge, updates',
-    title: 'Replacing a notification in place',
-    description:
-        'Send twice with the same tag. Watch that the second replaces the first '
-        'rather than stacking, and whether it re-alerts.',
+    group: 'G',
     payloadTemplate: {
       'notification': {'title': 'Build 128', 'body': 'Running…'},
       'android': {
@@ -45,15 +37,7 @@ const groupG = <Scenario>[
   Scenario(
     id: 'g3_badge',
     l10nKey: 'g3_badge',
-    group: 'G — Groups, badge, updates',
-    title: 'A count on the launcher icon',
-    description:
-        'The least portable thing here. Watch whether the launcher shows the '
-        'number, a dot, or nothing at all.',
-    expectation:
-        'Behaviour differs per manufacturer: One UI, MIUI and the Pixel '
-        'launcher all disagree, and several require the user to enable badges '
-        'per app.',
+    group: 'G',
     payloadTemplate: {
       'notification': {'title': 'Five waiting', 'body': 'Check the launcher.'},
       // notification_count is a typed int32 on FCM's AndroidNotification, so 5
@@ -67,11 +51,7 @@ const groupG = <Scenario>[
   Scenario(
     id: 'g4_badge_ios',
     l10nKey: 'g4_badge_ios',
-    group: 'G — Groups, badge, updates',
-    title: 'The iOS badge via aps.badge',
-    description:
-        'One well-defined number, set by the sender. Watch that it replaces '
-        'rather than increments — iOS does not add.',
+    group: 'G',
     payloadTemplate: {
       'apns': {
         'headers': {'apns-priority': '10'},

@@ -87,15 +87,11 @@ void main() {
     });
 
     test('f8 also needs a permission Android 14+ may refuse', () {
-      // contains('USE_FULL_SCREEN_INTENT') alone is satisfied by prose denying the
-      // requirement, so the directional phrases are pinned too: who grants it, and
-      // what this app gets instead.
       final fullScreen = scenarioF('f8_full_screen_intent');
 
       expect(fullScreen.needs, contains(ScenarioNeed.externalApproval));
-      expect(fullScreen.expectation, contains('USE_FULL_SCREEN_INTENT'));
-      expect(fullScreen.expectation, contains('Android 14+ grants'));
-      expect(fullScreen.expectation, contains('degraded heads-up'));
+      // What the expectation says about the permission moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
 
       // No such channel exists yet, but the template has to name it or there is
       // nothing for the call-style notification to be posted to.
@@ -126,17 +122,8 @@ void main() {
       expect(links.toSet(), hasLength(ids.length), reason: '$links');
     });
 
-    test('f5 names getInitialMessage and says it is where the bugs are', () {
-      // The API name alone would pass on a description that made no point about
-      // where the bugs are, so both halves are pinned.
-      final killed = scenarioF('f5_deeplink_killed');
-
-      expect(killed.description, contains('getInitialMessage'));
-      expect(
-        killed.description,
-        contains('commonest source of deep-link bugs'),
-      );
-    });
+    // f5's description, naming getInitialMessage as where the bugs live, moved to
+    // apps/fcm_app/test/i18n/scenario_prose_test.dart.
 
     test('every client-side feature is carried in data, as strings', () {
       // FCM has no field for any of this, so all nine hand it to the client through
@@ -154,17 +141,8 @@ void main() {
       }
     });
 
-    test('f9 states that the failure is the demonstration', () {
-      // contains('fail') alone is satisfied by 'should not fail', so both the version
-      // that banned it and the statement that the error is the result are pinned.
-      final trampoline = scenarioF('f9_trampoline');
-
-      expect(trampoline.expectation, contains('Android 12'));
-      expect(
-        trampoline.expectation,
-        contains('the error, not a working route'),
-      );
-    });
+    // f9's expectation, stating the failure is the demonstration, moved to
+    // apps/fcm_app/test/i18n/scenario_prose_test.dart.
 
     test('the whole group reaches the gallery', () {
       final galleryIds = scenarioGallery.map((s) => s.id).toSet();

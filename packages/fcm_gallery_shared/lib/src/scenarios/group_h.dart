@@ -12,14 +12,7 @@ const groupH = <Scenario>[
   Scenario(
     id: 'h1_dnd_bypass',
     l10nKey: 'h1_dnd_bypass',
-    group: 'H — Intrusive and priority',
-    title: 'A channel that bypasses Do Not Disturb',
-    description:
-        'Watch that it sounds while DND is on. Setting the flag is not enough — '
-        'the user must have granted notification-policy access.',
-    expectation:
-        'Requires Notification Policy Access, granted by the user in system '
-        'settings. Without it the flag is accepted and silently ignored.',
+    group: 'H',
     payloadTemplate: {
       'notification': {'title': 'Urgent', 'body': 'Should sound during DND.'},
       'android': {
@@ -32,15 +25,7 @@ const groupH = <Scenario>[
   Scenario(
     id: 'h2_category_alarm',
     l10nKey: 'h2_category_alarm',
-    group: 'H — Intrusive and priority',
-    title: 'CATEGORY_ALARM',
-    description:
-        'Alarms are treated as a special class by DND. Watch whether the '
-        'category alone changes anything without policy access.',
-    expectation:
-        'FCM has no field for the notification category — it is set by the client '
-        'when building the local notification, which is why this needs the '
-        'channel work.',
+    group: 'H',
     payloadTemplate: {
       'notification': {'title': 'Alarm', 'body': 'Categorised as an alarm.'},
       'android': {
@@ -54,11 +39,7 @@ const groupH = <Scenario>[
   Scenario(
     id: 'h3_ios_time_sensitive',
     l10nKey: 'h3_ios_time_sensitive',
-    group: 'H — Intrusive and priority',
-    title: 'iOS time-sensitive — breaks through Focus',
-    description:
-        'Watch that it arrives during a Focus mode that would hold an ordinary '
-        'notification.',
+    group: 'H',
     payloadTemplate: {
       // apns.headers is a typed map<string, string>, so the priority is '10',
       // never a bare 10 — and 10 is what an alerting interruption level needs:
@@ -79,15 +60,7 @@ const groupH = <Scenario>[
   Scenario(
     id: 'h4_ios_critical',
     l10nKey: 'h4_ios_critical',
-    group: 'H — Intrusive and priority',
-    title: 'iOS critical — through Focus and the mute switch',
-    description:
-        'The most intrusive delivery Apple offers. Watch that it sounds even '
-        'when the device is muted.',
-    expectation:
-        'Requires a critical-alert entitlement that Apple must approve for the '
-        'app. Without it APNs rejects the push, so this stays untestable here — '
-        'listed for completeness rather than scheduled.',
+    group: 'H',
     payloadTemplate: {
       'apns': {
         'headers': {'apns-priority': '10'},
@@ -108,11 +81,7 @@ const groupH = <Scenario>[
   Scenario(
     id: 'h5_ios_passive',
     l10nKey: 'h5_ios_passive',
-    group: 'H — Intrusive and priority',
-    title: 'iOS passive — no sound, no wake',
-    description:
-        'The quietest level: it appears in the list without alerting. Watch that '
-        'the screen does not light up.',
+    group: 'H',
     payloadTemplate: {
       // Priority 5 rather than 10, and no sound key at all: passive claims "no
       // sound, no wake", so anything that alerts would make this entry

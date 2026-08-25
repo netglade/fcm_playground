@@ -1,6 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../../../i18n/scenario_text.dart';
 import '../../../i18n/translations.g.dart';
 
 /// Says what the loaded scenario still needs before it demonstrates anything, and
@@ -29,8 +30,8 @@ class ScenarioNeedsBanner extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Text(
-          t.scenario_needs.banner(
-            needs: needs.map((need) => need.label).join(', '),
+          t.sandbox.needs_banner(
+            needs: needs.map((need) => t.scenarioNeedLabel(need)).join(', '),
           ),
           style: TextStyle(color: scheme.onSecondaryContainer),
         ),

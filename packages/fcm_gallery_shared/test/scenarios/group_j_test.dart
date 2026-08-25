@@ -8,14 +8,9 @@ Scenario scenarioJ(String id) => groupJ.firstWhere((s) => s.id == id);
 
 void main() {
   group('group J', () {
-    test('every blocked scenario states why, not just that it is blocked', () {
-      // j2 originally had no expectation, so a user looking at it alone saw a
-      // blocked scenario with no stated cause.
-      for (final scenario in groupJ) {
-        expect(scenario.expectation, isNotNull, reason: scenario.id);
-        expect(scenario.expectation!.trim(), isNotEmpty, reason: scenario.id);
-      }
-    });
+    // Whether every blocked scenario states why moved to
+    // apps/fcm_app/test/i18n/scenario_prose_test.dart, along with the wording of
+    // j1's and j3's own expectations below.
 
     test('offers all three targeting scenarios, in order', () {
       expect(groupJ.map((s) => s.id), [
@@ -78,20 +73,15 @@ void main() {
         // All three are blocked, for two reasons: topic and condition are FCM's own
         // oneof keys, so j1 and j2 are answered 200 while nothing arrives, whereas
         // all_devices is ours and the API refuses it outright.
+        //
+        // What j1's and j3's own expectations say about that moved to
+        // apps/fcm_app/test/i18n/scenario_prose_test.dart.
         expect(
           groupJ
               .where((s) => s.target?.toJson().keys.single != 'all_devices')
               .map((s) => s.id),
           ['j1_topic', 'j2_condition'],
         );
-
-        final topic = scenarioJ('j1_topic').expectation;
-        expect(topic, contains('200'));
-        expect(topic, contains('subscribe'));
-
-        final multicast = scenarioJ('j3_multicast').expectation;
-        expect(multicast, contains('501'));
-        expect(multicast, contains('token registry'));
       },
     );
 
@@ -133,8 +123,9 @@ void main() {
       for (final scenario in groupJ) {
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);
         expect(scenario.defaultDelaySeconds, 0, reason: scenario.id);
-        expect(scenario.manualSteps, isNull, reason: scenario.id);
       }
+      // Whether every scenario here carries no manual step moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
     });
 
     test('the whole group reaches the gallery', () {

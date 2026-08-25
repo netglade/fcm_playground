@@ -58,7 +58,6 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$schedule_sheet$cs schedule_sheet = _Translations$schedule_sheet$cs._(_root);
 	@override late final _Translations$preset_chip$cs preset_chip = _Translations$preset_chip$cs._(_root);
 	@override late final _Translations$not_received$cs not_received = _Translations$not_received$cs._(_root);
-	@override late final _Translations$scenario_needs$cs scenario_needs = _Translations$scenario_needs$cs._(_root);
 	@override late final _Translations$send_result$cs send_result = _Translations$send_result$cs._(_root);
 	@override late final _Translations$countdown$cs countdown = _Translations$countdown$cs._(_root);
 	@override late final _Translations$telemetry$cs telemetry = _Translations$telemetry$cs._(_root);
@@ -338,6 +337,9 @@ class _Translations$sandbox$cs implements Translations$sandbox$en {
 
 	/// Switch that asks FCM to validate without delivering
 	@override String get validate_only => 'Jen validovat';
+
+	/// Banner listing what a scenario is missing; under sandbox.* rather than scenario_needs.* so it cannot be confused with the scenario_need.* labels it interpolates
+	@override String needs_banner({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.';
 }
 
 // Path: send
@@ -440,18 +442,6 @@ class _Translations$not_received$cs implements Translations$not_received$en {
 
 	/// The same button once pressed; echoes the unpressed label deliberately
 	@override String get reported => 'Nahlášeno: nikdy nedorazilo';
-}
-
-// Path: scenario_needs
-class _Translations$scenario_needs$cs implements Translations$scenario_needs$en {
-	_Translations$scenario_needs$cs._(this._root);
-
-	final TranslationsCs _root; // ignore: unused_field
-
-	// Translations
-
-	/// Banner listing what a scenario is missing
-	@override String banner({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.';
 }
 
 // Path: send_result
@@ -1126,7 +1116,7 @@ class _Translations$scenario$d4_importance_min$cs implements Translations$scenar
 	@override String get title => 'IMPORTANCE_MIN — jen stavový řádek';
 
 	/// Description of scenario d4_importance_min
-	@override String get description => 'Na některých verzích žádná ikona ve stavovém řádku; jen v shade (rozbalovací liště). Sleduj, kde se vůbec objeví.';
+	@override String get description => 'Na některých verzích žádná ikona ve stavovém řádku; jen v rozbalovací liště. Sleduj, kde se vůbec objeví.';
 }
 
 // Path: scenario.d5_custom_sound
@@ -1935,6 +1925,7 @@ extension on TranslationsCs {
 			'run_item.due' => ({required Object time}) => 'v ${time}',
 			'run_item.nothing_recorded' => 'Zatím nic nezaznamenáno.',
 			'sandbox.validate_only' => 'Jen validovat',
+			'sandbox.needs_banner' => ({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.',
 			'send.to_this_device' => 'Poslat na toto zařízení',
 			'send.to_that_token' => 'Poslat na ten token',
 			'send.to_topic' => ({required Object topic}) => 'Poslat do tématu „${topic}“',
@@ -1954,7 +1945,6 @@ extension on TranslationsCs {
 			'preset_chip.seconds' => ({required Object value}) => '${value} s',
 			'not_received.button' => 'Nikdy nedorazilo',
 			'not_received.reported' => 'Nahlášeno: nikdy nedorazilo',
-			'scenario_needs.banner' => ({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.',
 			'send_result.validated' => ({required Object messageId, required Object traceId}) => '✓ Zvalidováno · zpráva ${messageId} · trace ${traceId} · payload byl zvalidován, ne odeslán',
 			'send_result.sent' => ({required Object messageId, required Object traceId}) => '✓ Odesláno · zpráva ${messageId} · trace ${traceId} · za chvíli by se mělo objevit v Doručených',
 			'send_result.scheduled' => ({required num n, required Object runId}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '✓ Naplánováno · běh ${runId} · ${n} zpráva · zatím nic neodesláno', few: '✓ Naplánováno · běh ${runId} · ${n} zprávy · zatím nic neodesláno', other: '✓ Naplánováno · běh ${runId} · ${n} zpráv · zatím nic neodesláno', ), 
@@ -2030,7 +2020,7 @@ extension on TranslationsCs {
 			'scenario.d3_importance_low.title' => 'IMPORTANCE_LOW — tichá',
 			'scenario.d3_importance_low.description' => 'Viditelná, ale beze zvuku a bez vibrací. Sleduj, že je opravdu tichá, ne jen potichlejší.',
 			'scenario.d4_importance_min.title' => 'IMPORTANCE_MIN — jen stavový řádek',
-			'scenario.d4_importance_min.description' => 'Na některých verzích žádná ikona ve stavovém řádku; jen v shade (rozbalovací liště). Sleduj, kde se vůbec objeví.',
+			'scenario.d4_importance_min.description' => 'Na některých verzích žádná ikona ve stavovém řádku; jen v rozbalovací liště. Sleduj, kde se vůbec objeví.',
 			'scenario.d5_custom_sound.title' => 'Vlastní zvuk na kanálu',
 			'scenario.d5_custom_sound.description' => 'Zvuk je vlastnost kanálu, takže jeho změna vyžaduje nový kanál. Sleduj, že se přehraje vlastní zvuk, a ne výchozí.',
 			'scenario.d5_custom_sound.expectation' => 'Pojmenovaný zdroj musí existovat v android/app/src/main/res/raw. Chybějící soubor se tiše přepne na výchozí zvuk.',

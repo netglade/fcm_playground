@@ -6,32 +6,27 @@
 enum ScenarioNeed {
   /// Several notification channels, their importance, and a screen that reads
   /// that importance back from the system.
-  channels('notification channels'),
+  channels,
 
   /// Local notification styles: big picture, big text, inbox, messaging,
   /// progress, large icon.
-  styles('notification styles'),
+  styles,
 
   /// Action buttons, inline reply, delete intents, deep-link routing and the
   /// full-screen intent.
-  interaction('notification actions'),
+  interaction,
 
   /// The launcher icon's badge count.
-  badge('launcher badge'),
+  badge,
 
   /// A registry of every registered token, so a message can fan out.
-  targeting('a device registry'),
+  targeting,
 
   /// A step on the device or over adb that no payload can perform.
-  manualStep('a manual step'),
+  manualStep,
 
   /// Approval or capability from Apple or the OS that this project cannot grant
   /// itself: a critical-alert entitlement, a Notification Service Extension,
   /// notification-policy access.
-  externalApproval('external approval');
-
-  const ScenarioNeed(this.label);
-
-  /// Shown to the user verbatim.
-  final String label;
+  externalApproval,
 }

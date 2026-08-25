@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../i18n/scenario_text.dart';
 import '../../i18n/translations.g.dart';
 import 'cubit/sandbox_cubit.dart';
 import 'cubit/sandbox_state.dart';
@@ -36,10 +37,11 @@ class SandboxView extends StatelessWidget {
                 const SendTargetField(),
                 const SizedBox(height: 8),
                 ScenarioNeedsBanner(scenario: state.selectedScenario),
-                if (state.selectedScenario?.manualSteps case final steps?)
-                  ManualStepsBlock(steps: steps),
                 if (state.selectedScenario case final scenario?) ...[
-                  if (scenario.expectation case final expectation?)
+                  if (t.scenarioManualSteps(scenario.l10nKey) case final steps?)
+                    ManualStepsBlock(steps: steps),
+                  if (t.scenarioExpectation(scenario.l10nKey)
+                      case final expectation?)
                     Text(expectation),
                   if (scenario.requiresKilledApp)
                     Padding(

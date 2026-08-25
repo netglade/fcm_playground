@@ -61,7 +61,6 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$schedule_sheet$en schedule_sheet = Translations$schedule_sheet$en._(_root);
 	late final Translations$preset_chip$en preset_chip = Translations$preset_chip$en._(_root);
 	late final Translations$not_received$en not_received = Translations$not_received$en._(_root);
-	late final Translations$scenario_needs$en scenario_needs = Translations$scenario_needs$en._(_root);
 	late final Translations$send_result$en send_result = Translations$send_result$en._(_root);
 	late final Translations$countdown$en countdown = Translations$countdown$en._(_root);
 	late final Translations$telemetry$en telemetry = Translations$telemetry$en._(_root);
@@ -419,6 +418,11 @@ class Translations$sandbox$en {
 	///
 	/// en: 'Validate only'
 	String get validate_only => 'Validate only';
+
+	/// Banner listing what a scenario is missing; under sandbox.* rather than scenario_needs.* so it cannot be confused with the scenario_need.* labels it interpolates
+	///
+	/// en: 'Needs $needs. The push will still be sent, but this scenario cannot be observed yet.'
+	String needs_banner({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.';
 }
 
 // Path: send
@@ -559,20 +563,6 @@ class Translations$not_received$en {
 	///
 	/// en: 'Reported as never arrived'
 	String get reported => 'Reported as never arrived';
-}
-
-// Path: scenario_needs
-class Translations$scenario_needs$en {
-	Translations$scenario_needs$en._(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// Banner listing what a scenario is missing
-	///
-	/// en: 'Needs $needs. The push will still be sent, but this scenario cannot be observed yet.'
-	String banner({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.';
 }
 
 // Path: send_result
@@ -2484,6 +2474,7 @@ extension on Translations {
 			'run_item.due' => ({required Object time}) => 'due ${time}',
 			'run_item.nothing_recorded' => 'Nothing recorded yet.',
 			'sandbox.validate_only' => 'Validate only',
+			'sandbox.needs_banner' => ({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.',
 			'send.to_this_device' => 'Send to this device',
 			'send.to_that_token' => 'Send to that token',
 			'send.to_topic' => ({required Object topic}) => 'Send to topic "${topic}"',
@@ -2503,7 +2494,6 @@ extension on Translations {
 			'preset_chip.seconds' => ({required Object value}) => '${value} s',
 			'not_received.button' => 'It never arrived',
 			'not_received.reported' => 'Reported as never arrived',
-			'scenario_needs.banner' => ({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.',
 			'send_result.validated' => ({required Object messageId, required Object traceId}) => '✓ Validated · message ${messageId} · trace ${traceId} · the payload was validated, not sent',
 			'send_result.sent' => ({required Object messageId, required Object traceId}) => '✓ Sent · message ${messageId} · trace ${traceId} · it should appear in the Inbox shortly',
 			'send_result.scheduled' => ({required num n, required Object runId}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '✓ Scheduled · run ${runId} · ${n} message · nothing has been sent yet', few: '✓ Scheduled · run ${runId} · ${n} messages · nothing has been sent yet', other: '✓ Scheduled · run ${runId} · ${n} messages · nothing has been sent yet', ), 
