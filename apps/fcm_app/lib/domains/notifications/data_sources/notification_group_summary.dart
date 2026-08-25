@@ -38,9 +38,12 @@ String groupSummaryText(int count, String group) => '$count $group';
 /// drawn — the foreground presenter and the background isolate — so a summary
 /// never appears in one state and not the other. [plugin] is injectable so each
 /// caller can pass the instance already initialised in its own isolate, and both
-/// do; [store] is injectable for the same shape, but neither caller passes one —
-/// there is no test seam here, and the posting is covered by inspection and the
-/// manual checklist.
+/// do. [store] is injectable for the same shape: `LocalNotificationPresenter`
+/// passes the same store it hands `clearAll`, so a Clear also forgets what this
+/// call recorded; the background isolate has no such instance to share and
+/// still lets this default to its own, which is fine because both write the
+/// same key. There is still no test seam over the posting itself, which is
+/// covered by inspection and the manual checklist.
 ///
 /// A summary is a convenience over the notification it accompanies, not the
 /// notification itself, so every fallible step here — loading the group store,
@@ -101,6 +104,11 @@ Future<void> postGroupSummary(
           priority: Priority.high,
           groupKey: group,
           setAsGroupSummary: true,
+          // The summary is a container for the member notifications, not news
+          // of its own — without this it defaults to GroupAlertBehavior.all
+          // and alerts on top of the member that was just drawn, so every
+          // grouped push buzzes twice.
+          groupAlertBehavior: GroupAlertBehavior.children,
         ),
         iOS: const DarwinNotificationDetails(),
       ),
