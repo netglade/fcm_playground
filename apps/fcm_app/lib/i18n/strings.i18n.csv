@@ -20,7 +20,7 @@ inbox.malformed_dropped.one,$n malformed payload dropped,$n poškozený payload 
 inbox.malformed_dropped.few,$n malformed payloads dropped,$n poškozené payloady zahozeny,Banner counting payloads the parser refused
 inbox.malformed_dropped.other,$n malformed payloads dropped,$n poškozených payloadů zahozeno,Banner counting payloads the parser refused
 message_detail.opened_by_action,"Opened by action: $label","Otevřeno akcí: $label",Detail line naming the action button that opened the app
-message_detail.from,"from: $from","z: $from",Detail line naming which surface the press came from
+message_detail.from,"from: $from","Zdroj: $from",Detail line naming which surface the press came from
 message_detail.replied,"Replied: $text","Odpovězeno: $text",Detail line showing an inline reply
 message_detail.sent,Sent,Odesláno,Label above the send timestamp
 message_detail.payload_id,Payload id,ID payloadu,Label above the message id

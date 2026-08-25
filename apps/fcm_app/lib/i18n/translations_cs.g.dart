@@ -146,7 +146,7 @@ class _Translations$message_detail$cs implements Translations$message_detail$en 
 	@override String opened_by_action({required Object label}) => 'Otevřeno akcí: ${label}';
 
 	/// Detail line naming which surface the press came from
-	@override String from({required Object from}) => 'z: ${from}';
+	@override String from({required Object from}) => 'Zdroj: ${from}';
 
 	/// Detail line showing an inline reply
 	@override String replied({required Object text}) => 'Odpovězeno: ${text}';
@@ -230,7 +230,7 @@ extension on TranslationsCs {
 			'inbox.empty' => 'Zatím nedorazil žádný push.',
 			'inbox.malformed_dropped' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '${n} poškozený payload zahozen', few: '${n} poškozené payloady zahozeny', other: '${n} poškozených payloadů zahozeno', ), 
 			'message_detail.opened_by_action' => ({required Object label}) => 'Otevřeno akcí: ${label}',
-			'message_detail.from' => ({required Object from}) => 'z: ${from}',
+			'message_detail.from' => ({required Object from}) => 'Zdroj: ${from}',
 			'message_detail.replied' => ({required Object text}) => 'Odpovězeno: ${text}',
 			'message_detail.sent' => 'Odesláno',
 			'message_detail.payload_id' => 'ID payloadu',
