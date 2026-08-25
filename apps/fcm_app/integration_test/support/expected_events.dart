@@ -55,7 +55,7 @@ const _sendRefused = {TelemetryEventType.queued, TelemetryEventType.sendFailed};
 
 /// Per-scenario expectations, keyed by [Scenario.id].
 ///
-/// Twenty-nine entries: the twenty-five that run on Android plus the four
+/// Thirty entries: the twenty-six that run on Android plus the four
 /// iOS-only ones, which are written so that unblocking iOS is a skip-policy
 /// change rather than a table rewrite. `b3_killed` and `f5_deeplink_killed`
 /// have no entry on purpose — [skipReasonFor] turns each away before the
@@ -188,6 +188,13 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
   // notifications removes it either way, are both things a human watches in
   // the tray; see CALIBRATION.md.
   'f7_ongoing': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  // Group F — f8. The refusal is a human observation in the tray; the pipeline
+  // only sees an ordinary delivered-and-drawn push, which is exactly what a
+  // degraded full-screen intent looks like from here.
+  'f8_full_screen_intent': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),

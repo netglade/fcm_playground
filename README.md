@@ -258,20 +258,20 @@ priority and delivery window, channels and importance, appearance,
 interaction, groups and badges, intrusive delivery, silent and data,
 targeting, and edge cases.
 
-**31 of the 66 work today.** The rest carry a marker naming what they still need —
-notification channels, notification styles, notification actions, a launcher
-badge, a device registry, a manual step, or approval from Apple or the OS that
-this project cannot grant itself. That count is asserted by a test, so this
-README cannot drift from the code: if a scenario is quietly unmarked to look
-supported, the build fails.
+**32 of the 66 work today.** The rest carry a marker naming what they still need —
+notification channels, notification styles, native code this Dart-only gallery
+does not carry, a launcher badge, a device registry, a manual step, or approval
+from Apple or the OS that this project cannot grant itself. That count is
+asserted by a test, so this README cannot drift from the code: if a scenario is
+quietly unmarked to look supported, the build fails.
 
 A blocked scenario is **still sendable**. The push is genuine and valid; only the
-behaviour it demonstrates is missing, and watching a client with no action support
-receive an action payload is itself worth seeing. The banner above the form says
-what is missing rather than disabling Send. Where a payload cannot produce the
-scenario at all — a reboot, a Doze window, a revoked permission — the scenario
-carries the exact command or procedure in a selectable block, because an adb line
-that cannot be copied is one that will be mistyped.
+behaviour it demonstrates is missing, and watching a client that has only one
+notification channel receive a payload aimed at another is itself worth seeing.
+The banner above the form says what is missing rather than disabling Send. Where
+a payload cannot produce the scenario at all — a reboot, a Doze window, a revoked
+permission — the scenario carries the exact command or procedure in a selectable
+block, because an adb line that cannot be copied is one that will be mistyped.
 
 Every one of the 66 templates round-trips `raw → FcmMessage → raw` unchanged, and
 none may set its own delivery target at any depth. Both are asserted across the
@@ -535,10 +535,16 @@ Notification permission is requested at startup by `firebase_messaging`, which
 covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
 and nothing else — the inbox still fills.
 
+The manifest declares one more permission, `USE_FULL_SCREEN_INTENT`, purely so
+that `f8_full_screen_intent` has something to be refused. Android 14 and later
+grant it only to calling and alarm apps, so this one is expected to degrade to a
+heads-up notification rather than take over the lock screen — the refusal is
+what the scenario demonstrates.
+
 ## Verified on this machine
 
 `melos run ci` passes clean — 42 `core` tests, 238 `fcm_gallery_shared` tests, 218
-`fcm_api` tests and 633 `fcm_app` tests. `fvm flutter build web --release` succeeds
+`fcm_api` tests and 636 `fcm_app` tests. `fvm flutter build web --release` succeeds
 (a compile check only: the web build cannot receive FCM pushes without a VAPID
 key). `fvm flutter build apk --debug` succeeds too — see below for the plugin
 that used to break it. The iOS build has **not** been verified here either;
@@ -548,8 +554,8 @@ There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patr
 suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
 Android device**, needs the API serving with `GOOGLE_APPLICATION_CREDENTIALS` set,
 and is deliberately excluded from the gate because a device-dependent suite has no
-business in a hermetic one. Of the catalogue's 66 scenarios, 25 run there; the other
-41 are skipped with a stated reason — 35 wait on a `ScenarioNeed` the app has not
+business in a hermetic one. Of the catalogue's 66 scenarios, 26 run there; the other
+40 are skipped with a stated reason — 34 wait on a `ScenarioNeed` the app has not
 built, 4 need a physical iPhone, and two (`b3_killed` and `f5_deeplink_killed`) would
 each have to kill the app the test runs inside. That split has not been run on this
 machine either — no Android device is attached — so it is asserted by

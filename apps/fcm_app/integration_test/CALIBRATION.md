@@ -154,6 +154,24 @@ among them), so a swipe succeeding there is the OS working as documented, not a 
 Either way, open the Inbox and press **Clear notifications**, and confirm the
 notification is gone from the tray while the Inbox's messages are untouched.
 
+**`f8_full_screen_intent`'s automated assertions cover delivery and drawing only;
+what the intent degrades to is a manual pass.** Nothing about a full-screen intent
+reaches telemetry — the app asks for one, Android decides, and `displayed` fires
+either way — so send it with the app **backgrounded** and watch the device. On
+Android 14 and later expect a heads-up notification rather than a lock-screen
+takeover: the platform grants `USE_FULL_SCREEN_INTENT` only to calling and alarm
+apps, and that refusal is the demonstration. Record what you see either way — a
+device that does grant the takeover is a valid observation about that device, not a
+failure of the scenario. Confirm separately that the notification is drawn at all:
+it is data-only now, so nothing appearing means the app's own drawing did not run,
+which is a different failure from a refused permission and must not be read as one.
+
+**`f9_trampoline` has no device step at all.** It is not built — demonstrating the
+Android 12 ban means starting an activity from a broadcast receiver or service,
+which needs the platform code this Dart-only gallery deliberately does not carry —
+so it carries `ScenarioNeed.nativeCode`, never reaches the table, and there is
+nothing to watch. Its catalogue entry says so on the card.
+
 **`g1_group_summary`'s automated assertions cover delivery and drawing only; the
 collapse under a summary, and the climbing count, are both manual passes.** It is
 data-only, so the app draws it and posts the summary itself whichever state you send

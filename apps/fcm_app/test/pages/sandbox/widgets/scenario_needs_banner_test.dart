@@ -32,17 +32,22 @@ void main() {
   });
 
   testWidgets('names every unmet need, using its own words', (tester) async {
-    await pump(tester, scenario('f8_full_screen_intent'));
+    // h1_dnd_bypass is the catalogue's only two-need scenario, so it is the one
+    // case that can show a list rather than a single label.
+    final pair = scenario('h1_dnd_bypass');
+    expect(pair.needs, [ScenarioNeed.channels, ScenarioNeed.externalApproval]);
 
-    expect(find.textContaining('notification actions'), findsOne);
+    await pump(tester, pair);
+
+    expect(find.textContaining('notification channels'), findsOne);
     expect(find.textContaining('external approval'), findsOne);
     // Both labels differ from their enum names, so the finders above already rule out
     // a banner printing `need.name`. This pins the rest: one sentence,
     // comma-separated, in declaration order.
     expect(
       find.text(
-        'Needs notification actions, external approval. The push will still be '
-        'sent, but this scenario cannot be observed yet.',
+        'Needs notification channels, external approval. The push will still '
+        'be sent, but this scenario cannot be observed yet.',
       ),
       findsOne,
     );

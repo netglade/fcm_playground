@@ -167,8 +167,9 @@ const groupF = <Scenario>[
     group: 'F — Interaction',
     title: 'A notification trampoline, which should fail',
     description:
-        'Starting an activity from a service or broadcast receiver after a tap. '
-        'Banned since Android 12. Watch for the failure and its log line.',
+        'Starting an activity from a service or broadcast receiver after a tap, '
+        'rather than from the notification itself. Android 12 banned the '
+        'pattern outright: the tap is swallowed and the activity never opens.',
     expectation:
         'Not built. Demonstrating the ban means starting an activity from a '
         'broadcast receiver or service, which needs platform code this '
