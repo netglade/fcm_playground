@@ -154,7 +154,20 @@ void main() {
     source.emit({'id': 'broken'});
     await tester.pumpAndSettle();
 
-    expect(find.text('1 malformed payload(s) dropped'), findsOne);
+    expect(find.text('1 malformed payload dropped'), findsOne);
+  });
+
+  testWidgets('pluralises the malformed-payload count', (tester) async {
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = InboxCubit(repository);
+    await pumpApp(tester);
+
+    source.emit({'id': 'broken-1'});
+    source.emit({'id': 'broken-2'});
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 malformed payloads dropped'), findsOne);
   });
 
   testWidgets('shows a placeholder for a push with no title', (tester) async {
@@ -172,7 +185,7 @@ void main() {
 
     expect(find.text('(no title)'), findsOne);
     expect(find.textContaining('event'), findsOne);
-    expect(find.text('1 malformed payload(s) dropped'), findsNothing);
+    expect(find.text('1 malformed payload dropped'), findsNothing);
   });
 
   testWidgets('opens the detail page when a row is tapped', (tester) async {

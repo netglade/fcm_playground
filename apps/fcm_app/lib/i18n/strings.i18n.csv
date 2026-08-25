@@ -4,3 +4,29 @@ language.tooltip,Language,Jazyk,"AppBar action tooltip for the language switcher
 language.system,System,Systém,"Language choice that follows the device"
 language.english,English,English,"Language choice; each language names itself"
 language.czech,Čeština,Čeština,"Language choice; each language names itself"
+shell.title.inbox,Push inbox,Doručené pushe,AppBar title for the inbox destination
+shell.title.scenarios,Scenarios,Scénáře,AppBar title
+shell.title.sandbox,Sandbox,Sandbox,AppBar title; the product's own term
+shell.title.runs,Runs,Běhy,AppBar title
+shell.title.telemetry,Telemetry,Telemetrie,AppBar title
+drawer.inbox,Inbox,Doručené,Drawer destination; shorter than the AppBar title
+drawer.scenarios,Scenarios,Scénáře,Drawer destination
+drawer.sandbox,Sandbox,Sandbox,Drawer destination
+drawer.runs,Runs,Běhy,Drawer destination
+drawer.telemetry,Telemetry,Telemetrie,Drawer destination
+inbox.registration_token,Registration token,Registrační token,Tile above the FCM token
+inbox.empty,No pushes received yet.,Zatím nedorazil žádný push.,Empty state
+inbox.malformed_dropped.one,$n malformed payload dropped,$n poškozený payload zahozen,Banner counting payloads the parser refused
+inbox.malformed_dropped.few,$n malformed payloads dropped,$n poškozené payloady zahozeny,Banner counting payloads the parser refused
+inbox.malformed_dropped.other,$n malformed payloads dropped,$n poškozených payloadů zahozeno,Banner counting payloads the parser refused
+message_detail.opened_by_action,"Opened by action: $label","Otevřeno akcí: $label",Detail line naming the action button that opened the app
+message_detail.from,"from: $from","z: $from",Detail line naming which surface the press came from
+message_detail.replied,"Replied: $text","Odpovězeno: $text",Detail line showing an inline reply
+message_detail.sent,Sent,Odesláno,Label above the send timestamp
+message_detail.payload_id,Payload id,ID payloadu,Label above the message id
+message_detail.extra_data,Extra data,Extra data,Label above the data map
+message_detail.no_extra_data,No extra data keys.,Žádné extra klíče.,Shown when the data map is empty
+message_tile.no_title,(no title),(bez titulku),Stand-in headline for a message with an empty title
+message_tile.body_with_data,"$body
+data: $keys","$body
+data: $keys",Tile subtitle when the message carries a data map

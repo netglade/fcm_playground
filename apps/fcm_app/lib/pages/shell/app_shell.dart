@@ -38,12 +38,18 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  static const _titles = [
-    'Push inbox',
-    'Scenarios',
-    'Sandbox',
-    'Runs',
-    'Telemetry',
+  /// One AppBar title per destination, in the same order as the `IndexedStack`
+  /// below and the drawer above it.
+  ///
+  /// A method rather than the `const` list this used to be: a `const` cannot
+  /// read [Translations], and the title has to follow the language switch same
+  /// as everything else in the shell.
+  List<String> _titlesFor(Translations t) => [
+    t.shell.title.inbox,
+    t.shell.title.scenarios,
+    t.shell.title.sandbox,
+    t.shell.title.runs,
+    t.shell.title.telemetry,
   ];
   late final AppLifecycleListener _lifecycle;
 
@@ -95,7 +101,7 @@ class _AppShellState extends State<AppShell> {
       listener: _onInboxChanged,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_titles[_destination]),
+          title: Text(_titlesFor(t)[_destination]),
           actions: [
             // The one AppBar in the app already owns its chrome, so the language lives
             // here rather than behind a settings page the app does not have.
@@ -129,30 +135,30 @@ class _AppShellState extends State<AppShell> {
         drawer: NavigationDrawer(
           selectedIndex: _destination,
           onDestinationSelected: _select,
-          children: const [
+          children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(28, 24, 16, 12),
-              child: Text('FCM Sample'),
+              padding: const EdgeInsets.fromLTRB(28, 24, 16, 12),
+              child: Text(t.app.title),
             ),
             NavigationDrawerDestination(
-              icon: Icon(Icons.inbox_outlined),
-              label: Text('Inbox'),
+              icon: const Icon(Icons.inbox_outlined),
+              label: Text(t.drawer.inbox),
             ),
             NavigationDrawerDestination(
-              icon: Icon(Icons.collections_bookmark_outlined),
-              label: Text('Scenarios'),
+              icon: const Icon(Icons.collections_bookmark_outlined),
+              label: Text(t.drawer.scenarios),
             ),
             NavigationDrawerDestination(
-              icon: Icon(Icons.science_outlined),
-              label: Text('Sandbox'),
+              icon: const Icon(Icons.science_outlined),
+              label: Text(t.drawer.sandbox),
             ),
             NavigationDrawerDestination(
-              icon: Icon(Icons.schedule_outlined),
-              label: Text('Runs'),
+              icon: const Icon(Icons.schedule_outlined),
+              label: Text(t.drawer.runs),
             ),
             NavigationDrawerDestination(
-              icon: Icon(Icons.analytics_outlined),
-              label: Text('Telemetry'),
+              icon: const Icon(Icons.analytics_outlined),
+              label: Text(t.drawer.telemetry),
             ),
           ],
         ),

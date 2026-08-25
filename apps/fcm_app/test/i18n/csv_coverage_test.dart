@@ -26,7 +26,7 @@ void main() {
           'the header is what stops slang reading (description) as a locale',
     );
 
-    keys = _keysIn(lines.skip(1));
+    keys = _keysIn(lines.skip(1)).map(_lookupKey).toSet().toList();
   });
 
   test('the CSV has rows', () {
@@ -67,6 +67,23 @@ void main() {
             '$key has no Czech translation, or `melos run l10n` was not run',
       );
     }
+  });
+
+  test('_lookupKey folds a plural row onto its shared generated function', () {
+    expect(
+      _lookupKey('inbox.malformed_dropped.one'),
+      'inbox.malformed_dropped',
+      reason:
+          'slang generates one function per plural, not one per CLDR '
+          'category, so all three rows have to resolve to the same lookup',
+    );
+    expect(
+      _lookupKey('drawer.inbox'),
+      'drawer.inbox',
+      reason:
+          "'inbox' is not a CLDR category, so a non-plural key passes "
+          'through unchanged',
+    );
   });
 
   test('_keysIn skips a false key inside a wrapped quoted cell', () {
@@ -114,4 +131,22 @@ List<String> _keysIn(Iterable<String> rows) {
   }
 
   return keys;
+}
+
+/// The CLDR categories slang treats as plural branches rather than key segments.
+const _pluralCategories = {'zero', 'one', 'two', 'few', 'many', 'other'};
+
+/// The key a row's lookup should use: a plural's rows share one function.
+///
+/// A plural is three (or more) CSV rows — one per CLDR category — but slang
+/// generates a single function for all of them, keyed by the path with the
+/// category dropped. Looking a category-suffixed key up directly would find
+/// nothing and fail a coverage test that is otherwise correct.
+String _lookupKey(String csvKey) {
+  final lastDot = csvKey.lastIndexOf('.');
+  if (lastDot < 0) return csvKey;
+
+  return _pluralCategories.contains(csvKey.substring(lastDot + 1))
+      ? csvKey.substring(0, lastDot)
+      : csvKey;
 }

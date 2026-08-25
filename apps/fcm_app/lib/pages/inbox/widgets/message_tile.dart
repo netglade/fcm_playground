@@ -1,6 +1,8 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
+
 /// One row in the inbox.
 class MessageTile extends StatelessWidget {
   const MessageTile(this.message, {this.onTap, super.key});
@@ -13,8 +15,11 @@ class MessageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     final extras = message.data.keys.join(', ');
-    final headline = message.title.isEmpty ? '(no title)' : message.title;
+    final headline = message.title.isEmpty
+        ? t.message_tile.no_title
+        : message.title;
     final tap = onTap;
 
     return ListTile(
@@ -30,7 +35,9 @@ class MessageTile extends StatelessWidget {
             : null,
       ),
       subtitle: Text(
-        extras.isEmpty ? message.body : '${message.body}\ndata: $extras',
+        extras.isEmpty
+            ? message.body
+            : t.message_tile.body_with_data(body: message.body, keys: extras),
       ),
       isThreeLine: extras.isNotEmpty,
       trailing: Text(_formatClockTime(message.sentAt)),

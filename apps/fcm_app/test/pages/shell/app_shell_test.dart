@@ -592,36 +592,30 @@ void main() {
     });
   });
 
-  testWidgets(
-    'the language menu switches the whole app',
-    (tester) async {
-      // The end-to-end proof that codegen, the provider and the store meet: an
-      // English drawer label becomes a Czech one without touching the device.
-      SharedPreferences.setMockInitialValues({});
-      // The switcher writes through the locator, so the locator has to have one.
-      // Without this the tap throws a StateError about an unregistered LocaleStore,
-      // long before reaching the assertion below.
-      getIt.registerSingleton<LocaleStore>(FakeLocaleStore());
-      addTearDown(() => getIt.unregister<LocaleStore>());
-      LocaleSettings.setLocaleSync(AppLocale.en);
-      // LocaleSettings is global process state, and this test deliberately leaves it
-      // on Czech. Restoring it is not tidiness: without it the next English-asserting
-      // test the runner reaches fails, and the failure looks unrelated to this one.
-      addTearDown(() => LocaleSettings.setLocaleSync(AppLocale.en));
-      await tester.pumpWidget(
-        TranslationProvider(child: const MaterialApp(home: AppShell())),
-      );
+  testWidgets('the language menu switches the whole app', (tester) async {
+    // The end-to-end proof that codegen, the provider and the store meet: an
+    // English drawer label becomes a Czech one without touching the device.
+    SharedPreferences.setMockInitialValues({});
+    // The switcher writes through the locator, so the locator has to have one.
+    // Without this the tap throws a StateError about an unregistered LocaleStore,
+    // long before reaching the assertion below.
+    getIt.registerSingleton<LocaleStore>(FakeLocaleStore());
+    addTearDown(() => getIt.unregister<LocaleStore>());
+    LocaleSettings.setLocaleSync(AppLocale.en);
+    // LocaleSettings is global process state, and this test deliberately leaves it
+    // on Czech. Restoring it is not tidiness: without it the next English-asserting
+    // test the runner reaches fails, and the failure looks unrelated to this one.
+    addTearDown(() => LocaleSettings.setLocaleSync(AppLocale.en));
+    await tester.pumpWidget(
+      TranslationProvider(child: const MaterialApp(home: AppShell())),
+    );
 
-      await tester.tap(find.byIcon(Icons.translate));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Čeština').last);
-      await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.translate));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Čeština').last);
+    await tester.pumpAndSettle();
 
-      expect(find.text('Doručené'), findsWidgets);
-      expect(find.text('Inbox'), findsNothing);
-    },
-    // `testWidgets`'s `skip` is `bool?`, unlike `test`'s `dynamic` — the reason
-    // lives here instead: drawer labels land in Task 4.
-    skip: true,
-  );
+    expect(find.text('Doručené'), findsWidgets);
+    expect(find.text('Inbox'), findsNothing);
+  });
 }
