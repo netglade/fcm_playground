@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domains/telemetry/entities/telemetry_reader.dart';
+import '../../i18n/translations.g.dart';
 import 'cubit/telemetry_cubit.dart';
 import 'cubit/telemetry_state.dart';
 import 'widgets/events_tab.dart';
@@ -26,11 +27,11 @@ class TelemetryView extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: TabBar(
                   tabs: [
-                    Tab(text: 'Events'),
-                    Tab(text: 'Latency'),
+                    Tab(text: context.t.telemetry.tab.events),
+                    Tab(text: context.t.telemetry.tab.latency),
                   ],
                 ),
               ),
@@ -40,7 +41,7 @@ class TelemetryView extends StatelessWidget {
                 builder: (context) => IconButton(
                   onPressed: context.read<TelemetryCubit>().load,
                   icon: const Icon(Icons.refresh),
-                  tooltip: 'Reload',
+                  tooltip: context.t.common.reload,
                 ),
               ),
             ],

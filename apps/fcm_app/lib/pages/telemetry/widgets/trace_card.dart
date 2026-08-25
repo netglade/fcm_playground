@@ -1,6 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
 import '../cubit/trace_timeline.dart';
 import 'event_row.dart';
 
@@ -19,6 +20,7 @@ class TraceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.t;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -34,8 +36,8 @@ class TraceCard extends StatelessWidget {
               ),
             ),
             Text(
-              '${timeline.scenarioId ?? 'no scenario'} · '
-              '${timeline.deviceId ?? 'no device yet'}',
+              '${timeline.scenarioId ?? t.common.no_scenario} · '
+              '${timeline.deviceId ?? t.common.no_device_yet}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.outline,
               ),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../i18n/translations.g.dart';
 import '../entities/notification_send_exception.dart';
 import '../entities/notification_sender.dart';
 
@@ -36,9 +37,7 @@ class HttpNotificationSender implements NotificationSender {
       // The usual cause is a forgotten port forward, so the remedy goes in the
       // message rather than the exception type.
       throw NotificationSendException(
-        'Could not reach $_baseUrl — is the API running?\n'
-        'On a physical device, run: adb reverse tcp:8080 tcp:8080\n'
-        '($error)',
+        t.api.unreachable(baseUrl: _baseUrl, error: error),
       );
     }
 
@@ -50,7 +49,7 @@ class HttpNotificationSender implements NotificationSender {
       return SendMessageResponse.fromJson(_decodeObject(response.body));
     } on FormatException catch (error) {
       throw NotificationSendException(
-        'The API answered 200 with something unreadable: ${error.message}',
+        t.api.answered_unreadable(error: error.message),
       );
     }
   }
@@ -63,7 +62,7 @@ ApiError _errorFrom(http.Response response) {
     return ApiError.fromJson(_decodeObject(response.body));
   } on FormatException {
     return ApiError(
-      'The API answered ${response.statusCode}: ${response.body}',
+      t.api.answered_status(status: response.statusCode, body: response.body),
     );
   }
 }

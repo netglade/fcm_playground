@@ -61,6 +61,8 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$scenario_needs$cs scenario_needs = _Translations$scenario_needs$cs._(_root);
 	@override late final _Translations$send_result$cs send_result = _Translations$send_result$cs._(_root);
 	@override late final _Translations$countdown$cs countdown = _Translations$countdown$cs._(_root);
+	@override late final _Translations$telemetry$cs telemetry = _Translations$telemetry$cs._(_root);
+	@override late final _Translations$api$cs api = _Translations$api$cs._(_root);
 }
 
 // Path: app
@@ -239,6 +241,12 @@ class _Translations$common$cs implements Translations$common$en {
 
 	/// Refresh action; used on the run timeline and on Telemetry
 	@override String get reload => 'Znovu načíst';
+
+	/// Stands in for a trace with no scenario id; used on the matrix and the trace card
+	@override String get no_scenario => 'bez scénáře';
+
+	/// Stands in for a trace with no device id
+	@override String get no_device_yet => 'zatím žádné zařízení';
 }
 
 // Path: selection_bar
@@ -427,8 +435,8 @@ class _Translations$not_received$cs implements Translations$not_received$en {
 	/// Button reporting a push that did not show up
 	@override String get button => 'Nikdy nedorazilo';
 
-	/// The same button once pressed
-	@override String get reported => 'Nahlášeno jako nedoručené';
+	/// The same button once pressed; echoes the unpressed label deliberately
+	@override String get reported => 'Nahlášeno: nikdy nedorazilo';
 }
 
 // Path: scenario_needs
@@ -488,6 +496,54 @@ class _Translations$countdown$cs implements Translations$countdown$en {
 	@override String get battery_settings => 'Nastavení baterie';
 }
 
+// Path: telemetry
+class _Translations$telemetry$cs implements Translations$telemetry$en {
+	_Translations$telemetry$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$telemetry$tab$cs tab = _Translations$telemetry$tab$cs._(_root);
+	@override late final _Translations$telemetry$events$cs events = _Translations$telemetry$events$cs._(_root);
+	@override late final _Translations$telemetry$event_row$cs event_row = _Translations$telemetry$event_row$cs._(_root);
+	@override late final _Translations$telemetry$latency$cs latency = _Translations$telemetry$latency$cs._(_root);
+}
+
+// Path: api
+class _Translations$api$cs implements Translations$api$en {
+	_Translations$api$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Shown when the local API is not answering; identical in all three data sources
+	@override String unreachable({required Object baseUrl, required Object error}) => 'Nepodařilo se spojit s ${baseUrl} — běží API?\nNa fyzickém zařízení spusť: adb reverse tcp:8080 tcp:8080\n(${error})';
+
+	/// Shown for a non-200; the body is the server's own text and stays as sent
+	@override String answered_status({required Object status, required Object body}) => 'API odpovědělo ${status}: ${body}';
+
+	/// A 200 whose body is not JSON
+	@override String answered_unreadable({required Object error}) => 'API odpovědělo 200 něčím nečitelným: ${error}';
+
+	/// A 200 whose body is not JSON
+	@override String answered_not_json({required Object error}) => 'API odpovědělo 200 něčím, co není JSON: ${error}';
+
+	/// A 200 whose body parses but is the wrong shape
+	@override String answered_wrong_shape({required Object type}) => 'API odpovědělo 200 typem ${type}, kde se čekal seznam.';
+
+	/// A 200 whose body parses but is the wrong shape
+	@override String answered_wrong_shape_runs({required Object type}) => 'API odpovědělo 200 typem ${type}, kde se čekal seznam běhů.';
+
+	/// A 200 carrying an item this build's model rejects
+	@override String answered_unreadable_item({required Object what, required Object error}) => 'API odpovědělo 200 s ${what}, co tento build neumí přečíst: ${error}';
+
+	@override late final _Translations$api$item$cs item = _Translations$api$item$cs._(_root);
+
+	/// Shown when a decoded JSON value used as a map is not one; reached from http_run_scheduler.dart and http_telemetry_reader.dart. The identical case in http_notification_sender.dart is caught internally and replaced by api.answered_unreadable before it can reach a user, so it was not in the brief's Step 1 list and keeps its own literal, unlocalized
+	@override String expected_object({required Object type}) => 'Byl očekáván JSON objekt, ale přišel typ ${type}.';
+}
+
 // Path: shell.title
 class _Translations$shell$title$cs implements Translations$shell$title$en {
 	_Translations$shell$title$cs._(this._root);
@@ -510,6 +566,78 @@ class _Translations$shell$title$cs implements Translations$shell$title$en {
 
 	/// AppBar title
 	@override String get telemetry => 'Telemetrie';
+}
+
+// Path: telemetry.tab
+class _Translations$telemetry$tab$cs implements Translations$telemetry$tab$en {
+	_Translations$telemetry$tab$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Tab on the Telemetry page
+	@override String get events => 'Události';
+
+	/// Tab on the Telemetry page
+	@override String get latency => 'Latence';
+}
+
+// Path: telemetry.events
+class _Translations$telemetry$events$cs implements Translations$telemetry$events$en {
+	_Translations$telemetry$events$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Empty state on the Events tab
+	@override String get empty => 'Zatím nic nezaznamenáno. Pošli push ze Sandboxu a načti znovu.';
+}
+
+// Path: telemetry.event_row
+class _Translations$telemetry$event_row$cs implements Translations$telemetry$event_row$en {
+	_Translations$telemetry$event_row$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Caveat appended to a stamp taken before the request was handled
+	@override String get request_received => ' · (požadavek přijat)';
+}
+
+// Path: telemetry.latency
+class _Translations$telemetry$latency$cs implements Translations$telemetry$latency$en {
+	_Translations$telemetry$latency$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Empty state on the Latency tab
+	@override String get empty => 'Zatím žádná měření. Řádek potřebuje odeslání i doručení pro stejný trace.';
+
+	/// Column header on the latency table
+	@override String get scenario_column => 'scénář';
+
+	/// Footnote under the latency table
+	@override String get footnote => '`sent` je okamžik, kdy API dostalo požadavek, ne kdy odpovědělo FCM, takže každé číslo výše zahrnuje i dobu volání FCM.';
+}
+
+// Path: api.item
+class _Translations$api$item$cs implements Translations$api$item$en {
+	_Translations$api$item$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Names the item kind in api.answered_unreadable_item
+	@override String get event => 'událost';
+
+	/// Names the item kind in api.answered_unreadable_item
+	@override String get latency_row => 'řádek latence';
 }
 
 /// The flat map containing all translations for locale <cs>.
@@ -553,6 +681,8 @@ extension on TranslationsCs {
 			'common.cancel' => 'Zrušit',
 			'common.schedule_ellipsis' => 'Naplánovat…',
 			'common.reload' => 'Znovu načíst',
+			'common.no_scenario' => 'bez scénáře',
+			'common.no_device_yet' => 'zatím žádné zařízení',
 			'selection_bar.select_for_batch' => 'Vybrat do dávky',
 			'selection_bar.selected_count' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '${n} vybrán', few: '${n} vybrány', other: '${n} vybráno', ), 
 			'runs.empty' => 'Zatím nic naplánováno. Vyber scénář a zvol Naplánovat.',
@@ -581,7 +711,7 @@ extension on TranslationsCs {
 			'schedule_sheet.confirm' => 'Naplánovat',
 			'preset_chip.seconds' => ({required Object value}) => '${value} s',
 			'not_received.button' => 'Nikdy nedorazilo',
-			'not_received.reported' => 'Nahlášeno jako nedoručené',
+			'not_received.reported' => 'Nahlášeno: nikdy nedorazilo',
 			'scenario_needs.banner' => ({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.',
 			'send_result.validated' => ({required Object messageId, required Object traceId}) => '✓ Zvalidováno · zpráva ${messageId} · trace ${traceId} · payload byl zvalidován, ne odeslán',
 			'send_result.sent' => ({required Object messageId, required Object traceId}) => '✓ Odesláno · zpráva ${messageId} · trace ${traceId} · za chvíli by se mělo objevit v Doručených',
@@ -591,6 +721,23 @@ extension on TranslationsCs {
 			'countdown.dim_note' => 'Obyčejná aplikace nemůže vypnout displej — jen ho ztmavit a pustit wakelock, takže systém zhasne sám.',
 			'countdown.dim_screen' => 'Ztmavit displej',
 			'countdown.battery_settings' => 'Nastavení baterie',
+			'telemetry.tab.events' => 'Události',
+			'telemetry.tab.latency' => 'Latence',
+			'telemetry.events.empty' => 'Zatím nic nezaznamenáno. Pošli push ze Sandboxu a načti znovu.',
+			'telemetry.event_row.request_received' => ' · (požadavek přijat)',
+			'telemetry.latency.empty' => 'Zatím žádná měření. Řádek potřebuje odeslání i doručení pro stejný trace.',
+			'telemetry.latency.scenario_column' => 'scénář',
+			'telemetry.latency.footnote' => '`sent` je okamžik, kdy API dostalo požadavek, ne kdy odpovědělo FCM, takže každé číslo výše zahrnuje i dobu volání FCM.',
+			'api.unreachable' => ({required Object baseUrl, required Object error}) => 'Nepodařilo se spojit s ${baseUrl} — běží API?\nNa fyzickém zařízení spusť: adb reverse tcp:8080 tcp:8080\n(${error})',
+			'api.answered_status' => ({required Object status, required Object body}) => 'API odpovědělo ${status}: ${body}',
+			'api.answered_unreadable' => ({required Object error}) => 'API odpovědělo 200 něčím nečitelným: ${error}',
+			'api.answered_not_json' => ({required Object error}) => 'API odpovědělo 200 něčím, co není JSON: ${error}',
+			'api.answered_wrong_shape' => ({required Object type}) => 'API odpovědělo 200 typem ${type}, kde se čekal seznam.',
+			'api.answered_wrong_shape_runs' => ({required Object type}) => 'API odpovědělo 200 typem ${type}, kde se čekal seznam běhů.',
+			'api.answered_unreadable_item' => ({required Object what, required Object error}) => 'API odpovědělo 200 s ${what}, co tento build neumí přečíst: ${error}',
+			'api.item.event' => 'událost',
+			'api.item.latency_row' => 'řádek latence',
+			'api.expected_object' => ({required Object type}) => 'Byl očekáván JSON objekt, ale přišel typ ${type}.',
 			_ => null,
 		};
 	}

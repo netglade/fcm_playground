@@ -1,6 +1,8 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
+
 /// One of `TraceCard`'s ten rows: the type, whether it arrived, and if so when.
 ///
 /// Extracted into its own file rather than kept private alongside `TraceCard`: DCM's
@@ -27,7 +29,7 @@ class EventRow extends StatelessWidget {
           SizedBox(width: 120, child: Text(type.wireName)),
           Expanded(
             child: Text(
-              arrived == null ? '' : _describe(arrived, type),
+              arrived == null ? '' : _describe(context.t, arrived, type),
               style: theme.textTheme.bodySmall,
             ),
           ),
@@ -43,10 +45,19 @@ class EventRow extends StatelessWidget {
 /// clock reading taken before the API calls FCM, not from FCM's answer — see the
 /// spec's Scope. Leaving that unsaid would let either column read as a response time
 /// it is not.
-String _describe(TelemetryEvent event, TelemetryEventType type) {
+///
+/// Takes [t] rather than a `BuildContext`: this is a plain function, not a widget,
+/// so the caller's already-resolved translations are threaded through instead.
+String _describe(
+  Translations t,
+  TelemetryEvent event,
+  TelemetryEventType type,
+) {
   final at = event.at.toIso8601String();
   final detail = event.detail == null ? '' : ' · ${event.detail}';
-  final caveat = _isPreRequestStamp(type) ? ' · (request received)' : '';
+  final caveat = _isPreRequestStamp(type)
+      ? t.telemetry.event_row.request_received
+      : '';
 
   return '$at$detail$caveat';
 }

@@ -67,7 +67,7 @@ schedule_sheet.spacing_help,"Added again for each message after the first, so a 
 schedule_sheet.confirm,Schedule,Naplánovat,"Confirm button in the schedule sheet; no ellipsis because this one acts"
 preset_chip.seconds,$value s,$value s,Delay preset chip
 not_received.button,It never arrived,Nikdy nedorazilo,Button reporting a push that did not show up
-not_received.reported,Reported as never arrived,Nahlášeno jako nedoručené,The same button once pressed
+not_received.reported,Reported as never arrived,"Nahlášeno: nikdy nedorazilo",The same button once pressed; echoes the unpressed label deliberately
 scenario_needs.banner,"Needs $needs. The push will still be sent, but this scenario cannot be observed yet.","Potřebuje $needs. Push se pošle, ale tento scénář se ještě nedá pozorovat.",Banner listing what a scenario is missing
 send_result.validated,"✓ Validated · message $messageId · trace $traceId · the payload was validated, not sent","✓ Zvalidováno · zpráva $messageId · trace $traceId · payload byl zvalidován, ne odeslán",Result card after a validate-only send
 send_result.sent,"✓ Sent · message $messageId · trace $traceId · it should appear in the Inbox shortly","✓ Odesláno · zpráva $messageId · trace $traceId · za chvíli by se mělo objevit v Doručených",Result card after a send
@@ -79,3 +79,26 @@ countdown.swipe_away,"Swipe the app away from recents now. The push is already s
 countdown.dim_note,"An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.","Obyčejná aplikace nemůže vypnout displej — jen ho ztmavit a pustit wakelock, takže systém zhasne sám.",Explains why the button dims rather than switches off
 countdown.dim_screen,Dim the screen,Ztmavit displej,Button on the countdown screen
 countdown.battery_settings,Battery settings,Nastavení baterie,Opens the OS battery settings
+telemetry.tab.events,Events,Události,Tab on the Telemetry page
+telemetry.tab.latency,Latency,Latence,Tab on the Telemetry page
+telemetry.events.empty,"Nothing recorded yet. Send a push from the Sandbox, then reload.","Zatím nic nezaznamenáno. Pošli push ze Sandboxu a načti znovu.",Empty state on the Events tab
+telemetry.event_row.request_received," · (request received)"," · (požadavek přijat)",Caveat appended to a stamp taken before the request was handled
+telemetry.latency.empty,"No measurements yet. A row needs both a send and an arrival for the same trace.","Zatím žádná měření. Řádek potřebuje odeslání i doručení pro stejný trace.",Empty state on the Latency tab
+telemetry.latency.scenario_column,scenario,scénář,Column header on the latency table
+common.no_scenario,no scenario,bez scénáře,"Stands in for a trace with no scenario id; used on the matrix and the trace card"
+common.no_device_yet,no device yet,zatím žádné zařízení,Stands in for a trace with no device id
+telemetry.latency.footnote,"`sent` is when the API received the request, not when FCM answered, so every figure above includes the time the FCM call took.","`sent` je okamžik, kdy API dostalo požadavek, ne kdy odpovědělo FCM, takže každé číslo výše zahrnuje i dobu volání FCM.",Footnote under the latency table
+api.unreachable,"Could not reach $baseUrl — is the API running?
+On a physical device, run: adb reverse tcp:8080 tcp:8080
+($error)","Nepodařilo se spojit s $baseUrl — běží API?
+Na fyzickém zařízení spusť: adb reverse tcp:8080 tcp:8080
+($error)","Shown when the local API is not answering; identical in all three data sources"
+api.answered_status,"The API answered $status: $body","API odpovědělo $status: $body","Shown for a non-200; the body is the server's own text and stays as sent"
+api.answered_unreadable,"The API answered 200 with something unreadable: $error","API odpovědělo 200 něčím nečitelným: $error",A 200 whose body is not JSON
+api.answered_not_json,"The API answered 200 with something that is not JSON: $error","API odpovědělo 200 něčím, co není JSON: $error",A 200 whose body is not JSON
+api.answered_wrong_shape,"The API answered 200 with $type where a list was expected.","API odpovědělo 200 typem $type, kde se čekal seznam.",A 200 whose body parses but is the wrong shape
+api.answered_wrong_shape_runs,"The API answered 200 with $type where a list of runs was expected.","API odpovědělo 200 typem $type, kde se čekal seznam běhů.",A 200 whose body parses but is the wrong shape
+api.answered_unreadable_item,"The API answered 200 with $what this build cannot read: $error","API odpovědělo 200 s $what, co tento build neumí přečíst: $error",A 200 carrying an item this build's model rejects
+api.item.event,an event,událost,Names the item kind in api.answered_unreadable_item
+api.item.latency_row,a latency row,řádek latence,Names the item kind in api.answered_unreadable_item
+api.expected_object,"Expected a JSON object, got $type.","Byl očekáván JSON objekt, ale přišel typ $type.","Shown when a decoded JSON value used as a map is not one; reached from http_run_scheduler.dart and http_telemetry_reader.dart. The identical case in http_notification_sender.dart is caught internally and replaced by api.answered_unreadable before it can reach a user, so it was not in the brief's Step 1 list and keeps its own literal, unlocalized"

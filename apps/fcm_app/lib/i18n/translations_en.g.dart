@@ -64,6 +64,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$scenario_needs$en scenario_needs = Translations$scenario_needs$en._(_root);
 	late final Translations$send_result$en send_result = Translations$send_result$en._(_root);
 	late final Translations$countdown$en countdown = Translations$countdown$en._(_root);
+	late final Translations$telemetry$en telemetry = Translations$telemetry$en._(_root);
+	late final Translations$api$en api = Translations$api$en._(_root);
 }
 
 // Path: app
@@ -297,6 +299,16 @@ class Translations$common$en {
 	///
 	/// en: 'Reload'
 	String get reload => 'Reload';
+
+	/// Stands in for a trace with no scenario id; used on the matrix and the trace card
+	///
+	/// en: 'no scenario'
+	String get no_scenario => 'no scenario';
+
+	/// Stands in for a trace with no device id
+	///
+	/// en: 'no device yet'
+	String get no_device_yet => 'no device yet';
 }
 
 // Path: selection_bar
@@ -540,7 +552,7 @@ class Translations$not_received$en {
 	/// en: 'It never arrived'
 	String get button => 'It never arrived';
 
-	/// The same button once pressed
+	/// The same button once pressed; echoes the unpressed label deliberately
 	///
 	/// en: 'Reported as never arrived'
 	String get reported => 'Reported as never arrived';
@@ -620,6 +632,70 @@ class Translations$countdown$en {
 	String get battery_settings => 'Battery settings';
 }
 
+// Path: telemetry
+class Translations$telemetry$en {
+	Translations$telemetry$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$telemetry$tab$en tab = Translations$telemetry$tab$en._(_root);
+	late final Translations$telemetry$events$en events = Translations$telemetry$events$en._(_root);
+	late final Translations$telemetry$event_row$en event_row = Translations$telemetry$event_row$en._(_root);
+	late final Translations$telemetry$latency$en latency = Translations$telemetry$latency$en._(_root);
+}
+
+// Path: api
+class Translations$api$en {
+	Translations$api$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Shown when the local API is not answering; identical in all three data sources
+	///
+	/// en: 'Could not reach $baseUrl — is the API running? On a physical device, run: adb reverse tcp:8080 tcp:8080 ($error)'
+	String unreachable({required Object baseUrl, required Object error}) => 'Could not reach ${baseUrl} — is the API running?\nOn a physical device, run: adb reverse tcp:8080 tcp:8080\n(${error})';
+
+	/// Shown for a non-200; the body is the server's own text and stays as sent
+	///
+	/// en: 'The API answered $status: $body'
+	String answered_status({required Object status, required Object body}) => 'The API answered ${status}: ${body}';
+
+	/// A 200 whose body is not JSON
+	///
+	/// en: 'The API answered 200 with something unreadable: $error'
+	String answered_unreadable({required Object error}) => 'The API answered 200 with something unreadable: ${error}';
+
+	/// A 200 whose body is not JSON
+	///
+	/// en: 'The API answered 200 with something that is not JSON: $error'
+	String answered_not_json({required Object error}) => 'The API answered 200 with something that is not JSON: ${error}';
+
+	/// A 200 whose body parses but is the wrong shape
+	///
+	/// en: 'The API answered 200 with $type where a list was expected.'
+	String answered_wrong_shape({required Object type}) => 'The API answered 200 with ${type} where a list was expected.';
+
+	/// A 200 whose body parses but is the wrong shape
+	///
+	/// en: 'The API answered 200 with $type where a list of runs was expected.'
+	String answered_wrong_shape_runs({required Object type}) => 'The API answered 200 with ${type} where a list of runs was expected.';
+
+	/// A 200 carrying an item this build's model rejects
+	///
+	/// en: 'The API answered 200 with $what this build cannot read: $error'
+	String answered_unreadable_item({required Object what, required Object error}) => 'The API answered 200 with ${what} this build cannot read: ${error}';
+
+	late final Translations$api$item$en item = Translations$api$item$en._(_root);
+
+	/// Shown when a decoded JSON value used as a map is not one; reached from http_run_scheduler.dart and http_telemetry_reader.dart. The identical case in http_notification_sender.dart is caught internally and replaced by api.answered_unreadable before it can reach a user, so it was not in the brief's Step 1 list and keeps its own literal, unlocalized
+	///
+	/// en: 'Expected a JSON object, got $type.'
+	String expected_object({required Object type}) => 'Expected a JSON object, got ${type}.';
+}
+
 // Path: shell.title
 class Translations$shell$title$en {
 	Translations$shell$title$en._(this._root);
@@ -652,6 +728,96 @@ class Translations$shell$title$en {
 	///
 	/// en: 'Telemetry'
 	String get telemetry => 'Telemetry';
+}
+
+// Path: telemetry.tab
+class Translations$telemetry$tab$en {
+	Translations$telemetry$tab$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Tab on the Telemetry page
+	///
+	/// en: 'Events'
+	String get events => 'Events';
+
+	/// Tab on the Telemetry page
+	///
+	/// en: 'Latency'
+	String get latency => 'Latency';
+}
+
+// Path: telemetry.events
+class Translations$telemetry$events$en {
+	Translations$telemetry$events$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Empty state on the Events tab
+	///
+	/// en: 'Nothing recorded yet. Send a push from the Sandbox, then reload.'
+	String get empty => 'Nothing recorded yet. Send a push from the Sandbox, then reload.';
+}
+
+// Path: telemetry.event_row
+class Translations$telemetry$event_row$en {
+	Translations$telemetry$event_row$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Caveat appended to a stamp taken before the request was handled
+	///
+	/// en: ' · (request received)'
+	String get request_received => ' · (request received)';
+}
+
+// Path: telemetry.latency
+class Translations$telemetry$latency$en {
+	Translations$telemetry$latency$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Empty state on the Latency tab
+	///
+	/// en: 'No measurements yet. A row needs both a send and an arrival for the same trace.'
+	String get empty => 'No measurements yet. A row needs both a send and an arrival for the same trace.';
+
+	/// Column header on the latency table
+	///
+	/// en: 'scenario'
+	String get scenario_column => 'scenario';
+
+	/// Footnote under the latency table
+	///
+	/// en: '`sent` is when the API received the request, not when FCM answered, so every figure above includes the time the FCM call took.'
+	String get footnote => '`sent` is when the API received the request, not when FCM answered, so every figure above includes the time the FCM call took.';
+}
+
+// Path: api.item
+class Translations$api$item$en {
+	Translations$api$item$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Names the item kind in api.answered_unreadable_item
+	///
+	/// en: 'an event'
+	String get event => 'an event';
+
+	/// Names the item kind in api.answered_unreadable_item
+	///
+	/// en: 'a latency row'
+	String get latency_row => 'a latency row';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -695,6 +861,8 @@ extension on Translations {
 			'common.cancel' => 'Cancel',
 			'common.schedule_ellipsis' => 'Schedule…',
 			'common.reload' => 'Reload',
+			'common.no_scenario' => 'no scenario',
+			'common.no_device_yet' => 'no device yet',
 			'selection_bar.select_for_batch' => 'Select for a batch',
 			'selection_bar.selected_count' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} selected', few: '${n} selected', other: '${n} selected', ), 
 			'runs.empty' => 'Nothing scheduled yet. Pick a scenario and choose Schedule.',
@@ -733,6 +901,23 @@ extension on Translations {
 			'countdown.dim_note' => 'An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.',
 			'countdown.dim_screen' => 'Dim the screen',
 			'countdown.battery_settings' => 'Battery settings',
+			'telemetry.tab.events' => 'Events',
+			'telemetry.tab.latency' => 'Latency',
+			'telemetry.events.empty' => 'Nothing recorded yet. Send a push from the Sandbox, then reload.',
+			'telemetry.event_row.request_received' => ' · (request received)',
+			'telemetry.latency.empty' => 'No measurements yet. A row needs both a send and an arrival for the same trace.',
+			'telemetry.latency.scenario_column' => 'scenario',
+			'telemetry.latency.footnote' => '`sent` is when the API received the request, not when FCM answered, so every figure above includes the time the FCM call took.',
+			'api.unreachable' => ({required Object baseUrl, required Object error}) => 'Could not reach ${baseUrl} — is the API running?\nOn a physical device, run: adb reverse tcp:8080 tcp:8080\n(${error})',
+			'api.answered_status' => ({required Object status, required Object body}) => 'The API answered ${status}: ${body}',
+			'api.answered_unreadable' => ({required Object error}) => 'The API answered 200 with something unreadable: ${error}',
+			'api.answered_not_json' => ({required Object error}) => 'The API answered 200 with something that is not JSON: ${error}',
+			'api.answered_wrong_shape' => ({required Object type}) => 'The API answered 200 with ${type} where a list was expected.',
+			'api.answered_wrong_shape_runs' => ({required Object type}) => 'The API answered 200 with ${type} where a list of runs was expected.',
+			'api.answered_unreadable_item' => ({required Object what, required Object error}) => 'The API answered 200 with ${what} this build cannot read: ${error}',
+			'api.item.event' => 'an event',
+			'api.item.latency_row' => 'a latency row',
+			'api.expected_object' => ({required Object type}) => 'Expected a JSON object, got ${type}.',
 			_ => null,
 		};
 	}
