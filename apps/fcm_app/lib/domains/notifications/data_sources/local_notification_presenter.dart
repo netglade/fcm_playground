@@ -9,6 +9,7 @@ import '../../push/entities/push_tap.dart';
 import '../entities/notification_content.dart';
 import '../entities/notification_presenter.dart';
 import 'notification_details_builder.dart';
+import 'notification_group_summary.dart';
 import 'notification_reply.dart';
 
 /// A [NotificationPresenter] over `flutter_local_notifications`, needed only
@@ -94,15 +95,18 @@ class LocalNotificationPresenter implements NotificationPresenter {
   }
 
   @override
-  Future<void> show(PushMessage message) => _plugin.show(
-    id: notificationIdOf(message),
-    title: message.title,
-    body: message.body,
-    notificationDetails: buildNotificationDetails(message),
-    // The payload is the message id, which is how a tap resolves back to a
-    // message the inbox already holds.
-    payload: message.id,
-  );
+  Future<void> show(PushMessage message) async {
+    await _plugin.show(
+      id: notificationIdOf(message),
+      title: message.title,
+      body: message.body,
+      notificationDetails: buildNotificationDetails(message),
+      // The payload is the message id, which is how a tap resolves back to a
+      // message the inbox already holds.
+      payload: message.id,
+    );
+    await postGroupSummary(message, plugin: _plugin);
+  }
 
   @override
   Future<void> dispose() async {
