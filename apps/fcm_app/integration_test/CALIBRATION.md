@@ -141,3 +141,23 @@ respectively — rather than the message detail page. `f5_deeplink_killed` needs
 delayed send and a real app kill to exercise at all, and is the one most worth doing
 by hand: `getInitialMessage` is the route nobody exercises by accident, so it is the
 one most likely to have quietly broken.
+
+**`f7_ongoing`'s automated assertions cover delivery and drawing only; the ongoing
+behaviour itself is a manual pass.** Nothing in the telemetry stream distinguishes an
+ongoing notification from any other — `displayed` fires the same way either way — so
+send it and try to swipe it away by hand: it should refuse. Then open the Inbox and
+press **Clear notifications**, and confirm the notification is gone from the tray
+while the Inbox's messages are untouched.
+
+**`g1_group_summary`'s automated assertions cover delivery and drawing only; the
+collapse under a summary, and the climbing count, are both manual passes.** The app
+posts and counts the summary itself, and nothing about that reaches telemetry — a
+send of the fifth looks the same on the wire as the first. Send it five times by
+hand and confirm all five collapse under one summary row, and that the row's count
+reads 5 by the time the fifth arrives.
+
+**`g2_update_same_id`'s automated assertions cover delivery and drawing only; that
+the second send replaces rather than stacks is a manual pass.** Telemetry records
+two separate deliveries either way, so send it twice by hand — with the app
+backgrounded, then again with it on screen — and confirm the tray shows one
+notification, not two, after each pair.

@@ -52,15 +52,15 @@ void main() {
       );
     });
 
-    test('runs twenty-two scenarios and skips forty-four of sixty-six', () {
+    test('runs twenty-five scenarios and skips forty-one of sixty-six', () {
       final running = scenarioGallery.where((s) => skipReasonFor(s) == null);
 
       // Pinned to literals because the split is a claim the spec makes, and drift
       // in either direction is what is worth catching: a scenario becoming
       // unblocked should show up here rather than be absorbed silently.
       expect(scenarioGallery, hasLength(66));
-      expect(running, hasLength(22));
-      expect(scenarioGallery.length - running.length, 44);
+      expect(running, hasLength(25));
+      expect(scenarioGallery.length - running.length, 41);
     });
 
     test('a blocked scenario is skipped for its own need, named in words', () {
@@ -121,12 +121,12 @@ void main() {
       }
     });
 
-    test('thirty-eight scenarios are skipped for an unbuilt ScenarioNeed', () {
+    test('thirty-five scenarios are skipped for an unbuilt ScenarioNeed', () {
       final blockedByNeed = scenarioGallery.where(
         (s) => _skipBucket(s) == 'needs',
       );
 
-      expect(blockedByNeed, hasLength(38));
+      expect(blockedByNeed, hasLength(35));
     });
 
     test('four scenarios are skipped for being iOS-only', () {
@@ -147,7 +147,7 @@ void main() {
       expect(appKillOnly.map((s) => s.id), ['b3_killed', 'f5_deeplink_killed']);
     });
 
-    test('the skip buckets add up to forty-four, with none unclassified', () {
+    test('the skip buckets add up to forty-one, with none unclassified', () {
       final needsCount = scenarioGallery
           .where((s) => _skipBucket(s) == 'needs')
           .length;
@@ -170,14 +170,14 @@ void main() {
       expect(unclassified, isEmpty);
 
       // The buckets must not drift apart from the totals the file already
-      // pins above: 38 + 4 + 2 is the 44 skipped, and 44 + 22 is the
+      // pins above: 35 + 4 + 2 is the 41 skipped, and 41 + 25 is the
       // catalogue's 66.
       expect(
         needsCount + iosCount + appKillCount + unclassified.length,
         skippedCount,
       );
-      expect(skippedCount, 44);
-      expect(skippedCount + 22, 66);
+      expect(skippedCount, 41);
+      expect(skippedCount + 25, 66);
     });
 
     test('a rejected send expects nothing device-side', () {

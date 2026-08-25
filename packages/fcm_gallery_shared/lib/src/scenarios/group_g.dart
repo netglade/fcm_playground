@@ -16,14 +16,17 @@ const groupG = <Scenario>[
     description:
         'Watch that they collapse under one summary row, and what the summary '
         'says when the fifth arrives.',
+    expectation:
+        'The app posts the summary itself and updates its count as each one '
+        'arrives — the payload only names the group. Send it several times to '
+        'watch the count climb.',
     payloadTemplate: {
       'notification': {'title': 'Build 128', 'body': 'Passed.'},
       'android': {
-        'notification': {'tag': 'builds-group', 'channel_id': 'builds'},
+        'notification': {'channel_id': 'builds'},
       },
-      'data': {'group': 'builds', 'group_summary': 'false'},
+      'data': {'group': 'builds'},
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'g2_update_same_id',
@@ -32,13 +35,16 @@ const groupG = <Scenario>[
     description:
         'Send twice with the same tag. Watch that the second replaces the first '
         'rather than stacking, and whether it re-alerts.',
+    expectation:
+        'FCM honours android.notification.tag itself when it draws the tray '
+        'entry, and the app now keys its own drawing on the same tag — so the '
+        'second send replaces the first whichever of them drew it.',
     payloadTemplate: {
       'notification': {'title': 'Build 128', 'body': 'Running…'},
       'android': {
         'notification': {'tag': 'build-128'},
       },
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'g3_badge',

@@ -119,11 +119,15 @@ const groupF = <Scenario>[
     description:
         'Watch that it cannot be swiped away, and confirm there is a way to '
         'clear it — an ongoing notification with no exit is a support ticket.',
+    expectation:
+        'Cannot be swiped away. The way out is the Clear notifications button '
+        'on the Inbox page, which wipes the tray and leaves the inbox alone — '
+        'an ongoing notification with no exit is a support ticket, so the exit '
+        'is part of the scenario.',
     payloadTemplate: {
       'notification': {'title': 'Syncing', 'body': 'Cannot be dismissed.'},
       'data': {'ongoing': 'true'},
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'f8_full_screen_intent',

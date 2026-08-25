@@ -258,7 +258,7 @@ priority and delivery window, channels and importance, appearance,
 interaction, groups and badges, intrusive delivery, silent and data,
 targeting, and edge cases.
 
-**28 of the 66 work today.** The rest carry a marker naming what they still need —
+**31 of the 66 work today.** The rest carry a marker naming what they still need —
 notification channels, notification styles, notification actions, a launcher
 badge, a device registry, a manual step, or approval from Apple or the OS that
 this project cannot grant itself. That count is asserted by a test, so this
@@ -537,8 +537,8 @@ and nothing else — the inbox still fills.
 
 ## Verified on this machine
 
-`melos run ci` passes clean — 39 `core` tests, 238 `fcm_gallery_shared` tests, 218
-`fcm_api` tests and 605 `fcm_app` tests. `fvm flutter build web --release` succeeds
+`melos run ci` passes clean — 42 `core` tests, 238 `fcm_gallery_shared` tests, 218
+`fcm_api` tests and 633 `fcm_app` tests. `fvm flutter build web --release` succeeds
 (a compile check only: the web build cannot receive FCM pushes without a VAPID
 key). `fvm flutter build apk --debug` succeeds too — see below for the plugin
 that used to break it. The iOS build has **not** been verified here either;
@@ -548,8 +548,8 @@ There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patr
 suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
 Android device**, needs the API serving with `GOOGLE_APPLICATION_CREDENTIALS` set,
 and is deliberately excluded from the gate because a device-dependent suite has no
-business in a hermetic one. Of the catalogue's 66 scenarios, 22 run there; the other
-44 are skipped with a stated reason — 38 wait on a `ScenarioNeed` the app has not
+business in a hermetic one. Of the catalogue's 66 scenarios, 25 run there; the other
+41 are skipped with a stated reason — 35 wait on a `ScenarioNeed` the app has not
 built, 4 need a physical iPhone, and two (`b3_killed` and `f5_deeplink_killed`) would
 each have to kill the app the test runs inside. That split has not been run on this
 machine either — no Android device is attached — so it is asserted by
