@@ -36,40 +36,42 @@ class _ScheduleSheetBodyState extends State<ScheduleSheetBody> {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(16),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Delay', style: Theme.of(context).textTheme.titleSmall),
-        PresetChips(
-          values: _delayPresets,
-          selected: _delay,
-          onSelected: (value) => setState(() => _delay = value),
-        ),
-        if (widget.withSpacing) ...[
-          const SizedBox(height: 12),
-          Text('Spacing', style: Theme.of(context).textTheme.titleSmall),
-          const Text(
-            'Added again for each message after the first, so a batch arrives '
-            'spread out rather than as one burst.',
-          ),
+    child: SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Delay', style: Theme.of(context).textTheme.titleSmall),
           PresetChips(
-            values: _spacingPresets,
-            selected: _spacing,
-            onSelected: (value) => setState(() => _spacing = value),
+            values: _delayPresets,
+            selected: _delay,
+            onSelected: (value) => setState(() => _delay = value),
+          ),
+          if (widget.withSpacing) ...[
+            const SizedBox(height: 12),
+            Text('Spacing', style: Theme.of(context).textTheme.titleSmall),
+            const Text(
+              'Added again for each message after the first, so a batch arrives '
+              'spread out rather than as one burst.',
+            ),
+            PresetChips(
+              values: _spacingPresets,
+              selected: _spacing,
+              onSelected: (value) => setState(() => _spacing = value),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(
+                ScheduleChoice(delaySeconds: _delay, spacingSeconds: _spacing),
+              ),
+              child: const Text('Schedule'),
+            ),
           ),
         ],
-        const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerRight,
-          child: FilledButton(
-            onPressed: () => Navigator.of(context).pop(
-              ScheduleChoice(delaySeconds: _delay, spacingSeconds: _spacing),
-            ),
-            child: const Text('Schedule'),
-          ),
-        ),
-      ],
+      ),
     ),
   );
 }
