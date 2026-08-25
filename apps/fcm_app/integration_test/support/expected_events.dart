@@ -55,11 +55,11 @@ const _sendRefused = {TelemetryEventType.queued, TelemetryEventType.sendFailed};
 
 /// Per-scenario expectations, keyed by [Scenario.id].
 ///
-/// Thirty entries: the twenty-six that run on Android plus the four
-/// iOS-only ones, which are written so that unblocking iOS is a skip-policy
-/// change rather than a table rewrite. `b3_killed` and `f5_deeplink_killed`
-/// have no entry on purpose — [skipReasonFor] turns each away before the
-/// table is consulted.
+/// Thirty entries: the twenty-six that run on Android plus the four iOS-only
+/// ones, which are written so that unblocking iOS is a skip-policy change
+/// rather than a table rewrite. `b3_killed` and `f5_deeplink_killed` have no
+/// entry on purpose — [skipReasonFor] turns each away before the table is
+/// consulted.
 ///
 /// **Derived from reading the code, not from watching a device.** See
 /// `integration_test/CALIBRATION.md` for how to settle it.

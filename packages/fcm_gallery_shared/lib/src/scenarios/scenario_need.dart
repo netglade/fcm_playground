@@ -1,6 +1,6 @@
 /// What a scenario needs, beyond a payload, before it demonstrates anything.
 ///
-/// Every value is a planned sub-project, so "which scenarios does the channels work
+/// Most values are a planned sub-project, so "which scenarios does the channels work
 /// unblock?" is a filter rather than a search through prose. Two values are
 /// exceptions, for different reasons: [externalApproval] is permanently outside
 /// this project's control, while [nativeCode] names something this project has

@@ -535,8 +535,9 @@ Notification permission is requested at startup by `firebase_messaging`, which
 covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
 and nothing else — the inbox still fills.
 
-The manifest declares one more permission, `USE_FULL_SCREEN_INTENT`, purely so
-that `f8_full_screen_intent` has something to be refused. Android 14 and later
+The manifest declares one further permission for this,
+`USE_FULL_SCREEN_INTENT`, purely so that `f8_full_screen_intent` has something
+to be refused. Android 14 and later
 grant it only to calling and alarm apps, so this one is expected to degrade to a
 heads-up notification rather than take over the lock screen — the refusal is
 what the scenario demonstrates.
