@@ -14,15 +14,6 @@ enum ScenarioNeed {
   /// progress, large icon.
   styles('notification styles'),
 
-  /// A platform-level component this Dart-only gallery deliberately does not
-  /// carry.
-  ///
-  /// Unlike the others, this value names no planned sub-project. It marks a
-  /// scenario whose demonstration would need native code, which this project has
-  /// chosen not to introduce — the single Kotlin file here is Flutter's own empty
-  /// activity.
-  nativeCode('native code'),
-
   /// The launcher icon's badge count.
   badge('launcher badge'),
 
@@ -35,7 +26,16 @@ enum ScenarioNeed {
   /// Approval or capability from Apple or the OS that this project cannot grant
   /// itself: a critical-alert entitlement, a Notification Service Extension,
   /// notification-policy access.
-  externalApproval('external approval');
+  externalApproval('external approval'),
+
+  /// A platform-level component this Dart-only gallery deliberately does not
+  /// carry.
+  ///
+  /// Unlike the others, this value names no planned sub-project. It marks a
+  /// scenario whose demonstration would need native code, which this project has
+  /// chosen not to introduce — the single Kotlin file here is Flutter's own empty
+  /// activity.
+  nativeCode('native code');
 
   const ScenarioNeed(this.label);
 

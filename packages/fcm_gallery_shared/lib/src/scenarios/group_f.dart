@@ -142,8 +142,8 @@ const groupF = <Scenario>[
     group: 'F — Interaction',
     title: 'Full-screen intent, as an incoming call',
     description:
-        'Takes over the lock screen. Watch whether it is granted at all, and '
-        'what it degrades to when it is refused.',
+        'Asks to take over the lock screen. Watch whether it is granted at '
+        'all, and what it degrades to when it is refused.',
     expectation:
         'Data-only, so the app draws it and can ask for the full-screen intent '
         'at all — FCM has no field for one. The app declares '
@@ -169,7 +169,8 @@ const groupF = <Scenario>[
     description:
         'Starting an activity from a service or broadcast receiver after a tap, '
         'rather than from the notification itself. Android 12 banned the '
-        'pattern outright: the tap is swallowed and the activity never opens.',
+        'pattern outright — an app that did this would find the tap swallowed '
+        'and the activity never opening.',
     expectation:
         'Not built. Demonstrating the ban means starting an activity from a '
         'broadcast receiver or service, which needs platform code this '

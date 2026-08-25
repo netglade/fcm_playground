@@ -157,12 +157,21 @@ notification is gone from the tray while the Inbox's messages are untouched.
 **`f8_full_screen_intent`'s automated assertions cover delivery and drawing only;
 what the intent degrades to is a manual pass.** Nothing about a full-screen intent
 reaches telemetry — the app asks for one, Android decides, and `displayed` fires
-either way — so send it with the app **backgrounded** and watch the device. On
-Android 14 and later expect a heads-up notification rather than a lock-screen
-takeover: the platform grants `USE_FULL_SCREEN_INTENT` only to calling and alarm
-apps, and that refusal is the demonstration. Record what you see either way — a
-device that does grant the takeover is a valid observation about that device, not a
-failure of the scenario. Confirm separately that the notification is drawn at all:
+either way — so send it with the app **backgrounded and the screen locked or off**.
+That second condition decides the test: a full-screen intent launches its activity
+only when the user is not already using the device, so on an unlocked handset
+Android shows a heads-up **even where it has granted the permission** — and a
+heads-up is exactly what a refusal looks like. Run this unlocked and you record
+"refused" whatever really happened, which is the one observation this scenario
+exists to produce. On Android 14 and later expect a heads-up rather than a
+lock-screen takeover: the platform grants `USE_FULL_SCREEN_INTENT` only to calling
+and alarm apps, and that refusal is the demonstration. On Android 13 and earlier the
+permission is granted at install, so expect the takeover instead — a correct grant,
+not a broken expectation. A user can also grant it by hand under Settings → Apps →
+Special app access → Full screen intents, so check there before recording a surprise
+on your own handset. Record what you see either way — a device that does grant the
+takeover is a valid observation about that device, not a failure of the scenario.
+Confirm separately that the notification is drawn at all:
 it is data-only now, so nothing appearing means the app's own drawing did not run,
 which is a different failure from a refused permission and must not be read as one.
 

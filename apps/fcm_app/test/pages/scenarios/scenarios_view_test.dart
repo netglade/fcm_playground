@@ -101,7 +101,9 @@ void main() {
     expect(find.text(withExpectation.expectation!), findsOne);
   });
 
-  testWidgets('flags the rows that cannot be demonstrated yet', (tester) async {
+  testWidgets('flags the rows that cannot be demonstrated here', (
+    tester,
+  ) async {
     // Every scenario in group A works, so a chip visible there would say nothing.
     // Group D's first row is the nearest one that should carry it.
     build();

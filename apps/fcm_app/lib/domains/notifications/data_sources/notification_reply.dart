@@ -32,15 +32,19 @@ PendingReply? replyFrom(NotificationResponse response) {
 /// intended.
 ///
 /// Known limitation: the redraw below builds a fixed `NotificationDetails`
-/// that carries neither the original's tag, group nor ongoing flag, so all
-/// three diverge from the original draw. A tagged message's progress
-/// notification lands beside the original instead of replacing it. A grouped
-/// message's progress notification leaves its group — it stops counting
-/// toward the summary's total even though the store still counts it as a
-/// member. An ongoing message's progress notification becomes dismissable.
-/// Left alone rather than plumbed through, because reaching any of the three
+/// that carries none of the original's tag, group, ongoing flag or
+/// full-screen request, so all four diverge from the original draw. A tagged
+/// message's progress notification lands beside the original instead of
+/// replacing it. A grouped message's progress notification leaves its group —
+/// it stops counting toward the summary's total even though the store still
+/// counts it as a member. An ongoing message's progress notification becomes
+/// dismissable. A full-screen one stops asking to take over the screen, which
+/// is the one divergence worth keeping: a "Sending…" redraw seizing the lock
+/// screen would be worse than the flag being dropped.
+/// Left alone rather than plumbed through, because reaching any of the four
 /// means hand-composing a Sandbox payload that pairs a reply action with a
-/// tag, a group or the ongoing flag; no catalogue scenario does.
+/// tag, a group, the ongoing flag or a full-screen request; no catalogue
+/// scenario does.
 ///
 /// The original title is not restored, because this isolate does not have it —
 /// finding it would mean reading the payload store's pending queue, which the UI

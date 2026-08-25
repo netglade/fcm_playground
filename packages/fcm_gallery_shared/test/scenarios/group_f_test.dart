@@ -30,9 +30,10 @@ void main() {
       // `contains(nativeCode)` alone passes on an entry that ALSO carries
       // channels or styles, which would file this group's work under the wrong
       // sub-project. So needs are pinned exactly, and the literal counts back
-      // the words: f1 was unblocked by the notification-actions cycle, the
-      // three deep links by that cycle, f2, f6, f7 and f8 by this one, and the
-      // remaining one names work this project has decided never to do.
+      // the words: f1 and the three deep links were unblocked by the
+      // notification-actions cycle, f2 and f6 by the inline-reply cycle, f7 by
+      // the grouping cycle, f8 by this one, and the remaining one names work
+      // this project has decided never to do.
       expect(groupF, hasLength(9));
 
       const expected = {
@@ -50,10 +51,9 @@ void main() {
       for (final scenario in groupF) {
         final needs = expected[scenario.id]!;
         expect(scenario.needs, needs, reason: scenario.id);
-        // f1 and the three deep links are the entries unblocked so far:
-        // isSupported flips to true exactly when its needs list is empty, so
-        // drive the expectation from the same map rather than special-casing
-        // an id here.
+        // Eight of the nine are unblocked now. isSupported flips to true
+        // exactly when its needs list is empty, so drive the expectation from
+        // the same map rather than special-casing an id here.
         expect(scenario.isSupported, needs.isEmpty, reason: scenario.id);
       }
     });

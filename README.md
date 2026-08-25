@@ -258,10 +258,11 @@ priority and delivery window, channels and importance, appearance,
 interaction, groups and badges, intrusive delivery, silent and data,
 targeting, and edge cases.
 
-**32 of the 66 work today.** The rest carry a marker naming what they still need —
-notification channels, notification styles, native code this Dart-only gallery
-does not carry, a launcher badge, a device registry, a manual step, or approval
-from Apple or the OS that this project cannot grant itself. That count is
+**32 of the 66 work today.** The rest carry a marker naming what is missing —
+notification channels, notification styles, a launcher badge, a device registry,
+a manual step, approval from Apple or the OS that this project cannot grant
+itself, or native code this Dart-only gallery has decided not to carry. That
+count is
 asserted by a test, so this README cannot drift from the code: if a scenario is
 quietly unmarked to look supported, the build fails.
 
@@ -512,7 +513,8 @@ tapping either the notification or an inbox row opens a detail page for it.
 
 | When the push arrives | What draws the notification |
 | --- | --- |
-| App backgrounded or terminated | FCM's own SDK, from the `notification` block `apps/fcm_api` sends. No app code involved. |
+| App backgrounded or terminated, payload carries a `notification` block | FCM's own SDK, from the block `apps/fcm_api` sends. No app code involved. |
+| App backgrounded or terminated, payload is data-only | The background message isolate, via `shouldDrawInBackground`. Several scenarios are data-only on purpose: FCM's own draw has no field for action buttons, a group, an ongoing flag or a full-screen intent, so a scenario about any of those must be drawn by the app in every state. |
 | App in the foreground | `LocalNotificationPresenter`, because Android shows nothing itself in this case. On iOS a single `setForegroundNotificationPresentationOptions` call is enough. |
 
 Both use one high-importance Android channel, `fcm_sample_high`. The app creates
@@ -535,17 +537,18 @@ Notification permission is requested at startup by `firebase_messaging`, which
 covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
 and nothing else — the inbox still fills.
 
-The manifest declares one further permission for this,
+Beside `WAKE_LOCK`, the manifest declares one further permission:
 `USE_FULL_SCREEN_INTENT`, purely so that `f8_full_screen_intent` has something
-to be refused. Android 14 and later
-grant it only to calling and alarm apps, so this one is expected to degrade to a
-heads-up notification rather than take over the lock screen — the refusal is
-what the scenario demonstrates.
+to be refused. Android 14 and later grant it only to calling and alarm apps, so
+this one is expected to degrade to a heads-up notification rather than take over
+the lock screen — the refusal is what the scenario demonstrates. Declaring it is
+what makes that a refusal rather than a silent no-op: undeclared, Android never
+considers the request and f8 degrades for the wrong reason.
 
 ## Verified on this machine
 
 `melos run ci` passes clean — 42 `core` tests, 238 `fcm_gallery_shared` tests, 218
-`fcm_api` tests and 636 `fcm_app` tests. `fvm flutter build web --release` succeeds
+`fcm_api` tests and 638 `fcm_app` tests. `fvm flutter build web --release` succeeds
 (a compile check only: the web build cannot receive FCM pushes without a VAPID
 key). `fvm flutter build apk --debug` succeeds too — see below for the plugin
 that used to break it. The iOS build has **not** been verified here either;

@@ -56,7 +56,7 @@ void main() {
     expect(find.text(subject.expectation!), findsOne);
   });
 
-  testWidgets('flags a scenario that cannot be demonstrated yet', (
+  testWidgets('flags a scenario that cannot be demonstrated here', (
     tester,
   ) async {
     final blocked = scenario('d1_importance_high');

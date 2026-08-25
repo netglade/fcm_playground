@@ -28,7 +28,7 @@ class ScenarioNeedsBanner extends StatelessWidget {
         child: Text(
           'Needs ${needs.map((need) => need.label).join(', ')}. '
           'The push will still be sent, but this scenario cannot be observed '
-          'yet.',
+          'here.',
           style: TextStyle(color: scheme.onSecondaryContainer),
         ),
       ),

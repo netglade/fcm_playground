@@ -47,7 +47,7 @@ void main() {
     expect(
       find.text(
         'Needs notification channels, external approval. The push will still '
-        'be sent, but this scenario cannot be observed yet.',
+        'be sent, but this scenario cannot be observed here.',
       ),
       findsOne,
     );
