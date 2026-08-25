@@ -32,6 +32,15 @@ dependencies:
   get_it: ^8.2.0
   glade_forms: ^6.0.0
   http: ^1.6.0
+  # slang's generated files `import 'package:intl/intl.dart'`, so the app depends on it
+  # directly whatever pulls it in transitively. Declared rather than inherited:
+  # generated code carries "Do not edit", so a resolution failure there has no in-file
+  # fix, and the lint that would catch the implicit dependency never fires because
+  # *.g.dart is excluded from the analyzer.
+  #
+  # Unpinned on purpose: flutter_localizations pins the exact version the SDK ships,
+  # and naming a range here can only conflict with it.
+  intl: any
   screen_brightness: ^2.1.2
   shared_preferences: ^2.5.5
   slang: ^4.19.0

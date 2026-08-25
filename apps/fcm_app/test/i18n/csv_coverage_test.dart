@@ -26,17 +26,17 @@ void main() {
           'the header is what stops slang reading (description) as a locale',
     );
 
-    // Only a line starting at column zero with a key begins a row: a quoted cell may
-    // hold newlines, and those continuation lines are not keys.
-    keys = [
-      for (final line in lines.skip(1))
-        if (RegExp(r'^[a-z][a-z0-9_.]*,').firstMatch(line) case final match?)
-          line.substring(0, match.end - 1),
-    ];
+    keys = _keysIn(lines.skip(1));
   });
 
   test('the CSV has rows', () {
-    expect(keys, isNotEmpty);
+    expect(
+      keys,
+      isNotEmpty,
+      reason:
+          'strings.i18n.csv has a header and nothing else — a merge probably '
+          'dropped its rows',
+    );
   });
 
   test('every key resolves in English', () {
@@ -68,4 +68,50 @@ void main() {
       );
     }
   });
+
+  test('_keysIn skips a false key inside a wrapped quoted cell', () {
+    // The second line resumes a quoted cell that wrapped, and starts with `e.g.,` —
+    // which matches the row-start shape just as well as a real key does. A naive
+    // line-by-line regex would return three keys, the middle one bogus.
+    final keys = _keysIn([
+      'a.b,English one,Czech one,"a description that wraps and resumes with',
+      'e.g., a worked example"',
+      'c.d,English two,Czech two,"a plain, single-line description"',
+    ]);
+
+    expect(
+      keys,
+      ['a.b', 'c.d'],
+      reason:
+          'a quote-blind scan would also report "e.g." as a third, bogus key',
+    );
+  });
+}
+
+final _rowStart = RegExp(r'^[a-z][a-z0-9_.]*,');
+
+/// The keys the CSV declares, one per row *start*.
+///
+/// A quoted cell may hold newlines, so a physical line begins a row only when every
+/// quote before it is closed. Matching the line's shape alone is not enough: a
+/// description that wrapped and resumed with `e.g.,` looks exactly like a key, and
+/// would fail this test for a key that never existed.
+List<String> _keysIn(Iterable<String> rows) {
+  final keys = <String>[];
+  var insideQuotedCell = false;
+
+  for (final line in rows) {
+    if (!insideQuotedCell) {
+      final match = _rowStart.firstMatch(line);
+      if (match != null) keys.add(line.substring(0, match.end - 1));
+    }
+
+    // An odd number of quotes on a line opens or closes a cell. Escaped quotes ("")
+    // flip parity twice, so counting every quote is right without special-casing them.
+    if (line.split('"').length.isEven) {
+      insideQuotedCell = !insideQuotedCell;
+    }
+  }
+
+  return keys;
 }
