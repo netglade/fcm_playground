@@ -15,6 +15,9 @@ const localeKey = 'locale';
 class SharedPreferencesLocaleStore implements LocaleStore {
   const SharedPreferencesLocaleStore();
 
+  /// The stored override, or null when the preference was never set — or when the
+  /// stored tag names a language this build cannot serve, which a downgrade can
+  /// leave behind.
   @override
   Future<AppLocale?> read() async {
     final tag = (await SharedPreferences.getInstance()).getString(localeKey);
@@ -32,6 +35,9 @@ class SharedPreferencesLocaleStore implements LocaleStore {
     return AppLocaleUtils.parse(tag);
   }
 
+  /// Records [locale], or clears the preference so a later [read] falls back to the
+  /// system — [remove] rather than a sentinel string, so there is no "empty" tag for
+  /// [read]'s guard to have to recognise as a special case.
   @override
   Future<void> write(AppLocale? locale) async {
     final preferences = await SharedPreferences.getInstance();
@@ -41,6 +47,11 @@ class SharedPreferencesLocaleStore implements LocaleStore {
 
       return;
     }
-    await preferences.setString(localeKey, locale.languageCode);
+    // languageTag, not languageCode: `read` validates against
+    // `AppLocaleUtils.supportedLocalesRaw`, which slang builds from each locale's
+    // languageTag. The two are identical for en and cs, and diverge the moment a
+    // locale carries a country or script code — at which point a bare code would
+    // fail its own guard and the user's choice would be silently discarded.
+    await preferences.setString(localeKey, locale.languageTag);
   }
 }

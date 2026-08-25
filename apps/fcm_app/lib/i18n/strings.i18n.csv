@@ -1,6 +1,6 @@
 key,en,cs,(description)
 app.title,FCM Sample,FCM Sample,"MaterialApp title and drawer header; a product name, so the same in both"
-language.tooltip,Language,Jazyk,AppBar action tooltip for the language switcher
-language.system,System,Systém,Language choice that follows the device
+language.tooltip,Language,Jazyk,"AppBar action tooltip for the language switcher"
+language.system,System,Systém,"Language choice that follows the device"
 language.english,English,English,"Language choice; each language names itself"
 language.czech,Čeština,Čeština,"Language choice; each language names itself"

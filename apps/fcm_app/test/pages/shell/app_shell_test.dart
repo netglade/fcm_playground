@@ -1,16 +1,18 @@
+import 'package:fcm_app/di/service_locator.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
+import 'package:fcm_app/domains/settings/entities/locale_store.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/runs/run_timeline_page.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/shell/app_shell.dart';
 import 'package:fcm_app/pages/shell/deep_link_destination.dart';
-import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,6 +20,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../fakes/fake_locale_store.dart';
 import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
 import '../../fakes/fake_push_source.dart';
@@ -582,7 +585,16 @@ void main() {
       // The end-to-end proof that codegen, the provider and the store meet: an
       // English drawer label becomes a Czech one without touching the device.
       SharedPreferences.setMockInitialValues({});
+      // The switcher writes through the locator, so the locator has to have one.
+      // Without this the tap throws a StateError about an unregistered LocaleStore,
+      // long before reaching the assertion below.
+      getIt.registerSingleton<LocaleStore>(FakeLocaleStore());
+      addTearDown(() => getIt.unregister<LocaleStore>());
       LocaleSettings.setLocaleSync(AppLocale.en);
+      // LocaleSettings is global process state, and this test deliberately leaves it
+      // on Czech. Restoring it is not tidiness: without it the next English-asserting
+      // test the runner reaches fails, and the failure looks unrelated to this one.
+      addTearDown(() => LocaleSettings.setLocaleSync(AppLocale.en));
       await tester.pumpWidget(
         TranslationProvider(child: const MaterialApp(home: AppShell())),
       );

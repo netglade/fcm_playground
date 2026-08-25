@@ -10,7 +10,10 @@ import '../../../i18n/translations.g.dart';
 /// changes; it does not remember one across launches. That gap is all this exists
 /// for.
 abstract interface class LocaleStore {
+  /// The stored override, or null when none was ever chosen — or when the stored tag
+  /// names a language this build cannot serve, which a downgrade can leave behind.
   Future<AppLocale?> read();
 
+  /// Records [locale], or clears the override when it is null.
   Future<void> write(AppLocale? locale);
 }
