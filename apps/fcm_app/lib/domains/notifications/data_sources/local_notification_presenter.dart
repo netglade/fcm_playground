@@ -113,7 +113,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
       // message the inbox already holds.
       payload: message.id,
     );
-    await postGroupSummary(message, plugin: _plugin);
+    await postGroupSummary(message, plugin: _plugin, store: _groups);
   }
 
   @override
