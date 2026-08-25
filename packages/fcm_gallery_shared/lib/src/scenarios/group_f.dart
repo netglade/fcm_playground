@@ -145,18 +145,22 @@ const groupF = <Scenario>[
         'Takes over the lock screen. Watch whether it is granted at all, and '
         'what it degrades to when it is refused.',
     expectation:
-        'Needs the USE_FULL_SCREEN_INTENT permission, which Android 14+ grants '
-        'only to calling and alarm apps. Expect a degraded heads-up notification '
-        'rather than a takeover here.',
+        'Data-only, so the app draws it and can ask for the full-screen intent '
+        'at all — FCM has no field for one. The app declares '
+        'USE_FULL_SCREEN_INTENT, which Android 14 and later grant only to '
+        'calling and alarm apps, so expect a degraded heads-up notification '
+        'rather than a takeover. The refusal is the demonstration. A device '
+        'that does grant it will take over instead, which is also a valid '
+        'observation.',
     payloadTemplate: {
-      'notification': {'title': 'Incoming call', 'body': 'Ada is calling.'},
-      'android': {
-        'priority': 'HIGH',
-        'notification': {'channel_id': 'calls'},
+      'android': {'priority': 'HIGH'},
+      'data': {
+        'title': 'Incoming call',
+        'body': 'Ada is calling.',
+        'full_screen': 'true',
+        'caller': 'Ada',
       },
-      'data': {'full_screen': 'true', 'caller': 'Ada'},
     },
-    needs: [ScenarioNeed.interaction, ScenarioNeed.externalApproval],
   ),
   Scenario(
     id: 'f9_trampoline',
@@ -166,12 +170,14 @@ const groupF = <Scenario>[
         'Starting an activity from a service or broadcast receiver after a tap. '
         'Banned since Android 12. Watch for the failure and its log line.',
     expectation:
-        'Expected to fail on Android 12 and later. The demonstration is the '
-        'error, not a working route.',
+        'Not built. Demonstrating the ban means starting an activity from a '
+        'broadcast receiver or service, which needs platform code this '
+        'Dart-only gallery deliberately does not carry — the omission is a '
+        'choice, not an oversight.',
     payloadTemplate: {
       'notification': {'title': 'Trampoline', 'body': 'This should not work.'},
       'data': {'trampoline': 'true', 'deep_link': '/builds/125'},
     },
-    needs: [ScenarioNeed.interaction],
+    needs: [ScenarioNeed.nativeCode],
   ),
 ];

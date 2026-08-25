@@ -7,13 +7,6 @@ import 'package:test/test.dart';
 Map<Object?, Object?> dataOf(Scenario scenario) =>
     scenario.payloadTemplate['data']! as Map<Object?, Object?>;
 
-/// The `android.notification` block of [scenario]'s template.
-Map<Object?, Object?> androidNotificationOf(Scenario scenario) {
-  final android = scenario.payloadTemplate['android']! as Map<Object?, Object?>;
-
-  return android['notification']! as Map<Object?, Object?>;
-}
-
 /// The one scenario in group F carrying [id].
 Scenario scenarioF(String id) => groupF.firstWhere((s) => s.id == id);
 
@@ -33,13 +26,13 @@ void main() {
       ]);
     });
 
-    test('two of the nine are still blocked on interaction work', () {
-      // `contains(interaction)` alone passes on an entry that ALSO carries
+    test('one of the nine is still blocked, on native code', () {
+      // `contains(nativeCode)` alone passes on an entry that ALSO carries
       // channels or styles, which would file this group's work under the wrong
       // sub-project. So needs are pinned exactly, and the literal counts back
       // the words: f1 was unblocked by the notification-actions cycle, the
-      // three deep links by that cycle, f2, f6 and f7 by this one, and the
-      // remaining two are the sub-projects still to come.
+      // three deep links by that cycle, f2, f6, f7 and f8 by this one, and the
+      // remaining one names work this project has decided never to do.
       expect(groupF, hasLength(9));
 
       const expected = {
@@ -50,11 +43,8 @@ void main() {
         'f5_deeplink_killed': <ScenarioNeed>[],
         'f6_delete_intent': <ScenarioNeed>[],
         'f7_ongoing': <ScenarioNeed>[],
-        'f8_full_screen_intent': [
-          ScenarioNeed.interaction,
-          ScenarioNeed.externalApproval,
-        ],
-        'f9_trampoline': [ScenarioNeed.interaction],
+        'f8_full_screen_intent': <ScenarioNeed>[],
+        'f9_trampoline': [ScenarioNeed.nativeCode],
       };
 
       for (final scenario in groupF) {
@@ -86,20 +76,24 @@ void main() {
       }
     });
 
-    test('f8 also needs a permission Android 14+ may refuse', () {
+    test('f8 says which permission it needs and what refusing it looks like', () {
       // contains('USE_FULL_SCREEN_INTENT') alone is satisfied by prose denying the
       // requirement, so the directional phrases are pinned too: who grants it, and
       // what this app gets instead.
       final fullScreen = scenarioF('f8_full_screen_intent');
 
-      expect(fullScreen.needs, contains(ScenarioNeed.externalApproval));
       expect(fullScreen.expectation, contains('USE_FULL_SCREEN_INTENT'));
-      expect(fullScreen.expectation, contains('Android 14+ grants'));
+      expect(fullScreen.expectation, contains('Android 14 and later grant'));
       expect(fullScreen.expectation, contains('degraded heads-up'));
 
-      // No such channel exists yet, but the template has to name it or there is
-      // nothing for the call-style notification to be posted to.
-      expect(androidNotificationOf(fullScreen)['channel_id'], 'calls');
+      expect(
+        fullScreen.payloadTemplate.containsKey('notification'),
+        isFalse,
+        reason:
+            'FCM has no field for a full-screen intent, so a notification block '
+            'would mean the app never even asks when it is backgrounded — and a '
+            'refusal nobody asked for demonstrates nothing',
+      );
     });
 
     test('the three deep-link scenarios carry three distinct routes', () {
@@ -154,16 +148,16 @@ void main() {
       }
     });
 
-    test('f9 states that the failure is the demonstration', () {
-      // contains('fail') alone is satisfied by 'should not fail', so both the version
-      // that banned it and the statement that the error is the result are pinned.
+    test('f9 says it is not built, and that the omission is deliberate', () {
+      // contains('platform code') alone is satisfied by prose that never says the
+      // absence is on purpose, so the deliberateness is pinned too — otherwise this
+      // reads as a gap rather than a choice.
       final trampoline = scenarioF('f9_trampoline');
 
-      expect(trampoline.expectation, contains('Android 12'));
-      expect(
-        trampoline.expectation,
-        contains('the error, not a working route'),
-      );
+      expect(trampoline.needs, [ScenarioNeed.nativeCode]);
+      expect(trampoline.expectation, contains('Not built'));
+      expect(trampoline.expectation, contains('platform code'));
+      expect(trampoline.expectation, contains('a choice, not an oversight'));
     });
 
     test('the whole group reaches the gallery', () {

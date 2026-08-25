@@ -98,14 +98,14 @@ void main() {
     expect(scenarioGallery.map((s) => s.group).toSet(), hasLength(11));
   });
 
-  test('exactly 31 scenarios work today', () {
+  test('exactly 32 scenarios work today', () {
     // Asserted so that mis-marking one as blocked, or quietly unmarking one to
     // make it look supported, fails the build.
     final supported = scenarioGallery.where((s) => s.isSupported).toList();
 
     expect(
       supported,
-      hasLength(31),
+      hasLength(32),
       reason: supported.map((s) => s.id).join(', '),
     );
   });
@@ -135,7 +135,7 @@ void main() {
         if (entry.value.length == 1) entry.key.name: entry.value.single,
     };
 
-    expect(soleUse, {'badge': 'g3_badge'});
+    expect(soleUse, {'badge': 'g3_badge', 'nativeCode': 'f9_trampoline'});
   });
 
   test('the groups appear in A to K order, each in one run', () {
