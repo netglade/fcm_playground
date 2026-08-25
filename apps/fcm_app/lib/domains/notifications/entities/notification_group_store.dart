@@ -1,4 +1,12 @@
-/// Which notifications are currently drawn in each group.
+/// Which notifications have been drawn in each group since the tray was last
+/// cleared — not which are currently showing.
+///
+/// Nothing prunes a member when its notification leaves the tray on its own: a
+/// swipe only records a dismissal, a tap only auto-cancels, and a reboot drops
+/// the tray without telling this store. [clear] — called from `clearAll` when
+/// the user presses the Inbox's Clear notifications button — is the only thing
+/// that prunes. So a group's count only ever climbs between one Clear and the
+/// next; it does not fall back to what the tray shows in between.
 ///
 /// Message ids rather than a count, for two reasons. Redrawing the same message
 /// — which a tagged notification does routinely — cannot double-count it. And a
