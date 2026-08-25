@@ -17,15 +17,14 @@ const groupG = <Scenario>[
         'Watch that they collapse under one summary row, and what the summary '
         'says when the fifth arrives.',
     expectation:
-        'The app posts the summary itself and updates its count as each one '
-        'arrives — the payload only names the group. Send it several times to '
-        'watch the count climb.',
+        'Data-only, so the app draws it and posts the summary in every state — '
+        'FCM has no `group` field, so a notification-block payload would leave '
+        'the summary code unreached whenever the app is backgrounded. The app '
+        'posts the summary itself and updates its count as each one arrives — '
+        'the payload only names the group. Send it several times to watch the '
+        'count climb.',
     payloadTemplate: {
-      'notification': {'title': 'Build 128', 'body': 'Passed.'},
-      'android': {
-        'notification': {'channel_id': 'builds'},
-      },
-      'data': {'group': 'builds'},
+      'data': {'title': 'Build 128', 'body': 'Passed.', 'group': 'builds'},
     },
   ),
   Scenario(

@@ -183,9 +183,10 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
   ),
   // f7 is ongoing, which affects only whether a swipe dismisses it — delivery
   // and drawing happen exactly as for any other notification, so this is the
-  // same pair as every other entry. That it resists a swipe, and that Clear
-  // notifications removes it, are both things a human watches in the tray;
-  // see CALIBRATION.md.
+  // same pair as every other entry. Whether it actually resists a swipe (it
+  // should, short of Android 14+'s own exemption), and that Clear
+  // notifications removes it either way, are both things a human watches in
+  // the tray; see CALIBRATION.md.
   'f7_ongoing': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,

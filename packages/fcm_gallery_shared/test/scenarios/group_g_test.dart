@@ -104,8 +104,11 @@ void main() {
 
       expect(tag, isA<String>());
       expect((tag! as String).trim(), isNotEmpty);
+      // g1 is data-only (FCM has no `group` field, so the app must draw it
+      // itself in every state), so there is no `android` block at all for a
+      // tag to live in.
       expect(
-        androidNotificationOf(scenarioG('g1_group_summary')).containsKey('tag'),
+        scenarioG('g1_group_summary').payloadTemplate.containsKey('android'),
         isFalse,
       );
 
