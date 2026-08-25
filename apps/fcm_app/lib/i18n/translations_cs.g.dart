@@ -38,6 +38,7 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 
 	// Translations
 	@override late final _Translations$app$cs app = _Translations$app$cs._(_root);
+	@override late final _Translations$language$cs language = _Translations$language$cs._(_root);
 }
 
 // Path: app
@@ -52,6 +53,27 @@ class _Translations$app$cs implements Translations$app$en {
 	@override String get title => 'FCM Sample';
 }
 
+// Path: language
+class _Translations$language$cs implements Translations$language$en {
+	_Translations$language$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// AppBar action tooltip for the language switcher
+	@override String get tooltip => 'Jazyk';
+
+	/// Language choice that follows the device
+	@override String get system => 'Systém';
+
+	/// Language choice; each language names itself
+	@override String get english => 'English';
+
+	/// Language choice; each language names itself
+	@override String get czech => 'Čeština';
+}
+
 /// The flat map containing all translations for locale <cs>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -61,6 +83,10 @@ extension on TranslationsCs {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
 			'app.title' => 'FCM Sample',
+			'language.tooltip' => 'Jazyk',
+			'language.system' => 'Systém',
+			'language.english' => 'English',
+			'language.czech' => 'Čeština',
 			_ => null,
 		};
 	}

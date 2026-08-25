@@ -10,11 +10,13 @@ import 'package:fcm_app/pages/runs/run_timeline_page.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/shell/app_shell.dart';
 import 'package:fcm_app/pages/shell/deep_link_destination.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
@@ -573,4 +575,28 @@ void main() {
       expect(await active.activeRunId(), 'run-1');
     });
   });
+
+  testWidgets(
+    'the language menu switches the whole app',
+    (tester) async {
+      // The end-to-end proof that codegen, the provider and the store meet: an
+      // English drawer label becomes a Czech one without touching the device.
+      SharedPreferences.setMockInitialValues({});
+      LocaleSettings.setLocaleSync(AppLocale.en);
+      await tester.pumpWidget(
+        TranslationProvider(child: const MaterialApp(home: AppShell())),
+      );
+
+      await tester.tap(find.byIcon(Icons.translate));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Čeština').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Doručené'), findsWidgets);
+      expect(find.text('Inbox'), findsNothing);
+    },
+    // `testWidgets`'s `skip` is `bool?`, unlike `test`'s `dynamic` — the reason
+    // lives here instead: drawer labels land in Task 4.
+    skip: true,
+  );
 }

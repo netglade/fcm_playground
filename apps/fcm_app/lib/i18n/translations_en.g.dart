@@ -41,6 +41,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	// Translations
 	late final Translations$app$en app = Translations$app$en._(_root);
+	late final Translations$language$en language = Translations$language$en._(_root);
 }
 
 // Path: app
@@ -57,6 +58,35 @@ class Translations$app$en {
 	String get title => 'FCM Sample';
 }
 
+// Path: language
+class Translations$language$en {
+	Translations$language$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// AppBar action tooltip for the language switcher
+	///
+	/// en: 'Language'
+	String get tooltip => 'Language';
+
+	/// Language choice that follows the device
+	///
+	/// en: 'System'
+	String get system => 'System';
+
+	/// Language choice; each language names itself
+	///
+	/// en: 'English'
+	String get english => 'English';
+
+	/// Language choice; each language names itself
+	///
+	/// en: 'Čeština'
+	String get czech => 'Čeština';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -66,6 +96,10 @@ extension on Translations {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
 			'app.title' => 'FCM Sample',
+			'language.tooltip' => 'Language',
+			'language.system' => 'System',
+			'language.english' => 'English',
+			'language.czech' => 'Čeština',
 			_ => null,
 		};
 	}

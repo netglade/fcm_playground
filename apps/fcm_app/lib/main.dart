@@ -16,6 +16,7 @@ import 'domains/push/data_sources/shared_preferences_push_payload_store.dart';
 import 'domains/push/entities/push_source.dart';
 import 'domains/push/entities/remote_message_payload.dart';
 import 'domains/push/repositories/push_repository.dart';
+import 'domains/settings/entities/locale_store.dart';
 import 'domains/telemetry/data_sources/shared_preferences_device_identity.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
 import 'domains/telemetry/report_push_event.dart';
@@ -52,6 +53,16 @@ Future<void> main() async {
   // Only the presenter has dismissals: FCM's own tray entries were never posted
   // through the plugin, so nothing reports when one of those is swiped away.
   getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
+
+  // Applied before the first frame so the app never flashes English on its way to
+  // the stored language. `useDeviceLocaleSync` is what "follow the system" means:
+  // slang picks the closest supported locale and keeps listening for device changes.
+  final storedLocale = await getIt<LocaleStore>().read();
+  if (storedLocale == null) {
+    LocaleSettings.useDeviceLocaleSync();
+  } else {
+    LocaleSettings.setLocaleSync(storedLocale);
+  }
 
   runApp(TranslationProvider(child: const App()));
 }
