@@ -22,8 +22,14 @@ import 'pages/shell/app_shell.dart';
 /// provider inside either page would lose the handoff, and the shell's
 /// `IndexedStack` is what keeps the half-filled form alive across a tab switch.
 ///
-/// Nothing below this widget reads the locator, so widget tests wrap the widget
-/// under test in `BlocProvider.value` and never configure it at all. The
+/// Nothing below this widget reads the locator except `AppShell`'s language
+/// switcher (`app_shell.dart`), which writes through `getIt<LocaleStore>()`
+/// directly rather than through a provider: it is the one widget that writes
+/// it, the write is fire-and-forget, and threading a repository down for a
+/// single call would be ceremony a second writer would justify. So a widget
+/// test still wraps its widget under test in `BlocProvider.value` and
+/// configures nothing else, unless it exercises that one switcher, which then
+/// needs its own `LocaleStore` registered. The
 /// `MultiRepositoryProvider` below supplies the [RunScheduler], [StartRun] and
 /// [ActiveRunStore] the same way: each is looked up here, once, and every page
 /// that needs one — the Runs pages for the scheduler, the Sandbox's footer for
