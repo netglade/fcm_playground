@@ -290,3 +290,26 @@ scenario_need.badge,launcher badge,odznak na ikoně aplikace,Label for the badge
 scenario_need.targeting,a device registry,registr zařízení,Label for the targeting scenario need
 scenario_need.manualStep,a manual step,manuální krok,Label for the manualStep scenario need
 scenario_need.externalApproval,external approval,externí schválení,Label for the externalApproval scenario need
+channels.fcm_sample_high.name,Sample pushes,Ukázkové pushe,Android channel name shown in system settings
+channels.fcm_sample_high.description,Pushes received by the FCM sample app.,Pushe přijaté ukázkovou aplikací FCM.,Android channel description shown in system settings
+channels.importance_high.name,Importance: high,Důležitost: vysoká,Android channel name; d1
+channels.importance_high.description,Pops as a banner and makes a sound.,Vyskočí jako banner a zazní.,Android channel description; d1
+channels.importance_default.name,Importance: default,Důležitost: výchozí,Android channel name; d2
+channels.importance_default.description,Makes a sound but does not pop.,"Zazní, ale nevyskočí.",Android channel description; d2
+channels.importance_low.name,Importance: low,Důležitost: nízká,Android channel name; d3 and i1
+channels.importance_low.description,Silent. Appears in the shade only.,Tiše. Objeví se jen v liště.,Android channel description; d3 and i1
+channels.importance_min.name,Importance: min,Důležitost: minimální,Android channel name; d4
+channels.importance_min.description,Collapsed in the shade with no icon.,Sbalená v liště bez ikony.,Android channel description; d4
+channels.custom_sound.name,Custom sound,Vlastní zvuk,Android channel name; d5
+channels.custom_sound.description,Plays a bundled chime instead of the default.,Přehraje přibalený tón místo výchozího.,Android channel description; d5
+channels.vibration_pattern.name,Vibration pattern,Vibrační vzor,Android channel name; d6
+channels.vibration_pattern.description,"Short, pause, short — set when the channel was created.","Krátce, pauza, krátce — nastaveno při vzniku kanálu.",Android channel description; d6
+channels.chat_v1.name,Chat (v1),Chat (v1),"Android channel name; d7. A version tag, so the same in both"
+channels.chat_v1.description,The first attempt. Its importance can no longer be changed.,První pokus. Jeho důležitost už nejde změnit.,Android channel description; d7
+channels.chat_v2.name,Chat (v2),Chat (v2),"Android channel name; d8. A version tag, so the same in both"
+channels.chat_v2.description,The replacement — a new id is the only way to change importance.,Náhrada — nové id je jediná cesta ke změně důležitosti.,Android channel description; d8
+channels.dnd_bypass.name,Do Not Disturb bypass,Obejití režimu Nerušit,Android channel name; h1
+channels.dnd_bypass.description,Requested. Granted only with notification-policy access.,Vyžádáno. Uděleno jen s přístupem k zásadám oznámení.,Android channel description; h1
+channels.alarms.name,Alarms,Budíky,Android channel name; h2
+channels.alarms.description,Uses the alarm audio stream rather than the notification one.,Používá zvukový kanál budíku místo oznámení.,Android channel description; h2
+channels.group.chat.name,Chat,Chat,"Android channel group heading; d8. A product word, so the same in both"

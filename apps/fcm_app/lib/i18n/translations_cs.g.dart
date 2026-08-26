@@ -66,6 +66,7 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$scenario$cs scenario = _Translations$scenario$cs._(_root);
 	@override late final _Translations$scenario_group$cs scenario_group = _Translations$scenario_group$cs._(_root);
 	@override late final _Translations$scenario_need$cs scenario_need = _Translations$scenario_need$cs._(_root);
+	@override late final _Translations$channels$cs channels = _Translations$channels$cs._(_root);
 }
 
 // Path: app
@@ -698,6 +699,27 @@ class _Translations$scenario_need$cs implements Translations$scenario_need$en {
 
 	@override String get manual_step => 'manuální krok';
 	@override String get external_approval => 'externí schválení';
+}
+
+// Path: channels
+class _Translations$channels$cs implements Translations$channels$en {
+	_Translations$channels$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$channels$fcm_sample_high$cs fcm_sample_high = _Translations$channels$fcm_sample_high$cs._(_root);
+	@override late final _Translations$channels$importance_high$cs importance_high = _Translations$channels$importance_high$cs._(_root);
+	@override late final _Translations$channels$importance_default$cs importance_default = _Translations$channels$importance_default$cs._(_root);
+	@override late final _Translations$channels$importance_low$cs importance_low = _Translations$channels$importance_low$cs._(_root);
+	@override late final _Translations$channels$importance_min$cs importance_min = _Translations$channels$importance_min$cs._(_root);
+	@override late final _Translations$channels$custom_sound$cs custom_sound = _Translations$channels$custom_sound$cs._(_root);
+	@override late final _Translations$channels$vibration_pattern$cs vibration_pattern = _Translations$channels$vibration_pattern$cs._(_root);
+	@override late final _Translations$channels$chat_v1$cs chat_v1 = _Translations$channels$chat_v1$cs._(_root);
+	@override late final _Translations$channels$chat_v2$cs chat_v2 = _Translations$channels$chat_v2$cs._(_root);
+	@override late final _Translations$channels$dnd_bypass$cs dnd_bypass = _Translations$channels$dnd_bypass$cs._(_root);
+	@override late final _Translations$channels$alarms$cs alarms = _Translations$channels$alarms$cs._(_root);
+	@override late final _Translations$channels$group$cs group = _Translations$channels$group$cs._(_root);
 }
 
 // Path: shell.title
@@ -1891,6 +1913,193 @@ class _Translations$scenario$k5_battery_restricted$cs implements Translations$sc
 	@override String get manual_steps => 'Nastavení › Aplikace › FCM Sample › Baterie › Omezený. Pošli a porovnej zpoždění s c1_priority_high v neomezeném stavu.';
 }
 
+// Path: channels.fcm_sample_high
+class _Translations$channels$fcm_sample_high$cs implements Translations$channels$fcm_sample_high$en {
+	_Translations$channels$fcm_sample_high$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name shown in system settings
+	@override String get name => 'Ukázkové pushe';
+
+	/// Android channel description shown in system settings
+	@override String get description => 'Pushe přijaté ukázkovou aplikací FCM.';
+}
+
+// Path: channels.importance_high
+class _Translations$channels$importance_high$cs implements Translations$channels$importance_high$en {
+	_Translations$channels$importance_high$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d1
+	@override String get name => 'Důležitost: vysoká';
+
+	/// Android channel description; d1
+	@override String get description => 'Vyskočí jako banner a zazní.';
+}
+
+// Path: channels.importance_default
+class _Translations$channels$importance_default$cs implements Translations$channels$importance_default$en {
+	_Translations$channels$importance_default$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d2
+	@override String get name => 'Důležitost: výchozí';
+
+	/// Android channel description; d2
+	@override String get description => 'Zazní, ale nevyskočí.';
+}
+
+// Path: channels.importance_low
+class _Translations$channels$importance_low$cs implements Translations$channels$importance_low$en {
+	_Translations$channels$importance_low$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d3 and i1
+	@override String get name => 'Důležitost: nízká';
+
+	/// Android channel description; d3 and i1
+	@override String get description => 'Tiše. Objeví se jen v liště.';
+}
+
+// Path: channels.importance_min
+class _Translations$channels$importance_min$cs implements Translations$channels$importance_min$en {
+	_Translations$channels$importance_min$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d4
+	@override String get name => 'Důležitost: minimální';
+
+	/// Android channel description; d4
+	@override String get description => 'Sbalená v liště bez ikony.';
+}
+
+// Path: channels.custom_sound
+class _Translations$channels$custom_sound$cs implements Translations$channels$custom_sound$en {
+	_Translations$channels$custom_sound$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d5
+	@override String get name => 'Vlastní zvuk';
+
+	/// Android channel description; d5
+	@override String get description => 'Přehraje přibalený tón místo výchozího.';
+}
+
+// Path: channels.vibration_pattern
+class _Translations$channels$vibration_pattern$cs implements Translations$channels$vibration_pattern$en {
+	_Translations$channels$vibration_pattern$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d6
+	@override String get name => 'Vibrační vzor';
+
+	/// Android channel description; d6
+	@override String get description => 'Krátce, pauza, krátce — nastaveno při vzniku kanálu.';
+}
+
+// Path: channels.chat_v1
+class _Translations$channels$chat_v1$cs implements Translations$channels$chat_v1$en {
+	_Translations$channels$chat_v1$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d7. A version tag, so the same in both
+	@override String get name => 'Chat (v1)';
+
+	/// Android channel description; d7
+	@override String get description => 'První pokus. Jeho důležitost už nejde změnit.';
+}
+
+// Path: channels.chat_v2
+class _Translations$channels$chat_v2$cs implements Translations$channels$chat_v2$en {
+	_Translations$channels$chat_v2$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d8. A version tag, so the same in both
+	@override String get name => 'Chat (v2)';
+
+	/// Android channel description; d8
+	@override String get description => 'Náhrada — nové id je jediná cesta ke změně důležitosti.';
+}
+
+// Path: channels.dnd_bypass
+class _Translations$channels$dnd_bypass$cs implements Translations$channels$dnd_bypass$en {
+	_Translations$channels$dnd_bypass$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; h1
+	@override String get name => 'Obejití režimu Nerušit';
+
+	/// Android channel description; h1
+	@override String get description => 'Vyžádáno. Uděleno jen s přístupem k zásadám oznámení.';
+}
+
+// Path: channels.alarms
+class _Translations$channels$alarms$cs implements Translations$channels$alarms$en {
+	_Translations$channels$alarms$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; h2
+	@override String get name => 'Budíky';
+
+	/// Android channel description; h2
+	@override String get description => 'Používá zvukový kanál budíku místo oznámení.';
+}
+
+// Path: channels.group
+class _Translations$channels$group$cs implements Translations$channels$group$en {
+	_Translations$channels$group$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$channels$group$chat$cs chat = _Translations$channels$group$chat$cs._(_root);
+}
+
+// Path: channels.group.chat
+class _Translations$channels$group$chat$cs implements Translations$channels$group$chat$en {
+	_Translations$channels$group$chat$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel group heading; d8. A product word, so the same in both
+	@override String get name => 'Chat';
+}
+
 /// The flat map containing all translations for locale <cs>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -2177,6 +2386,29 @@ extension on TranslationsCs {
 			'scenario_need.targeting' => 'registr zařízení',
 			'scenario_need.manual_step' => 'manuální krok',
 			'scenario_need.external_approval' => 'externí schválení',
+			'channels.fcm_sample_high.name' => 'Ukázkové pushe',
+			'channels.fcm_sample_high.description' => 'Pushe přijaté ukázkovou aplikací FCM.',
+			'channels.importance_high.name' => 'Důležitost: vysoká',
+			'channels.importance_high.description' => 'Vyskočí jako banner a zazní.',
+			'channels.importance_default.name' => 'Důležitost: výchozí',
+			'channels.importance_default.description' => 'Zazní, ale nevyskočí.',
+			'channels.importance_low.name' => 'Důležitost: nízká',
+			'channels.importance_low.description' => 'Tiše. Objeví se jen v liště.',
+			'channels.importance_min.name' => 'Důležitost: minimální',
+			'channels.importance_min.description' => 'Sbalená v liště bez ikony.',
+			'channels.custom_sound.name' => 'Vlastní zvuk',
+			'channels.custom_sound.description' => 'Přehraje přibalený tón místo výchozího.',
+			'channels.vibration_pattern.name' => 'Vibrační vzor',
+			'channels.vibration_pattern.description' => 'Krátce, pauza, krátce — nastaveno při vzniku kanálu.',
+			'channels.chat_v1.name' => 'Chat (v1)',
+			'channels.chat_v1.description' => 'První pokus. Jeho důležitost už nejde změnit.',
+			'channels.chat_v2.name' => 'Chat (v2)',
+			'channels.chat_v2.description' => 'Náhrada — nové id je jediná cesta ke změně důležitosti.',
+			'channels.dnd_bypass.name' => 'Obejití režimu Nerušit',
+			'channels.dnd_bypass.description' => 'Vyžádáno. Uděleno jen s přístupem k zásadám oznámení.',
+			'channels.alarms.name' => 'Budíky',
+			'channels.alarms.description' => 'Používá zvukový kanál budíku místo oznámení.',
+			'channels.group.chat.name' => 'Chat',
 			_ => null,
 		};
 	}

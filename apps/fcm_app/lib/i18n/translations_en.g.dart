@@ -69,6 +69,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$scenario$en scenario = Translations$scenario$en._(_root);
 	late final Translations$scenario_group$en scenario_group = Translations$scenario_group$en._(_root);
 	late final Translations$scenario_need$en scenario_need = Translations$scenario_need$en._(_root);
+	late final Translations$channels$en channels = Translations$channels$en._(_root);
 }
 
 // Path: app
@@ -891,6 +892,27 @@ class Translations$scenario_need$en {
 
 	/// en: 'external approval'
 	String get external_approval => 'external approval';
+}
+
+// Path: channels
+class Translations$channels$en {
+	Translations$channels$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$channels$fcm_sample_high$en fcm_sample_high = Translations$channels$fcm_sample_high$en._(_root);
+	late final Translations$channels$importance_high$en importance_high = Translations$channels$importance_high$en._(_root);
+	late final Translations$channels$importance_default$en importance_default = Translations$channels$importance_default$en._(_root);
+	late final Translations$channels$importance_low$en importance_low = Translations$channels$importance_low$en._(_root);
+	late final Translations$channels$importance_min$en importance_min = Translations$channels$importance_min$en._(_root);
+	late final Translations$channels$custom_sound$en custom_sound = Translations$channels$custom_sound$en._(_root);
+	late final Translations$channels$vibration_pattern$en vibration_pattern = Translations$channels$vibration_pattern$en._(_root);
+	late final Translations$channels$chat_v1$en chat_v1 = Translations$channels$chat_v1$en._(_root);
+	late final Translations$channels$chat_v2$en chat_v2 = Translations$channels$chat_v2$en._(_root);
+	late final Translations$channels$dnd_bypass$en dnd_bypass = Translations$channels$dnd_bypass$en._(_root);
+	late final Translations$channels$alarms$en alarms = Translations$channels$alarms$en._(_root);
+	late final Translations$channels$group$en group = Translations$channels$group$en._(_root);
 }
 
 // Path: shell.title
@@ -2446,6 +2468,239 @@ class Translations$scenario$k5_battery_restricted$en {
 	String get manual_steps => 'Settings › Apps › FCM Sample › Battery › Restricted. Send and compare the delay against c1_priority_high in the unrestricted state.';
 }
 
+// Path: channels.fcm_sample_high
+class Translations$channels$fcm_sample_high$en {
+	Translations$channels$fcm_sample_high$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name shown in system settings
+	///
+	/// en: 'Sample pushes'
+	String get name => 'Sample pushes';
+
+	/// Android channel description shown in system settings
+	///
+	/// en: 'Pushes received by the FCM sample app.'
+	String get description => 'Pushes received by the FCM sample app.';
+}
+
+// Path: channels.importance_high
+class Translations$channels$importance_high$en {
+	Translations$channels$importance_high$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d1
+	///
+	/// en: 'Importance: high'
+	String get name => 'Importance: high';
+
+	/// Android channel description; d1
+	///
+	/// en: 'Pops as a banner and makes a sound.'
+	String get description => 'Pops as a banner and makes a sound.';
+}
+
+// Path: channels.importance_default
+class Translations$channels$importance_default$en {
+	Translations$channels$importance_default$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d2
+	///
+	/// en: 'Importance: default'
+	String get name => 'Importance: default';
+
+	/// Android channel description; d2
+	///
+	/// en: 'Makes a sound but does not pop.'
+	String get description => 'Makes a sound but does not pop.';
+}
+
+// Path: channels.importance_low
+class Translations$channels$importance_low$en {
+	Translations$channels$importance_low$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d3 and i1
+	///
+	/// en: 'Importance: low'
+	String get name => 'Importance: low';
+
+	/// Android channel description; d3 and i1
+	///
+	/// en: 'Silent. Appears in the shade only.'
+	String get description => 'Silent. Appears in the shade only.';
+}
+
+// Path: channels.importance_min
+class Translations$channels$importance_min$en {
+	Translations$channels$importance_min$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d4
+	///
+	/// en: 'Importance: min'
+	String get name => 'Importance: min';
+
+	/// Android channel description; d4
+	///
+	/// en: 'Collapsed in the shade with no icon.'
+	String get description => 'Collapsed in the shade with no icon.';
+}
+
+// Path: channels.custom_sound
+class Translations$channels$custom_sound$en {
+	Translations$channels$custom_sound$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d5
+	///
+	/// en: 'Custom sound'
+	String get name => 'Custom sound';
+
+	/// Android channel description; d5
+	///
+	/// en: 'Plays a bundled chime instead of the default.'
+	String get description => 'Plays a bundled chime instead of the default.';
+}
+
+// Path: channels.vibration_pattern
+class Translations$channels$vibration_pattern$en {
+	Translations$channels$vibration_pattern$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d6
+	///
+	/// en: 'Vibration pattern'
+	String get name => 'Vibration pattern';
+
+	/// Android channel description; d6
+	///
+	/// en: 'Short, pause, short — set when the channel was created.'
+	String get description => 'Short, pause, short — set when the channel was created.';
+}
+
+// Path: channels.chat_v1
+class Translations$channels$chat_v1$en {
+	Translations$channels$chat_v1$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d7. A version tag, so the same in both
+	///
+	/// en: 'Chat (v1)'
+	String get name => 'Chat (v1)';
+
+	/// Android channel description; d7
+	///
+	/// en: 'The first attempt. Its importance can no longer be changed.'
+	String get description => 'The first attempt. Its importance can no longer be changed.';
+}
+
+// Path: channels.chat_v2
+class Translations$channels$chat_v2$en {
+	Translations$channels$chat_v2$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; d8. A version tag, so the same in both
+	///
+	/// en: 'Chat (v2)'
+	String get name => 'Chat (v2)';
+
+	/// Android channel description; d8
+	///
+	/// en: 'The replacement — a new id is the only way to change importance.'
+	String get description => 'The replacement — a new id is the only way to change importance.';
+}
+
+// Path: channels.dnd_bypass
+class Translations$channels$dnd_bypass$en {
+	Translations$channels$dnd_bypass$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; h1
+	///
+	/// en: 'Do Not Disturb bypass'
+	String get name => 'Do Not Disturb bypass';
+
+	/// Android channel description; h1
+	///
+	/// en: 'Requested. Granted only with notification-policy access.'
+	String get description => 'Requested. Granted only with notification-policy access.';
+}
+
+// Path: channels.alarms
+class Translations$channels$alarms$en {
+	Translations$channels$alarms$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel name; h2
+	///
+	/// en: 'Alarms'
+	String get name => 'Alarms';
+
+	/// Android channel description; h2
+	///
+	/// en: 'Uses the alarm audio stream rather than the notification one.'
+	String get description => 'Uses the alarm audio stream rather than the notification one.';
+}
+
+// Path: channels.group
+class Translations$channels$group$en {
+	Translations$channels$group$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$channels$group$chat$en chat = Translations$channels$group$chat$en._(_root);
+}
+
+// Path: channels.group.chat
+class Translations$channels$group$chat$en {
+	Translations$channels$group$chat$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Android channel group heading; d8. A product word, so the same in both
+	///
+	/// en: 'Chat'
+	String get name => 'Chat';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -2732,6 +2987,29 @@ extension on Translations {
 			'scenario_need.targeting' => 'a device registry',
 			'scenario_need.manual_step' => 'a manual step',
 			'scenario_need.external_approval' => 'external approval',
+			'channels.fcm_sample_high.name' => 'Sample pushes',
+			'channels.fcm_sample_high.description' => 'Pushes received by the FCM sample app.',
+			'channels.importance_high.name' => 'Importance: high',
+			'channels.importance_high.description' => 'Pops as a banner and makes a sound.',
+			'channels.importance_default.name' => 'Importance: default',
+			'channels.importance_default.description' => 'Makes a sound but does not pop.',
+			'channels.importance_low.name' => 'Importance: low',
+			'channels.importance_low.description' => 'Silent. Appears in the shade only.',
+			'channels.importance_min.name' => 'Importance: min',
+			'channels.importance_min.description' => 'Collapsed in the shade with no icon.',
+			'channels.custom_sound.name' => 'Custom sound',
+			'channels.custom_sound.description' => 'Plays a bundled chime instead of the default.',
+			'channels.vibration_pattern.name' => 'Vibration pattern',
+			'channels.vibration_pattern.description' => 'Short, pause, short — set when the channel was created.',
+			'channels.chat_v1.name' => 'Chat (v1)',
+			'channels.chat_v1.description' => 'The first attempt. Its importance can no longer be changed.',
+			'channels.chat_v2.name' => 'Chat (v2)',
+			'channels.chat_v2.description' => 'The replacement — a new id is the only way to change importance.',
+			'channels.dnd_bypass.name' => 'Do Not Disturb bypass',
+			'channels.dnd_bypass.description' => 'Requested. Granted only with notification-policy access.',
+			'channels.alarms.name' => 'Alarms',
+			'channels.alarms.description' => 'Uses the alarm audio stream rather than the notification one.',
+			'channels.group.chat.name' => 'Chat',
 			_ => null,
 		};
 	}
