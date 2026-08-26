@@ -1,6 +1,6 @@
-import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../domains/push/push_message.dart';
 import '../../../i18n/translations.g.dart';
 
 /// One row in the inbox.

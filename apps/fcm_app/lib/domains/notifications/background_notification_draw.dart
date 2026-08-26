@@ -1,7 +1,7 @@
-import 'package:core/core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../push/push_message.dart';
 import 'notification_content.dart';
 import 'notification_details_builder.dart';
 import 'notification_group_summary.dart';

@@ -1,5 +1,4 @@
-import 'package:core/core.dart';
-
+import '../push/push_message.dart';
 import '../push/push_tap.dart';
 import 'notification_presenter.dart';
 

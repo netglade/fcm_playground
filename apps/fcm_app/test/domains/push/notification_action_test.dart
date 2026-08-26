@@ -1,5 +1,5 @@
-import 'package:core/core.dart';
-import 'package:test/test.dart';
+import 'package:fcm_app/domains/push/notification_action.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('parseNotificationActions', () {

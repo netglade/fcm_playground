@@ -1,5 +1,5 @@
-import 'package:core/core.dart';
 import 'package:fcm_app/domains/push/pressed_action.dart';
+import 'package:fcm_app/domains/push/push_message.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';

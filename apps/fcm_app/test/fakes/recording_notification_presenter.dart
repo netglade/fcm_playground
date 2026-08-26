@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:core/core.dart';
 import 'package:fcm_app/domains/notifications/notification_presenter.dart';
+import 'package:fcm_app/domains/push/push_message.dart';
 import 'package:fcm_app/domains/push/push_tap.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 

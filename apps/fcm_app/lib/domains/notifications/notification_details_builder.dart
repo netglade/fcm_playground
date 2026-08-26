@@ -1,6 +1,7 @@
-import 'package:core/core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../push/notification_action.dart';
+import '../push/push_message.dart';
 import 'notification_content.dart';
 
 /// The notification both isolates draw.

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui' show DartPluginRegistrant;
 
-import 'package:core/core.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -14,6 +13,7 @@ import 'domains/notifications/background_notification_draw.dart';
 import 'domains/notifications/notification_presenter.dart';
 import 'domains/push/shared_preferences_push_payload_store.dart';
 import 'domains/push/push_source.dart';
+import 'domains/push/push_message_parser.dart';
 import 'domains/push/remote_message_payload.dart';
 import 'domains/push/push_repository.dart';
 import 'domains/settings/locale_store.dart';

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:core/core.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 
@@ -16,6 +15,9 @@ import 'silent_reply_store.dart';
 import 'pending_reply.dart';
 import 'pressed_action.dart';
 import 'pressed_action_store.dart';
+import 'push_message.dart';
+import 'push_message_format_exception.dart';
+import 'push_message_parser.dart';
 import 'push_payload_store.dart';
 import 'push_source.dart';
 import 'reply_store.dart';

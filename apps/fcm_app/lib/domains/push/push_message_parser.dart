@@ -6,6 +6,13 @@ import 'push_message_format_exception.dart';
 /// FCM data payloads are always `Map<String, String>` on the wire, but the
 /// plugin surfaces them as `Map<String, Object?>`, so every field is validated
 /// here rather than cast blindly.
+///
+/// This file and its three siblings — [PushMessage], [PushMessageFormatException]
+/// and `notification_action.dart` — depend on nothing but `dart:core`. They used to
+/// live in a separate package, which enforced that; now only this comment does.
+/// Keeping it true is what lets the parsing rules be tested with no device, no
+/// Flutter binding and no Firebase project, and a Flutter import here would quietly
+/// take that away.
 class PushMessageParser {
   const PushMessageParser();
 

@@ -1,5 +1,4 @@
-import 'package:core/core.dart';
-
+import '../push/push_message.dart';
 import '../push/push_tap.dart';
 
 /// Shows a received push as an operating-system notification — the same shape of

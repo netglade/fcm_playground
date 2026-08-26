@@ -1,4 +1,4 @@
-import 'package:core/core.dart';
+import '../push/push_message.dart';
 
 /// The Android channel every notification from this app goes to.
 ///

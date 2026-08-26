@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:core/core.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../push/push_message.dart';
 import '../push/push_tap.dart';
 import 'notification_content.dart';
 import 'notification_group_store.dart';

@@ -1,5 +1,5 @@
-import 'package:core/core.dart';
 import 'package:fcm_app/domains/notifications/notification_content.dart';
+import 'package:fcm_app/domains/push/push_message.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
