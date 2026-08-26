@@ -118,6 +118,14 @@ Future<bool> _attempt(Future<void> Function() action, String label) async {
 /// existed: the tests re-typed this same four-line expression, so deleting it
 /// from production left both tests passing.
 ///
+/// Naming it is not, by itself, enough to pin the *call site*: a test that
+/// only ever calls [applyStoredLocale] directly proves nothing about whether
+/// [onNotificationReply] still calls it. `notification_reply_test.dart` also
+/// drives [onNotificationReply] itself, through a response [replyFrom]
+/// rejects — the cheapest path that reaches the call without needing the
+/// notification plugin to draw anything — specifically so deleting the call
+/// from inside [onNotificationReply] fails a test.
+///
 /// The isolate starts cold — main() never ran here — and the store is the only
 /// thing that knows the user's choice. Without this the one notification a
 /// user gets for a reply would be the single English thing in a Czech app.

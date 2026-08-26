@@ -49,6 +49,40 @@ void main() {
     expect(t.reply.sending, isNotEmpty);
   });
 
+  test(
+    'onNotificationReply applies the stored locale before it returns',
+    () async {
+      // The two tests above call applyStoredLocale() directly, which pins its
+      // internals but proves nothing about onNotificationReply itself: nothing
+      // here calls the plugin entry point, so a deleted
+      // `await applyStoredLocale();` inside onNotificationReply would not fail
+      // either of them. This test drives the real entry point instead, through
+      // its cheapest reachable path — a response replyFrom() rejects, so
+      // onNotificationReply returns before it would need the notification
+      // plugin to draw anything.
+      SharedPreferences.setMockInitialValues({localeKey: 'cs'});
+      // Set explicitly to English first, so the assertion below cannot pass by
+      // coincidence of whatever the previous test left LocaleSettings on.
+      LocaleSettings.setLocaleSync(AppLocale.en);
+
+      await onNotificationReply(
+        const NotificationResponse(
+          notificationResponseType:
+              NotificationResponseType.selectedNotificationAction,
+          actionId: 'mute',
+        ),
+      );
+
+      expect(
+        LocaleSettings.currentLocale,
+        AppLocale.cs,
+        reason:
+            'deleting applyStoredLocale() from onNotificationReply must fail '
+            'a test; the standalone tests above cannot catch that',
+      );
+    },
+  );
+
   group('replyFrom', () {
     test(
       'takes the message id from the payload and the text from the input',
