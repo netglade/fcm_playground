@@ -1,13 +1,15 @@
-import 'dart:ui' show DartPluginRegistrant, PlatformDispatcher;
+import 'dart:ui' show DartPluginRegistrant;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../../i18n/channel_text.dart';
+import '../../../i18n/isolate_locale.dart';
 import '../../../i18n/translations.g.dart';
 import '../../push/data_sources/shared_preferences_reply_store.dart';
 import '../../push/entities/pending_reply.dart';
-import '../../settings/data_sources/shared_preferences_locale_store.dart';
 import '../entities/notification_content.dart';
+import 'notification_channels.dart';
 
 /// The reply [response] carries, or null when it carries none.
 ///
@@ -69,20 +71,21 @@ Future<void> _draw(
     // `background_notification_draw.dart` for why.
     onDidReceiveBackgroundNotificationResponse: onNotificationReply,
   );
+  await registerNotificationChannels(plugin);
 
   await plugin.show(
     id: notificationIdFor(messageId),
     title: title,
     body: body,
-    notificationDetails: const NotificationDetails(
+    notificationDetails: NotificationDetails(
       android: AndroidNotificationDetails(
         notificationChannelId,
-        notificationChannelName,
-        channelDescription: notificationChannelDescription,
+        t.channelName(notificationChannelId),
+        channelDescription: t.channelDescription(notificationChannelId),
         importance: Importance.high,
         priority: Priority.high,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: const DarwinNotificationDetails(),
     ),
     payload: messageId,
   );
@@ -134,27 +137,7 @@ Future<void> onNotificationReply(NotificationResponse response) async {
   // for it.
   DartPluginRegistrant.ensureInitialized();
 
-  // The isolate starts cold — main() never ran here — and the store is the only thing
-  // that knows the user's choice. Without this the one notification a user gets for a
-  // reply would be the single English thing in a Czech app.
-  //
-  // NOT LocaleSettings.useDeviceLocaleSync() for the no-override case, even though
-  // that is what main() calls: it resolves through WidgetsBinding.instance, and this
-  // isolate never creates a binding — DartPluginRegistrant.ensureInitialized() wires
-  // plugin channels and nothing else. The call throws in debug and null-crashes in
-  // release, and because it sits before replyFrom() and outside every _attempt(), it
-  // would take the whole reply down with it: no notification drawn, the typed text
-  // never stored, not even a log line. PlatformDispatcher.instance is a dart:ui
-  // singleton that needs no binding, and AppLocaleUtils.parse falls back to the base
-  // locale rather than returning null, which is the behaviour wanted for a tag this
-  // build cannot serve.
-  final storedLocale = await const SharedPreferencesLocaleStore().read();
-  LocaleSettings.setLocaleSync(
-    storedLocale ??
-        AppLocaleUtils.parse(
-          PlatformDispatcher.instance.locale.toLanguageTag(),
-        ),
-  );
+  await restoreIsolateLocale();
 
   final reply = replyFrom(response);
   if (reply == null) {

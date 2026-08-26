@@ -2,7 +2,9 @@ import 'package:core/core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../../i18n/isolate_locale.dart';
 import '../entities/notification_content.dart';
+import 'notification_channels.dart';
 import 'notification_details_builder.dart';
 import 'notification_reply.dart';
 
@@ -43,18 +45,8 @@ Future<void> drawBackgroundNotification(PushMessage message) async {
     // not a fix for a clobber anyone has observed.
     onDidReceiveBackgroundNotificationResponse: onNotificationReply,
   );
-  await plugin
-      .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin
-      >()
-      ?.createNotificationChannel(
-        const AndroidNotificationChannel(
-          notificationChannelId,
-          notificationChannelName,
-          description: notificationChannelDescription,
-          importance: Importance.high,
-        ),
-      );
+  await restoreIsolateLocale();
+  await registerNotificationChannels(plugin);
 
   await plugin.show(
     id: notificationIdFor(message.id),

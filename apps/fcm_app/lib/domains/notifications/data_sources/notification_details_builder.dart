@@ -1,6 +1,8 @@
 import 'package:core/core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../../i18n/channel_text.dart';
+import '../../../i18n/translations.g.dart';
 import '../entities/notification_content.dart';
 
 /// The notification both isolates draw.
@@ -14,8 +16,8 @@ NotificationDetails buildNotificationDetails(
 ) => NotificationDetails(
   android: AndroidNotificationDetails(
     notificationChannelId,
-    notificationChannelName,
-    channelDescription: notificationChannelDescription,
+    t.channelName(notificationChannelId),
+    channelDescription: t.channelDescription(notificationChannelId),
     importance: Importance.high,
     priority: Priority.high,
     // Without this, a swipe is not reported at all. `main` rather than

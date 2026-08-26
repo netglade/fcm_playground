@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../push/entities/push_tap.dart';
 import '../entities/notification_content.dart';
 import '../entities/notification_presenter.dart';
+import 'notification_channels.dart';
 import 'notification_details_builder.dart';
 import 'notification_reply.dart';
 
@@ -65,18 +66,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
       onDidReceiveBackgroundNotificationResponse: onNotificationReply,
     );
 
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(
-          const AndroidNotificationChannel(
-            notificationChannelId,
-            notificationChannelName,
-            description: notificationChannelDescription,
-            importance: Importance.high,
-          ),
-        );
+    await registerNotificationChannels(_plugin);
 
     // Last, so the channel exists and both streams are live before a press that
     // started the process is announced on them.

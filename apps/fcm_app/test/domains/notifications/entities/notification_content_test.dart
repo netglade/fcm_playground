@@ -25,12 +25,6 @@ void main() {
   });
 
   group('the channel', () {
-    test('has an id, a name and a description', () {
-      expect(notificationChannelId, isNotEmpty);
-      expect(notificationChannelName.trim(), isNotEmpty);
-      expect(notificationChannelDescription.trim(), isNotEmpty);
-    });
-
     test('uses the id the Android manifest points FCM at', () {
       expect(notificationChannelId, 'fcm_sample_high');
     });

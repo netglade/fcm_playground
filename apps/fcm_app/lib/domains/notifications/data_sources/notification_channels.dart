@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../../i18n/channel_text.dart';
+import '../../../i18n/translations.g.dart';
 import '../entities/notification_content.dart';
 
 /// The id of the channel group both chat channels are filed under.
@@ -120,4 +122,54 @@ AppNotificationChannel? channelById(String? id) {
   }
 
   return null;
+}
+
+/// Creates the chat group and every channel in [notificationChannels].
+///
+/// Called from all three isolates that draw: the UI isolate's presenter, the
+/// background-message isolate, and the reply-response isolate. A channel's name,
+/// description and every other property are fixed the first time it is created —
+/// `AndroidNotificationChannel.toMap()` always sends `CreateIfNotExists`, and the
+/// plugin's Android side refuses the call outright once the channel already
+/// exists (`canCreateNotificationChannel`,
+/// `FlutterLocalNotificationsPlugin.java:483-492`). So calling this from three
+/// isolates is a genuine no-op past the first: a fresh install in Czech gets
+/// Czech channel names, and switching language afterwards does not rename a
+/// channel that already exists.
+///
+/// The group goes first: Android drops the grouping of a channel filed under a
+/// group that does not exist yet, silently.
+///
+/// Reads the copy through `t`, so the caller must have a locale set — see
+/// `restoreIsolateLocale` for the two isolates where that is not automatic.
+Future<void> registerNotificationChannels(
+  FlutterLocalNotificationsPlugin plugin,
+) async {
+  final android = plugin
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
+  if (android == null) {
+    return;
+  }
+
+  await android.createNotificationChannelGroup(
+    AndroidNotificationChannelGroup(chatChannelGroupId, t.chatChannelGroupName),
+  );
+
+  for (final channel in notificationChannels) {
+    await android.createNotificationChannel(
+      AndroidNotificationChannel(
+        channel.id,
+        t.channelName(channel.id),
+        description: t.channelDescription(channel.id),
+        importance: channel.importance,
+        groupId: channel.groupId,
+        sound: channel.sound,
+        vibrationPattern: channel.vibrationPattern,
+        bypassDnd: channel.bypassDnd,
+        audioAttributesUsage: channel.audioAttributesUsage,
+      ),
+    );
+  }
 }
