@@ -43,17 +43,9 @@ void main() {
       }
     });
 
-    test('the adb scenarios carry a runnable command, not just a keyword', () {
-      // These are commands a user copies verbatim, so the whole invocation is pinned.
-      expect(
-        groupC.firstWhere((s) => s.id == 'c6_doze_test').manualSteps,
-        contains('adb shell dumpsys deviceidle force-idle'),
-      );
-      expect(
-        groupC.firstWhere((s) => s.id == 'c7_standby_bucket').manualSteps,
-        contains('adb shell am set-standby-bucket cz.netglade.fcm_app'),
-      );
-    });
+    // The adb-command wording moved to
+    // apps/fcm_app/test/i18n/scenario_prose_test.dart along with every other
+    // prose assertion: this package has no access to the translations.
 
     test('the whole group reaches the gallery', () {
       final galleryIds = scenarioGallery.map((s) => s.id).toSet();

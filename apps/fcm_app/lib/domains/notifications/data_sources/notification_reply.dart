@@ -1,10 +1,12 @@
-import 'dart:ui' show DartPluginRegistrant;
+import 'dart:ui' show DartPluginRegistrant, PlatformDispatcher;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../../i18n/translations.g.dart';
 import '../../push/data_sources/shared_preferences_reply_store.dart';
 import '../../push/entities/pending_reply.dart';
+import '../../settings/data_sources/shared_preferences_locale_store.dart';
 import '../entities/notification_content.dart';
 
 /// The reply [response] carries, or null when it carries none.
@@ -65,7 +67,8 @@ Future<void> showReplyProgress(
   String messageId,
   String text, {
   required bool sent,
-}) => _draw(messageId, title: sent ? 'Sent' : 'Sending…', body: text);
+}) =>
+    _draw(messageId, title: sent ? t.reply.sent : t.reply.sending, body: text);
 
 /// Redraws the notification to say the reply did not go through.
 ///
@@ -74,7 +77,7 @@ Future<void> showReplyProgress(
 /// app will never see a reply that never reached storage. "Not sent" is the
 /// honest reading — worse-looking than "Sent", but not false.
 Future<void> _showReplyFailed(String messageId, String text) =>
-    _draw(messageId, title: 'Not sent', body: text);
+    _draw(messageId, title: t.reply.not_sent, body: text);
 
 /// The plugin call both draw functions share, built fresh each time: this runs
 /// in an isolate where `configureDependencies` has not run, so there is no
@@ -135,6 +138,62 @@ Future<bool> _attempt(Future<void> Function() action, String label) async {
   }
 }
 
+/// Resolves the locale a reply notification should draw in, and applies it.
+///
+/// Hoisted out of [onNotificationReply] and given a name, rather than left
+/// inline, so [notification_reply_test.dart] can call the production
+/// expression instead of re-deriving a copy of it. A test that reimplements
+/// this logic instead of calling it can drift from the real thing and stay
+/// green regardless — which is exactly what happened before this function
+/// existed: the tests re-typed this same four-line expression, so deleting it
+/// from production left both tests passing.
+///
+/// Naming it is not, by itself, enough to pin the *call site*: a test that
+/// only ever calls [applyStoredLocale] directly proves nothing about whether
+/// [onNotificationReply] still calls it. `notification_reply_test.dart` also
+/// drives [onNotificationReply] itself, through a response [replyFrom]
+/// rejects — the cheapest path that reaches the call without needing the
+/// notification plugin to draw anything — specifically so deleting the call
+/// from inside [onNotificationReply] fails a test.
+///
+/// The isolate starts cold — main() never ran here — and the store is the only
+/// thing that knows the user's choice. Without this the one notification a
+/// user gets for a reply would be the single English thing in a Czech app.
+///
+/// NOT `LocaleSettings.useDeviceLocaleSync()` for the no-override case, even
+/// though that is what main() calls: it resolves through
+/// `WidgetsBinding.instance`, and this isolate never creates a binding —
+/// `DartPluginRegistrant.ensureInitialized()` wires plugin channels and
+/// nothing else. `PlatformDispatcher.instance` is a `dart:ui` singleton that
+/// needs no binding, and `AppLocaleUtils.parse` falls back to the base locale
+/// rather than returning null, which is the behaviour wanted for a tag this
+/// build cannot serve.
+///
+/// Guarded through [_attempt]: this runs before [replyFrom] and outside every
+/// other guard in [onNotificationReply], so an unguarded
+/// `SharedPreferences.getInstance()` throwing here — there is no known trigger,
+/// this closes a failure *class*, not a live bug — would have taken the whole
+/// reply down with it: no notification drawn, the typed text never stored, not
+/// even a log line. That is the exact silent-failure shape
+/// [onNotificationReply]'s own doc comment says must not happen, so it must
+/// not reappear here either.
+Future<void> applyStoredLocale() async {
+  AppLocale? storedLocale;
+
+  await _attempt(
+    () async =>
+        storedLocale = await const SharedPreferencesLocaleStore().read(),
+    'Could not read the stored locale for the reply notification',
+  );
+
+  LocaleSettings.setLocaleSync(
+    storedLocale ??
+        AppLocaleUtils.parse(
+          PlatformDispatcher.instance.locale.toLanguageTag(),
+        ),
+  );
+}
+
 /// Handles a press on an action that does not open the app.
 ///
 /// Must be top-level and annotated so AOT compilation keeps it reachable: the
@@ -160,6 +219,8 @@ Future<void> onNotificationReply(NotificationResponse response) async {
   // it is constructed, and every reply is lost with only a `debugPrint` to show
   // for it.
   DartPluginRegistrant.ensureInitialized();
+
+  await applyStoredLocale();
 
   final reply = replyFrom(response);
   if (reply == null) {

@@ -1,6 +1,9 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../../../i18n/scenario_text.dart';
+import '../../../i18n/translations.g.dart';
+
 /// Says what the loaded scenario still needs before it demonstrates anything, and
 /// nothing at all when there is nothing to say.
 ///
@@ -20,15 +23,16 @@ class ScenarioNeedsBanner extends StatelessWidget {
     }
 
     final scheme = Theme.of(context).colorScheme;
+    final t = context.t;
 
     return Card(
       color: scheme.secondaryContainer,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Text(
-          'Needs ${needs.map((need) => need.label).join(', ')}. '
-          'The push will still be sent, but this scenario cannot be observed '
-          'here.',
+          t.sandbox.needs_banner(
+            needs: needs.map((need) => t.scenarioNeedLabel(need)).join(', '),
+          ),
           style: TextStyle(color: scheme.onSecondaryContainer),
         ),
       ),

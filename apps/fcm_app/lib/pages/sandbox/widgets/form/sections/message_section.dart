@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../i18n/translations.g.dart';
 import '../../../forms/fcm_message_form.dart';
 import '../form_section.dart';
 import '../string_map_rows.dart';
@@ -23,24 +24,28 @@ class MessageSection extends StatelessWidget {
   final FcmMessageForm form;
 
   @override
-  Widget build(BuildContext context) => FormSection(
-    title: 'message',
-    subtitle: 'The FCM v1 message, minus the delivery target the server sets',
-    isValid: form.isValid,
-    // The only section that starts open, so arriving shows the payload's shape
-    // rather than a wall of fields or one tile hiding all of it.
-    initiallyExpanded: true,
-    children: [
-      StringMapRows(
-        label: 'data',
-        value: form.data.value ?? const {},
-        onChanged: form.data.updateValue,
-      ),
-      NotificationSection(form: form.notification),
-      AndroidSection(form: form.android),
-      ApnsSection(form: form.apns),
-      WebpushSection(form: form.webpush),
-      FcmOptionsSection(form: form.fcmOptions),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return FormSection(
+      title: 'message',
+      subtitle: t.form_section.message,
+      isValid: form.isValid,
+      // The only section that starts open, so arriving shows the payload's shape
+      // rather than a wall of fields or one tile hiding all of it.
+      initiallyExpanded: true,
+      children: [
+        StringMapRows(
+          label: 'data',
+          value: form.data.value ?? const {},
+          onChanged: form.data.updateValue,
+        ),
+        NotificationSection(form: form.notification),
+        AndroidSection(form: form.android),
+        ApnsSection(form: form.apns),
+        WebpushSection(form: form.webpush),
+        FcmOptionsSection(form: form.fcmOptions),
+      ],
+    );
+  }
 }

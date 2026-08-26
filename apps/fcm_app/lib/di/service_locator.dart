@@ -27,6 +27,8 @@ import '../domains/runs/start_run.dart';
 import '../domains/sandbox/data_sources/http_notification_sender.dart';
 import '../domains/sandbox/data_sources/unavailable_notification_sender.dart';
 import '../domains/sandbox/entities/notification_sender.dart';
+import '../domains/settings/data_sources/shared_preferences_locale_store.dart';
+import '../domains/settings/entities/locale_store.dart';
 import '../domains/telemetry/data_sources/drift_telemetry_buffer.dart';
 import '../domains/telemetry/data_sources/http_telemetry_reader.dart';
 import '../domains/telemetry/data_sources/shared_preferences_device_identity.dart';
@@ -75,6 +77,7 @@ Future<void> configureDependencies({
     ..registerSingleton<ReplyStore>(SharedPreferencesReplyStore())
     ..registerSingleton<DeviceIdentity>(SharedPreferencesDeviceIdentity())
     ..registerSingleton<ActiveRunStore>(SharedPreferencesActiveRunStore())
+    ..registerSingleton<LocaleStore>(const SharedPreferencesLocaleStore())
     ..registerSingleton<NotificationPresenter>(presenter)
     ..registerSingleton<NotificationSender>(_senderFor(setupError))
     ..registerSingleton<RunScheduler>(_runSchedulerFor(setupError))

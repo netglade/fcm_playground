@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../fakes/fake_run_scheduler.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   RunSummary summary(String id, Map<RunItemState, int> states) => RunSummary(
@@ -17,15 +18,11 @@ void main() {
         : null,
   );
 
-  Future<void> pump(WidgetTester tester, FakeRunScheduler scheduler) =>
-      tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            // Nothing here taps a run, so the sink only needs somewhere to go.
-            body: RunsView(scheduler: scheduler, onRunSelected: <String>[].add),
-          ),
-        ),
-      );
+  Future<void> pump(WidgetTester tester, FakeRunScheduler scheduler) => pumpApp(
+    tester,
+    // Nothing here taps a run, so the sink only needs somewhere to go.
+    RunsView(scheduler: scheduler, onRunSelected: <String>[].add),
+  );
 
   testWidgets('says so plainly when nothing has been scheduled', (
     tester,
@@ -52,20 +49,44 @@ void main() {
     expect(find.textContaining('1 pending'), findsOneWidget);
   });
 
+  testWidgets('reads a real singular for a one-item run', (tester) async {
+    await pump(
+      tester,
+      FakeRunScheduler(
+        summaries: [
+          summary('run-1', {RunItemState.sent: 1}),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('1 send'),
+      findsOneWidget,
+      reason:
+          'a one-item run used to read "1 sends"; this is the whole point of '
+          'making the count a real plural',
+    );
+    expect(
+      find.textContaining('1 sends'),
+      findsNothing,
+      reason:
+          'find.text alone would not catch a regression that reintroduced the '
+          'plural form, because "1 send" is a prefix of "1 sends"',
+    );
+  });
+
   testWidgets('hands the tapped run id to its caller', (tester) async {
     final tapped = <String>[];
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: RunsView(
-            scheduler: FakeRunScheduler(
-              summaries: [
-                summary('run-1', {RunItemState.sent: 1}),
-              ],
-            ),
-            onRunSelected: tapped.add,
-          ),
+    await pumpApp(
+      tester,
+      RunsView(
+        scheduler: FakeRunScheduler(
+          summaries: [
+            summary('run-1', {RunItemState.sent: 1}),
+          ],
         ),
+        onRunSelected: tapped.add,
       ),
     );
     await tester.pumpAndSettle();

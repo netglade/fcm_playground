@@ -61,6 +61,23 @@ meant to commit), `melos run analyze` and `melos run dcm` all walk it too — de
 it before running the gate. `melos run test:e2e` deletes it itself when the loop
 finishes; this warning is for anyone invoking `patrol` directly instead.
 
+The suite is written to run in **English**: its finders match English copy.
+`app_harness.dart` pins `LocaleSettings` to `AppLocale.en`, and separately
+wraps the pumped widget in `TranslationProvider` — mirroring the same two
+things `main.dart` does before `runApp`, since `App` reads its locale through
+`TranslationProvider.of(context)` and throws without an ancestor providing
+one. The pin decides *which* language; the provider is what lets `App` read
+any language at all — left to inherit either one, the suite would only pass
+by accident, at the mercy of whatever locale a device or a previous manual
+walkthrough left behind. Scenario group tiles are found by
+`Key('group-<letter>')` rather than by their display name, precisely so that
+one finder does not depend on the copy at all — see
+`integration_test/support/scenario_drive.dart`.
+
+The suite is device-bound and sits outside `melos run ci`, as described
+above, so it was not exercised as part of this localization work — its first
+real run against this code is still owed.
+
 Structure:
 
 - `lib/pages/<page>/` — one directory per destination (`inbox`, `scenarios`,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../i18n/translations.g.dart';
 import '../entities/telemetry_reader.dart';
 import '../entities/telemetry_reader_exception.dart';
 
@@ -21,14 +22,14 @@ class HttpTelemetryReader implements TelemetryReader {
       ),
     ),
     TelemetryEvent.fromJson,
-    'an event',
+    t.api.item.event,
   );
 
   @override
   Future<List<LatencyRow>> latencies() async => _rows(
     await _list(() => _client.get(_baseUrl.replace(path: '/latency'))),
     LatencyRow.fromJson,
-    'a latency row',
+    t.api.item.latency_row,
   );
 
   Future<List<Object?>> _list(Future<http.Response> Function() send) async {
@@ -37,13 +38,12 @@ class HttpTelemetryReader implements TelemetryReader {
       decoded = jsonDecode(await _body(send));
     } on FormatException catch (error) {
       throw TelemetryReaderException(
-        'The API answered 200 with something that is not JSON: ${error.message}',
+        t.api.answered_not_json(error: error.message),
       );
     }
     if (decoded is! List) {
       throw TelemetryReaderException(
-        'The API answered 200 with ${decoded.runtimeType} where a list was '
-        'expected.',
+        t.api.answered_wrong_shape(type: decoded.runtimeType),
       );
     }
 
@@ -58,9 +58,7 @@ class HttpTelemetryReader implements TelemetryReader {
       response = await send();
     } catch (error) {
       throw TelemetryReaderException(
-        'Could not reach $_baseUrl — is the API running?\n'
-        'On a physical device, run: adb reverse tcp:8080 tcp:8080\n'
-        '($error)',
+        t.api.unreachable(baseUrl: _baseUrl, error: error),
       );
     }
 
@@ -79,7 +77,7 @@ ApiError _errorFrom(http.Response response) {
     return ApiError.fromJson(_asObject(jsonDecode(response.body)));
   } on Object {
     return ApiError(
-      'The API answered ${response.statusCode}: ${response.body}',
+      t.api.answered_status(status: response.statusCode, body: response.body),
     );
   }
 }
@@ -87,7 +85,7 @@ ApiError _errorFrom(http.Response response) {
 Map<String, dynamic> _asObject(Object? decoded) {
   if (decoded is! Map<String, dynamic>) {
     throw TelemetryReaderException(
-      'Expected a JSON object, got ${decoded.runtimeType}.',
+      t.api.expected_object(type: decoded.runtimeType),
     );
   }
 
@@ -109,7 +107,7 @@ List<T> _rows<T>(
     return [for (final row in decoded) parse(_asObject(row))];
   } on FormatException catch (error) {
     throw TelemetryReaderException(
-      'The API answered 200 with $what this build cannot read: ${error.message}',
+      t.api.answered_unreadable_item(what: what, error: error.message),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
 import '../../domains/push/entities/pressed_action.dart';
+import '../../i18n/translations.g.dart';
 
 /// One received message in full.
 ///
@@ -34,6 +35,7 @@ class MessageDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -54,14 +56,18 @@ class MessageDetailPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Opened by action: '
-                        '${notificationActionLabel(message.data[notificationActionsKey], pressed.actionId)}',
+                        t.message_detail.opened_by_action(
+                          label: notificationActionLabel(
+                            message.data[notificationActionsKey],
+                            pressed.actionId,
+                          ),
+                        ),
                         style: TextStyle(
                           color: theme.colorScheme.onSecondaryContainer,
                         ),
                       ),
                       Text(
-                        'from: ${pressed.from.wireName}',
+                        t.message_detail.from(from: pressed.from.wireName),
                         style: TextStyle(
                           color: theme.colorScheme.onSecondaryContainer,
                         ),
@@ -76,7 +82,7 @@ class MessageDetailPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    'Replied: $text',
+                    t.message_detail.replied(text: text),
                     style: TextStyle(
                       color: theme.colorScheme.onSecondaryContainer,
                     ),
@@ -85,16 +91,22 @@ class MessageDetailPage extends StatelessWidget {
               ),
             Text(message.body, style: theme.textTheme.bodyLarge),
             const Divider(height: 32),
-            Text('Sent', style: theme.textTheme.labelMedium),
+            Text(t.message_detail.sent, style: theme.textTheme.labelMedium),
             Text(message.sentAt.toIso8601String()),
             const SizedBox(height: 16),
-            Text('Payload id', style: theme.textTheme.labelMedium),
+            Text(
+              t.message_detail.payload_id,
+              style: theme.textTheme.labelMedium,
+            ),
             Text(message.id),
             const Divider(height: 32),
-            Text('Extra data', style: theme.textTheme.labelMedium),
+            Text(
+              t.message_detail.extra_data,
+              style: theme.textTheme.labelMedium,
+            ),
             const SizedBox(height: 8),
             if (message.data.isEmpty)
-              const Text('No extra data keys.')
+              Text(t.message_detail.no_extra_data)
             else
               for (final entry in message.data.entries)
                 Padding(

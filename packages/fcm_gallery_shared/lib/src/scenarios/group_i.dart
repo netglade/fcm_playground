@@ -13,11 +13,8 @@ import 'scenario_need.dart';
 const groupI = <Scenario>[
   Scenario(
     id: 'i1_silent_no_sound',
-    group: 'I — Silent and data',
-    title: 'Visible but silent',
-    description:
-        'Appears in the tray with no sound and no vibration. Watch that it is '
-        'silent but still lights the screen or not.',
+    l10nKey: 'i1_silent_no_sound',
+    group: 'I',
     payloadTemplate: {
       'notification': {'title': 'Quiet', 'body': 'Seen, not heard.'},
       'android': {
@@ -28,13 +25,8 @@ const groupI = <Scenario>[
   ),
   Scenario(
     id: 'i2_silent_data_sync',
-    group: 'I — Silent and data',
-    title: 'Silent sync, drawn blank',
-    description:
-        'The handler writes a row; that is the effect this scenario is about. '
-        'A tray entry still appears — icon and app name, no title or body — '
-        'since nothing suppresses a titleless banner. Watch the Inbox page for '
-        'the row; the tray entry has no text to read.',
+    l10nKey: 'i2_silent_data_sync',
+    group: 'I',
     // `data` is deliberately the only block: anything under `notification` or
     // `android.notification` would be drawn by the system and this would stop
     // being a silent sync. FCM's data map is map<string, string>, so the cursor
@@ -49,14 +41,8 @@ const groupI = <Scenario>[
   ),
   Scenario(
     id: 'i3_ios_content_available',
-    group: 'I — Silent and data',
-    title: 'iOS background refresh via content-available',
-    description:
-        'Wakes the app to fetch without showing anything. Watch how often iOS '
-        'actually honours it — it throttles this aggressively.',
-    expectation:
-        'iOS may delay or drop these entirely depending on battery and usage. A '
-        'missed one is not necessarily a bug.',
+    l10nKey: 'i3_ios_content_available',
+    group: 'I',
     payloadTemplate: {
       'apns': {
         // The pair Apple documents for a background push: apns-push-type says
@@ -77,18 +63,12 @@ const groupI = <Scenario>[
   ),
   Scenario(
     id: 'i4_burst',
-    group: 'I — Silent and data',
-    title: 'Twenty messages in ten seconds',
-    description:
-        'Watch for rate limiting, coalescing, and manufacturer caps. MIUI will '
-        'usually start dropping before FCM does.',
+    l10nKey: 'i4_burst',
+    group: 'I',
     payloadTemplate: {
       'notification': {'title': 'Burst', 'body': 'One of twenty.'},
       'android': {'priority': 'HIGH'},
     },
     needs: [ScenarioNeed.manualStep],
-    manualSteps:
-        'Send this 20 times within 10 seconds and count what arrives. Vary the '
-        'body so collapsing is visible.',
   ),
 ];

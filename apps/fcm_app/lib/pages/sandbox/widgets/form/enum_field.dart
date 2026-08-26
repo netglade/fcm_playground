@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import '../../../../i18n/translations.g.dart';
+
 /// A dropdown for an FCM enum field that may be absent.
 ///
 /// Omitting `android.priority` and choosing a value are different messages, so the
@@ -31,7 +33,10 @@ class EnumField<E> extends StatelessWidget {
     initialValue: input.value,
     decoration: InputDecoration(labelText: label),
     items: [
-      DropdownMenuItem<E?>(value: null, child: const Text('Not set')),
+      DropdownMenuItem<E?>(
+        value: null,
+        child: Text(context.t.form_field.not_set),
+      ),
       for (final value in values)
         DropdownMenuItem<E?>(value: value, child: Text(labelOf(value))),
     ],

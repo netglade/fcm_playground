@@ -2,6 +2,7 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import '../../../../../i18n/translations.g.dart';
 import '../../../forms/android_config_form.dart';
 import '../enum_field.dart';
 import '../form_section.dart';
@@ -18,33 +19,37 @@ class AndroidSection extends StatelessWidget {
   final AndroidConfigForm form;
 
   @override
-  Widget build(BuildContext context) => FormSection(
-    title: 'android',
-    subtitle: 'Delivery and rendering options for Android',
-    isValid: form.isValid,
-    children: [
-      for (final (label, input) in _texts(form))
-        TextFormField(
-          controller: input.controller,
-          validator: input.textFormFieldInputValidator,
-          decoration: InputDecoration(labelText: label),
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return FormSection(
+      title: 'android',
+      subtitle: t.form_section.android,
+      isValid: form.isValid,
+      children: [
+        for (final (label, input) in _texts(form))
+          TextFormField(
+            controller: input.controller,
+            validator: input.textFormFieldInputValidator,
+            decoration: InputDecoration(labelText: label),
+          ),
+        EnumField<AndroidMessagePriority>(
+          label: 'priority',
+          input: form.priority,
+          values: AndroidMessagePriority.values,
+          labelOf: (value) => value.wireName,
         ),
-      EnumField<AndroidMessagePriority>(
-        label: 'priority',
-        input: form.priority,
-        values: AndroidMessagePriority.values,
-        labelOf: (value) => value.wireName,
-      ),
-      StringMapRows(
-        label: 'data',
-        value: form.data.value ?? const {},
-        onChanged: form.data.updateValue,
-      ),
-      TristateField(label: 'direct_boot_ok', input: form.directBootOk),
-      AndroidNotificationSection(form: form.notification),
-      FcmOptionsSection(form: form.fcmOptions),
-    ],
-  );
+        StringMapRows(
+          label: 'data',
+          value: form.data.value ?? const {},
+          onChanged: form.data.updateValue,
+        ),
+        TristateField(label: 'direct_boot_ok', input: form.directBootOk),
+        AndroidNotificationSection(form: form.notification),
+        FcmOptionsSection(form: form.fcmOptions),
+      ],
+    );
+  }
 }
 
 /// See `AndroidNotificationSection` for why these are typed over

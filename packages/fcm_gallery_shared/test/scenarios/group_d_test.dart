@@ -77,21 +77,20 @@ void main() {
           (sound.payloadTemplate['android']! as Map)['notification']! as Map;
 
       expect(notification['sound'], isNotNull);
-      expect(sound.expectation, contains('res/raw'));
+      // What the expectation says about res/raw moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
     });
 
     test('d7 states that Android ignores the change, and names the fix', () {
-      // NOT "the immutability scenario is versioned": its own channel is chat_v1. And
-      // contains('ignore') would be satisfied by "do not ignore", so both halves are
-      // pinned to the phrase that carries the meaning.
+      // NOT "the immutability scenario is versioned": its own channel is chat_v1.
       final immutable = groupD.firstWhere(
         (s) => s.id == 'd7_channel_immutability',
       );
 
       expect(channelIdOf(immutable), 'chat_v1');
-      expect(immutable.description, contains('ignore the change'));
-      expect(immutable.expectation, contains('chat_v2'));
       expect(channelIdOf(groupD.last), 'chat_v2', reason: 'the fix d7 names');
+      // What the description and expectation say about the change and its fix
+      // moved to apps/fcm_app/test/i18n/scenario_prose_test.dart.
     });
 
     test('the whole group reaches the gallery', () {

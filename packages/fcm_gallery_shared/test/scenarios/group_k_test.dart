@@ -75,7 +75,8 @@ void main() {
       // path.
       expect((target as TokenTarget).token, contains('never-real'));
       expect(target.toJson().keys.single, 'token');
-      expect(dead.expectation, contains('UNREGISTERED'));
+      // What the expectation says about UNREGISTERED moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
     });
 
     test('k2 is the catalogue\'s only supported scenario with an audience', () {
@@ -89,20 +90,11 @@ void main() {
       );
     });
 
-    test('both supported failures say which error they should produce', () {
-      // An entry that did not name its expected error would leave the user unable to
-      // tell a working scenario from a broken one.
-      expect(
-        scenarioK('k1_payload_oversize').expectation,
-        contains('INVALID_ARGUMENT'),
-      );
-      expect(
-        scenarioK('k2_invalid_token').expectation,
-        contains('UNREGISTERED'),
-      );
-    });
-
-    test('the three device states need a manual step and spell it out', () {
+    // Which error each supported failure says it should produce, and the wording
+    // of the three device states' manual steps (including k3's runnable revoke
+    // command and how k3 and k4's prose tells them apart), all moved to
+    // apps/fcm_app/test/i18n/scenario_prose_test.dart.
+    test('the three device states each need a manual step', () {
       const deviceStates = [
         'k3_permission_denied',
         'k4_notifications_disabled',
@@ -110,38 +102,8 @@ void main() {
       ];
 
       for (final id in deviceStates) {
-        final scenario = scenarioK(id);
-        expect(scenario.needs, [ScenarioNeed.manualStep], reason: id);
-        expect(scenario.manualSteps, isNotNull, reason: id);
-        expect(scenario.manualSteps!.trim(), isNotEmpty, reason: id);
+        expect(scenarioK(id).needs, [ScenarioNeed.manualStep], reason: id);
       }
-    });
-
-    test('k3 carries the runnable revoke command, not just the word', () {
-      // contains('POST_NOTIFICATIONS') alone would pass on prose that merely
-      // mentioned the permission. This is a command the user copies verbatim.
-      expect(
-        scenarioK('k3_permission_denied').manualSteps,
-        contains(
-          'adb shell pm revoke cz.netglade.fcm_app '
-          'android.permission.POST_NOTIFICATIONS',
-        ),
-      );
-    });
-
-    test('k3 and k4 are different failures, and each says which', () {
-      // Both end with an empty tray, so the pair is only worth having if the
-      // cause is distinguishable: k3 is the app lacking the grant, k4 is the
-      // user switching the app's notifications off while the grant stands.
-      expect(scenarioK('k3_permission_denied').manualSteps, contains('revoke'));
-      expect(
-        scenarioK('k4_notifications_disabled').description,
-        contains('the app has the grant'),
-      );
-      expect(
-        scenarioK('k4_notifications_disabled').manualSteps,
-        contains('Settings'),
-      );
     });
 
     test('nothing in this group is about the killed app', () {

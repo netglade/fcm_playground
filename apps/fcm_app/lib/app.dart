@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'di/service_locator.dart';
 import 'domains/notifications/entities/notification_presenter.dart';
@@ -10,6 +11,7 @@ import 'domains/runs/start_run.dart';
 import 'domains/sandbox/entities/notification_sender.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
 import 'domains/telemetry/entities/telemetry_reader.dart';
+import 'i18n/translations.g.dart';
 import 'pages/inbox/cubit/inbox_cubit.dart';
 import 'pages/sandbox/cubit/sandbox_cubit.dart';
 import 'pages/shell/app_shell.dart';
@@ -21,8 +23,14 @@ import 'pages/shell/app_shell.dart';
 /// provider inside either page would lose the handoff, and the shell's
 /// `IndexedStack` is what keeps the half-filled form alive across a tab switch.
 ///
-/// Nothing below this widget reads the locator, so widget tests wrap the widget
-/// under test in `BlocProvider.value` and never configure it at all. The
+/// Nothing below this widget reads the locator except `AppShell`'s language
+/// switcher (`app_shell.dart`), which writes through `getIt<LocaleStore>()`
+/// directly rather than through a provider: it is the one widget that writes
+/// it, the write is fire-and-forget, and threading a repository down for a
+/// single call would be ceremony a second writer would justify. So a widget
+/// test still wraps its widget under test in `BlocProvider.value` and
+/// configures nothing else, unless it exercises that one switcher, which then
+/// needs its own `LocaleStore` registered. The
 /// `MultiRepositoryProvider` below supplies the [RunScheduler], [StartRun],
 /// [ActiveRunStore] and [NotificationPresenter] the same way: each is looked up
 /// here, once, and every page that needs one — the Runs pages for the
@@ -65,7 +73,10 @@ class App extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'FCM Sample',
+        onGenerateTitle: (context) => context.t.app.title,
+        locale: TranslationProvider.of(context).flutterLocale,
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: AppLocaleUtils.supportedLocales,
         theme: ThemeData(colorSchemeSeed: Colors.indigo),
         home: const AppShell(),
       ),

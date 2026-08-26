@@ -76,15 +76,14 @@ void main() {
       }
     });
 
-    test('f8 says which permission it needs and what refusing it looks like', () {
-      // contains('USE_FULL_SCREEN_INTENT') alone is satisfied by prose denying the
-      // requirement, so the directional phrases are pinned too: who grants it, and
-      // what this app gets instead.
+    test('f8 has no field of its own for a full-screen intent', () {
       final fullScreen = scenarioF('f8_full_screen_intent');
 
-      expect(fullScreen.expectation, contains('USE_FULL_SCREEN_INTENT'));
-      expect(fullScreen.expectation, contains('Android 14 and later grant'));
-      expect(fullScreen.expectation, contains('degraded heads-up'));
+      // f8 carries no needs of its own now — the permission it may be refused
+      // is described in prose, not modelled as a ScenarioNeed. What the
+      // expectation says about it moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
+      expect(fullScreen.needs, isEmpty);
 
       expect(
         fullScreen.payloadTemplate.containsKey('notification'),
@@ -120,17 +119,8 @@ void main() {
       expect(links.toSet(), hasLength(ids.length), reason: '$links');
     });
 
-    test('f5 names getInitialMessage and says it is where the bugs are', () {
-      // The API name alone would pass on a description that made no point about
-      // where the bugs are, so both halves are pinned.
-      final killed = scenarioF('f5_deeplink_killed');
-
-      expect(killed.description, contains('getInitialMessage'));
-      expect(
-        killed.description,
-        contains('commonest source of deep-link bugs'),
-      );
-    });
+    // f5's description, naming getInitialMessage as where the bugs live, moved to
+    // apps/fcm_app/test/i18n/scenario_prose_test.dart.
 
     test('every client-side feature is carried in data, as strings', () {
       // FCM has no field for any of this, so all nine hand it to the client through
@@ -148,16 +138,12 @@ void main() {
       }
     });
 
-    test('f9 says it is not built, and that the omission is deliberate', () {
-      // contains('platform code') alone is satisfied by prose that never says the
-      // absence is on purpose, so the deliberateness is pinned too — otherwise this
-      // reads as a gap rather than a choice.
+    test('f9 needs native code, which this project has decided not to build', () {
       final trampoline = scenarioF('f9_trampoline');
 
       expect(trampoline.needs, [ScenarioNeed.nativeCode]);
-      expect(trampoline.expectation, contains('Not built'));
-      expect(trampoline.expectation, contains('platform code'));
-      expect(trampoline.expectation, contains('a choice, not an oversight'));
+      // Why it needs native code, and that the omission is deliberate, moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
     });
 
     test('the whole group reaches the gallery', () {

@@ -2,6 +2,8 @@ import 'package:fcm_app/pages/sandbox/widgets/schedule_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/pump_app.dart';
+
 void main() {
   late ScheduleChoice? chosen;
 
@@ -10,19 +12,16 @@ void main() {
     int initialDelaySeconds = 20,
     bool withSpacing = false,
   }) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async => chosen = await showScheduleSheet(
-                context,
-                initialDelaySeconds: initialDelaySeconds,
-                withSpacing: withSpacing,
-              ),
-              child: const Text('open'),
-            ),
+    await pumpApp(
+      tester,
+      Builder(
+        builder: (context) => ElevatedButton(
+          onPressed: () async => chosen = await showScheduleSheet(
+            context,
+            initialDelaySeconds: initialDelaySeconds,
+            withSpacing: withSpacing,
           ),
+          child: const Text('open'),
         ),
       ),
     );

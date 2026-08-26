@@ -11,33 +11,16 @@ import 'scenario_need.dart';
 const groupG = <Scenario>[
   Scenario(
     id: 'g1_group_summary',
-    group: 'G — Groups, badge, updates',
-    title: 'Five notifications with a summary',
-    description:
-        'Watch that they collapse under one summary row, and what the summary '
-        'says when the fifth arrives.',
-    expectation:
-        'Data-only, so the app draws it and posts the summary in every state — '
-        'FCM has no `group` field, so a notification-block payload would leave '
-        'the summary code unreached whenever the app is backgrounded. The app '
-        'posts the summary itself and updates its count as each one arrives — '
-        'the payload only names the group. Send it several times to watch the '
-        'count climb.',
+    l10nKey: 'g1_group_summary',
+    group: 'G',
     payloadTemplate: {
       'data': {'title': 'Build 128', 'body': 'Passed.', 'group': 'builds'},
     },
   ),
   Scenario(
     id: 'g2_update_same_id',
-    group: 'G — Groups, badge, updates',
-    title: 'Replacing a notification in place',
-    description:
-        'Send twice with the same tag. Watch that the second replaces the first '
-        'rather than stacking, and whether it re-alerts.',
-    expectation:
-        'FCM honours android.notification.tag itself when it draws the tray '
-        'entry, and the app now keys its own drawing on the same tag — so the '
-        'second send replaces the first whichever of them drew it.',
+    l10nKey: 'g2_update_same_id',
+    group: 'G',
     payloadTemplate: {
       'notification': {'title': 'Build 128', 'body': 'Running…'},
       'android': {
@@ -47,15 +30,8 @@ const groupG = <Scenario>[
   ),
   Scenario(
     id: 'g3_badge',
-    group: 'G — Groups, badge, updates',
-    title: 'A count on the launcher icon',
-    description:
-        'The least portable thing here. Watch whether the launcher shows the '
-        'number, a dot, or nothing at all.',
-    expectation:
-        'Behaviour differs per manufacturer: One UI, MIUI and the Pixel '
-        'launcher all disagree, and several require the user to enable badges '
-        'per app.',
+    l10nKey: 'g3_badge',
+    group: 'G',
     payloadTemplate: {
       'notification': {'title': 'Five waiting', 'body': 'Check the launcher.'},
       // notification_count is a typed int32 on FCM's AndroidNotification, so 5
@@ -68,11 +44,8 @@ const groupG = <Scenario>[
   ),
   Scenario(
     id: 'g4_badge_ios',
-    group: 'G — Groups, badge, updates',
-    title: 'The iOS badge via aps.badge',
-    description:
-        'One well-defined number, set by the sender. Watch that it replaces '
-        'rather than increments — iOS does not add.',
+    l10nKey: 'g4_badge_ios',
+    group: 'G',
     payloadTemplate: {
       'apns': {
         'headers': {'apns-priority': '10'},

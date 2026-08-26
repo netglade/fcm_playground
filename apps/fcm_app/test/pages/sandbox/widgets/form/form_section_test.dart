@@ -2,21 +2,20 @@ import 'package:fcm_app/pages/sandbox/widgets/form/form_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/pump_app.dart';
+
 void main() {
   Future<void> pump(
     WidgetTester tester, {
     required bool isValid,
     bool expanded = false,
   }) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: FormSection(
-            title: 'Android',
-            isValid: isValid,
-            children: const [Text('a field')],
-          ),
-        ),
+    await pumpApp(
+      tester,
+      FormSection(
+        title: 'Android',
+        isValid: isValid,
+        children: const [Text('a field')],
       ),
     );
     if (expanded) {
@@ -105,16 +104,13 @@ void main() {
 
     testWidgets('a section that starts open reads as open', (tester) async {
       // The root starts expanded, so its state has to be seeded, not merely toggled.
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FormSection(
-              title: 'Android',
-              isValid: true,
-              initiallyExpanded: true,
-              children: [Text('a field')],
-            ),
-          ),
+      await pumpApp(
+        tester,
+        const FormSection(
+          title: 'Android',
+          isValid: true,
+          initiallyExpanded: true,
+          children: [Text('a field')],
         ),
       );
       final scheme = Theme.of(
@@ -137,11 +133,7 @@ void main() {
           children: [leaf],
         );
       }
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: SingleChildScrollView(child: leaf)),
-        ),
-      );
+      await pumpApp(tester, SingleChildScrollView(child: leaf));
       await tester.pumpAndSettle();
     }
 

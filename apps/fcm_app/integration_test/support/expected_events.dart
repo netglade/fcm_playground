@@ -263,7 +263,11 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
 /// has no adb with which to force Doze or revoke a permission.
 String? skipReasonFor(Scenario scenario) {
   if (scenario.needs.isNotEmpty) {
-    return 'needs ${scenario.needs.map((need) => need.label).join(', ')}';
+    // `name` rather than a localized label: this is a skip reason in a test
+    // report, not UI. `needs channels, styles` reads as well as the prose did,
+    // and the enum name is stable where a translated label would mean building
+    // translations inside the Patrol harness for no benefit.
+    return 'needs ${scenario.needs.map((need) => need.name).join(', ')}';
   }
 
   final expectation = scenarioExpectations[scenario.id];

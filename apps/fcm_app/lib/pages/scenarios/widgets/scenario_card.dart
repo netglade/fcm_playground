@@ -1,6 +1,9 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../../../i18n/scenario_text.dart';
+import '../../../i18n/translations.g.dart';
+
 /// One scenario in the gallery, as a card.
 ///
 /// The id is shown, quietly, because it is how every *other* surface refers to this
@@ -28,6 +31,7 @@ class ScenarioCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.t;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -43,12 +47,12 @@ class ScenarioCard extends StatelessWidget {
                 value: isSelected,
                 onChanged: (value) => onSelectionChanged?.call(value ?? false),
               ),
-        title: Text(scenario.title),
+        title: Text(t.scenarioTitle(scenario.l10nKey)),
         // Only *that* work is outstanding, not which: ScenarioNeedsBanner names
         // them once the scenario is loaded.
         trailing: scenario.isSupported
             ? null
-            : const Chip(label: Text('needs work')),
+            : Chip(label: Text(t.scenario_card.needs_work)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -60,8 +64,8 @@ class ScenarioCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(scenario.description),
-            if (scenario.expectation case final expectation?)
+            Text(t.scenarioDescription(scenario.l10nKey)),
+            if (t.scenarioExpectation(scenario.l10nKey) case final expectation?)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Row(
@@ -76,9 +80,9 @@ class ScenarioCard extends StatelessWidget {
                 ),
               ),
             if (scenario.requiresKilledApp)
-              const Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Text('Needs the app killed'),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(t.common.needs_killed_app),
               ),
           ],
         ),

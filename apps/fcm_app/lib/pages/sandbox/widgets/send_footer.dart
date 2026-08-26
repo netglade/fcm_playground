@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domains/runs/entities/active_run_store.dart';
 import '../../../domains/runs/entities/run_scheduler.dart';
+import '../../../i18n/translations.g.dart';
 import '../../countdown/countdown_page.dart';
 import '../../countdown/cubit/countdown_cubit.dart';
 import '../../runs/run_timeline_page.dart';
@@ -32,6 +33,7 @@ class SendFooter extends StatelessWidget {
   Widget build(BuildContext context) => BlocBuilder<SandboxCubit, SandboxState>(
     builder: (context, state) {
       final controller = context.read<SandboxCubit>();
+      final t = context.t;
 
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -49,7 +51,7 @@ class SendFooter extends StatelessWidget {
             FilledButton.icon(
               onPressed: controller.canSend ? controller.send : null,
               icon: const Icon(Icons.send_outlined),
-              label: Text(_labelFor(state.target)),
+              label: Text(_sendLabel(t, state.target)),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
@@ -57,7 +59,8 @@ class SendFooter extends StatelessWidget {
                   ? () => unawaited(_schedule(context, state))
                   : null,
               icon: const Icon(Icons.schedule_outlined),
-              label: const Text('Schedule…'),
+              // The same key the selection bar uses for its own Schedule button.
+              label: Text(t.common.schedule_ellipsis),
             ),
             SendResultCard(
               state.sendState,
@@ -121,10 +124,10 @@ class SendFooter extends StatelessWidget {
 
 /// Where a push goes is the one thing on this page a user cannot check by reading
 /// the payload back, so the button names the audience rather than assuming one.
-String _labelFor(SendTarget? target) => switch (target) {
-  null => 'Send to this device',
-  TokenTarget() => 'Send to that token',
-  TopicTarget(:final topic) => 'Send to topic "$topic"',
-  ConditionTarget() => 'Send to the condition',
-  AllDevicesTarget() => 'Send to every device',
+String _sendLabel(Translations t, SendTarget? target) => switch (target) {
+  null => t.send.to_this_device,
+  TokenTarget() => t.send.to_that_token,
+  TopicTarget(:final topic) => t.send.to_topic(topic: topic),
+  ConditionTarget() => t.send.to_condition,
+  AllDevicesTarget() => t.send.to_every_device,
 };

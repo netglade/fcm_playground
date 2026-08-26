@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../i18n/scenario_text.dart';
+import '../../i18n/translations.g.dart';
 import 'cubit/sandbox_cubit.dart';
 import 'cubit/sandbox_state.dart';
 import 'widgets/form/sections/message_section.dart';
@@ -23,44 +25,51 @@ class SandboxView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocBuilder<SandboxCubit, SandboxState>(
-    builder: (context, state) => Column(
-      children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const SendTargetField(),
-              const SizedBox(height: 8),
-              ScenarioNeedsBanner(scenario: state.selectedScenario),
-              if (state.selectedScenario?.manualSteps case final steps?)
-                ManualStepsBlock(steps: steps),
-              if (state.selectedScenario case final scenario?) ...[
-                if (scenario.expectation case final expectation?)
-                  Text(expectation),
-                if (scenario.requiresKilledApp)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Text('Needs the app killed'),
-                  ),
-                const Divider(height: 32),
+    builder: (context, state) {
+      final t = context.t;
+
+      return Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const SendTargetField(),
+                const SizedBox(height: 8),
+                ScenarioNeedsBanner(scenario: state.selectedScenario),
+                if (state.selectedScenario case final scenario?) ...[
+                  if (t.scenarioManualSteps(scenario.l10nKey) case final steps?)
+                    ManualStepsBlock(steps: steps),
+                  if (t.scenarioExpectation(scenario.l10nKey)
+                      case final expectation?)
+                    Text(expectation),
+                  if (scenario.requiresKilledApp)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      // The same key the scenario card uses, so the badge reads
+                      // identically wherever a scenario names this requirement.
+                      child: Text(t.common.needs_killed_app),
+                    ),
+                  const Divider(height: 32),
+                ],
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.sandbox.validate_only),
+                  value: state.validateOnly,
+                  onChanged: (value) => context
+                      .read<SandboxCubit>()
+                      .setValidateOnly(value ?? false),
+                ),
+                const SizedBox(height: 8),
+                // The form itself, not a field of the state: it is mutable and
+                // identity-stable, so the sections bind to it directly.
+                MessageSection(form: context.read<SandboxCubit>().form),
               ],
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Validate only'),
-                value: state.validateOnly,
-                onChanged: (value) => context
-                    .read<SandboxCubit>()
-                    .setValidateOnly(value ?? false),
-              ),
-              const SizedBox(height: 8),
-              // The form itself, not a field of the state: it is mutable and
-              // identity-stable, so the sections bind to it directly.
-              MessageSection(form: context.read<SandboxCubit>().form),
-            ],
+            ),
           ),
-        ),
-        const SendFooter(),
-      ],
-    ),
+          const SendFooter(),
+        ],
+      );
+    },
   );
 }

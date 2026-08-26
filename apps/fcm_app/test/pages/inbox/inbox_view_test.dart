@@ -4,6 +4,7 @@ import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/inbox/widgets/message_tile.dart';
@@ -42,6 +43,12 @@ void main() {
   // The shell under this test's own cubits: `App`'s providers build theirs
   // out of `getIt`, which no widget test configures. The shell rather than
   // `InboxView` alone because two tests below assert on the app bar it owns.
+  //
+  // A full `MaterialApp` of its own rather than the shared `pumpApp` helper: this
+  // closure is itself called `pumpApp`, and giving it the helper's shape too would
+  // only rename one collision into another. `TranslationProvider` still wraps it
+  // directly, for the same reason the helper carries one: `AppShell` reads
+  // `context.t` for its language-switcher tooltip.
   Future<void> pumpApp(WidgetTester tester) async {
     sandbox = SandboxCubit(
       sender: FakeNotificationSender(),
@@ -52,24 +59,26 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      MaterialApp(
-        home: MultiRepositoryProvider(
-          providers: [
-            RepositoryProvider<RunScheduler>.value(value: FakeRunScheduler()),
-            RepositoryProvider<ActiveRunStore>.value(
-              value: InMemoryActiveRunStore(),
-            ),
-            RepositoryProvider<TelemetryReader>.value(
-              value: FakeTelemetryReader(),
-            ),
-            RepositoryProvider<NotificationPresenter>.value(value: presenter),
-          ],
-          child: MultiBlocProvider(
+      TranslationProvider(
+        child: MaterialApp(
+          home: MultiRepositoryProvider(
             providers: [
-              BlocProvider.value(value: inbox),
-              BlocProvider.value(value: sandbox),
+              RepositoryProvider<RunScheduler>.value(value: FakeRunScheduler()),
+              RepositoryProvider<ActiveRunStore>.value(
+                value: InMemoryActiveRunStore(),
+              ),
+              RepositoryProvider<TelemetryReader>.value(
+                value: FakeTelemetryReader(),
+              ),
+              RepositoryProvider<NotificationPresenter>.value(value: presenter),
             ],
-            child: const AppShell(),
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: inbox),
+                BlocProvider.value(value: sandbox),
+              ],
+              child: const AppShell(),
+            ),
           ),
         ),
       ),
@@ -80,6 +89,9 @@ void main() {
   setUp(() {
     source = FakePushSource();
     presenter = RecordingNotificationPresenter();
+    // Pinned rather than inherited: an assertion on English copy below must not
+    // start failing because the host is Czech.
+    LocaleSettings.setLocaleSync(AppLocale.en);
   });
 
   tearDown(() async {
@@ -149,7 +161,20 @@ void main() {
     source.emit({'id': 'broken'});
     await tester.pumpAndSettle();
 
-    expect(find.text('1 malformed payload(s) dropped'), findsOne);
+    expect(find.text('1 malformed payload dropped'), findsOne);
+  });
+
+  testWidgets('pluralises the malformed-payload count', (tester) async {
+    repository = PushRepository(source, store: FakePushPayloadStore())
+      ..listen();
+    inbox = InboxCubit(repository);
+    await pumpApp(tester);
+
+    source.emit({'id': 'broken-1'});
+    source.emit({'id': 'broken-2'});
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 malformed payloads dropped'), findsOne);
   });
 
   testWidgets('shows a placeholder for a push with no title', (tester) async {
@@ -167,7 +192,7 @@ void main() {
 
     expect(find.text('(no title)'), findsOne);
     expect(find.textContaining('event'), findsOne);
-    expect(find.text('1 malformed payload(s) dropped'), findsNothing);
+    expect(find.text('1 malformed payload dropped'), findsNothing);
   });
 
   testWidgets('opens the detail page when a row is tapped', (tester) async {

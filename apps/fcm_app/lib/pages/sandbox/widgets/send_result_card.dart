@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
 import '../cubit/sandbox_send_state.dart';
 import 'not_received_button.dart';
 
@@ -33,6 +34,7 @@ class SendResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final t = context.t;
 
     return switch (state) {
       SandboxIdle() => const SizedBox.shrink(),
@@ -47,12 +49,14 @@ class SendResultCard extends StatelessWidget {
           children: [
             Text(
               validateOnly
-                  ? '✓ Validated · message ${response.messageId} · trace '
-                        '${response.traceId} · the payload was validated, not '
-                        'sent'
-                  : '✓ Sent · message ${response.messageId} · trace '
-                        '${response.traceId} · it should appear in the Inbox '
-                        'shortly',
+                  ? t.send_result.validated(
+                      messageId: response.messageId,
+                      traceId: response.traceId,
+                    )
+                  : t.send_result.sent(
+                      messageId: response.messageId,
+                      traceId: response.traceId,
+                    ),
               style: TextStyle(color: colors.primary),
             ),
             // Not for a validated send: nothing was delivered, and the API
@@ -69,8 +73,7 @@ class SendResultCard extends StatelessWidget {
       SandboxScheduled(:final run) => Padding(
         padding: const EdgeInsets.only(top: 16),
         child: Text(
-          '✓ Scheduled · run ${run.id} · ${run.items.length} message'
-          '${run.items.length == 1 ? '' : 's'} · nothing has been sent yet',
+          t.send_result.scheduled(n: run.items.length, runId: run.id),
           style: TextStyle(color: colors.primary),
         ),
       ),

@@ -6,6 +6,7 @@ import '../../domains/runs/entities/active_run_store.dart';
 import '../../domains/runs/entities/run_scheduler.dart';
 import '../../domains/runs/entities/run_scheduler_exception.dart';
 import '../../domains/runs/start_run.dart';
+import '../../i18n/translations.g.dart';
 import '../countdown/countdown_page.dart';
 import '../countdown/cubit/countdown_cubit.dart';
 import '../runs/run_timeline_page.dart';
@@ -96,10 +97,7 @@ class _ScenariosViewState extends State<ScenariosView> {
     // Only a scenario without a target of its own needs this device's token; a
     // topic or a condition names its own audience.
     if (token == null && scenarios.any((s) => s.target == null)) {
-      _report(
-        'No registration token yet, so there is nowhere to send. Open the Inbox '
-        'once the app has registered.',
-      );
+      _report(context.t.scenarios.no_token);
 
       return;
     }

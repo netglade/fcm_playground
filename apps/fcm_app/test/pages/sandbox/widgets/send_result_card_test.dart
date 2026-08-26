@@ -4,6 +4,8 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/pump_app.dart';
+
 void main() {
   final response = SendMessageResponse(
     messageId: 'projects/p/messages/0:17',
@@ -15,15 +17,12 @@ void main() {
     WidgetTester tester,
     SandboxSendState state, {
     bool validateOnly = false,
-  }) => tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: SendResultCard(
-          state,
-          validateOnly: validateOnly,
-          onNotReceived: (_) => Future<void>.value(),
-        ),
-      ),
+  }) => pumpApp(
+    tester,
+    SendResultCard(
+      state,
+      validateOnly: validateOnly,
+      onNotReceived: (_) => Future<void>.value(),
     ),
   );
 
@@ -95,14 +94,75 @@ void main() {
 
     await pump(tester, SandboxScheduled(run));
 
-    expect(textOf(tester), contains('run-9'));
-    expect(textOf(tester), contains('nothing has been sent yet'));
+    // An exact widget match rather than `contains`: '1 message' is itself a
+    // prefix of '1 messages', so a substring check would pass just as well
+    // against the old code that glued an 's' onto every count, including one.
+    expect(
+      find.text(
+        '✓ Scheduled · run run-9 · 1 message · nothing has been sent yet',
+      ),
+      findsOneWidget,
+      reason: 'a single-item run must render the singular form exactly',
+    );
+    expect(
+      find.text(
+        '✓ Scheduled · run run-9 · 1 messages · nothing has been sent yet',
+      ),
+      findsNothing,
+      reason: 'the old code appended an s to every count, including one',
+    );
     // The exact wording a real send uses, so the two cannot be mistaken for one
     // another even if someone later adds sent-like language alongside.
     expect(
       textOf(tester),
       isNot(contains('should appear in the Inbox')),
       reason: 'nothing was sent, so this must not read like a delivery',
+    );
+  });
+
+  testWidgets('pluralizes the message count for a multi-item run', (
+    tester,
+  ) async {
+    // The singular case above is pinned exactly; this pins that a count above
+    // one takes the plural form instead, rather than always falling back to it.
+    final run = ScheduledRun(
+      id: 'run-10',
+      createdAt: DateTime.utc(2026, 8, 17, 9, 0),
+      items: [
+        ScheduledRunItem(
+          index: 0,
+          request: const SendMessageRequest(
+            target: TokenTarget('device-token'),
+            message: FcmMessage(),
+          ),
+          dueAt: DateTime.utc(2026, 8, 17, 9, 0, 30),
+        ),
+        ScheduledRunItem(
+          index: 1,
+          request: const SendMessageRequest(
+            target: TokenTarget('device-token'),
+            message: FcmMessage(),
+          ),
+          dueAt: DateTime.utc(2026, 8, 17, 9, 1),
+        ),
+      ],
+    );
+
+    await pump(tester, SandboxScheduled(run));
+
+    expect(
+      find.text(
+        '✓ Scheduled · run run-10 · 2 messages · nothing has been sent yet',
+      ),
+      findsOneWidget,
+      reason: 'a two-item run must render the plural form exactly',
+    );
+    expect(
+      find.text(
+        '✓ Scheduled · run run-10 · 2 message · nothing has been sent yet',
+      ),
+      findsNothing,
+      reason: 'a plural count must not render the singular form',
     );
   });
 }

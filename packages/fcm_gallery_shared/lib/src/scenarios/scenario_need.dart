@@ -8,25 +8,25 @@
 enum ScenarioNeed {
   /// Several notification channels, their importance, and a screen that reads
   /// that importance back from the system.
-  channels('notification channels'),
+  channels,
 
   /// Local notification styles: big picture, big text, inbox, messaging,
   /// progress, large icon.
-  styles('notification styles'),
+  styles,
 
   /// The launcher icon's badge count.
-  badge('launcher badge'),
+  badge,
 
   /// A registry of every registered token, so a message can fan out.
-  targeting('a device registry'),
+  targeting,
 
   /// A step on the device or over adb that no payload can perform.
-  manualStep('a manual step'),
+  manualStep,
 
   /// Approval or capability from Apple or the OS that this project cannot grant
   /// itself: a critical-alert entitlement, a Notification Service Extension,
   /// notification-policy access.
-  externalApproval('external approval'),
+  externalApproval,
 
   /// A platform-level component this Dart-only gallery deliberately does not
   /// carry.
@@ -35,10 +35,5 @@ enum ScenarioNeed {
   /// scenario whose demonstration would need native code, which this project has
   /// chosen not to introduce — the single Kotlin file here is Flutter's own empty
   /// activity.
-  nativeCode('native code');
-
-  const ScenarioNeed(this.label);
-
-  /// Shown to the user verbatim.
-  final String label;
+  nativeCode,
 }

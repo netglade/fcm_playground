@@ -66,16 +66,11 @@ void main() {
       expect(body, contains('ě'));
     });
 
-    test('e2 says Android renders the image and iOS needs an extension', () {
-      // contains('Notification Service Extension') alone would pass on prose that
-      // denied the requirement, so both halves of the phrase are pinned.
+    test('e2 carries an image URL for the platform to fetch', () {
+      // What the expectation says about Android and iOS moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
       final remote = scenarioE('e2_image_remote');
 
-      expect(remote.expectation, contains('Android does this natively'));
-      expect(
-        remote.expectation,
-        contains('iOS requires a Notification Service Extension'),
-      );
       expect(notificationOf(remote)['image'], isNotNull);
     });
 
@@ -108,10 +103,8 @@ void main() {
       final icon = notification['icon']! as String;
       expect(icon, matches(RegExp(r'^[a-z][a-z0-9_]*$')));
       expect(icon, startsWith('ic_stat_'));
-      expect(
-        scenarioE('e10_color_and_icon').expectation,
-        contains('monochrome'),
-      );
+      // What the expectation says about monochrome icons moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
     });
 
     test('the client-rendered styles pass their numbers as strings', () {

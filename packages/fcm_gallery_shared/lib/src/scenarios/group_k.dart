@@ -11,14 +11,8 @@ import 'scenario_need.dart';
 const groupK = <Scenario>[
   Scenario(
     id: 'k1_payload_oversize',
-    group: 'K — Edge cases and errors',
-    title: 'A payload over FCM\'s 4 KB limit',
-    description:
-        'Watch that the API surfaces FCM\'s error with a usable message rather '
-        'than a bare 400.',
-    expectation:
-        'FCM rejects this with INVALID_ARGUMENT. The send should fail before '
-        'anything reaches the device.',
+    l10nKey: 'k1_payload_oversize',
+    group: 'K',
     payloadTemplate: {
       'data': {
         'chunk_1':
@@ -109,16 +103,8 @@ const groupK = <Scenario>[
   ),
   Scenario(
     id: 'k2_invalid_token',
-    group: 'K — Edge cases and errors',
-    title: 'A token that is no longer registered',
-    description:
-        'The everyday production failure. Watch that the API reports it as '
-        'UNREGISTERED rather than a generic 404, which is what tells a real '
-        'backend to delete the row.',
-    expectation:
-        'FCM answers with UNREGISTERED, which this API maps to 404 with its own '
-        'wording. The errorCode in error.details takes precedence over the '
-        'top-level NOT_FOUND status.',
+    l10nKey: 'k2_invalid_token',
+    group: 'K',
     payloadTemplate: {
       'notification': {'title': 'Nobody', 'body': 'This token is dead.'},
     },
@@ -128,52 +114,33 @@ const groupK = <Scenario>[
   ),
   Scenario(
     id: 'k3_permission_denied',
-    group: 'K — Edge cases and errors',
-    title: 'POST_NOTIFICATIONS denied on Android 13+',
-    description:
-        'Watch that the data handler still runs and the inbox still fills, even '
-        'though nothing can be drawn.',
+    l10nKey: 'k3_permission_denied',
+    group: 'K',
     payloadTemplate: {
       'notification': {'title': 'Denied', 'body': 'Nothing should be drawn.'},
       'data': {'event': 'permission_probe'},
     },
     needs: [ScenarioNeed.manualStep],
-    manualSteps:
-        'adb shell pm revoke cz.netglade.fcm_app '
-        'android.permission.POST_NOTIFICATIONS — then send, and check the Inbox '
-        'page rather than the tray.',
   ),
   Scenario(
     id: 'k4_notifications_disabled',
-    group: 'K — Edge cases and errors',
-    title: 'Notifications switched off in system settings',
-    description:
-        'Distinct from a denied permission: the app has the grant and the user '
-        'has turned it off. Watch that data delivery is unaffected.',
+    l10nKey: 'k4_notifications_disabled',
+    group: 'K',
     payloadTemplate: {
       'notification': {'title': 'Disabled', 'body': 'Tray is off.'},
       'data': {'event': 'disabled_probe'},
     },
     needs: [ScenarioNeed.manualStep],
-    manualSteps:
-        'Settings › Apps › FCM Sample › Notifications › off. Send, then confirm '
-        'the row appears in the Inbox page.',
   ),
   Scenario(
     id: 'k5_battery_restricted',
-    group: 'K — Edge cases and errors',
-    title: 'App in Restricted battery mode',
-    description:
-        'The state a user reaches by tapping "restrict" in battery settings. '
-        'Watch whether a HIGH priority push still wakes the app.',
+    l10nKey: 'k5_battery_restricted',
+    group: 'K',
     payloadTemplate: {
       'notification': {'title': 'Restricted', 'body': 'Battery probe.'},
       'android': {'priority': 'HIGH'},
       'data': {'event': 'battery_probe'},
     },
     needs: [ScenarioNeed.manualStep],
-    manualSteps:
-        'Settings › Apps › FCM Sample › Battery › Restricted. Send and compare '
-        'the delay against c1_priority_high in the unrestricted state.',
   ),
 ];

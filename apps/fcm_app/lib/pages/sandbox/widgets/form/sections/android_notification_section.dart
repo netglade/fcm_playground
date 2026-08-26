@@ -2,6 +2,7 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import '../../../../../i18n/translations.g.dart';
 import '../../../forms/android_notification_form.dart';
 import '../enum_field.dart';
 import '../form_section.dart';
@@ -21,52 +22,56 @@ class AndroidNotificationSection extends StatelessWidget {
   final AndroidNotificationForm form;
 
   @override
-  Widget build(BuildContext context) => FormSection(
-    title: 'notification',
-    subtitle: "Everything Android's tray understands, beyond the shared block",
-    isValid: form.isValid,
-    children: [
-      for (final (label, input) in _texts(form))
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return FormSection(
+      title: 'notification',
+      subtitle: t.form_section.android_notification,
+      isValid: form.isValid,
+      children: [
+        for (final (label, input) in _texts(form))
+          TextFormField(
+            controller: input.controller,
+            validator: input.textFormFieldInputValidator,
+            decoration: InputDecoration(labelText: label),
+          ),
         TextFormField(
-          controller: input.controller,
-          validator: input.textFormFieldInputValidator,
-          decoration: InputDecoration(labelText: label),
+          controller: form.notificationCount.controller,
+          validator: form.notificationCount.textFormFieldInputValidator,
+          decoration: const InputDecoration(labelText: 'notification_count'),
+          keyboardType: TextInputType.number,
         ),
-      TextFormField(
-        controller: form.notificationCount.controller,
-        validator: form.notificationCount.textFormFieldInputValidator,
-        decoration: const InputDecoration(labelText: 'notification_count'),
-        keyboardType: TextInputType.number,
-      ),
-      for (final (label, input) in _flags(form))
-        TristateField(label: label, input: input),
-      for (final (label, input) in _lists(form))
-        StringListRows(
-          label: label,
-          value: input.value ?? const [],
-          onChanged: input.updateValue,
+        for (final (label, input) in _flags(form))
+          TristateField(label: label, input: input),
+        for (final (label, input) in _lists(form))
+          StringListRows(
+            label: label,
+            value: input.value ?? const [],
+            onChanged: input.updateValue,
+          ),
+        EnumField<AndroidNotificationPriority>(
+          label: 'notification_priority',
+          input: form.notificationPriority,
+          values: AndroidNotificationPriority.values,
+          labelOf: (value) => value.wireName,
         ),
-      EnumField<AndroidNotificationPriority>(
-        label: 'notification_priority',
-        input: form.notificationPriority,
-        values: AndroidNotificationPriority.values,
-        labelOf: (value) => value.wireName,
-      ),
-      EnumField<NotificationVisibility>(
-        label: 'visibility',
-        input: form.visibility,
-        values: NotificationVisibility.values,
-        labelOf: (value) => value.wireName,
-      ),
-      EnumField<NotificationProxy>(
-        label: 'proxy',
-        input: form.proxy,
-        values: NotificationProxy.values,
-        labelOf: (value) => value.wireName,
-      ),
-      LightSettingsSection(form: form.lightSettings),
-    ],
-  );
+        EnumField<NotificationVisibility>(
+          label: 'visibility',
+          input: form.visibility,
+          values: NotificationVisibility.values,
+          labelOf: (value) => value.wireName,
+        ),
+        EnumField<NotificationProxy>(
+          label: 'proxy',
+          input: form.proxy,
+          values: NotificationProxy.values,
+          labelOf: (value) => value.wireName,
+        ),
+        LightSettingsSection(form: form.lightSettings),
+      ],
+    );
+  }
 }
 
 /// Typed over `GladeInput<Object?>`: the two members a text field binds are

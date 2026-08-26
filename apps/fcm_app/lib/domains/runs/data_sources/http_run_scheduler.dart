@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../i18n/translations.g.dart';
 import '../entities/run_scheduler.dart';
 import '../entities/run_scheduler_exception.dart';
 
@@ -58,8 +59,7 @@ class HttpRunScheduler implements RunScheduler {
     final decoded = jsonDecode(await _body(send));
     if (decoded is! List) {
       throw RunSchedulerException(
-        'The API answered 200 with ${decoded.runtimeType} where a list of runs '
-        'was expected.',
+        t.api.answered_wrong_shape_runs(type: decoded.runtimeType),
       );
     }
 
@@ -75,9 +75,7 @@ class HttpRunScheduler implements RunScheduler {
       response = await send();
     } catch (error) {
       throw RunSchedulerException(
-        'Could not reach $_baseUrl — is the API running?\n'
-        'On a physical device, run: adb reverse tcp:8080 tcp:8080\n'
-        '($error)',
+        t.api.unreachable(baseUrl: _baseUrl, error: error),
       );
     }
 
@@ -96,7 +94,7 @@ ApiError _errorFrom(http.Response response) {
     return ApiError.fromJson(_asObject(jsonDecode(response.body)));
   } on Object {
     return ApiError(
-      'The API answered ${response.statusCode}: ${response.body}',
+      t.api.answered_status(status: response.statusCode, body: response.body),
     );
   }
 }
@@ -104,7 +102,7 @@ ApiError _errorFrom(http.Response response) {
 Map<String, dynamic> _asObject(Object? decoded) {
   if (decoded is! Map<String, dynamic>) {
     throw RunSchedulerException(
-      'Expected a JSON object, got ${decoded.runtimeType}.',
+      t.api.expected_object(type: decoded.runtimeType),
     );
   }
 

@@ -4,10 +4,13 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../di/service_locator.dart';
 import '../../domains/runs/entities/active_run_store.dart';
 import '../../domains/runs/entities/run_scheduler.dart';
 import '../../domains/runs/entities/run_scheduler_exception.dart';
+import '../../domains/settings/entities/locale_store.dart';
 import '../../domains/telemetry/entities/telemetry_reader.dart';
+import '../../i18n/translations.g.dart';
 import '../inbox/cubit/inbox_cubit.dart';
 import '../inbox/cubit/inbox_state.dart';
 import '../inbox/inbox_view.dart';
@@ -35,12 +38,18 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  static const _titles = [
-    'Push inbox',
-    'Scenarios',
-    'Sandbox',
-    'Runs',
-    'Telemetry',
+  /// One AppBar title per destination, in the same order as the `IndexedStack`
+  /// below and the drawer above it.
+  ///
+  /// A method rather than the `const` list this used to be: a `const` cannot
+  /// read [Translations], and the title has to follow the language switch same
+  /// as everything else in the shell.
+  List<String> _titlesFor(Translations t) => [
+    t.shell.title.inbox,
+    t.shell.title.scenarios,
+    t.shell.title.sandbox,
+    t.shell.title.runs,
+    t.shell.title.telemetry,
   ];
   late final AppLifecycleListener _lifecycle;
 
@@ -85,65 +94,100 @@ class _AppShellState extends State<AppShell> {
   }
 
   @override
-  Widget build(BuildContext context) => BlocListener<InboxCubit, InboxState>(
-    listener: _onInboxChanged,
-    child: Scaffold(
-      appBar: AppBar(title: Text(_titles[_destination])),
-      drawer: NavigationDrawer(
-        selectedIndex: _destination,
-        onDestinationSelected: _select,
-        children: const [
-          Padding(
-            padding: EdgeInsets.fromLTRB(28, 24, 16, 12),
-            child: Text('FCM Sample'),
-          ),
-          NavigationDrawerDestination(
-            icon: Icon(Icons.inbox_outlined),
-            label: Text('Inbox'),
-          ),
-          NavigationDrawerDestination(
-            icon: Icon(Icons.collections_bookmark_outlined),
-            label: Text('Scenarios'),
-          ),
-          NavigationDrawerDestination(
-            icon: Icon(Icons.science_outlined),
-            label: Text('Sandbox'),
-          ),
-          NavigationDrawerDestination(
-            icon: Icon(Icons.schedule_outlined),
-            label: Text('Runs'),
-          ),
-          NavigationDrawerDestination(
-            icon: Icon(Icons.analytics_outlined),
-            label: Text('Telemetry'),
-          ),
-        ],
-      ),
-      // top: false because the AppBar already sits below the status bar. Applied
-      // once around the IndexedStack rather than in each destination, so a new
-      // page cannot forget the bottom gesture bar the SendFooter sits above.
-      body: SafeArea(
-        top: false,
-        child: IndexedStack(
-          index: _destination,
-          children: [
-            const InboxView(),
-            ScenariosView(onScenarioSelected: _openSandbox),
-            const SandboxView(),
-            RunsView(
-              key: ValueKey(_runsVisits),
-              scheduler: context.read<RunScheduler>(),
-              onRunSelected: (runId) => _openRun(context, runId),
-            ),
-            TelemetryView(
-              key: ValueKey(_telemetryVisits),
-              reader: context.read<TelemetryReader>(),
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return BlocListener<InboxCubit, InboxState>(
+      listener: _onInboxChanged,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_titlesFor(t)[_destination]),
+          actions: [
+            // The one AppBar in the app already owns its chrome, so the language lives
+            // here rather than behind a settings page the app does not have.
+            PopupMenuButton<AppLocale?>(
+              icon: const Icon(Icons.translate),
+              tooltip: t.language.tooltip,
+              onSelected: (locale) async {
+                // Persist first, then switch: the switch rebuilds this widget, and a
+                // write awaited afterwards would be racing its own disposal.
+                await getIt<LocaleStore>().write(locale);
+                if (locale == null) {
+                  LocaleSettings.useDeviceLocaleSync();
+                } else {
+                  LocaleSettings.setLocaleSync(locale);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(value: null, child: Text(t.language.system)),
+                PopupMenuItem(
+                  value: AppLocale.en,
+                  child: Text(t.language.english),
+                ),
+                PopupMenuItem(
+                  value: AppLocale.cs,
+                  child: Text(t.language.czech),
+                ),
+              ],
             ),
           ],
         ),
+        drawer: NavigationDrawer(
+          selectedIndex: _destination,
+          onDestinationSelected: _select,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(28, 24, 16, 12),
+              child: Text(t.app.title),
+            ),
+            NavigationDrawerDestination(
+              icon: const Icon(Icons.inbox_outlined),
+              label: Text(t.drawer.inbox),
+            ),
+            NavigationDrawerDestination(
+              icon: const Icon(Icons.collections_bookmark_outlined),
+              label: Text(t.drawer.scenarios),
+            ),
+            NavigationDrawerDestination(
+              icon: const Icon(Icons.science_outlined),
+              label: Text(t.drawer.sandbox),
+            ),
+            NavigationDrawerDestination(
+              icon: const Icon(Icons.schedule_outlined),
+              label: Text(t.drawer.runs),
+            ),
+            NavigationDrawerDestination(
+              icon: const Icon(Icons.analytics_outlined),
+              label: Text(t.drawer.telemetry),
+            ),
+          ],
+        ),
+        // top: false because the AppBar already sits below the status bar. Applied
+        // once around the IndexedStack rather than in each destination, so a new
+        // page cannot forget the bottom gesture bar the SendFooter sits above.
+        body: SafeArea(
+          top: false,
+          child: IndexedStack(
+            index: _destination,
+            children: [
+              const InboxView(),
+              ScenariosView(onScenarioSelected: _openSandbox),
+              const SandboxView(),
+              RunsView(
+                key: ValueKey(_runsVisits),
+                scheduler: context.read<RunScheduler>(),
+                onRunSelected: (runId) => _openRun(context, runId),
+              ),
+              TelemetryView(
+                key: ValueKey(_telemetryVisits),
+                reader: context.read<TelemetryReader>(),
+              ),
+            ],
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   /// Applies the drawer's choice and gets the drawer out of the way, which
   /// `NavigationDrawer` does not do on its own.

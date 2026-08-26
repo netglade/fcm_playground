@@ -1,9 +1,13 @@
+import 'package:fcm_app/di/service_locator.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
+import 'package:fcm_app/domains/settings/entities/locale_store.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
+import 'package:fcm_app/i18n/scenario_text.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';
 import 'package:fcm_app/pages/runs/run_timeline_page.dart';
@@ -15,7 +19,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../fakes/fake_locale_store.dart';
 import '../../fakes/fake_notification_sender.dart';
 import '../../fakes/fake_push_payload_store.dart';
 import '../../fakes/fake_push_source.dart';
@@ -35,6 +41,12 @@ Map<String, Object?> payload({String id = 'msg-1', String? deepLink}) => {
 void main() {
   setUpAll(GladeForms.initialize);
 
+  // Built once: every test in this file pins the locale to English in its own
+  // `setUp`, so a scenario's finder text has to agree with what it renders.
+  late Translations en;
+
+  setUpAll(() => en = AppLocale.en.buildSync());
+
   late FakePushSource source;
   late PushRepository repository;
   late InboxCubit inbox;
@@ -50,6 +62,13 @@ void main() {
   // outer test zone — which `testWidgets` does not drive, leaving the microtask
   // somewhere `pumpAndSettle` never flushes. Measured: the notification-tap tests
   // below go silent.
+  //
+  // Named `pumpApp` and built as a full `MaterialApp` of its own rather than routed
+  // through the shared `pump_app.dart` helper of the same name: this closure needs
+  // `navigatorObservers`, which is a `MaterialApp` constructor argument the helper's
+  // `child` slot cannot reach. `TranslationProvider` still wraps it directly, for the
+  // same reason the helper carries one: `AppShell` reads `context.t` for its
+  // language-switcher tooltip.
   Future<void> pumpApp(
     WidgetTester tester, {
     FakePushPayloadStore? store,
@@ -78,26 +97,28 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      MaterialApp(
-        navigatorObservers: [?observer],
-        home: MultiRepositoryProvider(
-          providers: [
-            RepositoryProvider<RunScheduler>.value(
-              value: scheduler ?? FakeRunScheduler(),
-            ),
-            RepositoryProvider<ActiveRunStore>.value(
-              value: active ?? InMemoryActiveRunStore(),
-            ),
-            RepositoryProvider<TelemetryReader>.value(
-              value: reader ?? FakeTelemetryReader(),
-            ),
-          ],
-          child: MultiBlocProvider(
+      TranslationProvider(
+        child: MaterialApp(
+          navigatorObservers: [?observer],
+          home: MultiRepositoryProvider(
             providers: [
-              BlocProvider.value(value: inbox),
-              BlocProvider.value(value: sandbox),
+              RepositoryProvider<RunScheduler>.value(
+                value: scheduler ?? FakeRunScheduler(),
+              ),
+              RepositoryProvider<ActiveRunStore>.value(
+                value: active ?? InMemoryActiveRunStore(),
+              ),
+              RepositoryProvider<TelemetryReader>.value(
+                value: reader ?? FakeTelemetryReader(),
+              ),
             ],
-            child: const AppShell(),
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: inbox),
+                BlocProvider.value(value: sandbox),
+              ],
+              child: const AppShell(),
+            ),
           ),
         ),
       ),
@@ -126,6 +147,10 @@ void main() {
 
   setUp(() {
     source = FakePushSource();
+    // Pinned rather than inherited: an assertion on English copy elsewhere in this
+    // file must not start failing because the host is Czech. The one test below that
+    // switches languages restores this in its own `addTearDown`.
+    LocaleSettings.setLocaleSync(AppLocale.en);
   });
 
   tearDown(() async {
@@ -302,8 +327,9 @@ void main() {
 
     // Reaching a scenario below the first is a scroll within the gallery's own
     // page, unrelated to the Sandbox-page fold this change fixed.
-    await scrollIntoView(tester, find.text(dataOnly.title));
-    await tester.tap(find.text(dataOnly.title));
+    final dataOnlyTitle = en.scenarioTitle(dataOnly.l10nKey);
+    await scrollIntoView(tester, find.text(dataOnlyTitle));
+    await tester.tap(find.text(dataOnlyTitle));
     await tester.pumpAndSettle();
 
     expect(selectedDestination(tester), 2);
@@ -572,5 +598,41 @@ void main() {
       // again rather than lose it.
       expect(await active.activeRunId(), 'run-1');
     });
+  });
+
+  testWidgets('the language menu switches the whole app', (tester) async {
+    // The end-to-end proof that codegen, the provider and the store meet: an
+    // English drawer label becomes a Czech one without touching the device.
+    SharedPreferences.setMockInitialValues({});
+    // The switcher writes through the locator, so the locator has to have one.
+    // Without this the tap throws a StateError about an unregistered LocaleStore,
+    // long before reaching the assertion below.
+    getIt.registerSingleton<LocaleStore>(FakeLocaleStore());
+    addTearDown(() => getIt.unregister<LocaleStore>());
+    LocaleSettings.setLocaleSync(AppLocale.en);
+    // LocaleSettings is global process state, and this test deliberately leaves it
+    // on Czech. Restoring it is not tidiness: without it the next English-asserting
+    // test the runner reaches fails, and the failure looks unrelated to this one.
+    addTearDown(() => LocaleSettings.setLocaleSync(AppLocale.en));
+    // Routed through the file's own `pumpApp` rather than a bare
+    // `TranslationProvider(child: MaterialApp(home: AppShell()))`: `AppShell`
+    // reads its repositories and blocs from providers `pumpApp` supplies, and a
+    // bare `MaterialApp` has none, which threw a `ProviderNotFoundException`
+    // before reaching the assertion below. `pumpApp` still wraps
+    // `TranslationProvider`, so `LocaleSettings.setLocaleSync` continues to
+    // drive the rebuild this test needs.
+    await pumpApp(tester);
+
+    await tester.tap(find.byIcon(Icons.translate));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Čeština').last);
+    await tester.pumpAndSettle();
+
+    // NavigationDrawer only builds its destinations once opened, so the Czech
+    // label is not in the tree to find before this.
+    await openDrawer(tester);
+
+    expect(find.text('Doručené'), findsWidgets);
+    expect(find.text('Inbox'), findsNothing);
   });
 }

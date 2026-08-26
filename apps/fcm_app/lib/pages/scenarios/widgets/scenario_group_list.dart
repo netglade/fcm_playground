@@ -2,6 +2,8 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../i18n/scenario_text.dart';
+import '../../../i18n/translations.g.dart';
 import '../../sandbox/cubit/sandbox_cubit.dart';
 import 'scenario_card.dart';
 
@@ -29,6 +31,7 @@ class ScenarioGroupList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t;
     final groups = <String>{
       for (final scenario in scenarioGallery) scenario.group,
     };
@@ -37,7 +40,8 @@ class ScenarioGroupList extends StatelessWidget {
       children: [
         for (final (index, group) in groups.indexed)
           ExpansionTile(
-            title: Text(group),
+            key: Key('group-$group'),
+            title: Text(t.scenarioGroupName(group)),
             initiallyExpanded: index == 0,
             // The cards carry their own margins, so the tile adds none.
             childrenPadding: const EdgeInsets.only(bottom: 8),

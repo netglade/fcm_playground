@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../i18n/translations.g.dart';
 import '../../../forms/apns_config_form.dart';
 import '../form_section.dart';
 import '../path_rows_field.dart';
@@ -16,22 +17,26 @@ class ApnsSection extends StatelessWidget {
   final ApnsConfigForm form;
 
   @override
-  Widget build(BuildContext context) => FormSection(
-    title: 'apns',
-    subtitle: 'Delivery and rendering options for iOS and macOS',
-    isValid: form.isValid,
-    children: [
-      StringMapRows(
-        label: 'headers',
-        value: form.headers.value ?? const {},
-        onChanged: form.headers.updateValue,
-      ),
-      PathRowsField(
-        label: 'payload',
-        value: form.payload.value ?? const {},
-        onChanged: form.payload.updateValue,
-      ),
-      ApnsFcmOptionsSection(form: form.fcmOptions),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return FormSection(
+      title: 'apns',
+      subtitle: t.form_section.apns,
+      isValid: form.isValid,
+      children: [
+        StringMapRows(
+          label: 'headers',
+          value: form.headers.value ?? const {},
+          onChanged: form.headers.updateValue,
+        ),
+        PathRowsField(
+          label: 'payload',
+          value: form.payload.value ?? const {},
+          onChanged: form.payload.updateValue,
+        ),
+        ApnsFcmOptionsSection(form: form.fcmOptions),
+      ],
+    );
+  }
 }

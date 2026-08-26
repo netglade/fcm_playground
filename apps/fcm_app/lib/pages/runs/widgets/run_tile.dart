@@ -1,6 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
 import 'run_time.dart';
 
 /// One run in the list: how big it was, how it went, and when the next item is due.
@@ -14,13 +15,14 @@ class RunTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.t;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         key: Key('run-${summary.runId}'),
         onTap: onTap,
-        title: Text('${summary.itemCount} sends'),
+        title: Text(t.run_tile.sends(n: summary.itemCount)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,7 +35,7 @@ class RunTile extends StatelessWidget {
             ),
             Text(_tally(summary)),
             if (summary.nextDueAt case final due?)
-              Text('next due ${runTime(due)}'),
+              Text(t.run_tile.next_due(time: runTime(due))),
           ],
         ),
       ),

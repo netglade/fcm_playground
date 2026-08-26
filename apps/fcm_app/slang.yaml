@@ -1,0 +1,21 @@
+base_locale: en
+input_directory: lib/i18n
+input_file_pattern: .i18n.csv
+output_directory: lib/i18n
+output_file_name: translations.g.dart
+
+# Keys in the CSV are snake_case dotted paths and the generated getters keep that
+# shape, so `inbox.registration_token` in the CSV greps straight to
+# `t.inbox.registration_token` in a widget. One name, not two.
+key_case: snake
+
+# Locales are imported plainly rather than deferred. With the default, `lazy: true`,
+# `AppLocale.cs.buildSync()` fails on the Dart VM because the deferred library was
+# never loaded — and the VM is where `flutter test` runs, where the background
+# isolate runs, and where the three http_* data sources build their diagnostics.
+lazy: false
+
+# No build timestamp in the generated header. With it, every regeneration rewrites
+# that line, so "regenerating changes nothing" could never be asserted — and the
+# committed output would churn on every run for no reason.
+timestamp: false

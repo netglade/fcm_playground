@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
 import '../cubit/trace_timeline.dart';
 import 'trace_card.dart';
 
@@ -12,12 +13,10 @@ class EventsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (traces.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'Nothing recorded yet. Send a push from the Sandbox, then reload.',
-          ),
+          padding: const EdgeInsets.all(16),
+          child: Text(context.t.telemetry.events.empty),
         ),
       );
     }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
+
 /// Reports that the push for [traceId] never arrived — the only evidence available
 /// when the interesting answer is silence.
 ///
@@ -41,14 +43,20 @@ class _NotReceivedButtonState extends State<NotReceivedButton> {
   }
 
   @override
-  Widget build(BuildContext context) => Align(
-    alignment: Alignment.centerLeft,
-    child: TextButton.icon(
-      onPressed: _reported ? null : _report,
-      icon: Icon(_reported ? Icons.check : Icons.notifications_off_outlined),
-      label: Text(_reported ? 'Reported as never arrived' : 'It never arrived'),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        onPressed: _reported ? null : _report,
+        icon: Icon(_reported ? Icons.check : Icons.notifications_off_outlined),
+        label: Text(
+          _reported ? t.not_received.reported : t.not_received.button,
+        ),
+      ),
+    );
+  }
 
   /// Disables the button before anything is awaited: a flush is a network round
   /// trip, and a second tap while it is in flight would record a second row.

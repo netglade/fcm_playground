@@ -1,10 +1,10 @@
 import 'package:fcm_app/domains/telemetry/entities/telemetry_reader_exception.dart';
 import 'package:fcm_app/pages/telemetry/telemetry_view.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../fakes/fake_telemetry_reader.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   TelemetryEvent event(
@@ -21,11 +21,7 @@ void main() {
   );
 
   Future<void> pumpPage(WidgetTester tester, FakeTelemetryReader reader) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: TelemetryView(reader: reader)),
-      ),
-    );
+    await pumpApp(tester, TelemetryView(reader: reader));
     await tester.pumpAndSettle();
   }
 

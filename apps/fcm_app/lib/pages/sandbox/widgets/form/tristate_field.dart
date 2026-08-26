@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import '../../../../i18n/translations.g.dart';
+
 /// A checkbox for an FCM field that may be true, false, or absent.
 ///
 /// FCM treats `direct_boot_ok: false` and an omitted `direct_boot_ok` as different
@@ -21,7 +23,7 @@ class TristateField extends StatelessWidget {
     tristate: true,
     value: input.value,
     title: Text(label),
-    subtitle: input.value == null ? const Text('Not sent') : null,
+    subtitle: input.value == null ? Text(context.t.form_field.not_sent) : null,
     onChanged: input.updateValue,
   );
 }

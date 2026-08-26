@@ -22,23 +22,10 @@ void main() {
       expect(killed.defaultDelaySeconds, greaterThan(0));
     });
 
-    test('b5 expects NOT to arrive, and says so', () {
-      // A scenario whose success is a non-delivery has to say so. `contains('not')`
-      // would not do: the word "nothing" satisfies it accidentally.
-      final forceStopped = groupB.firstWhere((s) => s.id == 'b5_force_stopped');
-
-      expect(forceStopped.expectation, contains('nothing'));
-      expect(forceStopped.expectation, contains('force-stopped'));
-    });
-
-    test('every manual-step scenario spells out the step', () {
-      for (final scenario in groupB) {
-        if (scenario.needs.contains(ScenarioNeed.manualStep)) {
-          expect(scenario.manualSteps, isNotNull, reason: scenario.id);
-          expect(scenario.manualSteps!.trim(), isNotEmpty, reason: scenario.id);
-        }
-      }
-    });
+    // The prose assertions that used to live here — what b5's expectation says,
+    // and that every manual-step scenario spells one out — moved to
+    // apps/fcm_app/test/i18n/scenario_prose_test.dart: this package has no access
+    // to the translations that prose now lives in.
 
     test('the whole group reaches the gallery', () {
       final galleryIds = scenarioGallery.map((s) => s.id).toSet();

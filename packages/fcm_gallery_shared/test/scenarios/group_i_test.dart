@@ -101,18 +101,12 @@ void main() {
       expect(data['event'], 'sync');
     });
 
-    test('the burst scenario says how many and how fast', () {
-      // `contains('20')` proves neither the count nor the rate, and the rate is the
-      // whole scenario — twenty pushes over an afternoon is not a burst.
+    test('the burst scenario needs a manual step', () {
+      // What its manual steps say about the count and the rate moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
       final burst = scenarioI('i4_burst');
 
       expect(burst.needs, contains(ScenarioNeed.manualStep));
-
-      final steps = burst.manualSteps;
-      expect(steps, isNotNull);
-      expect(steps!.trim(), isNotEmpty);
-      expect(steps, contains('20 times'));
-      expect(steps, contains('within 10 seconds'));
     });
 
     test('nothing in this group is about the killed app', () {

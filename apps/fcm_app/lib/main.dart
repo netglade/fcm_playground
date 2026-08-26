@@ -16,10 +16,12 @@ import 'domains/push/data_sources/shared_preferences_push_payload_store.dart';
 import 'domains/push/entities/push_source.dart';
 import 'domains/push/entities/remote_message_payload.dart';
 import 'domains/push/repositories/push_repository.dart';
+import 'domains/settings/entities/locale_store.dart';
 import 'domains/telemetry/data_sources/shared_preferences_device_identity.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
 import 'domains/telemetry/report_push_event.dart';
 import 'firebase_options.dart';
+import 'i18n/translations.g.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,7 +54,17 @@ Future<void> main() async {
   // through the plugin, so nothing reports when one of those is swiped away.
   getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
 
-  runApp(const App());
+  // Applied before the first frame so the app never flashes English on its way to
+  // the stored language. `useDeviceLocaleSync` is what "follow the system" means:
+  // slang picks the closest supported locale and keeps listening for device changes.
+  final storedLocale = await getIt<LocaleStore>().read();
+  if (storedLocale == null) {
+    LocaleSettings.useDeviceLocaleSync();
+  } else {
+    LocaleSettings.setLocaleSync(storedLocale);
+  }
+
+  runApp(TranslationProvider(child: const App()));
 }
 
 Future<void> _flushQuietly(PushTelemetry telemetry) async {

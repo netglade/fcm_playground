@@ -1,6 +1,7 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 
+import '../../../i18n/translations.g.dart';
 import 'run_time.dart';
 
 /// One item of a run, with its events underneath it — the timeline.
@@ -12,6 +13,7 @@ class RunItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.t;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -24,7 +26,7 @@ class RunItemCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    item.request.scenarioId ?? '(composed by hand)',
+                    item.request.scenarioId ?? t.run_item.composed_by_hand,
                     style: theme.textTheme.titleSmall,
                   ),
                 ),
@@ -32,7 +34,7 @@ class RunItemCard extends StatelessWidget {
               ],
             ),
             Text(
-              'due ${runTime(item.dueAt)}',
+              t.run_item.due(time: runTime(item.dueAt)),
               style: theme.textTheme.bodySmall,
             ),
             if (item.error case final error?)
@@ -48,7 +50,7 @@ class RunItemCard extends StatelessWidget {
             // event is buffered on the device and only reaches the API at the next
             // launch, so "nothing yet" is a real and expected answer.
             if (item.events.isEmpty)
-              const Text('Nothing recorded yet.')
+              Text(t.run_item.nothing_recorded)
             else
               for (final event in item.events)
                 Padding(

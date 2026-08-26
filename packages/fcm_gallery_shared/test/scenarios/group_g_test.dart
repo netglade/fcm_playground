@@ -111,9 +111,8 @@ void main() {
         scenarioG('g1_group_summary').payloadTemplate.containsKey('android'),
         isFalse,
       );
-
-      // Sending once demonstrates nothing, so the instruction is part of the entry.
-      expect(update.description, contains('Send twice with the same tag'));
+      // What the description says about sending twice moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
     });
 
     test('nothing in this group is about the killed app', () {

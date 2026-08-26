@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import '../../../../helpers/pump_app.dart';
 import 'tristate_field_model.dart';
 
 void main() {
@@ -14,12 +15,9 @@ void main() {
     model = TristateFieldModel()..initialize();
   });
 
-  Future<void> pump(WidgetTester tester) => tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: TristateField(label: 'Direct boot ok', input: model.flag),
-      ),
-    ),
+  Future<void> pump(WidgetTester tester) => pumpApp(
+    tester,
+    TristateField(label: 'Direct boot ok', input: model.flag),
   );
 
   testWidgets('starts unset, which is not the same as false', (tester) async {
