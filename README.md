@@ -76,6 +76,78 @@ Each script shells out through `fvm`, so the pinned SDK is used no matter what
 is on `PATH`. Note `fvm exec dcm …` rather than `fvm dcm …`: fvm only proxies
 `dart` and `flutter`, and `exec` is how third-party tools get the pinned SDK.
 
+**Every `melos run` needs `--no-select` in a non-interactive shell** —
+`fvm dart run melos run --no-select ci`, not `fvm dart run melos run ci` —
+or melos prompts for a package to run against and dies with
+`StdinException: Error getting terminal echo mode`, which reads like a broken
+toolchain rather than a missing flag.
+
+## Languages
+
+English and Czech, switched from the `translate` icon in the AppBar — System
+(follows the device), English, or Čeština — with the choice persisted across
+launches. `apps/fcm_app/lib/i18n/strings.i18n.csv` is the single source of
+truth for both languages: edit it, run `melos run l10n`, and commit the
+regenerated `lib/i18n/translations*.g.dart` alongside the CSV change.
+
+The header must stay exactly `key,en,cs,(description)`. The parentheses are
+load-bearing — without them slang reads the fourth column as a third locale
+rather than as metadata — and the description's text becomes the doc comment
+on the generated getter, so it is what shows up in the IDE when a widget calls
+it. **Quote every prose cell.** An unquoted comma silently splits the row, and
+the failure only surfaces much later, as a key that mysteriously will not
+resolve.
+
+Keys are snake_case dotted paths. Plurals are sibling rows —
+`key.one`, `key.few`, `key.other` — because Czech distinguishes a `few` form
+(counts 2–4) that English does not. Where English draws no distinction, its
+`few` row deliberately repeats the `other` text; that repetition is not
+something to tidy away. Conversely, `run_tile.sends` has no Czech `few` row at
+all, because *odeslání* is invariant across every count in Czech — an absent
+row can be as deliberate as a present one. Interpolation is `$name` or
+`${name}`, never ICU's `{name}` braces.
+
+Never leave a `cs` cell empty. `test/i18n/csv_coverage_test.dart` fails on it
+on purpose: a missing translation needs a person to notice a red test, not a
+silent fallback to English.
+
+`melos run l10n` is not part of `melos run ci`, for the same reason
+`melos run generate` is not: the generated files are committed, so a fresh
+clone analyses and tests without a codegen step. The cost is remembering to
+regenerate after editing the CSV, and that is exactly what
+`test/i18n/csv_coverage_test.dart` catches.
+
+A scenario's prose is not on `Scenario` any more — it is filed in the CSV
+under the scenario's `l10nKey` (the `scenario.<key>.*` rows) and read through
+the six accessors in `lib/i18n/scenario_text.dart`. Adding a scenario means
+adding a row per field there, not a string on the class. `l10nKey` equals
+`id` for every scenario today and is still its own field: `id` is a protocol
+value — it rides in `data.scenario_id` on every push and is what telemetry
+joins on — so a rename made for protocol reasons must not be able to silently
+repoint a scenario's prose at a translation key the CSV does not have.
+
+What stays English, and why:
+
+- **The payload form's field labels** — they mirror FCM's own REST field
+  names, and translating them would break the link to Google's reference docs.
+- **`payloadTemplate` contents and `wireName` values** — wire data, not UI copy.
+- **`ApiError.message` from the server** — which means an error can
+  legitimately read half Czech, half English, and that is accepted rather than
+  papered over.
+- **The notification channel's name and description.** Android creates a
+  channel once and keeps the name it had at creation; re-labelling it on every
+  language change would mean re-creating the channel, and risks resetting the
+  user's own importance setting, which lives on the channel rather than in the
+  app.
+
+The background isolate that draws a reply notification reads the stored
+locale and calls `LocaleSettings.setLocaleSync` itself — never
+`LocaleSettings.useDeviceLocaleSync()`, which `main()` uses for the
+no-override case. That call resolves through `WidgetsBinding.instance`, and
+this isolate never creates one; the constraint is written at the call site in
+`notification_reply.dart` and should stay that way rather than being
+simplified away.
+
 ## Debugging in VS Code
 
 `.vscode/launch.json` and `.vscode/settings.json` are tracked; the rest of
