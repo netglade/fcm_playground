@@ -45,7 +45,7 @@ Future<void> drawBackgroundNotification(PushMessage message) async {
     // not a fix for a clobber anyone has observed.
     onDidReceiveBackgroundNotificationResponse: onNotificationReply,
   );
-  await restoreIsolateLocale();
+  await restoreStoredLocale();
   await registerNotificationChannels(plugin);
 
   await plugin.show(

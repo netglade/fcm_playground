@@ -41,7 +41,7 @@ Future<void> main() async {
   // block, it reads the locale store directly. The later block still has to run —
   // it also subscribes to device locale changes, which this one-shot restore
   // deliberately does not.
-  await restoreIsolateLocale();
+  await restoreStoredLocale();
 
   await configureDependencies(onBackgroundMessage: _onBackgroundMessage);
 

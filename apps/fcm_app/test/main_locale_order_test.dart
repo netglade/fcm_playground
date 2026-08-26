@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Guards the one thing that made the UI isolate register channels in English
-/// forever on a fresh install: `restoreIsolateLocale()` running after
+/// forever on a fresh install: `restoreStoredLocale()` running after
 /// `configureDependencies()` rather than before it.
 ///
 /// `configureDependencies()` builds `LocalNotificationPresenter`, whose
@@ -16,7 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// `main()` itself is not unit-testable here: it calls `Firebase.initializeApp`
 /// and `runApp`, neither of which this suite can drive. Reading the source and
 /// asserting the call order is the honest substitute — it fails the moment
-/// someone moves `restoreIsolateLocale()` back below `configureDependencies()`,
+/// someone moves `restoreStoredLocale()` back below `configureDependencies()`,
 /// which is exactly the regression this guards against.
 void main() {
   test(
@@ -24,13 +24,13 @@ void main() {
     () {
       final source = File('lib/main.dart').readAsStringSync();
 
-      final restoreCall = source.indexOf('await restoreIsolateLocale();');
+      final restoreCall = source.indexOf('await restoreStoredLocale();');
       final configureCall = source.indexOf('await configureDependencies(');
 
       expect(
         restoreCall,
         isNonNegative,
-        reason: 'main() no longer calls restoreIsolateLocale() at all',
+        reason: 'main() no longer calls restoreStoredLocale() at all',
       );
       expect(
         configureCall,
@@ -43,7 +43,7 @@ void main() {
         reason:
             'configureDependencies() builds LocalNotificationPresenter, whose '
             'initialize() registers every channel and freezes its name and '
-            'description at that moment — restoreIsolateLocale() must run '
+            'description at that moment — restoreStoredLocale() must run '
             'first or a fresh install gets English channel names forever',
       );
     },

@@ -137,7 +137,7 @@ Future<void> onNotificationReply(NotificationResponse response) async {
   // for it.
   DartPluginRegistrant.ensureInitialized();
 
-  await restoreIsolateLocale();
+  await restoreStoredLocale();
 
   final reply = replyFrom(response);
   if (reply == null) {
