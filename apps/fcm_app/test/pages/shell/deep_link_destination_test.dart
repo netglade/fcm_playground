@@ -24,6 +24,10 @@ void main() {
         (deepLinkDestination('/telemetry')! as ShellDestination).index,
         telemetryDestination,
       );
+      expect(
+        (deepLinkDestination('/channels')! as ShellDestination).index,
+        channelsDestination,
+      );
     });
 
     test('maps /runs/<id> to that run timeline', () {

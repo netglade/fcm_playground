@@ -70,6 +70,7 @@ const _paths = {
   '/sandbox': sandboxDestination,
   '/runs': runsDestination,
   '/telemetry': telemetryDestination,
+  '/channels': channelsDestination,
 };
 
 /// Where [link] points, or null when it names nothing this app has.
