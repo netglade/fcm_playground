@@ -1,7 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../../../i18n/channel_text.dart';
-import '../../../i18n/translations.g.dart';
 import '../entities/notification_channel_reader.dart';
 import 'notification_channels.dart';
 
@@ -39,17 +37,7 @@ class PluginNotificationChannelReader implements NotificationChannelReader {
     // unchanged is Android's answer, not ours.
     await android.deleteNotificationChannel(channelId: id);
     await android.createNotificationChannel(
-      AndroidNotificationChannel(
-        requested.id,
-        t.channelName(requested.id),
-        description: t.channelDescription(requested.id),
-        importance: importance,
-        groupId: requested.groupId,
-        sound: requested.sound,
-        vibrationPattern: requested.vibrationPattern,
-        bypassDnd: requested.bypassDnd,
-        audioAttributesUsage: requested.audioAttributesUsage,
-      ),
+      toPluginChannel(requested, importanceOverride: importance),
     );
   }
 }

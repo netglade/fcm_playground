@@ -5,12 +5,10 @@ import '../../../domains/notifications/data_sources/notification_channels.dart';
 import '../../../domains/notifications/entities/notification_channel_reader.dart';
 import 'channels_state.dart';
 
-/// The channel this app registers as its deliberate mistake, and the importance
-/// the page asks Android to give it.
+/// The importance the page asks Android to give [immutabilityProbeChannelId].
 ///
 /// Min, not merely lower: a change Android would refuse even in spirit makes the
 /// refusal unambiguous when the page shows the value afterwards.
-const _immutabilityProbeChannelId = 'chat_v1';
 const _immutabilityProbeImportance = Importance.min;
 
 /// Pairs the channels this app asks for with the ones Android actually holds.
@@ -39,7 +37,7 @@ class ChannelsCubit extends Cubit<ChannelsState> {
   Future<void> tryLoweringChatV1() async {
     try {
       await _reader.attemptImportanceChange(
-        _immutabilityProbeChannelId,
+        immutabilityProbeChannelId,
         _immutabilityProbeImportance,
       );
       emit(ChannelsState(isLoading: false, comparisons: await _compare()));

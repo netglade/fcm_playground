@@ -4,6 +4,7 @@ import 'package:fcm_app/pages/channels/channels_view.dart';
 import 'package:fcm_app/pages/channels/cubit/channels_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Reuse the fake from the cubit test rather than writing a second one.
@@ -55,4 +56,42 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'does not flag the system default sound as a mismatch when none was '
+    'requested',
+    (tester) async {
+      // Every channel but custom_sound never sets `playSound`, so Android
+      // assigns its own default and reports this URI back — a request that
+      // was never made must not read as a disagreement.
+      const systemDefaultSoundUri =
+          'content://settings/system/notification_sound';
+      final cubit = ChannelsCubit(
+        FakeChannelReader([
+          systemChannel(
+            'fcm_sample_high',
+            sound: const UriAndroidNotificationSound(systemDefaultSoundUri),
+          ),
+        ]),
+      );
+      await _pump(tester, cubit);
+      await cubit.load();
+      await tester.pumpAndSettle();
+
+      final t = AppLocale.en.buildSync();
+      // Rendered as a readable word, not the raw URI.
+      expect(find.text(t.channels.default_sound), findsOneWidget);
+      expect(find.textContaining(systemDefaultSoundUri), findsNothing);
+
+      // Not styled as a mismatch: the reported sound's Text carries the
+      // theme's default color, not colorScheme.error.
+      final reportedSound = tester.widget<Text>(
+        find.text(t.channels.default_sound),
+      );
+      final theme = Theme.of(
+        tester.element(find.text(t.channels.default_sound)),
+      );
+      expect(reportedSound.style?.color, isNot(theme.colorScheme.error));
+    },
+  );
 }

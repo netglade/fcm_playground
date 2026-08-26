@@ -319,10 +319,11 @@ channels.reported,Reported by the system,Hlášeno systémem,"Column heading: wh
 channels.not_registered,Not registered,Neregistrováno,Shown when the system holds no channel with this id
 channels.importance,Importance,Důležitost,Row label on a channel card
 channels.sound,Sound,Zvuk,Row label on a channel card
+channels.default_sound,Default,Výchozí,Shown for a reported sound that is the platform default rather than something this app requested
 channels.vibration,Vibration,Vibrace,Row label on a channel card
 channels.bypass_dnd,Bypasses Do Not Disturb,Obchází Nerušit,Row label on a channel card
 channels.group_label,Group,Skupina,"Row label on a channel card; not channels.group.chat.name, which already exists as a nested key for the group heading"
 channels.badge,Shows a badge,Zobrazuje odznak,Row label on a channel card
 channels.try_lower,Try to lower it,Zkusit snížit,"Button on chat_v1; performs d7 by asking Android to change a frozen importance"
-channels.immutability_hint,Importance is frozen when a channel is created. Press this and watch the reported value stay put.,"Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne.",Explains what the d7 button does
+channels.immutability_hint,Importance is frozen when a channel is created. Press this and watch the reported value stay put — pressing it also cancels any notification currently on screen for this channel.,"Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne — stisknutím se ale zruší i oznámení, které pro tento kanál právě visí v liště.",Explains what the d7 button does; also warns that pressing it cancels the notification currently shown for this channel
 channels.refresh,Refresh,Načíst znovu,AppBar action on the Channels page

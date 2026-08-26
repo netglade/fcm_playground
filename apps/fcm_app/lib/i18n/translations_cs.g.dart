@@ -739,6 +739,9 @@ class _Translations$channels$cs implements Translations$channels$en {
 	/// Row label on a channel card
 	@override String get sound => 'Zvuk';
 
+	/// Shown for a reported sound that is the platform default rather than something this app requested
+	@override String get default_sound => 'Výchozí';
+
 	/// Row label on a channel card
 	@override String get vibration => 'Vibrace';
 
@@ -754,8 +757,8 @@ class _Translations$channels$cs implements Translations$channels$en {
 	/// Button on chat_v1; performs d7 by asking Android to change a frozen importance
 	@override String get try_lower => 'Zkusit snížit';
 
-	/// Explains what the d7 button does
-	@override String get immutability_hint => 'Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne.';
+	/// Explains what the d7 button does; also warns that pressing it cancels the notification currently shown for this channel
+	@override String get immutability_hint => 'Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne — stisknutím se ale zruší i oznámení, které pro tento kanál právě visí v liště.';
 
 	/// AppBar action on the Channels page
 	@override String get refresh => 'Načíst znovu';
@@ -2454,12 +2457,13 @@ extension on TranslationsCs {
 			'channels.not_registered' => 'Neregistrováno',
 			'channels.importance' => 'Důležitost',
 			'channels.sound' => 'Zvuk',
+			'channels.default_sound' => 'Výchozí',
 			'channels.vibration' => 'Vibrace',
 			'channels.bypass_dnd' => 'Obchází Nerušit',
 			'channels.group_label' => 'Skupina',
 			'channels.badge' => 'Zobrazuje odznak',
 			'channels.try_lower' => 'Zkusit snížit',
-			'channels.immutability_hint' => 'Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne.',
+			'channels.immutability_hint' => 'Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne — stisknutím se ale zruší i oznámení, které pro tento kanál právě visí v liště.',
 			'channels.refresh' => 'Načíst znovu',
 			_ => null,
 		};

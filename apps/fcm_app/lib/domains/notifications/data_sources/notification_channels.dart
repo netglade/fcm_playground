@@ -12,6 +12,14 @@ import '../entities/notification_content.dart';
 /// under a heading of their own.
 const chatChannelGroupId = 'chat';
 
+/// The channel `d7` demonstrates on: importance is asked to change, and the
+/// Channels page's card is where the refusal becomes visible.
+///
+/// The single source of truth for that id — `ChannelsCubit` and `ChannelCard`
+/// both need it, and a copy in each is a copy that can drift out of step with
+/// which channel actually carries the button.
+const immutabilityProbeChannelId = 'chat_v1';
+
 /// One Android notification channel, as this app asks for it.
 ///
 /// Name and description are absent on purpose: Android shows both to the user in
@@ -64,8 +72,14 @@ final List<AppNotificationChannel> notificationChannels = [
     importance: Importance.defaultImportance,
   ),
   // Also i1_silent_no_sound: low is what "seen, not heard" means on Android O+.
-  const AppNotificationChannel(id: 'importance_low', importance: Importance.low),
-  const AppNotificationChannel(id: 'importance_min', importance: Importance.min),
+  const AppNotificationChannel(
+    id: 'importance_low',
+    importance: Importance.low,
+  ),
+  const AppNotificationChannel(
+    id: 'importance_min',
+    importance: Importance.min,
+  ),
   // d5. The sound is a channel property, not a payload one — which is the lesson.
   const AppNotificationChannel(
     id: 'custom_sound',
@@ -105,6 +119,36 @@ final List<AppNotificationChannel> notificationChannels = [
   ),
 ];
 
+/// [channel] as the plugin's own channel type, ready for
+/// `createNotificationChannel`.
+///
+/// The one place these nine fields are assembled — registration and the d7
+/// probe both call this rather than each building an `AndroidNotificationChannel`
+/// itself, so a field added to [AppNotificationChannel] cannot update one call
+/// site and silently miss the other.
+///
+/// [importanceOverride] lets the d7 probe ask for a different importance than
+/// [channel] itself carries, without needing a second channel to describe it.
+///
+/// No `enableVibration:` argument: the plugin defaults it to true, and passing
+/// a computed value (say, `channel.vibrationPattern != null`) would disable
+/// vibration outright on every channel with no pattern, rather than leaving it
+/// to Android's own default buzz.
+AndroidNotificationChannel toPluginChannel(
+  AppNotificationChannel channel, {
+  Importance? importanceOverride,
+}) => AndroidNotificationChannel(
+  channel.id,
+  t.channelName(channel.id),
+  description: t.channelDescription(channel.id),
+  importance: importanceOverride ?? channel.importance,
+  groupId: channel.groupId,
+  sound: channel.sound,
+  vibrationPattern: channel.vibrationPattern,
+  bypassDnd: channel.bypassDnd,
+  audioAttributesUsage: channel.audioAttributesUsage,
+);
+
 /// The channel used for anything that names no channel, or names one this app
 /// does not have.
 AppNotificationChannel get defaultNotificationChannel =>
@@ -141,7 +185,7 @@ AppNotificationChannel? channelById(String? id) {
 /// group that does not exist yet, silently.
 ///
 /// Reads the copy through `t`, so the caller must have a locale set — see
-/// `restoreIsolateLocale` for the two isolates where that is not automatic.
+/// `restoreStoredLocale` for the two isolates where that is not automatic.
 Future<void> registerNotificationChannels(
   FlutterLocalNotificationsPlugin plugin,
 ) async {
@@ -158,18 +202,6 @@ Future<void> registerNotificationChannels(
   );
 
   for (final channel in notificationChannels) {
-    await android.createNotificationChannel(
-      AndroidNotificationChannel(
-        channel.id,
-        t.channelName(channel.id),
-        description: t.channelDescription(channel.id),
-        importance: channel.importance,
-        groupId: channel.groupId,
-        sound: channel.sound,
-        vibrationPattern: channel.vibrationPattern,
-        bypassDnd: channel.bypassDnd,
-        audioAttributesUsage: channel.audioAttributesUsage,
-      ),
-    );
+    await android.createNotificationChannel(toPluginChannel(channel));
   }
 }

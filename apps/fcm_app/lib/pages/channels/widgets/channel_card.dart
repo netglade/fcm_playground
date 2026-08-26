@@ -10,10 +10,6 @@ import '../cubit/channels_cubit.dart';
 import '../cubit/channels_state.dart';
 import 'channel_property_row.dart';
 
-/// The channel `d7` demonstrates on: importance is asked to change, and the
-/// card is where the refusal becomes visible.
-const _immutabilityProbeChannelId = 'chat_v1';
-
 /// One channel, requested against reported, with an extra button on the one
 /// channel this app deliberately cannot fix.
 ///
@@ -42,6 +38,16 @@ class ChannelCard extends StatelessWidget {
             Text(
               t.channelName(requested.id),
               style: theme.textTheme.titleMedium,
+            ),
+            // Monospace and secondary: this is the vocabulary a reader
+            // cross-references against `android.notification.channel_id` in a
+            // scenario payload, not prose meant to be read on its own.
+            Text(
+              requested.id,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontFamily: 'monospace',
+                color: theme.colorScheme.outline,
+              ),
             ),
             Text(
               t.channelDescription(requested.id),
@@ -74,7 +80,7 @@ class ChannelCard extends StatelessWidget {
                 reported: row.reported,
                 mismatches: row.mismatches,
               ),
-            if (requested.id == _immutabilityProbeChannelId) ...[
+            if (requested.id == immutabilityProbeChannelId) ...[
               const SizedBox(height: 8),
               Text(
                 t.channels.immutability_hint,
@@ -131,9 +137,17 @@ List<_RowData> _rows(Translations t, ChannelComparison comparison) {
     ),
     (
       label: t.channels.sound,
-      requested: _soundText(requested.sound?.sound),
-      reported: reportedText(() => _soundText(actual!.sound?.sound)),
-      mismatches: !registered || requested.sound?.sound != actual?.sound?.sound,
+      requested: _soundText(t, requested.sound?.sound),
+      reported: reportedText(() => _soundText(t, actual!.sound?.sound)),
+      // A null requested sound means "whatever the system default is" — this
+      // app never sets `playSound`, so every channel but `custom_sound` asks
+      // for nothing in particular. Comparing that against the default URI
+      // Android reports back would flag all ten of them as disagreeing with a
+      // request that was never made.
+      mismatches:
+          !registered ||
+          (requested.sound != null &&
+              requested.sound!.sound != actual?.sound?.sound),
     ),
     (
       label: t.channels.vibration,
@@ -167,7 +181,24 @@ List<_RowData> _rows(Translations t, ChannelComparison comparison) {
   ];
 }
 
-String _soundText(String? sound) => sound ?? '—';
+/// The URI Android reports for a channel this app registered with no explicit
+/// sound: `RingtoneManager.getDefaultUri(TYPE_NOTIFICATION)`, assigned by the
+/// plugin's Android side rather than by anything this app asked for.
+const _systemDefaultSoundUri = 'content://settings/system/notification_sound';
+
+/// [sound] rendered for display: a dash for none, a readable word for the
+/// platform default, or the raw value — a resource name, since only
+/// `custom_sound` asks for a URI and it never gets this one back.
+String _soundText(Translations t, String? sound) {
+  if (sound == null) {
+    return '—';
+  }
+  if (sound == _systemDefaultSoundUri) {
+    return t.channels.default_sound;
+  }
+
+  return sound;
+}
 
 String _vibrationText(Int64List? pattern) =>
     pattern == null ? '—' : pattern.toList().toString();

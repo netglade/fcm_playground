@@ -944,6 +944,11 @@ class Translations$channels$en {
 	/// en: 'Sound'
 	String get sound => 'Sound';
 
+	/// Shown for a reported sound that is the platform default rather than something this app requested
+	///
+	/// en: 'Default'
+	String get default_sound => 'Default';
+
 	/// Row label on a channel card
 	///
 	/// en: 'Vibration'
@@ -969,10 +974,10 @@ class Translations$channels$en {
 	/// en: 'Try to lower it'
 	String get try_lower => 'Try to lower it';
 
-	/// Explains what the d7 button does
+	/// Explains what the d7 button does; also warns that pressing it cancels the notification currently shown for this channel
 	///
-	/// en: 'Importance is frozen when a channel is created. Press this and watch the reported value stay put.'
-	String get immutability_hint => 'Importance is frozen when a channel is created. Press this and watch the reported value stay put.';
+	/// en: 'Importance is frozen when a channel is created. Press this and watch the reported value stay put — pressing it also cancels any notification currently on screen for this channel.'
+	String get immutability_hint => 'Importance is frozen when a channel is created. Press this and watch the reported value stay put — pressing it also cancels any notification currently on screen for this channel.';
 
 	/// AppBar action on the Channels page
 	///
@@ -3081,12 +3086,13 @@ extension on Translations {
 			'channels.not_registered' => 'Not registered',
 			'channels.importance' => 'Importance',
 			'channels.sound' => 'Sound',
+			'channels.default_sound' => 'Default',
 			'channels.vibration' => 'Vibration',
 			'channels.bypass_dnd' => 'Bypasses Do Not Disturb',
 			'channels.group_label' => 'Group',
 			'channels.badge' => 'Shows a badge',
 			'channels.try_lower' => 'Try to lower it',
-			'channels.immutability_hint' => 'Importance is frozen when a channel is created. Press this and watch the reported value stay put.',
+			'channels.immutability_hint' => 'Importance is frozen when a channel is created. Press this and watch the reported value stay put — pressing it also cancels any notification currently on screen for this channel.',
 			'channels.refresh' => 'Refresh',
 			_ => null,
 		};

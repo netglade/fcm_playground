@@ -31,11 +31,13 @@ AndroidNotificationChannel systemChannel(
   String id, {
   Importance importance = Importance.high,
   bool bypassDnd = false,
+  AndroidNotificationSound? sound,
 }) => AndroidNotificationChannel(
   id,
   'name',
   importance: importance,
   bypassDnd: bypassDnd,
+  sound: sound,
 );
 
 void main() {
