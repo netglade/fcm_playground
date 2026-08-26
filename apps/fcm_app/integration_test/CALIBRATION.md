@@ -141,3 +141,15 @@ respectively — rather than the message detail page. `f5_deeplink_killed` needs
 delayed send and a real app kill to exercise at all, and is the one most worth doing
 by hand: `getInitialMessage` is the route nobody exercises by accident, so it is the
 one most likely to have quietly broken.
+
+**Group D, h2 and i1 assert delivery, not behaviour.** Telemetry can see that a
+notification was delivered and drawn. It cannot hear a sound, feel a vibration, or
+read an importance. All ten therefore carry the same `_deliveredAndDrawn` every
+other delivered scenario carries, and the channel's actual properties are read off
+the Channels page by a human — the same split f1 and f6 already have for a button
+press and a swipe.
+
+`d3_importance_low`, `d4_importance_min` and `i1_silent_no_sound` are the ones to
+watch here: they draw through channels where no banner pops at all, and still
+record `displayed`, because `PushRepository._show` reports it once `plugin.show()`
+returns rather than according to what the user saw.

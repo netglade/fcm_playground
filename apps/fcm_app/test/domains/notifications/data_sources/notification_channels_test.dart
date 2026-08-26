@@ -9,17 +9,21 @@ import 'package:flutter_test/flutter_test.dart';
 /// Every `channel_id` named by a scenario this app is expected to serve.
 ///
 /// Scenarios blocked by some other unbuilt need are skipped: `f8_full_screen_intent`
-/// names `calls` and `g1_group_summary` names `builds`, and both belong to the
-/// interaction sub-project. Guessing their importance here would be worse than not
-/// having them — Android freezes a channel's importance at creation, so a wrong guess
-/// is permanent on every device that ran it.
+/// names `interaction` and `g1_group_summary` names `targeting`, and neither belongs
+/// to the channels sub-project, which is finished. Guessing their importance here
+/// would be worse than not having them — Android freezes a channel's importance at
+/// creation, so a wrong guess is permanent on every device that ran it. h1's need
+/// is `externalApproval`, the user's notification-policy consent, which leaves its
+/// channel definition already settled, so it stays in this set.
 ///
 /// This ratchets rather than going stale: when interaction lands and drops that need,
 /// both scenarios re-enter this set and the guard demands their channels.
 Set<String> _channelIdsInCatalogue() {
   final ids = <String>{};
   for (final scenario in scenarioGallery) {
-    if (scenario.needs.any((need) => need != ScenarioNeed.channels)) continue;
+    if (scenario.needs.any((need) => need != ScenarioNeed.externalApproval)) {
+      continue;
+    }
 
     final android = scenario.payloadTemplate['android'];
     if (android is! Map) continue;

@@ -27,10 +27,10 @@ void main() {
       ]);
     });
 
-    test('all eight are blocked on channel work, and on nothing else', () {
+    test('all eight run unaided now that the channels exist', () {
       for (final scenario in groupD) {
-        expect(scenario.needs, [ScenarioNeed.channels], reason: scenario.id);
-        expect(scenario.isSupported, isFalse, reason: scenario.id);
+        expect(scenario.needs, isEmpty, reason: scenario.id);
+        expect(scenario.isSupported, isTrue, reason: scenario.id);
         // The channels work needs no killed app: the importance of a channel is
         // observable while the app is running, so the flag would only mislead.
         expect(scenario.requiresKilledApp, isFalse, reason: scenario.id);

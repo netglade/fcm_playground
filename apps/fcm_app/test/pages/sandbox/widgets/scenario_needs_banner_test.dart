@@ -49,14 +49,14 @@ void main() {
   testWidgets('says the push is still sent, so the banner is not a block', (
     tester,
   ) async {
-    final single = scenario('d1_importance_high');
+    final single = scenario('e1_long_text');
     // Guards the assertion below against a scenario that quietly lost its
     // needs: the copy could then only be missing, never wrong.
-    expect(single.needs, [ScenarioNeed.channels]);
+    expect(single.needs, [ScenarioNeed.styles]);
 
     await pump(tester, single);
 
     expect(find.textContaining('still be sent'), findsOne);
-    expect(find.textContaining('notification channels'), findsOne);
+    expect(find.textContaining('notification styles'), findsOne);
   });
 }

@@ -113,7 +113,7 @@ void main() {
 
   testWidgets('flags the rows that cannot be demonstrated yet', (tester) async {
     // Every scenario in group A works, so a chip visible there would say nothing.
-    // Group D's first row is the nearest one that should carry it.
+    // Group E's first row is the nearest one that should carry it.
     build();
     await pump(tester);
     expect(
@@ -125,9 +125,7 @@ void main() {
     );
     expect(find.text('needs work'), findsNothing);
 
-    final needy = scenarioGallery.firstWhere(
-      (s) => s.id == 'd1_importance_high',
-    );
+    final needy = scenarioGallery.firstWhere((s) => s.id == 'e1_long_text');
     final needyGroupName = en.scenarioGroupName(needy.group);
     await scrollIntoView(tester, find.text(needyGroupName));
     await tester.tap(find.text(needyGroupName));

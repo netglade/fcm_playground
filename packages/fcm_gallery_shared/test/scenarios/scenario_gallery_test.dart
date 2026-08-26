@@ -89,14 +89,14 @@ void main() {
     expect(scenarioGallery.map((s) => s.group).toSet(), hasLength(11));
   });
 
-  test('exactly 28 scenarios work today', () {
+  test('exactly 38 scenarios work today', () {
     // Asserted so that mis-marking one as blocked, or quietly unmarking one to
     // make it look supported, fails the build.
     final supported = scenarioGallery.where((s) => s.isSupported).toList();
 
     expect(
       supported,
-      hasLength(28),
+      hasLength(38),
       reason: supported.map((s) => s.id).join(', '),
     );
   });

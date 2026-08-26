@@ -1,13 +1,11 @@
 /// What a scenario needs, beyond a payload, before it demonstrates anything.
 ///
-/// Every value is a planned sub-project, so "which scenarios does the channels work
+/// Every value is a planned sub-project, so "which scenarios does the styles work
 /// unblock?" is a filter rather than a search through prose. [externalApproval] is
-/// the one exception — it is permanently outside this project's control.
+/// the one exception — it is permanently outside this project's control. A value
+/// with no scenario left naming it has finished its sub-project and is retired
+/// from here, not left to sit unused — `channels` was the first.
 enum ScenarioNeed {
-  /// Several notification channels, their importance, and a screen that reads
-  /// that importance back from the system.
-  channels,
-
   /// Local notification styles: big picture, big text, inbox, messaging,
   /// progress, large icon.
   styles,
