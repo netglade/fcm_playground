@@ -53,6 +53,17 @@ its own for a push that arrives while the app is on screen, so the app's own
 notification-drawing code, `LocalNotificationPresenter`, draws every
 foreground push itself — the row is uniform on purpose.
 
+**On iOS this row may not be as clean as "App".** `FirebasePushSource` also
+opts into `setForegroundNotificationPresentationOptions(alert: true, badge:
+true, sound: true)` at startup, which asks iOS to present a foreground push
+through its own system UI — on top of the `LocalNotificationPresenter` draw
+above, which runs on every platform unconditionally. On Android that second
+mechanism does not exist, so the app's own draw is the only one and the row
+is exactly what it says. On iOS the same push may be drawn twice, once by
+each mechanism. This has not been verified on a device — no iOS build has
+ever run in this repo — so treat it as an open question rather than a
+confirmed bug, and check it before copying this pattern into another app.
+
 **A notification block, when present, is drawn by the system while the app
 is not on screen**, straight from that block, with no app code involved. For
 the *both* shape, the app still runs quietly alongside the system's own
