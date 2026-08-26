@@ -7,13 +7,11 @@ persisted across launches.
 ## Where a string lives
 
 `apps/fcm_app/lib/i18n/strings.i18n.csv` is the single source of truth for
-both languages. The header must stay exactly `key,en,cs,(description)`: the
-parentheses are load-bearing, because without them the generator reads the
-fourth column as a third locale rather than as metadata, and the description
-itself becomes the doc comment on the generated getter — what an IDE shows
-when a widget calls it. Quote every prose cell; an unquoted comma silently
-splits the row, and the failure only surfaces later, as a key that
-mysteriously will not resolve.
+both languages, turned into typed Dart by `slang`. The header must stay
+exactly `key,en,cs,(description)`: the parentheses are load-bearing, because
+without them the generator reads the fourth column as a third locale rather
+than as metadata, and the description itself becomes the doc comment on the
+generated getter — what an IDE shows when a widget calls it.
 
 Keys are snake_case dotted paths. Plurals are sibling rows — `key.one`,
 `key.few`, `key.other` — because Czech distinguishes a `few` form (counts
@@ -56,9 +54,7 @@ there by hand too.
   field names, and translating them would break the link to Google's
   reference docs.
 - **`ApiError.message` sent back from the API**, so an error can legitimately
-  read half Czech, half English — accepted rather than papered over, since
-  the server has no locale of its own to translate into.
-- **The notification channel's name and description.** Android keeps the
-  name a channel had at creation; re-labelling it on every language change
-  would mean re-creating the channel, risking a reset of an importance
-  setting the user chose, which lives on the channel rather than in the app.
+  read half Czech, half English.
+- **The notification channel's name and description**, since relabelling it
+  would mean re-creating the channel and risking the user's own importance
+  setting on it.

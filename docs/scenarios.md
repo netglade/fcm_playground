@@ -47,9 +47,7 @@ you never touched, and an empty text, list or map field likewise omits the
 key rather than sending it empty. `apns.payload` and `webpush.notification`
 are Apple's and free-form respectively, so instead of nested controls they
 are edited as dotted-path rows (`aps.alert.title`) that expand back into JSON
-on send. The one deliberate gap: there is no JSON escape hatch, so only a
-field the form already models can be sent — the trade for a form that cannot
-produce a malformed payload.
+on send.
 
 **The field labels stay in FCM's own English**, in every language the app
 supports, because they name fields from
@@ -86,19 +84,17 @@ thing being tested requires the app to not be the one holding the clock. Once
 it fires, the run appears on the Runs page (drawer → Runs) with its own
 delivery timeline, the same as an immediate send.
 
-Ticking several scenarios instead of one, from the Scenarios page's selection
-mode, schedules all of them as a single run with a fixed spacing between each
-send — useful for walking through a whole group unattended.
-
 ## The end-to-end suite
 
 A device-driven Patrol suite exercises part of the catalogue for real, against
 a connected Android handset, outside the ordinary test gate — a suite that
-needs hardware has no business in one that has to pass on every machine. Of
-the 66 scenarios, 26 run there; the other 40 are skipped, each with a stated
-reason: 34 wait on a `ScenarioNeed` the app has not built yet, 4 need a
-physical iPhone the suite cannot provide, and two — `b3_killed` and
-`f5_deeplink_killed` — would each have to kill the very app the test is
-running inside. The 26/40 split is pinned by a test in the app's own suite,
-so a scenario becoming unblocked shows up as a failing count rather than as
-silence.
+needs hardware has no business in one that has to pass on every machine. Of the
+66 scenarios, 26 run there; the other 40 are skipped, each with a stated
+reason: 34 wait on a `ScenarioNeed` the app has not built yet; 4 demonstrate
+iOS-only behaviour the suite does not reach — it targets Android by design, and
+separately, no iOS simulator can receive a real FCM push at all, so covering
+these would need physical hardware even if that scope changed; and two —
+`b3_killed` and `f5_deeplink_killed` — would each have to kill the very app the
+test is running inside. The 26/40 split is pinned by a test in the app's own
+suite, so a scenario becoming unblocked shows up as a failing count rather than
+as silence.
