@@ -57,6 +57,10 @@ dev_dependencies:
   # the override at the workspace root.
   drift_dev: ">=2.29.0 <2.32.0"
   flutter_lints: ^6.0.0
+  # Test-only: gives LocalNotificationPresenter's clearAll test a platform to
+  # register, since `flutter test` never runs the plugin registrant that would
+  # otherwise set flutter_local_notifications' platform channel.
+  flutter_local_notifications_platform_interface: ^12.2.0
   flutter_test:
     sdk: flutter
   integration_test:

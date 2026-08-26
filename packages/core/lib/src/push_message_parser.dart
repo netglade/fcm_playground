@@ -16,6 +16,10 @@ class PushMessageParser {
   /// either as an "extra data" row would present a detail of ours as something the
   /// sender chose. Neither is in [requiredKeys] — a push sent by hand has no trace
   /// id, and a hand-composed payload belongs to no scenario.
+  ///
+  /// `tag` joins them for the same reason: it is the real `android.notification.tag`
+  /// field the app reads to key its own drawing, not a value the sender typed into
+  /// `data`.
   static const reservedKeys = {
     'id',
     'title',
@@ -23,6 +27,7 @@ class PushMessageParser {
     'sentAt',
     'trace_id',
     'scenario_id',
+    'tag',
   };
 
   /// `id` de-duplicates repeat deliveries and `sentAt` orders the inbox, so neither
@@ -46,6 +51,9 @@ class PushMessageParser {
       body: _optionalText(payload, 'body'),
       sentAt: _requireTimestamp(payload, 'sentAt'),
       data: Map.unmodifiable(data),
+      tag: _optionalText(payload, 'tag').trim().isEmpty
+          ? null
+          : _optionalText(payload, 'tag').trim(),
     );
   }
 

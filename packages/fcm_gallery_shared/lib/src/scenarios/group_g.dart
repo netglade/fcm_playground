@@ -14,13 +14,8 @@ const groupG = <Scenario>[
     l10nKey: 'g1_group_summary',
     group: 'G',
     payloadTemplate: {
-      'notification': {'title': 'Build 128', 'body': 'Passed.'},
-      'android': {
-        'notification': {'tag': 'builds-group', 'channel_id': 'builds'},
-      },
-      'data': {'group': 'builds', 'group_summary': 'false'},
+      'data': {'title': 'Build 128', 'body': 'Passed.', 'group': 'builds'},
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'g2_update_same_id',
@@ -32,7 +27,6 @@ const groupG = <Scenario>[
         'notification': {'tag': 'build-128'},
       },
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'g3_badge',

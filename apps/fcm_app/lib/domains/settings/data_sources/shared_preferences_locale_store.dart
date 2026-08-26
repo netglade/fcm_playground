@@ -12,6 +12,18 @@ const localeKey = 'locale';
 /// Reads and writes the language override through the same `SharedPreferences` the
 /// rest of the app's small state lives in — including the background isolate, which
 /// is why this is reachable without a widget tree.
+///
+/// The legacy `SharedPreferences` API, not `SharedPreferencesAsync` like the app's
+/// other five stores: those switched because the legacy API caches per isolate, and
+/// a UI-side cache would miss what a background isolate appended concurrently. That
+/// hazard does not apply here. A locale read happens once, at the very start of a
+/// cold isolate — the reply isolate included — before anything could have written a
+/// stale cache, and the one writer, [write], already goes through this same legacy
+/// API, so both sides agree on one backend. Do not "modernise" this to
+/// `SharedPreferencesAsync` on the strength of the other five: the two APIs are
+/// backed by different files on Android, so switching only the read side (or only
+/// the write side) would make a previously-written locale invisible and silently
+/// reset every user's language on their next launch.
 class SharedPreferencesLocaleStore implements LocaleStore {
   const SharedPreferencesLocaleStore();
 

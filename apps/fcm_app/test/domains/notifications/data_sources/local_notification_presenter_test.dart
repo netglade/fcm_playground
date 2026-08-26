@@ -1,11 +1,26 @@
 import 'package:fcm_app/domains/notifications/data_sources/local_notification_presenter.dart';
+import 'package:fcm_app/domains/notifications/data_sources/shared_preferences_notification_group_store.dart';
 import 'package:fcm_app/domains/push/entities/push_tap.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+
+import '../../../fakes/fake_local_notifications_platform.dart';
 
 void main() {
+  // LocalNotificationPresenter's `groups` parameter now defaults to a
+  // SharedPreferencesNotificationGroupStore, and that store's constructor
+  // reaches for this platform eagerly — every group below constructs a
+  // presenter, including the two that never touch the store at all.
+  setUpAll(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
   group('LocalNotificationPresenter.handleResponse', () {
     late LocalNotificationPresenter presenter;
     late List<String> dismissals;
@@ -291,5 +306,36 @@ void main() {
         );
       },
     );
+  });
+
+  group('LocalNotificationPresenter.clearAll', () {
+    setUp(() {
+      // clearAll reaches the real plugin's cancelAll(), which delegates to
+      // this platform. `flutter test` never runs the plugin registrant that
+      // would otherwise set it, so this fake stands in for it.
+      FlutterLocalNotificationsPlatform.instance =
+          FakeLocalNotificationsPlatform();
+    });
+
+    test('clearing cancels every notification and forgets the groups', () async {
+      final groups = SharedPreferencesNotificationGroupStore();
+      await groups.save({
+        'builds': ['msg-1'],
+      });
+      final presenter = LocalNotificationPresenter(
+        lifecycleState: () => AppLifecycleState.resumed,
+        groups: groups,
+      );
+
+      await presenter.clearAll();
+
+      expect(
+        await groups.load(),
+        isEmpty,
+        reason:
+            'a count that outlived the notifications it counted would make the '
+            'next group notification claim a tally the tray does not show',
+      );
+    });
   });
 }

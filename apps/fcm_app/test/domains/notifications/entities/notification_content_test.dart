@@ -1,7 +1,16 @@
+import 'package:core/core.dart';
 import 'package:fcm_app/domains/notifications/entities/notification_content.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  PushMessage message({String id = 'msg-1', String? tag}) => PushMessage(
+    id: id,
+    title: 'Build 128',
+    body: 'Running…',
+    sentAt: DateTime.utc(2026, 8, 24, 9),
+    tag: tag,
+  );
+
   group('notificationIdFor', () {
     test('is stable, so re-showing a message replaces its banner', () {
       expect(
@@ -21,6 +30,32 @@ void main() {
         expect(value, greaterThanOrEqualTo(0), reason: id);
         expect(value, lessThanOrEqualTo(2147483647), reason: id);
       }
+    });
+  });
+
+  group('notificationIdOf', () {
+    test('keys the notification on the tag when there is one', () {
+      expect(
+        notificationIdOf(message(id: 'a', tag: 'build-128')),
+        notificationIdOf(message(id: 'b', tag: 'build-128')),
+        reason:
+            'two sends sharing a tag are the same notification being updated, '
+            'which is the whole of what g2 demonstrates',
+      );
+    });
+
+    test('keys on the message id when there is no tag', () {
+      expect(
+        notificationIdOf(message(id: 'a')),
+        isNot(notificationIdOf(message(id: 'b'))),
+      );
+    });
+
+    test('keeps a tagged and an untagged message apart', () {
+      expect(
+        notificationIdOf(message(id: 'a', tag: 'build-128')),
+        isNot(notificationIdOf(message(id: 'a'))),
+      );
     });
   });
 

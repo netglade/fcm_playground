@@ -153,3 +153,60 @@ press and a swipe.
 watch here: they draw through channels where no banner pops at all, and still
 record `displayed`, because `PushRepository._show` reports it once `plugin.show()`
 returns rather than according to what the user saw.
+
+**`f7_ongoing`'s automated assertions cover delivery and drawing only; the ongoing
+behaviour itself is a manual pass.** It is data-only, so the app draws it itself and
+the ongoing flag applies whichever state you send it in — app state does not matter
+here, unlike `g2` below. Nothing in the telemetry stream distinguishes an ongoing
+notification from any other — `displayed` fires the same way either way — so send it
+and try to swipe it away by hand. On Android 13 and earlier it should refuse; on
+Android 14 and later the platform lets the user dismiss it anyway (the exemptions are
+`CallStyle`, device-policy and media notifications, and a plain ongoing flag is not
+among them), so a swipe succeeding there is the OS working as documented, not a bug.
+Either way, open the Inbox and press **Clear notifications**, and confirm the
+notification is gone from the tray while the Inbox's messages are untouched.
+
+**`f8_full_screen_intent`'s automated assertions cover delivery and drawing only;
+what the intent degrades to is a manual pass.** Nothing about a full-screen intent
+reaches telemetry — the app asks for one, Android decides, and `displayed` fires
+either way — so send it with the app **backgrounded and the screen locked or off**.
+That second condition decides the test: a full-screen intent launches its activity
+only when the user is not already using the device, so on an unlocked handset
+Android shows a heads-up **even where it has granted the permission** — and a
+heads-up is exactly what a refusal looks like. Run this unlocked and you record
+"refused" whatever really happened, destroying the one observation this scenario
+exists to produce. On Android 14 and later expect a heads-up rather than a
+lock-screen takeover: the platform grants `USE_FULL_SCREEN_INTENT` only to calling
+and alarm apps, and that refusal is the demonstration. On Android 13 and earlier the
+permission is granted at install, so expect the takeover instead — a correct grant,
+not a broken expectation. A user can also grant it by hand under Settings → Apps →
+Special app access → Full screen intents, so check there before recording a surprise
+on your own handset. Record what you see either way — a device that does grant the
+takeover is a valid observation about that device, not a failure of the scenario.
+Confirm separately that the notification is drawn at all: it is data-only now, so
+nothing appearing means the app's own drawing did not run, which is a different
+failure from a refused permission and must not be read as one.
+
+**`f9_trampoline` has no device step at all.** It is not built — demonstrating the
+Android 12 ban means starting an activity from a broadcast receiver or service,
+which needs the platform code this Dart-only gallery deliberately does not carry —
+so it carries `ScenarioNeed.nativeCode`, never reaches the table, and there is
+nothing to watch. Its catalogue entry says so on the card.
+
+**`g1_group_summary`'s automated assertions cover delivery and drawing only; the
+collapse under a summary, and the climbing count, are both manual passes.** It is
+data-only, so the app draws it and posts the summary itself whichever state you send
+it in — app state does not matter here, unlike `g2` below. Nothing about the summary
+reaches telemetry — a send of the fifth looks the same on the wire as the first. Send
+it five times by hand and confirm all five collapse under one summary row, and that
+the row's count reads 5 by the time the fifth arrives. If this device already has a
+"builds" summary standing from an earlier pass, clear it first: the store only forgets
+a group when Clear notifications is pressed, never when a member notification is
+merely swiped or tapped away, so a count that starts above 5 or climbs past it is that
+leftover state, not a miscount.
+
+**`g2_update_same_id`'s automated assertions cover delivery and drawing only; that
+the second send replaces rather than stacks is a manual pass.** Telemetry records
+two separate deliveries either way, so send it twice by hand — with the app
+backgrounded, then again with it on screen — and confirm the tray shows one
+notification, not two, after each pair.

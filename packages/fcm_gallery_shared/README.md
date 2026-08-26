@@ -31,9 +31,9 @@ catalogue templates.
 | --- | --- |
 | `Scenario` | One catalogue entry: a payload template plus what to watch for. |
 | `scenarioGallery` | All 66, in groups A–K. Assembled from `groupA` … `groupK`, one file per group. |
-| `ScenarioNeed` | What a scenario still needs before it demonstrates anything. Every value is a planned piece of work, so "which scenarios does the channel work unblock?" is a filter rather than a search. |
+| `ScenarioNeed` | What a scenario still needs before it demonstrates anything. Most values are a planned piece of work, so "which scenarios does the channel work unblock?" is a filter rather than a search. Two are not: `externalApproval` is outside this project's control, and `nativeCode` names something it has decided never to build. |
 
-28 of the 66 work today; the rest name what they are waiting for. That count is
+32 of the 66 work today; the rest name what is missing. That count is
 asserted by a test, so the documentation cannot drift from the code.
 
 ## The wire envelopes

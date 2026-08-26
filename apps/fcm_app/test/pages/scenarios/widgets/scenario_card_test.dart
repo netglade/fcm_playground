@@ -60,7 +60,7 @@ void main() {
     expect(find.text(en.scenarioExpectation(subject.l10nKey)!), findsOne);
   });
 
-  testWidgets('flags a scenario that cannot be demonstrated yet', (
+  testWidgets('flags a scenario that cannot be demonstrated here', (
     tester,
   ) async {
     final blocked = scenario('e1_long_text');

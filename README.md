@@ -330,20 +330,20 @@ priority and delivery window, channels and importance, appearance,
 interaction, groups and badges, intrusive delivery, silent and data,
 targeting, and edge cases.
 
-**28 of the 66 work today.** The rest carry a marker naming what they still need —
-notification channels, notification styles, notification actions, a launcher
-badge, a device registry, a manual step, or approval from Apple or the OS that
-this project cannot grant itself. That count is asserted by a test, so this
-README cannot drift from the code: if a scenario is quietly unmarked to look
-supported, the build fails.
+**32 of the 66 work today.** The rest carry a marker naming what is missing —
+notification channels, notification styles, a launcher badge, a device registry,
+a manual step, approval from Apple or the OS that this project cannot grant
+itself, or native code this Dart-only gallery has decided not to carry. That
+count is asserted by a test, so this README cannot drift from the code: if a
+scenario is quietly unmarked to look supported, the build fails.
 
 A blocked scenario is **still sendable**. The push is genuine and valid; only the
-behaviour it demonstrates is missing, and watching a client with no action support
-receive an action payload is itself worth seeing. The banner above the form says
-what is missing rather than disabling Send. Where a payload cannot produce the
-scenario at all — a reboot, a Doze window, a revoked permission — the scenario
-carries the exact command or procedure in a selectable block, because an adb line
-that cannot be copied is one that will be mistyped.
+behaviour it demonstrates is missing, and watching a client that has only one
+notification channel receive a payload aimed at another is itself worth seeing.
+The banner above the form says what is missing rather than disabling Send. Where
+a payload cannot produce the scenario at all — a reboot, a Doze window, a revoked
+permission — the scenario carries the exact command or procedure in a selectable
+block, because an adb line that cannot be copied is one that will be mistyped.
 
 Every one of the 66 templates round-trips `raw → FcmMessage → raw` unchanged, and
 none may set its own delivery target at any depth. Both are asserted across the
@@ -566,10 +566,13 @@ whether FCM ever answered.
 **The countdown counts on the phone's clock**, not against the server's `due_at`.
 Disagreeing clocks are a documented fact here — `GET /latency` reports both
 timestamps rather than clamping — and a ten-second skew would show "40 s remaining"
-with thirty seconds left. It holds a wakelock so the screen does not sleep before you
-have swiped the app away. *"Dim the screen"* does not switch the display off: an
-ordinary Android app cannot, without DeviceAdmin. It dims and releases the lock, and
-the system's own timeout does the rest — which is what the button says.
+with thirty seconds left. It keeps the screen on so the display does not sleep
+before you have swiped the app away. On Android that is `FLAG_KEEP_SCREEN_ON`, a
+window flag rather than a wakelock, which is why it needs no permission of its
+own; on iOS it is the idle timer. *"Dim the screen"* does not switch the display
+off: an ordinary Android app cannot, without DeviceAdmin. It dims and stops
+keeping the screen on, and the system's own timeout does the rest — which is what
+the screen says beside the button.
 
 **Coming back**, the app reopens the run it was waiting on, from an id in
 `shared_preferences` — the only thing that survives being swiped away. That timing is
@@ -584,13 +587,16 @@ tapping either the notification or an inbox row opens a detail page for it.
 
 | When the push arrives | What draws the notification |
 | --- | --- |
-| App backgrounded or terminated | FCM's own SDK, from the `notification` block `apps/fcm_api` sends. No app code involved. |
+| App backgrounded or terminated, payload carries a `notification` block | FCM's own SDK, from the block `apps/fcm_api` sends. No app code involved. |
+| App backgrounded or terminated, payload is data-only | The background message isolate, via `shouldDrawInBackground`. Several scenarios are data-only on purpose: FCM's own draw has no field for action buttons, a group, an ongoing flag or a full-screen intent, so a scenario about any of those must be drawn by the app in every state. |
 | App in the foreground | `LocalNotificationPresenter`, because Android shows nothing itself in this case. On iOS a single `setForegroundNotificationPresentationOptions` call is enough. |
 
-Both use one high-importance Android channel, `fcm_sample_high`. The app creates
+All three use one high-importance Android channel, `fcm_sample_high`. The app creates
 it, and `AndroidManifest.xml` points FCM at the same id with
-`default_notification_channel_id` — without that, only the foreground banners
-would be heads-up.
+`default_notification_channel_id` — without that, FCM's own background entries
+fall back to FCM's fallback channel at default importance and stop popping. The
+paths the app draws itself are unaffected, because each names the channel
+outright and the app has already created it.
 
 The inbox is durable: the newest 100 payloads are kept in `shared_preferences`
 and reloaded at launch, so a push that arrived while the app was away is there
@@ -600,17 +606,30 @@ resume — two keys rather than one, so neither isolate read-modify-writes the
 other's data.
 
 **A push is never notified twice.** Only messages arriving on the live foreground
-stream produce a banner; anything restored from storage was already shown by FCM
-while the app was away, so replaying it on launch is exactly what the code avoids.
+stream produce a banner; anything restored from storage was already shown while
+the app was away — by FCM, or by the background isolate where the payload was
+data-only — so replaying it on launch is exactly what the code avoids.
 
 Notification permission is requested at startup by `firebase_messaging`, which
 covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
 and nothing else — the inbox still fills.
 
+The manifest also declares `WAKE_LOCK`, which nothing in this app uses directly:
+`firebase_messaging` declares it too, for the service that wakes the background
+handler, so the app's own line is redundant and kept only to say so out loud.
+
+Beside that, the manifest declares one further permission:
+`USE_FULL_SCREEN_INTENT`, purely so that `f8_full_screen_intent` has something
+to be refused. Android 14 and later grant it only to calling and alarm apps, so
+this one is expected to degrade to a heads-up notification rather than take over
+the lock screen — the refusal is what the scenario demonstrates. Declaring it is
+what makes that a refusal rather than a silent no-op: undeclared, Android never
+considers the request and f8 degrades for the wrong reason.
+
 ## Verified on this machine
 
-`melos run ci` passes clean — 39 `core` tests, 238 `fcm_gallery_shared` tests, 218
-`fcm_api` tests and 605 `fcm_app` tests. `fvm flutter build web --release` succeeds
+`melos run ci` passes clean — 42 `core` tests, 238 `fcm_gallery_shared` tests, 218
+`fcm_api` tests and 638 `fcm_app` tests. `fvm flutter build web --release` succeeds
 (a compile check only: the web build cannot receive FCM pushes without a VAPID
 key). `fvm flutter build apk --debug` succeeds too — see below for the plugin
 that used to break it. The iOS build has **not** been verified here either;
@@ -620,8 +639,8 @@ There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patr
 suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
 Android device**, needs the API serving with `GOOGLE_APPLICATION_CREDENTIALS` set,
 and is deliberately excluded from the gate because a device-dependent suite has no
-business in a hermetic one. Of the catalogue's 66 scenarios, 22 run there; the other
-44 are skipped with a stated reason — 38 wait on a `ScenarioNeed` the app has not
+business in a hermetic one. Of the catalogue's 66 scenarios, 26 run there; the other
+40 are skipped with a stated reason — 34 wait on a `ScenarioNeed` the app has not
 built, 4 need a physical iPhone, and two (`b3_killed` and `f5_deeplink_killed`) would
 each have to kill the app the test runs inside. That split has not been run on this
 machine either — no Android device is attached — so it is asserted by

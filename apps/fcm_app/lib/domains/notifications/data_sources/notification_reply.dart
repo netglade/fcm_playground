@@ -28,8 +28,38 @@ PendingReply? replyFrom(NotificationResponse response) {
 
 /// Redraws the notification to show where the reply has got to.
 ///
-/// The same [notificationIdFor] the original used, so this replaces rather than
-/// stacks.
+/// Keyed on [messageId] alone, via [notificationIdFor] rather than
+/// `notificationIdOf` — this isolate gets only the payload string off the
+/// notification response, never the `PushMessage` a tag lives on. For every
+/// scenario that uses inline reply the original message carries no tag, so
+/// `notificationIdOf` reduces to the same id and this still replaces it as
+/// intended.
+///
+/// Known limitation: the redraw below diverges from the original draw in six
+/// ways — five because it builds a fixed `NotificationDetails`, and one because
+/// of the id it is keyed on, explained above.
+///
+/// Four are reachable only by hand. A tagged message's progress notification
+/// lands beside the original instead of replacing it. A grouped one leaves its
+/// group — it stops counting toward the summary's total even though the store
+/// still counts it as a member. An ongoing one becomes dismissable. A
+/// full-screen one stops asking to take over the screen, which is the one
+/// divergence worth keeping: a "Sending…" redraw seizing the lock screen would
+/// be worse than the flag being dropped. Reaching any of the four means
+/// hand-composing a Sandbox payload that pairs a reply action with a tag, a
+/// group, the ongoing flag or a full-screen request, and no catalogue scenario
+/// does: `f2_inline_reply` is the only entry carrying an input action, and its
+/// payload carries none of the four.
+///
+/// The other two are reached by f2 itself, every time. The redraw carries no
+/// `actions`, so the Reply button does not come back once the reply is sent.
+/// And it carries no `dismissIsolate`, which the plugin documents as null
+/// meaning not to report a dismissal at all — so swiping the progress
+/// notification away records nothing, and the `dismissed` event the
+/// `f6_delete_intent` scenario exists to show is off on exactly the
+/// notification `f2_inline_reply` produces. Both stay as they are because
+/// the alternative is plumbing the original payload into an isolate that
+/// receives only a message id.
 ///
 /// The original title is not restored, because this isolate does not have it —
 /// finding it would mean reading the payload store's pending queue, which the UI

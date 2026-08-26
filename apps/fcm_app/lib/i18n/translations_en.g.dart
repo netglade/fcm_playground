@@ -69,6 +69,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$scenario$en scenario = Translations$scenario$en._(_root);
 	late final Translations$scenario_group$en scenario_group = Translations$scenario_group$en._(_root);
 	late final Translations$scenario_need$en scenario_need = Translations$scenario_need$en._(_root);
+	late final Translations$form_section$en form_section = Translations$form_section$en._(_root);
+	late final Translations$form_field$en form_field = Translations$form_field$en._(_root);
 	late final Translations$channels$en channels = Translations$channels$en._(_root);
 }
 
@@ -177,6 +179,11 @@ class Translations$inbox$en {
 	/// en: 'Registration token'
 	String get registration_token => 'Registration token';
 
+	/// Button that empties the notification tray, leaving the inbox list untouched
+	///
+	/// en: 'Clear notifications'
+	String get clear_notifications => 'Clear notifications';
+
 	/// Empty state
 	///
 	/// en: 'No pushes received yet.'
@@ -188,6 +195,11 @@ class Translations$inbox$en {
 		few: '${n} malformed payloads dropped',
 		other: '${n} malformed payloads dropped',
 	);
+
+	/// Banner shown when the push store fails to restore its history on launch
+	///
+	/// en: 'Stored pushes could not be read: $error'
+	String setup_error({required Object error}) => 'Stored pushes could not be read: ${error}';
 }
 
 // Path: message_detail
@@ -452,8 +464,10 @@ class Translations$sandbox$en {
 
 	/// Banner listing what a scenario is missing; under sandbox.* rather than scenario_needs.* so it cannot be confused with the scenario_need.* labels it interpolates
 	///
-	/// en: 'Needs $needs. The push will still be sent, but this scenario cannot be observed yet.'
-	String needs_banner({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.';
+	/// en: 'Needs $needs. The push will still be sent, but this scenario cannot be observed here.'
+	String needs_banner({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed here.';
+
+	late final Translations$sandbox$send_blocked$en send_blocked = Translations$sandbox$send_blocked$en._(_root);
 }
 
 // Path: send
@@ -642,8 +656,8 @@ class Translations$countdown$en {
 
 	/// Explains why the button dims rather than switches off
 	///
-	/// en: 'An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.'
-	String get dim_note => 'An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.';
+	/// en: 'An ordinary app cannot switch the display off — only dim it and stop keeping it awake, so the system times out on its own.'
+	String get dim_note => 'An ordinary app cannot switch the display off — only dim it and stop keeping it awake, so the system times out on its own.';
 
 	/// Button on the countdown screen
 	///
@@ -872,11 +886,6 @@ class Translations$scenario_need$en {
 	/// en: 'notification styles'
 	String get styles => 'notification styles';
 
-	/// Label for the interaction scenario need
-	///
-	/// en: 'notification actions'
-	String get interaction => 'notification actions';
-
 	/// Label for the badge scenario need
 	///
 	/// en: 'launcher badge'
@@ -892,6 +901,99 @@ class Translations$scenario_need$en {
 
 	/// en: 'external approval'
 	String get external_approval => 'external approval';
+
+	/// Label for the nativeCode scenario need
+	///
+	/// en: 'native code'
+	String get native_code => 'native code';
+}
+
+// Path: form_section
+class Translations$form_section$en {
+	Translations$form_section$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Subtitle of the outermost payload-form section
+	///
+	/// en: 'The FCM v1 message, minus the delivery target the server sets'
+	String get message => 'The FCM v1 message, minus the delivery target the server sets';
+
+	/// Subtitle of the cross-platform notification section
+	///
+	/// en: 'Shown on every platform unless a platform block overrides it'
+	String get notification => 'Shown on every platform unless a platform block overrides it';
+
+	/// Subtitle of the android section
+	///
+	/// en: 'Delivery and rendering options for Android'
+	String get android => 'Delivery and rendering options for Android';
+
+	/// Subtitle of the android.notification section
+	///
+	/// en: 'Everything Android's tray understands, beyond the shared block'
+	String get android_notification => 'Everything Android\'s tray understands, beyond the shared block';
+
+	/// Subtitle of the apns section
+	///
+	/// en: 'Delivery and rendering options for iOS and macOS'
+	String get apns => 'Delivery and rendering options for iOS and macOS';
+
+	/// Subtitle of the APNs fcm_options section
+	///
+	/// en: 'Delivery options, with the image only APNs accepts'
+	String get apns_fcm_options => 'Delivery options, with the image only APNs accepts';
+
+	/// Subtitle of the webpush section
+	///
+	/// en: 'Delivery and rendering options for browsers'
+	String get webpush => 'Delivery and rendering options for browsers';
+
+	/// Subtitle of the WebPush fcm_options section
+	///
+	/// en: 'Delivery options, with the link a click opens'
+	String get webpush_fcm_options => 'Delivery options, with the link a click opens';
+
+	/// Subtitle of the platform-independent fcm_options section
+	///
+	/// en: 'Delivery options FCM applies on every platform'
+	String get fcm_options => 'Delivery options FCM applies on every platform';
+
+	/// Subtitle of the light_settings section
+	///
+	/// en: 'FCM requires every field once this block is present'
+	String get light_settings => 'FCM requires every field once this block is present';
+}
+
+// Path: form_field
+class Translations$form_field$en {
+	Translations$form_field$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Icon-button tooltip that deletes one row of a string list or map editor; shared by both editors, so one key covers both
+	///
+	/// en: 'Remove this row'
+	String get remove_row => 'Remove this row';
+
+	/// Button that appends a new empty row to a string list or map editor; shared by both editors, so one key covers both
+	///
+	/// en: 'Add'
+	String get add_row => 'Add';
+
+	/// Dropdown entry standing in for an omitted optional enum field
+	///
+	/// en: 'Not set'
+	String get not_set => 'Not set';
+
+	/// Subtitle under a tristate checkbox when the underlying FCM field is left out of the payload
+	///
+	/// en: 'Not sent'
+	String get not_sent => 'Not sent';
 }
 
 // Path: channels
@@ -1017,6 +1119,35 @@ class Translations$shell$title$en {
 	///
 	/// en: 'Telemetry'
 	String get telemetry => 'Telemetry';
+}
+
+// Path: sandbox.send_blocked
+class Translations$sandbox$send_blocked$en {
+	Translations$sandbox$send_blocked$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Reason Send is disabled: no delivery target is chosen
+	///
+	/// en: 'Fill in the delivery target, or switch back to this device.'
+	String get no_target => 'Fill in the delivery target, or switch back to this device.';
+
+	/// Reason Send is disabled: this device has not registered yet; shares its Czech clause with scenarios.no_token, whose English carries one more sentence
+	///
+	/// en: 'No registration token yet, so there is nowhere to send.'
+	String get no_token => 'No registration token yet, so there is nowhere to send.';
+
+	/// Reason Send is disabled while this page's own send is in flight; kept apart from reply.sending, which titles a background notification for an unrelated send
+	///
+	/// en: 'Sending…'
+	String get sending => 'Sending…';
+
+	/// Reason Send is disabled: the payload form has an invalid field
+	///
+	/// en: 'A field is invalid. The sections marked with an error icon say which.'
+	String get invalid_field => 'A field is invalid. The sections marked with an error icon say which.';
 }
 
 // Path: telemetry.tab
@@ -2019,6 +2150,11 @@ class Translations$scenario$f7_ongoing$en {
 	///
 	/// en: 'Watch that it cannot be swiped away, and confirm there is a way to clear it — an ongoing notification with no exit is a support ticket.'
 	String get description => 'Watch that it cannot be swiped away, and confirm there is a way to clear it — an ongoing notification with no exit is a support ticket.';
+
+	/// Expectation caveat for scenario f7_ongoing
+	///
+	/// en: 'Data-only, so the app draws it and the ongoing flag applies in every state — FCM has no field for it at all. The flag asks Android not to let the user swipe it away; on Android 14 and later the platform grants that only to call, device-policy and media notifications, and lets the user dismiss an otherwise-ongoing notification anyway. The way out either way is the Clear notifications button on the Inbox page, which wipes the tray and leaves the inbox alone — an ongoing notification with no exit is a support ticket, so the exit is part of the scenario.'
+	String get expectation => 'Data-only, so the app draws it and the ongoing flag applies in every state — FCM has no field for it at all. The flag asks Android not to let the user swipe it away; on Android 14 and later the platform grants that only to call, device-policy and media notifications, and lets the user dismiss an otherwise-ongoing notification anyway. The way out either way is the Clear notifications button on the Inbox page, which wipes the tray and leaves the inbox alone — an ongoing notification with no exit is a support ticket, so the exit is part of the scenario.';
 }
 
 // Path: scenario.f8_full_screen_intent
@@ -2036,13 +2172,13 @@ class Translations$scenario$f8_full_screen_intent$en {
 
 	/// Description of scenario f8_full_screen_intent
 	///
-	/// en: 'Takes over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.'
-	String get description => 'Takes over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.';
+	/// en: 'Asks to take over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.'
+	String get description => 'Asks to take over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.';
 
 	/// Expectation caveat for scenario f8_full_screen_intent
 	///
-	/// en: 'Needs the USE_FULL_SCREEN_INTENT permission, which Android 14+ grants only to calling and alarm apps. Expect a degraded heads-up notification rather than a takeover here.'
-	String get expectation => 'Needs the USE_FULL_SCREEN_INTENT permission, which Android 14+ grants only to calling and alarm apps. Expect a degraded heads-up notification rather than a takeover here.';
+	/// en: 'Data-only, so the app draws it and can ask for the full-screen intent at all — FCM has no field for one. The app declares USE_FULL_SCREEN_INTENT, which Android 14 and later grant only to calling and alarm apps, so expect a degraded heads-up notification rather than a takeover. The refusal is the demonstration. Watch with the app backgrounded and the screen locked or off: a full-screen intent shows a heads-up on a handset already in use even where it was granted, so an unlocked phone cannot tell the two apart. A device that does grant it will take over instead, which is also a valid observation.'
+	String get expectation => 'Data-only, so the app draws it and can ask for the full-screen intent at all — FCM has no field for one. The app declares USE_FULL_SCREEN_INTENT, which Android 14 and later grant only to calling and alarm apps, so expect a degraded heads-up notification rather than a takeover. The refusal is the demonstration. Watch with the app backgrounded and the screen locked or off: a full-screen intent shows a heads-up on a handset already in use even where it was granted, so an unlocked phone cannot tell the two apart. A device that does grant it will take over instead, which is also a valid observation.';
 }
 
 // Path: scenario.f9_trampoline
@@ -2060,13 +2196,13 @@ class Translations$scenario$f9_trampoline$en {
 
 	/// Description of scenario f9_trampoline
 	///
-	/// en: 'Starting an activity from a service or broadcast receiver after a tap. Banned since Android 12. Watch for the failure and its log line.'
-	String get description => 'Starting an activity from a service or broadcast receiver after a tap. Banned since Android 12. Watch for the failure and its log line.';
+	/// en: 'Starting an activity from a service or broadcast receiver after a tap, rather than from the notification itself. Android 12 banned the pattern outright — an app that did this would find the tap swallowed and the activity never opening.'
+	String get description => 'Starting an activity from a service or broadcast receiver after a tap, rather than from the notification itself. Android 12 banned the pattern outright — an app that did this would find the tap swallowed and the activity never opening.';
 
 	/// Expectation caveat for scenario f9_trampoline
 	///
-	/// en: 'Expected to fail on Android 12 and later. The demonstration is the error, not a working route.'
-	String get expectation => 'Expected to fail on Android 12 and later. The demonstration is the error, not a working route.';
+	/// en: 'Not built. Demonstrating the ban means starting an activity from a broadcast receiver or service, which needs platform code this Dart-only gallery deliberately does not carry — the omission is a choice, not an oversight.'
+	String get expectation => 'Not built. Demonstrating the ban means starting an activity from a broadcast receiver or service, which needs platform code this Dart-only gallery deliberately does not carry — the omission is a choice, not an oversight.';
 }
 
 // Path: scenario.g1_group_summary
@@ -2086,6 +2222,11 @@ class Translations$scenario$g1_group_summary$en {
 	///
 	/// en: 'Watch that they collapse under one summary row, and what the summary says when the fifth arrives.'
 	String get description => 'Watch that they collapse under one summary row, and what the summary says when the fifth arrives.';
+
+	/// Expectation caveat for scenario g1_group_summary
+	///
+	/// en: 'Data-only, so the app draws it and posts the summary in every state — FCM has no `group` field, so a notification-block payload would leave the summary code unreached whenever the app is backgrounded. The app posts the summary itself and updates its count as each one arrives — the payload only names the group. Send it several times to watch the count climb.'
+	String get expectation => 'Data-only, so the app draws it and posts the summary in every state — FCM has no `group` field, so a notification-block payload would leave the summary code unreached whenever the app is backgrounded. The app posts the summary itself and updates its count as each one arrives — the payload only names the group. Send it several times to watch the count climb.';
 }
 
 // Path: scenario.g2_update_same_id
@@ -2105,6 +2246,11 @@ class Translations$scenario$g2_update_same_id$en {
 	///
 	/// en: 'Send twice with the same tag. Watch that the second replaces the first rather than stacking, and whether it re-alerts.'
 	String get description => 'Send twice with the same tag. Watch that the second replaces the first rather than stacking, and whether it re-alerts.';
+
+	/// Expectation caveat for scenario g2_update_same_id
+	///
+	/// en: 'FCM honours android.notification.tag itself when it draws the tray entry, and the app now keys its own drawing on the same tag — so the second send replaces the first whichever of them drew it.'
+	String get expectation => 'FCM honours android.notification.tag itself when it draws the tray entry, and the app now keys its own drawing on the same tag — so the second send replaces the first whichever of them drew it.';
 }
 
 // Path: scenario.g3_badge
@@ -2796,8 +2942,10 @@ extension on Translations {
 			'drawer.telemetry' => 'Telemetry',
 			'drawer.channels' => 'Channels',
 			'inbox.registration_token' => 'Registration token',
+			'inbox.clear_notifications' => 'Clear notifications',
 			'inbox.empty' => 'No pushes received yet.',
 			'inbox.malformed_dropped' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} malformed payload dropped', few: '${n} malformed payloads dropped', other: '${n} malformed payloads dropped', ), 
+			'inbox.setup_error' => ({required Object error}) => 'Stored pushes could not be read: ${error}',
 			'message_detail.opened_by_action' => ({required Object label}) => 'Opened by action: ${label}',
 			'message_detail.from' => ({required Object from}) => 'from: ${from}',
 			'message_detail.replied' => ({required Object text}) => 'Replied: ${text}',
@@ -2828,7 +2976,11 @@ extension on Translations {
 			'run_item.due' => ({required Object time}) => 'due ${time}',
 			'run_item.nothing_recorded' => 'Nothing recorded yet.',
 			'sandbox.validate_only' => 'Validate only',
-			'sandbox.needs_banner' => ({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.',
+			'sandbox.needs_banner' => ({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed here.',
+			'sandbox.send_blocked.no_target' => 'Fill in the delivery target, or switch back to this device.',
+			'sandbox.send_blocked.no_token' => 'No registration token yet, so there is nowhere to send.',
+			'sandbox.send_blocked.sending' => 'Sending…',
+			'sandbox.send_blocked.invalid_field' => 'A field is invalid. The sections marked with an error icon say which.',
 			'send.to_this_device' => 'Send to this device',
 			'send.to_that_token' => 'Send to that token',
 			'send.to_topic' => ({required Object topic}) => 'Send to topic "${topic}"',
@@ -2853,7 +3005,7 @@ extension on Translations {
 			'send_result.scheduled' => ({required num n, required Object runId}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '✓ Scheduled · run ${runId} · ${n} message · nothing has been sent yet', few: '✓ Scheduled · run ${runId} · ${n} messages · nothing has been sent yet', other: '✓ Scheduled · run ${runId} · ${n} messages · nothing has been sent yet', ), 
 			'countdown.seconds' => 'seconds',
 			'countdown.swipe_away' => 'Swipe the app away from recents now. The push is already scheduled on the server, so it will arrive whether this app is running or not.',
-			'countdown.dim_note' => 'An ordinary app cannot switch the display off — only dim it and let go of the wakelock, so the system times out on its own.',
+			'countdown.dim_note' => 'An ordinary app cannot switch the display off — only dim it and stop keeping it awake, so the system times out on its own.',
 			'countdown.dim_screen' => 'Dim the screen',
 			'countdown.battery_settings' => 'Battery settings',
 			'telemetry.tab.events' => 'Events',
@@ -2978,16 +3130,19 @@ extension on Translations {
 			'scenario.f6_delete_intent.expectation' => 'Detected only while the app is on screen, because only then did the app draw the notification through the plugin. Backgrounded, FCM draws the tray entry itself and a swipe on it reports nothing; killed, there is no isolate left to report to. The limit is Android\'s, not a gap.',
 			'scenario.f7_ongoing.title' => 'An ongoing, undismissable notification',
 			'scenario.f7_ongoing.description' => 'Watch that it cannot be swiped away, and confirm there is a way to clear it — an ongoing notification with no exit is a support ticket.',
+			'scenario.f7_ongoing.expectation' => 'Data-only, so the app draws it and the ongoing flag applies in every state — FCM has no field for it at all. The flag asks Android not to let the user swipe it away; on Android 14 and later the platform grants that only to call, device-policy and media notifications, and lets the user dismiss an otherwise-ongoing notification anyway. The way out either way is the Clear notifications button on the Inbox page, which wipes the tray and leaves the inbox alone — an ongoing notification with no exit is a support ticket, so the exit is part of the scenario.',
 			'scenario.f8_full_screen_intent.title' => 'Full-screen intent, as an incoming call',
-			'scenario.f8_full_screen_intent.description' => 'Takes over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.',
-			'scenario.f8_full_screen_intent.expectation' => 'Needs the USE_FULL_SCREEN_INTENT permission, which Android 14+ grants only to calling and alarm apps. Expect a degraded heads-up notification rather than a takeover here.',
+			'scenario.f8_full_screen_intent.description' => 'Asks to take over the lock screen. Watch whether it is granted at all, and what it degrades to when it is refused.',
+			'scenario.f8_full_screen_intent.expectation' => 'Data-only, so the app draws it and can ask for the full-screen intent at all — FCM has no field for one. The app declares USE_FULL_SCREEN_INTENT, which Android 14 and later grant only to calling and alarm apps, so expect a degraded heads-up notification rather than a takeover. The refusal is the demonstration. Watch with the app backgrounded and the screen locked or off: a full-screen intent shows a heads-up on a handset already in use even where it was granted, so an unlocked phone cannot tell the two apart. A device that does grant it will take over instead, which is also a valid observation.',
 			'scenario.f9_trampoline.title' => 'A notification trampoline, which should fail',
-			'scenario.f9_trampoline.description' => 'Starting an activity from a service or broadcast receiver after a tap. Banned since Android 12. Watch for the failure and its log line.',
-			'scenario.f9_trampoline.expectation' => 'Expected to fail on Android 12 and later. The demonstration is the error, not a working route.',
+			'scenario.f9_trampoline.description' => 'Starting an activity from a service or broadcast receiver after a tap, rather than from the notification itself. Android 12 banned the pattern outright — an app that did this would find the tap swallowed and the activity never opening.',
+			'scenario.f9_trampoline.expectation' => 'Not built. Demonstrating the ban means starting an activity from a broadcast receiver or service, which needs platform code this Dart-only gallery deliberately does not carry — the omission is a choice, not an oversight.',
 			'scenario.g1_group_summary.title' => 'Five notifications with a summary',
 			'scenario.g1_group_summary.description' => 'Watch that they collapse under one summary row, and what the summary says when the fifth arrives.',
+			'scenario.g1_group_summary.expectation' => 'Data-only, so the app draws it and posts the summary in every state — FCM has no `group` field, so a notification-block payload would leave the summary code unreached whenever the app is backgrounded. The app posts the summary itself and updates its count as each one arrives — the payload only names the group. Send it several times to watch the count climb.',
 			'scenario.g2_update_same_id.title' => 'Replacing a notification in place',
 			'scenario.g2_update_same_id.description' => 'Send twice with the same tag. Watch that the second replaces the first rather than stacking, and whether it re-alerts.',
+			'scenario.g2_update_same_id.expectation' => 'FCM honours android.notification.tag itself when it draws the tray entry, and the app now keys its own drawing on the same tag — so the second send replaces the first whichever of them drew it.',
 			'scenario.g3_badge.title' => 'A count on the launcher icon',
 			'scenario.g3_badge.description' => 'The least portable thing here. Watch whether the launcher shows the number, a dot, or nothing at all.',
 			'scenario.g3_badge.expectation' => 'Behaviour differs per manufacturer: One UI, MIUI and the Pixel launcher all disagree, and several require the user to enable badges per app.',
@@ -3052,11 +3207,25 @@ extension on Translations {
 			'scenario_group.j' => 'J — Targeting',
 			'scenario_group.k' => 'K — Edge cases and errors',
 			'scenario_need.styles' => 'notification styles',
-			'scenario_need.interaction' => 'notification actions',
 			'scenario_need.badge' => 'launcher badge',
 			'scenario_need.targeting' => 'a device registry',
 			'scenario_need.manual_step' => 'a manual step',
 			'scenario_need.external_approval' => 'external approval',
+			'scenario_need.native_code' => 'native code',
+			'form_section.message' => 'The FCM v1 message, minus the delivery target the server sets',
+			'form_section.notification' => 'Shown on every platform unless a platform block overrides it',
+			'form_section.android' => 'Delivery and rendering options for Android',
+			'form_section.android_notification' => 'Everything Android\'s tray understands, beyond the shared block',
+			'form_section.apns' => 'Delivery and rendering options for iOS and macOS',
+			'form_section.apns_fcm_options' => 'Delivery options, with the image only APNs accepts',
+			'form_section.webpush' => 'Delivery and rendering options for browsers',
+			'form_section.webpush_fcm_options' => 'Delivery options, with the link a click opens',
+			'form_section.fcm_options' => 'Delivery options FCM applies on every platform',
+			'form_section.light_settings' => 'FCM requires every field once this block is present',
+			'form_field.remove_row' => 'Remove this row',
+			'form_field.add_row' => 'Add',
+			'form_field.not_set' => 'Not set',
+			'form_field.not_sent' => 'Not sent',
 			'channels.fcm_sample_high.name' => 'Sample pushes',
 			'channels.fcm_sample_high.description' => 'Pushes received by the FCM sample app.',
 			'channels.importance_high.name' => 'Importance: high',

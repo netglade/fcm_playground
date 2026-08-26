@@ -4,6 +4,7 @@ import 'package:core/core.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../i18n/translations.g.dart';
 import '../../../pages/inbox/cubit/inbox_state.dart';
 import '../../notifications/data_sources/silent_notification_presenter.dart';
 import '../../notifications/entities/notification_presenter.dart';
@@ -207,7 +208,11 @@ class PushRepository {
       // pruned here too, or it sits in the store forever.
       await _mergeReplies(await _replyStore.takePending());
     } catch (error) {
-      _setupError ??= 'Stored pushes could not be read: $error';
+      // The global `t` rather than a passed-in `context.t`: this repository has
+      // no `BuildContext`, the same reason the three `http_*` data sources read
+      // the global. `SetupErrorBanner` still redraws on a locale change because
+      // `InboxView` rebuilds through its own `context.t`-watching `build`.
+      _setupError ??= t.inbox.setup_error(error: error);
       _publish();
     }
   }

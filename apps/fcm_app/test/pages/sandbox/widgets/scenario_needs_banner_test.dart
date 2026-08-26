@@ -30,17 +30,30 @@ void main() {
   });
 
   testWidgets('names every unmet need, using its own words', (tester) async {
-    await pump(tester, scenario('f8_full_screen_intent'));
+    // Built here rather than taken from the catalogue: every scenario carries a
+    // single need today — `h1_dnd_bypass` was the last two-need one, until the
+    // channels sub-project discharged half of its pair — so the catalogue can no
+    // longer supply the list case. Constructing one keeps this testing the
+    // banner's rendering rather than a catalogue fact that has changed twice.
+    const pair = Scenario(
+      id: 'two_needs_probe',
+      l10nKey: 'a1_notification_only',
+      group: 'A',
+      payloadTemplate: {},
+      needs: [ScenarioNeed.styles, ScenarioNeed.externalApproval],
+    );
 
-    expect(find.textContaining('notification actions'), findsOne);
+    await pump(tester, pair);
+
+    expect(find.textContaining('notification styles'), findsOne);
     expect(find.textContaining('external approval'), findsOne);
     // Both labels differ from their enum names, so the finders above already rule out
     // a banner printing `need.name`. This pins the rest: one sentence,
     // comma-separated, in declaration order.
     expect(
       find.text(
-        'Needs notification actions, external approval. The push will still be '
-        'sent, but this scenario cannot be observed yet.',
+        'Needs notification styles, external approval. The push will still '
+        'be sent, but this scenario cannot be observed here.',
       ),
       findsOne,
     );

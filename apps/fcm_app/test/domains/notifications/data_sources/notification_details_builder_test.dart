@@ -129,6 +129,80 @@ void main() {
             'still pass if the builder started setting one',
       );
     });
+
+    test('makes a notification ongoing when the payload asks', () {
+      final details = buildNotificationDetails(
+        message(data: const {'ongoing': 'true'}),
+      );
+
+      expect(details.android?.ongoing, isTrue);
+      expect(
+        details.android?.autoCancel,
+        isFalse,
+        reason:
+            'an ongoing notification that a tap silently removes is not '
+            'ongoing, which is the property f7 exists to show',
+      );
+    });
+
+    test('leaves an ordinary notification dismissable', () {
+      final details = buildNotificationDetails(message());
+
+      expect(details.android?.ongoing, isFalse);
+    });
+
+    test('treats any value other than true as not ongoing', () {
+      final details = buildNotificationDetails(
+        message(data: const {'ongoing': 'yes'}),
+      );
+
+      expect(
+        details.android?.ongoing,
+        isFalse,
+        reason:
+            'the Sandbox accepts any text; only the documented value turns a '
+            'notification into one the user cannot swipe away',
+      );
+    });
+
+    test('puts a notification in the group the payload names', () {
+      final details = buildNotificationDetails(
+        message(data: const {'group': 'builds'}),
+      );
+
+      expect(details.android?.groupKey, 'builds');
+    });
+
+    test('leaves groupKey null when the payload names no group', () {
+      expect(buildNotificationDetails(message()).android?.groupKey, isNull);
+    });
+
+    test('asks for a full-screen intent when the payload does', () {
+      final details = buildNotificationDetails(
+        message(data: const {'full_screen': 'true'}),
+      );
+
+      expect(details.android?.fullScreenIntent, isTrue);
+    });
+
+    test('leaves an ordinary notification alone', () {
+      expect(
+        buildNotificationDetails(message()).android?.fullScreenIntent,
+        isFalse,
+      );
+    });
+
+    test('treats any value other than true as no request', () {
+      expect(
+        buildNotificationDetails(
+          message(data: const {'full_screen': 'yes'}),
+        ).android?.fullScreenIntent,
+        isFalse,
+        reason:
+            'the Sandbox accepts any text; only the documented value asks to '
+            'take over the screen',
+      );
+    });
   });
 
   group('the channel it draws through', () {

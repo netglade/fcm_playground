@@ -57,5 +57,13 @@ abstract interface class NotificationPresenter {
   /// wires up [taps], so the same one-listener rule applies here too.
   Stream<String> get dismissals;
 
+  /// Removes every notification this app has drawn, and forgets the group
+  /// membership behind them.
+  ///
+  /// The tray only: the inbox keeps its messages, because the tray and the inbox
+  /// are different lists. This is the way out of an ongoing notification, which
+  /// cannot be swiped away — and of any other notification that gets stuck.
+  Future<void> clearAll();
+
   Future<void> dispose();
 }

@@ -88,14 +88,29 @@ void main() {
     // reachable from here.
     test('every scenario_need CSV row still names a live ScenarioNeed', () {
       final lines = File('lib/i18n/strings.i18n.csv').readAsLinesSync();
-      final needPattern = RegExp(r'^scenario_need\.([A-Za-z0-9]+),');
+      // Underscores included on purpose: the CSV spells these keys both ways —
+      // `manualStep` beside `native_code` — because slang's `key_case: snake`
+      // normalises either to the same generated key, so both spellings work and
+      // both have been used. A pattern that stopped at the underscore would skip
+      // the snake_case rows silently, which is the failure this test exists to
+      // catch rather than commit.
+      final needPattern = RegExp(r'^scenario_need\.([A-Za-z0-9_]+),');
       final rowNames = <String>{};
       for (final line in lines) {
         final match = needPattern.firstMatch(line);
         if (match != null) rowNames.add(match.group(1)!);
       }
 
-      final enumNames = ScenarioNeed.values.map((n) => n.name).toSet();
+      // Compared against both spellings for the same reason.
+      final enumNames = {
+        for (final need in ScenarioNeed.values) ...{
+          need.name,
+          need.name.replaceAllMapped(
+            RegExp('[A-Z]'),
+            (m) => '_${m.group(0)!.toLowerCase()}',
+          ),
+        },
+      };
 
       expect(
         rowNames.difference(enumNames),
@@ -245,7 +260,7 @@ void main() {
       final expectation = en.scenarioExpectation(fullScreen.l10nKey);
 
       expect(expectation, contains('USE_FULL_SCREEN_INTENT'));
-      expect(expectation, contains('Android 14+ grants'));
+      expect(expectation, contains('Android 14 and later grant'));
       expect(expectation, contains('degraded heads-up'));
     });
 
@@ -260,15 +275,17 @@ void main() {
       expect(description, contains('commonest source of deep-link bugs'));
     });
 
-    // Moved from group_f_test.dart. contains('fail') alone is satisfied by
-    // 'should not fail', so both the version that banned it and the statement
-    // that the error is the result are pinned.
-    test('f9 states that the failure is the demonstration', () {
+    // Moved from group_f_test.dart. contains('platform code') alone is
+    // satisfied by prose that never says the absence is on purpose, so the
+    // deliberateness is pinned too — otherwise this reads as a gap rather
+    // than a choice.
+    test('f9 says it is not built, and that the omission is deliberate', () {
       final trampoline = _scenarioIn(groupF, 'f9_trampoline');
       final expectation = en.scenarioExpectation(trampoline.l10nKey);
 
-      expect(expectation, contains('Android 12'));
-      expect(expectation, contains('the error, not a working route'));
+      expect(expectation, contains('Not built'));
+      expect(expectation, contains('platform code'));
+      expect(expectation, contains('a choice, not an oversight'));
     });
   });
 

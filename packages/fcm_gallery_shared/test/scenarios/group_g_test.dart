@@ -31,15 +31,16 @@ void main() {
       ]);
     });
 
-    test('only the iOS badge scenario works today, and the rest say why', () {
+    test('three of the four work today, and the launcher badge says why', () {
       // `isSupported` is just `needs.isEmpty`, so it passes for any entries carrying
       // any non-empty needs — including ones filed under the wrong sub-project. Needs
-      // are pinned exactly, and hasLength(4) backs the word "only".
+      // are pinned exactly, and hasLength(4) backs the group having four entries in
+      // total, of which only g3 is still blocked.
       expect(groupG, hasLength(4));
 
       const expected = {
-        'g1_group_summary': [ScenarioNeed.interaction],
-        'g2_update_same_id': [ScenarioNeed.interaction],
+        'g1_group_summary': <ScenarioNeed>[],
+        'g2_update_same_id': <ScenarioNeed>[],
         'g3_badge': [ScenarioNeed.badge],
         'g4_badge_ios': <ScenarioNeed>[],
       };
@@ -49,6 +50,8 @@ void main() {
       }
 
       expect(groupG.where((s) => s.isSupported).map((s) => s.id), [
+        'g1_group_summary',
+        'g2_update_same_id',
         'g4_badge_ios',
       ]);
     });
@@ -90,18 +93,23 @@ void main() {
       expect(apsOf(scenario)['sound'], 'default');
     });
 
-    test('g2 replaces in place by reusing one tag of its own', () {
+    test('g2 has a tag, g1 has none', () {
       // isNotNull is satisfied by '', 0 and false, none of which Android replaces a
-      // notification by. It must also differ from g1's, which tags a group row: a
-      // shared tag would make g2's second send replace the summary instead.
+      // notification by. g1 must carry no tag at all — the notification id now
+      // derives from the tag, so a tag on g1 would collapse all five of its sends
+      // into one notification replacing itself, breaking g1 itself rather than
+      // merely colliding with g2.
       final update = scenarioG('g2_update_same_id');
       final tag = androidNotificationOf(update)['tag'];
 
       expect(tag, isA<String>());
       expect((tag! as String).trim(), isNotEmpty);
+      // g1 is data-only (FCM has no `group` field, so the app must draw it
+      // itself in every state), so there is no `android` block at all for a
+      // tag to live in.
       expect(
-        tag,
-        isNot(androidNotificationOf(scenarioG('g1_group_summary'))['tag']),
+        scenarioG('g1_group_summary').payloadTemplate.containsKey('android'),
+        isFalse,
       );
       // What the description says about sending twice moved to
       // apps/fcm_app/test/i18n/scenario_prose_test.dart.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../i18n/translations.g.dart';
 import '../../../forms/webpush_fcm_options_form.dart';
 import '../form_section.dart';
 
@@ -13,21 +14,25 @@ class WebpushFcmOptionsSection extends StatelessWidget {
   final WebpushFcmOptionsForm form;
 
   @override
-  Widget build(BuildContext context) => FormSection(
-    title: 'fcm_options',
-    subtitle: 'Delivery options, with the link a click opens',
-    isValid: form.isValid,
-    children: [
-      TextFormField(
-        controller: form.link.controller,
-        validator: form.link.textFormFieldInputValidator,
-        decoration: const InputDecoration(labelText: 'link'),
-      ),
-      TextFormField(
-        controller: form.analyticsLabel.controller,
-        validator: form.analyticsLabel.textFormFieldInputValidator,
-        decoration: const InputDecoration(labelText: 'analytics_label'),
-      ),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return FormSection(
+      title: 'fcm_options',
+      subtitle: t.form_section.webpush_fcm_options,
+      isValid: form.isValid,
+      children: [
+        TextFormField(
+          controller: form.link.controller,
+          validator: form.link.textFormFieldInputValidator,
+          decoration: const InputDecoration(labelText: 'link'),
+        ),
+        TextFormField(
+          controller: form.analyticsLabel.controller,
+          validator: form.analyticsLabel.textFormFieldInputValidator,
+          decoration: const InputDecoration(labelText: 'analytics_label'),
+        ),
+      ],
+    );
+  }
 }

@@ -161,7 +161,7 @@ Future<void> _tearDownPreviousLaunch() async {
 
 /// Fails once, legibly, when the local API is not running.
 ///
-/// Without this the suite produces thirty-two delivery timeouts whose single cause is
+/// Without this the suite produces thirty-six delivery timeouts whose single cause is
 /// one stopped process, and the first one read would send someone into the app.
 Future<void> requireApiReachable() async {
   final Uri healthUri;

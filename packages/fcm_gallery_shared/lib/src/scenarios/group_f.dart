@@ -79,24 +79,26 @@ const groupF = <Scenario>[
     l10nKey: 'f7_ongoing',
     group: 'F',
     payloadTemplate: {
-      'notification': {'title': 'Syncing', 'body': 'Cannot be dismissed.'},
-      'data': {'ongoing': 'true'},
+      'data': {
+        'title': 'Syncing',
+        'body': 'Cannot be dismissed.',
+        'ongoing': 'true',
+      },
     },
-    needs: [ScenarioNeed.interaction],
   ),
   Scenario(
     id: 'f8_full_screen_intent',
     l10nKey: 'f8_full_screen_intent',
     group: 'F',
     payloadTemplate: {
-      'notification': {'title': 'Incoming call', 'body': 'Ada is calling.'},
-      'android': {
-        'priority': 'HIGH',
-        'notification': {'channel_id': 'calls'},
+      'android': {'priority': 'HIGH'},
+      'data': {
+        'title': 'Incoming call',
+        'body': 'Ada is calling.',
+        'full_screen': 'true',
+        'caller': 'Ada',
       },
-      'data': {'full_screen': 'true', 'caller': 'Ada'},
     },
-    needs: [ScenarioNeed.interaction, ScenarioNeed.externalApproval],
   ),
   Scenario(
     id: 'f9_trampoline',
@@ -106,6 +108,6 @@ const groupF = <Scenario>[
       'notification': {'title': 'Trampoline', 'body': 'This should not work.'},
       'data': {'trampoline': 'true', 'deep_link': '/builds/125'},
     },
-    needs: [ScenarioNeed.interaction],
+    needs: [ScenarioNeed.nativeCode],
   ),
 ];

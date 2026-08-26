@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'package:flutter/foundation.dart';
 
 import '../domains/settings/data_sources/shared_preferences_locale_store.dart';
 import 'translations.g.dart';
@@ -24,8 +24,22 @@ import 'translations.g.dart';
 /// The caller must have run `DartPluginRegistrant.ensureInitialized()` first: the
 /// store reaches `shared_preferences` through a plugin channel. `main()` gets this
 /// for free from `WidgetsFlutterBinding.ensureInitialized()`.
+///
+/// The read is guarded, and the fallback still applied when it fails. This runs
+/// before the work its callers exist to do and outside their own error handling,
+/// so an unguarded `SharedPreferences.getInstance()` throwing here would take the
+/// whole reply — or the whole background draw — down with it: nothing drawn,
+/// nothing stored, not even a log line. There is no known trigger; this closes a
+/// failure *class*, not a live bug. A device locale in the wrong language is a far
+/// smaller loss than a notification that never appears.
 Future<void> restoreStoredLocale() async {
-  final storedLocale = await const SharedPreferencesLocaleStore().read();
+  AppLocale? storedLocale;
+  try {
+    storedLocale = await const SharedPreferencesLocaleStore().read();
+  } on Object catch (error) {
+    debugPrint('Could not read the stored locale: $error');
+  }
+
   LocaleSettings.setLocaleSync(
     storedLocale ??
         AppLocaleUtils.parse(

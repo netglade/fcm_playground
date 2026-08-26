@@ -66,6 +66,8 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$scenario$cs scenario = _Translations$scenario$cs._(_root);
 	@override late final _Translations$scenario_group$cs scenario_group = _Translations$scenario_group$cs._(_root);
 	@override late final _Translations$scenario_need$cs scenario_need = _Translations$scenario_need$cs._(_root);
+	@override late final _Translations$form_section$cs form_section = _Translations$form_section$cs._(_root);
+	@override late final _Translations$form_field$cs form_field = _Translations$form_field$cs._(_root);
 	@override late final _Translations$channels$cs channels = _Translations$channels$cs._(_root);
 }
 
@@ -150,6 +152,9 @@ class _Translations$inbox$cs implements Translations$inbox$en {
 	/// Tile above the FCM token
 	@override String get registration_token => 'Registrační token';
 
+	/// Button that empties the notification tray, leaving the inbox list untouched
+	@override String get clear_notifications => 'Vymazat notifikace';
+
 	/// Empty state
 	@override String get empty => 'Zatím nedorazil žádný push.';
 
@@ -158,6 +163,9 @@ class _Translations$inbox$cs implements Translations$inbox$en {
 		few: '${n} poškozené payloady zahozeny',
 		other: '${n} poškozených payloadů zahozeno',
 	);
+
+	/// Banner shown when the push store fails to restore its history on launch
+	@override String setup_error({required Object error}) => 'Uložené pushe se nepodařilo načíst: ${error}';
 }
 
 // Path: message_detail
@@ -362,7 +370,9 @@ class _Translations$sandbox$cs implements Translations$sandbox$en {
 	@override String get validate_only => 'Jen validovat';
 
 	/// Banner listing what a scenario is missing; under sandbox.* rather than scenario_needs.* so it cannot be confused with the scenario_need.* labels it interpolates
-	@override String needs_banner({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.';
+	@override String needs_banner({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se tady nedá pozorovat.';
+
+	@override late final _Translations$sandbox$send_blocked$cs send_blocked = _Translations$sandbox$send_blocked$cs._(_root);
 }
 
 // Path: send
@@ -503,7 +513,7 @@ class _Translations$countdown$cs implements Translations$countdown$en {
 	@override String get swipe_away => 'Teď odsuň aplikaci z posledních. Push je už naplánovaný na serveru, takže dorazí, ať aplikace běží nebo ne.';
 
 	/// Explains why the button dims rather than switches off
-	@override String get dim_note => 'Obyčejná aplikace nemůže vypnout displej — jen ho ztmavit a pustit wakelock, takže systém zhasne sám.';
+	@override String get dim_note => 'Obyčejná aplikace nedokáže vypnout displej — dovede ho pouze ztlumit a přestat mu bránit v uspání, takže systém časem vypne sám.';
 
 	/// Button on the countdown screen
 	@override String get dim_screen => 'Ztmavit displej';
@@ -688,9 +698,6 @@ class _Translations$scenario_need$cs implements Translations$scenario_need$en {
 	/// Label for the styles scenario need
 	@override String get styles => 'styly notifikací';
 
-	/// Label for the interaction scenario need
-	@override String get interaction => 'akce notifikací';
-
 	/// Label for the badge scenario need
 	@override String get badge => 'odznak na ikoně aplikace';
 
@@ -699,6 +706,69 @@ class _Translations$scenario_need$cs implements Translations$scenario_need$en {
 
 	@override String get manual_step => 'manuální krok';
 	@override String get external_approval => 'externí schválení';
+
+	/// Label for the nativeCode scenario need
+	@override String get native_code => 'nativní kód';
+}
+
+// Path: form_section
+class _Translations$form_section$cs implements Translations$form_section$en {
+	_Translations$form_section$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Subtitle of the outermost payload-form section
+	@override String get message => 'Zpráva FCM v1 bez cíle doručení, který nastavuje server.';
+
+	/// Subtitle of the cross-platform notification section
+	@override String get notification => 'Zobrazuje se na všech platformách, pokud ho nepřebije blok konkrétní platformy.';
+
+	/// Subtitle of the android section
+	@override String get android => 'Možnosti doručení a zobrazení pro Android.';
+
+	/// Subtitle of the android.notification section
+	@override String get android_notification => 'Vše, co umí panel oznámení Androidu navíc oproti sdílenému bloku.';
+
+	/// Subtitle of the apns section
+	@override String get apns => 'Možnosti doručení a zobrazení pro iOS a macOS.';
+
+	/// Subtitle of the APNs fcm_options section
+	@override String get apns_fcm_options => 'Možnosti doručení, včetně obrázku, který přijímá jen APNs.';
+
+	/// Subtitle of the webpush section
+	@override String get webpush => 'Možnosti doručení a zobrazení pro prohlížeče.';
+
+	/// Subtitle of the WebPush fcm_options section
+	@override String get webpush_fcm_options => 'Možnosti doručení, včetně odkazu, který se otevře po kliknutí.';
+
+	/// Subtitle of the platform-independent fcm_options section
+	@override String get fcm_options => 'Možnosti doručení, které FCM uplatňuje na všech platformách.';
+
+	/// Subtitle of the light_settings section
+	@override String get light_settings => 'Jakmile je tento blok přítomen, FCM vyžaduje všechna jeho pole.';
+}
+
+// Path: form_field
+class _Translations$form_field$cs implements Translations$form_field$en {
+	_Translations$form_field$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Icon-button tooltip that deletes one row of a string list or map editor; shared by both editors, so one key covers both
+	@override String get remove_row => 'Odebrat tento řádek';
+
+	/// Button that appends a new empty row to a string list or map editor; shared by both editors, so one key covers both
+	@override String get add_row => 'Přidat';
+
+	/// Dropdown entry standing in for an omitted optional enum field
+	@override String get not_set => 'Nenastaveno';
+
+	/// Subtitle under a tristate checkbox when the underlying FCM field is left out of the payload
+	@override String get not_sent => 'Neodesláno';
 }
 
 // Path: channels
@@ -786,6 +856,27 @@ class _Translations$shell$title$cs implements Translations$shell$title$en {
 
 	/// AppBar title
 	@override String get telemetry => 'Telemetrie';
+}
+
+// Path: sandbox.send_blocked
+class _Translations$sandbox$send_blocked$cs implements Translations$sandbox$send_blocked$en {
+	_Translations$sandbox$send_blocked$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Reason Send is disabled: no delivery target is chosen
+	@override String get no_target => 'Vyplň cíl doručení, nebo se přepni zpět na toto zařízení.';
+
+	/// Reason Send is disabled: this device has not registered yet; shares its Czech clause with scenarios.no_token, whose English carries one more sentence
+	@override String get no_token => 'Zatím není registrační token, takže není kam posílat.';
+
+	/// Reason Send is disabled while this page's own send is in flight; kept apart from reply.sending, which titles a background notification for an unrelated send
+	@override String get sending => 'Odesílám…';
+
+	/// Reason Send is disabled: the payload form has an invalid field
+	@override String get invalid_field => 'Některé pole je neplatné. Které, poznáš podle sekcí s ikonou chyby.';
 }
 
 // Path: telemetry.tab
@@ -1560,6 +1651,9 @@ class _Translations$scenario$f7_ongoing$cs implements Translations$scenario$f7_o
 
 	/// Description of scenario f7_ongoing
 	@override String get description => 'Sleduj, že ji nelze odsunout, a ověř, že existuje způsob, jak ji zrušit — trvalá notifikace bez úniku je jistý tiket na podporu.';
+
+	/// Expectation caveat for scenario f7_ongoing
+	@override String get expectation => 'Jde čistě o data — notifikaci kreslí sama aplikace a příznak ongoing platí ve všech stavech, protože FCM pro něj žádné pole nemá. Příznak říká Androidu, ať uživateli nedovolí notifikaci odsunout; od Androidu 14 to platforma dovolí jen hovorům, notifikacím zásad zařízení a médiím, jinak si uživatel trvalou notifikaci stejně zavřít může. Cestou ven je v obou případech tlačítko Vymazat notifikace na stránce Doručené, které vyčistí lištu a Doručené nechá netknuté — trvalá notifikace bez úniku je jistý tiket na podporu, takže ta cesta ven patří ke scénáři.';
 }
 
 // Path: scenario.f8_full_screen_intent
@@ -1574,10 +1668,10 @@ class _Translations$scenario$f8_full_screen_intent$cs implements Translations$sc
 	@override String get title => 'Full-screen intent jako příchozí hovor';
 
 	/// Description of scenario f8_full_screen_intent
-	@override String get description => 'Převezme celou zamčenou obrazovku. Sleduj, jestli je vůbec povolen, a na co se degraduje, když je zamítnut.';
+	@override String get description => 'Žádá o převzetí celé zamčené obrazovky. Sleduj, jestli je to vůbec povoleno, a na co se to degraduje, když je žádost zamítnuta.';
 
 	/// Expectation caveat for scenario f8_full_screen_intent
-	@override String get expectation => 'Potřebuje oprávnění USE_FULL_SCREEN_INTENT, které Android 14+ uděluje jen telefonním a budíkovým aplikacím. Zde čekej degradovanou heads-up notifikaci, ne převzetí obrazovky.';
+	@override String get expectation => 'Jde čistě o data, takže aplikace notifikaci nejen kreslí, ale díky tomu si vůbec může o full-screen intent říct — FCM pro něj žádné pole nemá. Aplikace deklaruje USE_FULL_SCREEN_INTENT, což Android 14 a novější povoluje jen telefonním a budíkovým aplikacím, takže tady čekej degradovanou heads-up notifikaci místo převzetí obrazovky. Ukázkou je právě to zamítnutí. Sleduj to s aplikací na pozadí a se zamčenou nebo vypnutou obrazovkou: full-screen intent totiž zobrazí heads-up notifikaci i na telefonu, který se už používá, i tam, kde bylo oprávnění uděleno, takže na odemčeném telefonu ty dva případy nejde rozlišit. Zařízení, které oprávnění udělí, obrazovku místo toho převezme, a to je stejně platné pozorování.';
 }
 
 // Path: scenario.f9_trampoline
@@ -1592,10 +1686,10 @@ class _Translations$scenario$f9_trampoline$cs implements Translations$scenario$f
 	@override String get title => 'Notification trampoline, který má selhat';
 
 	/// Description of scenario f9_trampoline
-	@override String get description => 'Spuštění activity ze service nebo broadcast receiveru po tapnutí. Od Androidu 12 zakázáno. Sleduj chybu a její řádek v logu.';
+	@override String get description => 'Spuštění activity ze service nebo broadcast receiveru po tapnutí, místo přímo z notifikace. Android 12 tenhle vzorec rovnou zakázal — aplikaci, která by to takhle dělala, by tap zmizel beze stopy a activity by se nikdy neotevřela.';
 
 	/// Expectation caveat for scenario f9_trampoline
-	@override String get expectation => 'Na Androidu 12 a novějším má selhat. Ukázkou je právě ta chyba, ne funkční trasa.';
+	@override String get expectation => 'Není postaveno. Ukázat ten zákaz v praxi znamená spustit activity z broadcast receiveru nebo service, což vyžaduje nativní kód, který tenhle čistě dartový katalog záměrně nemá — to chybí schválně, ne z nedopatření.';
 }
 
 // Path: scenario.g1_group_summary
@@ -1611,6 +1705,9 @@ class _Translations$scenario$g1_group_summary$cs implements Translations$scenari
 
 	/// Description of scenario g1_group_summary
 	@override String get description => 'Sleduj, že se sbalí pod jeden souhrnný řádek, a co souhrn říká, když dorazí pátá.';
+
+	/// Expectation caveat for scenario g1_group_summary
+	@override String get expectation => 'Jde čistě o data, takže souhrn ve všech stavech vykresluje a odesílá sama aplikace — FCM nemá pole `group`, takže payload s blokem notification by kód souhrnu nechal nedosažitelný, kdykoli je aplikace na pozadí. Souhrn si aplikace posílá sama a s příchodem každé další notifikace mu aktualizuje počet — payload jen pojmenuje skupinu. Pošli ho víckrát za sebou a sleduj, jak počet roste.';
 }
 
 // Path: scenario.g2_update_same_id
@@ -1626,6 +1723,9 @@ class _Translations$scenario$g2_update_same_id$cs implements Translations$scenar
 
 	/// Description of scenario g2_update_same_id
 	@override String get description => 'Pošli dvakrát se stejným tagem. Sleduj, že druhá nahradí první, a ne že se hromadí, a jestli znovu upozorní.';
+
+	/// Expectation caveat for scenario g2_update_same_id
+	@override String get expectation => 'FCM samo respektuje android.notification.tag, když kreslí záznam v liště, a aplikace teď svoje vlastní kreslení klíčuje na stejný tag — takže druhé odeslání nahradí první bez ohledu na to, kdo z nich ho nakreslil.';
 }
 
 // Path: scenario.g3_badge
@@ -2167,8 +2267,10 @@ extension on TranslationsCs {
 			'drawer.telemetry' => 'Telemetrie',
 			'drawer.channels' => 'Kanály',
 			'inbox.registration_token' => 'Registrační token',
+			'inbox.clear_notifications' => 'Vymazat notifikace',
 			'inbox.empty' => 'Zatím nedorazil žádný push.',
 			'inbox.malformed_dropped' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '${n} poškozený payload zahozen', few: '${n} poškozené payloady zahozeny', other: '${n} poškozených payloadů zahozeno', ), 
+			'inbox.setup_error' => ({required Object error}) => 'Uložené pushe se nepodařilo načíst: ${error}',
 			'message_detail.opened_by_action' => ({required Object label}) => 'Otevřeno akcí: ${label}',
 			'message_detail.from' => ({required Object from}) => 'Zdroj: ${from}',
 			'message_detail.replied' => ({required Object text}) => 'Odpovězeno: ${text}',
@@ -2199,7 +2301,11 @@ extension on TranslationsCs {
 			'run_item.due' => ({required Object time}) => 'v ${time}',
 			'run_item.nothing_recorded' => 'Zatím nic nezaznamenáno.',
 			'sandbox.validate_only' => 'Jen validovat',
-			'sandbox.needs_banner' => ({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.',
+			'sandbox.needs_banner' => ({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se tady nedá pozorovat.',
+			'sandbox.send_blocked.no_target' => 'Vyplň cíl doručení, nebo se přepni zpět na toto zařízení.',
+			'sandbox.send_blocked.no_token' => 'Zatím není registrační token, takže není kam posílat.',
+			'sandbox.send_blocked.sending' => 'Odesílám…',
+			'sandbox.send_blocked.invalid_field' => 'Některé pole je neplatné. Které, poznáš podle sekcí s ikonou chyby.',
 			'send.to_this_device' => 'Poslat na toto zařízení',
 			'send.to_that_token' => 'Poslat na ten token',
 			'send.to_topic' => ({required Object topic}) => 'Poslat do tématu „${topic}“',
@@ -2224,7 +2330,7 @@ extension on TranslationsCs {
 			'send_result.scheduled' => ({required num n, required Object runId}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '✓ Naplánováno · běh ${runId} · ${n} zpráva · zatím nic neodesláno', few: '✓ Naplánováno · běh ${runId} · ${n} zprávy · zatím nic neodesláno', other: '✓ Naplánováno · běh ${runId} · ${n} zpráv · zatím nic neodesláno', ), 
 			'countdown.seconds' => 'sekund',
 			'countdown.swipe_away' => 'Teď odsuň aplikaci z posledních. Push je už naplánovaný na serveru, takže dorazí, ať aplikace běží nebo ne.',
-			'countdown.dim_note' => 'Obyčejná aplikace nemůže vypnout displej — jen ho ztmavit a pustit wakelock, takže systém zhasne sám.',
+			'countdown.dim_note' => 'Obyčejná aplikace nedokáže vypnout displej — dovede ho pouze ztlumit a přestat mu bránit v uspání, takže systém časem vypne sám.',
 			'countdown.dim_screen' => 'Ztmavit displej',
 			'countdown.battery_settings' => 'Nastavení baterie',
 			'telemetry.tab.events' => 'Události',
@@ -2349,16 +2455,19 @@ extension on TranslationsCs {
 			'scenario.f6_delete_intent.expectation' => 'Zjistí se jen tehdy, když je aplikace na obrazovce, protože jen tehdy notifikaci vykreslila sama aplikace přes plugin. Na pozadí vykresluje záznam v liště přímo FCM a odsunutí u něj nic nenahlásí; se zabitou aplikací už nezbyl žádný isolate, kterému by se to nahlásilo. Je to omezení Androidu, ne mezera v aplikaci.',
 			'scenario.f7_ongoing.title' => 'Trvalá notifikace, kterou nelze zavřít',
 			'scenario.f7_ongoing.description' => 'Sleduj, že ji nelze odsunout, a ověř, že existuje způsob, jak ji zrušit — trvalá notifikace bez úniku je jistý tiket na podporu.',
+			'scenario.f7_ongoing.expectation' => 'Jde čistě o data — notifikaci kreslí sama aplikace a příznak ongoing platí ve všech stavech, protože FCM pro něj žádné pole nemá. Příznak říká Androidu, ať uživateli nedovolí notifikaci odsunout; od Androidu 14 to platforma dovolí jen hovorům, notifikacím zásad zařízení a médiím, jinak si uživatel trvalou notifikaci stejně zavřít může. Cestou ven je v obou případech tlačítko Vymazat notifikace na stránce Doručené, které vyčistí lištu a Doručené nechá netknuté — trvalá notifikace bez úniku je jistý tiket na podporu, takže ta cesta ven patří ke scénáři.',
 			'scenario.f8_full_screen_intent.title' => 'Full-screen intent jako příchozí hovor',
-			'scenario.f8_full_screen_intent.description' => 'Převezme celou zamčenou obrazovku. Sleduj, jestli je vůbec povolen, a na co se degraduje, když je zamítnut.',
-			'scenario.f8_full_screen_intent.expectation' => 'Potřebuje oprávnění USE_FULL_SCREEN_INTENT, které Android 14+ uděluje jen telefonním a budíkovým aplikacím. Zde čekej degradovanou heads-up notifikaci, ne převzetí obrazovky.',
+			'scenario.f8_full_screen_intent.description' => 'Žádá o převzetí celé zamčené obrazovky. Sleduj, jestli je to vůbec povoleno, a na co se to degraduje, když je žádost zamítnuta.',
+			'scenario.f8_full_screen_intent.expectation' => 'Jde čistě o data, takže aplikace notifikaci nejen kreslí, ale díky tomu si vůbec může o full-screen intent říct — FCM pro něj žádné pole nemá. Aplikace deklaruje USE_FULL_SCREEN_INTENT, což Android 14 a novější povoluje jen telefonním a budíkovým aplikacím, takže tady čekej degradovanou heads-up notifikaci místo převzetí obrazovky. Ukázkou je právě to zamítnutí. Sleduj to s aplikací na pozadí a se zamčenou nebo vypnutou obrazovkou: full-screen intent totiž zobrazí heads-up notifikaci i na telefonu, který se už používá, i tam, kde bylo oprávnění uděleno, takže na odemčeném telefonu ty dva případy nejde rozlišit. Zařízení, které oprávnění udělí, obrazovku místo toho převezme, a to je stejně platné pozorování.',
 			'scenario.f9_trampoline.title' => 'Notification trampoline, který má selhat',
-			'scenario.f9_trampoline.description' => 'Spuštění activity ze service nebo broadcast receiveru po tapnutí. Od Androidu 12 zakázáno. Sleduj chybu a její řádek v logu.',
-			'scenario.f9_trampoline.expectation' => 'Na Androidu 12 a novějším má selhat. Ukázkou je právě ta chyba, ne funkční trasa.',
+			'scenario.f9_trampoline.description' => 'Spuštění activity ze service nebo broadcast receiveru po tapnutí, místo přímo z notifikace. Android 12 tenhle vzorec rovnou zakázal — aplikaci, která by to takhle dělala, by tap zmizel beze stopy a activity by se nikdy neotevřela.',
+			'scenario.f9_trampoline.expectation' => 'Není postaveno. Ukázat ten zákaz v praxi znamená spustit activity z broadcast receiveru nebo service, což vyžaduje nativní kód, který tenhle čistě dartový katalog záměrně nemá — to chybí schválně, ne z nedopatření.',
 			'scenario.g1_group_summary.title' => 'Pět notifikací se souhrnem',
 			'scenario.g1_group_summary.description' => 'Sleduj, že se sbalí pod jeden souhrnný řádek, a co souhrn říká, když dorazí pátá.',
+			'scenario.g1_group_summary.expectation' => 'Jde čistě o data, takže souhrn ve všech stavech vykresluje a odesílá sama aplikace — FCM nemá pole `group`, takže payload s blokem notification by kód souhrnu nechal nedosažitelný, kdykoli je aplikace na pozadí. Souhrn si aplikace posílá sama a s příchodem každé další notifikace mu aktualizuje počet — payload jen pojmenuje skupinu. Pošli ho víckrát za sebou a sleduj, jak počet roste.',
 			'scenario.g2_update_same_id.title' => 'Nahrazení notifikace na místě',
 			'scenario.g2_update_same_id.description' => 'Pošli dvakrát se stejným tagem. Sleduj, že druhá nahradí první, a ne že se hromadí, a jestli znovu upozorní.',
+			'scenario.g2_update_same_id.expectation' => 'FCM samo respektuje android.notification.tag, když kreslí záznam v liště, a aplikace teď svoje vlastní kreslení klíčuje na stejný tag — takže druhé odeslání nahradí první bez ohledu na to, kdo z nich ho nakreslil.',
 			'scenario.g3_badge.title' => 'Číslo na ikoně launcheru',
 			'scenario.g3_badge.description' => 'Nejméně přenositelná věc z celého katalogu. Sleduj, jestli launcher zobrazí číslo, tečku, nebo vůbec nic.',
 			'scenario.g3_badge.expectation' => 'Chování se liší podle výrobce: One UI, MIUI a Pixel launcher se v tom neshodnou, a několik z nich navíc vyžaduje, aby uživatel odznaky povolil pro každou aplikaci zvlášť.',
@@ -2423,11 +2532,25 @@ extension on TranslationsCs {
 			'scenario_group.j' => 'J — Cílení',
 			'scenario_group.k' => 'K — Krajní případy a chyby',
 			'scenario_need.styles' => 'styly notifikací',
-			'scenario_need.interaction' => 'akce notifikací',
 			'scenario_need.badge' => 'odznak na ikoně aplikace',
 			'scenario_need.targeting' => 'registr zařízení',
 			'scenario_need.manual_step' => 'manuální krok',
 			'scenario_need.external_approval' => 'externí schválení',
+			'scenario_need.native_code' => 'nativní kód',
+			'form_section.message' => 'Zpráva FCM v1 bez cíle doručení, který nastavuje server.',
+			'form_section.notification' => 'Zobrazuje se na všech platformách, pokud ho nepřebije blok konkrétní platformy.',
+			'form_section.android' => 'Možnosti doručení a zobrazení pro Android.',
+			'form_section.android_notification' => 'Vše, co umí panel oznámení Androidu navíc oproti sdílenému bloku.',
+			'form_section.apns' => 'Možnosti doručení a zobrazení pro iOS a macOS.',
+			'form_section.apns_fcm_options' => 'Možnosti doručení, včetně obrázku, který přijímá jen APNs.',
+			'form_section.webpush' => 'Možnosti doručení a zobrazení pro prohlížeče.',
+			'form_section.webpush_fcm_options' => 'Možnosti doručení, včetně odkazu, který se otevře po kliknutí.',
+			'form_section.fcm_options' => 'Možnosti doručení, které FCM uplatňuje na všech platformách.',
+			'form_section.light_settings' => 'Jakmile je tento blok přítomen, FCM vyžaduje všechna jeho pole.',
+			'form_field.remove_row' => 'Odebrat tento řádek',
+			'form_field.add_row' => 'Přidat',
+			'form_field.not_set' => 'Nenastaveno',
+			'form_field.not_sent' => 'Neodesláno',
 			'channels.fcm_sample_high.name' => 'Ukázkové pushe',
 			'channels.fcm_sample_high.description' => 'Pushe přijaté ukázkovou aplikací FCM.',
 			'channels.importance_high.name' => 'Důležitost: vysoká',

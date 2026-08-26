@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import '../../../../../i18n/translations.g.dart';
 import '../../../forms/fcm_notification_form.dart';
 import '../form_section.dart';
 
@@ -11,19 +12,23 @@ class NotificationSection extends StatelessWidget {
   final FcmNotificationForm form;
 
   @override
-  Widget build(BuildContext context) => FormSection(
-    title: 'notification',
-    subtitle: 'Shown on every platform unless a platform block overrides it',
-    isValid: form.isValid,
-    children: [
-      for (final (label, input) in _texts(form))
-        TextFormField(
-          controller: input.controller,
-          validator: input.textFormFieldInputValidator,
-          decoration: InputDecoration(labelText: label),
-        ),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return FormSection(
+      title: 'notification',
+      subtitle: t.form_section.notification,
+      isValid: form.isValid,
+      children: [
+        for (final (label, input) in _texts(form))
+          TextFormField(
+            controller: input.controller,
+            validator: input.textFormFieldInputValidator,
+            decoration: InputDecoration(labelText: label),
+          ),
+      ],
+    );
+  }
 }
 
 /// See `AndroidNotificationSection` for why these are typed over

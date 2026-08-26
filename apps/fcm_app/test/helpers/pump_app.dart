@@ -18,6 +18,12 @@ Future<void> pumpApp(
   AppLocale locale = AppLocale.en,
 }) {
   LocaleSettings.setLocaleSync(locale);
+  // `LocaleSettings` is global process state, and every caller so far has left
+  // `locale` at its default, which makes this a no-op re-pin today. The
+  // parameter exists so a test can render Czech — the day a caller passes one,
+  // this is what stops that choice leaking into every test the runner reaches
+  // afterwards in the same file.
+  addTearDown(() => LocaleSettings.setLocaleSync(AppLocale.en));
 
   return tester.pumpWidget(
     TranslationProvider(

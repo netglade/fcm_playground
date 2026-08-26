@@ -7,13 +7,6 @@ import 'package:test/test.dart';
 Map<Object?, Object?> dataOf(Scenario scenario) =>
     scenario.payloadTemplate['data']! as Map<Object?, Object?>;
 
-/// The `android.notification` block of [scenario]'s template.
-Map<Object?, Object?> androidNotificationOf(Scenario scenario) {
-  final android = scenario.payloadTemplate['android']! as Map<Object?, Object?>;
-
-  return android['notification']! as Map<Object?, Object?>;
-}
-
 /// The one scenario in group F carrying [id].
 Scenario scenarioF(String id) => groupF.firstWhere((s) => s.id == id);
 
@@ -33,13 +26,14 @@ void main() {
       ]);
     });
 
-    test('three of the nine are still blocked on interaction work', () {
-      // `contains(interaction)` alone passes on an entry that ALSO carries
+    test('one of the nine is still blocked, on native code', () {
+      // `contains(nativeCode)` alone passes on an entry that ALSO carries
       // channels or styles, which would file this group's work under the wrong
       // sub-project. So needs are pinned exactly, and the literal counts back
       // the words: f1 was unblocked by the notification-actions cycle, the
-      // three deep links by that cycle, f2 and f6 by this one, and the
-      // remaining three are the sub-projects still to come.
+      // three deep links by the deep-link cycle, f2 and f6 by the inline-reply
+      // cycle, f7 by the grouping cycle, f8 by this one, and the remaining one
+      // names work this project has decided never to do.
       expect(groupF, hasLength(9));
 
       const expected = {
@@ -49,21 +43,17 @@ void main() {
         'f4_deeplink_background': <ScenarioNeed>[],
         'f5_deeplink_killed': <ScenarioNeed>[],
         'f6_delete_intent': <ScenarioNeed>[],
-        'f7_ongoing': [ScenarioNeed.interaction],
-        'f8_full_screen_intent': [
-          ScenarioNeed.interaction,
-          ScenarioNeed.externalApproval,
-        ],
-        'f9_trampoline': [ScenarioNeed.interaction],
+        'f7_ongoing': <ScenarioNeed>[],
+        'f8_full_screen_intent': <ScenarioNeed>[],
+        'f9_trampoline': [ScenarioNeed.nativeCode],
       };
 
       for (final scenario in groupF) {
         final needs = expected[scenario.id]!;
         expect(scenario.needs, needs, reason: scenario.id);
-        // f1 and the three deep links are the entries unblocked so far:
-        // isSupported flips to true exactly when its needs list is empty, so
-        // drive the expectation from the same map rather than special-casing
-        // an id here.
+        // Eight of the nine are unblocked now. isSupported flips to true
+        // exactly when its needs list is empty, so drive the expectation from
+        // the same map rather than special-casing an id here.
         expect(scenario.isSupported, needs.isEmpty, reason: scenario.id);
       }
     });
@@ -86,16 +76,23 @@ void main() {
       }
     });
 
-    test('f8 also needs a permission Android 14+ may refuse', () {
+    test('f8 has no field of its own for a full-screen intent', () {
       final fullScreen = scenarioF('f8_full_screen_intent');
 
-      expect(fullScreen.needs, contains(ScenarioNeed.externalApproval));
-      // What the expectation says about the permission moved to
+      // f8 carries no needs of its own now — the permission it may be refused
+      // is described in prose, not modelled as a ScenarioNeed. What the
+      // expectation says about it moved to
       // apps/fcm_app/test/i18n/scenario_prose_test.dart.
+      expect(fullScreen.needs, isEmpty);
 
-      // No such channel exists yet, but the template has to name it or there is
-      // nothing for the call-style notification to be posted to.
-      expect(androidNotificationOf(fullScreen)['channel_id'], 'calls');
+      expect(
+        fullScreen.payloadTemplate.containsKey('notification'),
+        isFalse,
+        reason:
+            'FCM has no field for a full-screen intent, so a notification block '
+            'would mean the app never even asks when it is backgrounded — and a '
+            'refusal nobody asked for demonstrates nothing',
+      );
     });
 
     test('the three deep-link scenarios carry three distinct routes', () {
@@ -141,8 +138,13 @@ void main() {
       }
     });
 
-    // f9's expectation, stating the failure is the demonstration, moved to
-    // apps/fcm_app/test/i18n/scenario_prose_test.dart.
+    test('f9 needs native code, which this project has decided not to build', () {
+      final trampoline = scenarioF('f9_trampoline');
+
+      expect(trampoline.needs, [ScenarioNeed.nativeCode]);
+      // Why it needs native code, and that the omission is deliberate, moved to
+      // apps/fcm_app/test/i18n/scenario_prose_test.dart.
+    });
 
     test('the whole group reaches the gallery', () {
       final galleryIds = scenarioGallery.map((s) => s.id).toSet();

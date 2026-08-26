@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../i18n/translations.g.dart';
+
 /// Edits a `Map<String, String>` as one key/value row per entry.
 ///
 /// The row count is not known ahead of time, so there is no fixed
@@ -54,45 +56,52 @@ class _StringMapRowsState extends State<StringMapRows> {
   }
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Text(widget.label, style: Theme.of(context).textTheme.titleSmall),
-      const SizedBox(height: 8),
-      for (final (index, row) in _rows.indexed)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: row.key,
-                  onChanged: (_) => _push(),
-                  decoration: const InputDecoration(labelText: 'key'),
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(widget.label, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        for (final (index, row) in _rows.indexed)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: row.key,
+                    onChanged: (_) => _push(),
+                    decoration: const InputDecoration(labelText: 'key'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: row.value,
-                  onChanged: (_) => _push(),
-                  decoration: const InputDecoration(labelText: 'value'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: row.value,
+                    onChanged: (_) => _push(),
+                    decoration: const InputDecoration(labelText: 'value'),
+                  ),
                 ),
-              ),
-              IconButton(
-                onPressed: () => _removeRow(index),
-                icon: const Icon(Icons.remove_circle_outline),
-                tooltip: 'Remove this row',
-              ),
-            ],
+                IconButton(
+                  onPressed: () => _removeRow(index),
+                  icon: const Icon(Icons.remove_circle_outline),
+                  tooltip: t.form_field.remove_row,
+                ),
+              ],
+            ),
+          ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: _addRow,
+            child: Text(t.form_field.add_row),
           ),
         ),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: TextButton(onPressed: _addRow, child: const Text('Add')),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 
   void _addRow() {
     setState(() => _rows.add(_MapRowControllers.empty()));

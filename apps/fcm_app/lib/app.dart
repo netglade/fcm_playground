@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'di/service_locator.dart';
 import 'domains/notifications/entities/notification_channel_reader.dart';
+import 'domains/notifications/entities/notification_presenter.dart';
 import 'domains/push/repositories/push_repository.dart';
 import 'domains/runs/entities/active_run_store.dart';
 import 'domains/runs/entities/run_scheduler.dart';
@@ -23,13 +24,20 @@ import 'pages/shell/app_shell.dart';
 /// provider inside either page would lose the handoff, and the shell's
 /// `IndexedStack` is what keeps the half-filled form alive across a tab switch.
 ///
-/// Nothing below this widget reads the locator, so widget tests wrap the widget
-/// under test in `BlocProvider.value` and never configure it at all. The
-/// `MultiRepositoryProvider` below supplies the [RunScheduler], [StartRun] and
-/// [ActiveRunStore] the same way: each is looked up here, once, and every page
-/// that needs one — the Runs pages for the scheduler, the Sandbox's footer for
-/// `StartRun`, the shell itself for the id of the run it may need to reopen —
-/// reads it from `context` instead of from the locator.
+/// Nothing below this widget reads the locator except `AppShell`'s language
+/// switcher (`app_shell.dart`), which writes through `getIt<LocaleStore>()`
+/// directly rather than through a provider: it is the one widget that writes
+/// it, the write is fire-and-forget, and threading a repository down for a
+/// single call would be ceremony a second writer would justify. So a widget
+/// test still wraps its widget under test in `BlocProvider.value` and
+/// configures nothing else, unless it exercises that one switcher, which then
+/// needs its own `LocaleStore` registered. The
+/// `MultiRepositoryProvider` below supplies the [RunScheduler], [StartRun],
+/// [ActiveRunStore] and [NotificationPresenter] the same way: each is looked up
+/// here, once, and every page that needs one — the Runs pages for the
+/// scheduler, the Sandbox's footer for `StartRun`, the shell itself for the id
+/// of the run it may need to reopen, the Inbox for its Clear button — reads it
+/// from `context` instead of from the locator.
 class App extends StatelessWidget {
   const App({super.key});
 
@@ -49,6 +57,9 @@ class App extends StatelessWidget {
       ),
       RepositoryProvider<NotificationChannelReader>(
         create: (_) => getIt<NotificationChannelReader>(),
+      ),
+      RepositoryProvider<NotificationPresenter>(
+        create: (_) => getIt<NotificationPresenter>(),
       ),
     ],
     child: MultiBlocProvider(

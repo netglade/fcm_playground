@@ -10,6 +10,22 @@ void main() {
     expect(ids.toSet(), hasLength(ids.length));
   });
 
+  test('every l10nKey is unique', () {
+    final l10nKeys = scenarioGallery.map((s) => s.l10nKey).toList();
+
+    expect(
+      l10nKeys.toSet(),
+      hasLength(l10nKeys.length),
+      reason:
+          'a duplicated l10nKey renders one scenario\'s title, description, '
+          'expectation and manual steps under two different ids, and every '
+          'other test here stays green: id is still unique and both keys '
+          'still resolve — the natural way to add a scenario is to duplicate '
+          'one and change id, which is exactly how this slips in if l10nKey '
+          'is forgotten',
+    );
+  });
+
   test("every id starts with its group's letter", () {
     // The one assertion that catches an entry filed under the wrong table as
     // eleven files grow independently.
@@ -89,14 +105,14 @@ void main() {
     expect(scenarioGallery.map((s) => s.group).toSet(), hasLength(11));
   });
 
-  test('exactly 38 scenarios work today', () {
+  test('exactly 42 scenarios work today', () {
     // Asserted so that mis-marking one as blocked, or quietly unmarking one to
     // make it look supported, fails the build.
     final supported = scenarioGallery.where((s) => s.isSupported).toList();
 
     expect(
       supported,
-      hasLength(38),
+      hasLength(42),
       reason: supported.map((s) => s.id).join(', '),
     );
   });
@@ -126,7 +142,7 @@ void main() {
         if (entry.value.length == 1) entry.key.name: entry.value.single,
     };
 
-    expect(soleUse, {'badge': 'g3_badge'});
+    expect(soleUse, {'badge': 'g3_badge', 'nativeCode': 'f9_trampoline'});
   });
 
   test('the groups appear in A to K order, each in one run', () {

@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../i18n/channel_text.dart';
 import '../../../i18n/translations.g.dart';
 import '../../push/entities/remote_message_payload.dart';
+import '../entities/notification_content.dart';
 import 'notification_channels.dart';
 
 /// Where a notification's Android category rides in the payload.
@@ -38,6 +39,13 @@ NotificationDetails buildNotificationDetails(PushMessage message) {
       // only the message id, and `dismissed` has to be recorded against the
       // trace id on the stored payload.
       dismissIsolate: NotificationDismissedIsolate.main,
+      // Only the documented value. See `notificationOngoingKey`.
+      ongoing: message.data[notificationOngoingKey] == 'true',
+      // An ongoing notification a tap removes is not ongoing.
+      autoCancel: message.data[notificationOngoingKey] != 'true',
+      groupKey: message.data[notificationGroupKey],
+      // Only the documented value. See `notificationFullScreenKey`.
+      fullScreenIntent: message.data[notificationFullScreenKey] == 'true',
       actions: [
         for (final action in parseNotificationActions(
           message.data[notificationActionsKey],
