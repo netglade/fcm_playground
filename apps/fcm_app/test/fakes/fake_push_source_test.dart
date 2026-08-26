@@ -1,4 +1,4 @@
-import 'package:fcm_app/domains/push/entities/push_tap.dart';
+import 'package:fcm_app/domains/push/push_tap.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 

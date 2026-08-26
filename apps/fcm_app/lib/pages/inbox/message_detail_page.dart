@@ -1,7 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
-import '../../domains/push/entities/pressed_action.dart';
+import '../../domains/push/pressed_action.dart';
 import '../../i18n/translations.g.dart';
 
 /// One received message in full.

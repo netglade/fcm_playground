@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'di/service_locator.dart';
-import 'domains/notifications/entities/notification_presenter.dart';
-import 'domains/push/repositories/push_repository.dart';
+import 'domains/notifications/notification_presenter.dart';
+import 'domains/push/push_repository.dart';
 import 'domains/runs/active_run_store.dart';
 import 'domains/runs/run_scheduler.dart';
 import 'domains/runs/start_run.dart';

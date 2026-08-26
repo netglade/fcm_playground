@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fcm_app/domains/notifications/entities/notification_content.dart';
+import 'package:fcm_app/domains/notifications/notification_content.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// The two manifest facts the app's Dart code depends on and cannot observe.

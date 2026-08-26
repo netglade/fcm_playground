@@ -1,7 +1,7 @@
 import 'package:fcm_app/di/service_locator.dart';
-import 'package:fcm_app/domains/push/data_sources/disabled_push_source.dart';
-import 'package:fcm_app/domains/push/entities/push_source.dart';
-import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/push/disabled_push_source.dart';
+import 'package:fcm_app/domains/push/push_source.dart';
+import 'package:fcm_app/domains/push/push_repository.dart';
 import 'package:fcm_app/domains/runs/shared_preferences_active_run_store.dart';
 import 'package:fcm_app/domains/runs/unavailable_run_scheduler.dart';
 import 'package:fcm_app/domains/runs/active_run_store.dart';

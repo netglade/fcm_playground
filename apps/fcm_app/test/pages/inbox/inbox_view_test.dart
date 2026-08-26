@@ -1,5 +1,5 @@
-import 'package:fcm_app/domains/notifications/entities/notification_presenter.dart';
-import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/notifications/notification_presenter.dart';
+import 'package:fcm_app/domains/push/push_repository.dart';
 import 'package:fcm_app/domains/runs/active_run_store.dart';
 import 'package:fcm_app/domains/runs/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';

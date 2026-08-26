@@ -1,6 +1,6 @@
 import 'package:core/core.dart';
 
-import '../../../domains/push/entities/pressed_action.dart';
+import '../../../domains/push/pressed_action.dart';
 
 /// What the inbox holds, as one immutable snapshot. `PushRepository` publishes
 /// it and `InboxCubit`'s state *is* it.

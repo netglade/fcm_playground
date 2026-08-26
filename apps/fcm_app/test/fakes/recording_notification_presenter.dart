@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:core/core.dart';
-import 'package:fcm_app/domains/notifications/entities/notification_presenter.dart';
-import 'package:fcm_app/domains/push/entities/push_tap.dart';
+import 'package:fcm_app/domains/notifications/notification_presenter.dart';
+import 'package:fcm_app/domains/push/push_tap.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A [NotificationPresenter] that records instead of notifying.

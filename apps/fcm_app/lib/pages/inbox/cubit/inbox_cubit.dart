@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../domains/push/repositories/push_repository.dart';
+import '../../../domains/push/push_repository.dart';
 import 'inbox_state.dart';
 
 /// The widget tree's projection of [PushRepository]. Its state *is* what the

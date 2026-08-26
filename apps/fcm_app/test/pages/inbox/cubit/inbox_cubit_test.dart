@@ -1,4 +1,4 @@
-import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/push/push_repository.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';

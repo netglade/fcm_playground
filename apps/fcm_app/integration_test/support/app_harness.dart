@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:fcm_app/app.dart';
 import 'package:fcm_app/di/service_locator.dart';
-import 'package:fcm_app/domains/notifications/entities/notification_presenter.dart';
-import 'package:fcm_app/domains/push/entities/push_source.dart';
-import 'package:fcm_app/domains/push/repositories/push_repository.dart';
+import 'package:fcm_app/domains/notifications/notification_presenter.dart';
+import 'package:fcm_app/domains/push/push_source.dart';
+import 'package:fcm_app/domains/push/push_repository.dart';
 import 'package:fcm_app/domains/sandbox/http_notification_sender.dart';
 import 'package:fcm_app/domains/telemetry/data_sources/drift_telemetry_buffer.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';

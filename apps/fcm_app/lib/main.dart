@@ -10,12 +10,12 @@ import 'package:glade_forms/glade_forms.dart';
 
 import 'app.dart';
 import 'di/service_locator.dart';
-import 'domains/notifications/data_sources/background_notification_draw.dart';
-import 'domains/notifications/entities/notification_presenter.dart';
-import 'domains/push/data_sources/shared_preferences_push_payload_store.dart';
-import 'domains/push/entities/push_source.dart';
-import 'domains/push/entities/remote_message_payload.dart';
-import 'domains/push/repositories/push_repository.dart';
+import 'domains/notifications/background_notification_draw.dart';
+import 'domains/notifications/notification_presenter.dart';
+import 'domains/push/shared_preferences_push_payload_store.dart';
+import 'domains/push/push_source.dart';
+import 'domains/push/remote_message_payload.dart';
+import 'domains/push/push_repository.dart';
 import 'domains/settings/locale_store.dart';
 import 'domains/telemetry/data_sources/shared_preferences_device_identity.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
