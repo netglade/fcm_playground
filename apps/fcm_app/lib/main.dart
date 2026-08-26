@@ -21,6 +21,7 @@ import 'domains/telemetry/data_sources/shared_preferences_device_identity.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
 import 'domains/telemetry/report_push_event.dart';
 import 'firebase_options.dart';
+import 'i18n/isolate_locale.dart';
 import 'i18n/translations.g.dart';
 
 Future<void> main() async {
@@ -28,6 +29,19 @@ Future<void> main() async {
   // Every GladeModel built below depends on this having run, and it has to run
   // exactly once, before the first one exists.
   GladeForms.initialize();
+
+  // Ahead of configureDependencies, not just ahead of the first frame: a channel's
+  // name and description are frozen the moment Android first creates it, and
+  // configureDependencies is what builds LocalNotificationPresenter, whose
+  // initialize() registers every channel. If the locale were still whatever slang
+  // defaults to (the base locale, English) when that happens, a fresh install would
+  // get English channel names forever, regardless of the language the user picked —
+  // the block at the bottom of this function that reads the real preference would
+  // already be too late. This early call does not need getIt: unlike that later
+  // block, it reads the locale store directly. The later block still has to run —
+  // it also subscribes to device locale changes, which this one-shot restore
+  // deliberately does not.
+  await restoreIsolateLocale();
 
   await configureDependencies(onBackgroundMessage: _onBackgroundMessage);
 
