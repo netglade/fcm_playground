@@ -10,6 +10,22 @@ void main() {
     expect(ids.toSet(), hasLength(ids.length));
   });
 
+  test('every l10nKey is unique', () {
+    final l10nKeys = scenarioGallery.map((s) => s.l10nKey).toList();
+
+    expect(
+      l10nKeys.toSet(),
+      hasLength(l10nKeys.length),
+      reason:
+          'a duplicated l10nKey renders one scenario\'s title, description, '
+          'expectation and manual steps under two different ids, and every '
+          'other test here stays green: id is still unique and both keys '
+          'still resolve — the natural way to add a scenario is to duplicate '
+          'one and change id, which is exactly how this slips in if l10nKey '
+          'is forgotten',
+    );
+  });
+
   test("every id starts with its group's letter", () {
     // The one assertion that catches an entry filed under the wrong table as
     // eleven files grow independently.
