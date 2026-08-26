@@ -108,6 +108,54 @@ Future<bool> _attempt(Future<void> Function() action, String label) async {
   }
 }
 
+/// Resolves the locale a reply notification should draw in, and applies it.
+///
+/// Hoisted out of [onNotificationReply] and given a name, rather than left
+/// inline, so [notification_reply_test.dart] can call the production
+/// expression instead of re-deriving a copy of it. A test that reimplements
+/// this logic instead of calling it can drift from the real thing and stay
+/// green regardless — which is exactly what happened before this function
+/// existed: the tests re-typed this same four-line expression, so deleting it
+/// from production left both tests passing.
+///
+/// The isolate starts cold — main() never ran here — and the store is the only
+/// thing that knows the user's choice. Without this the one notification a
+/// user gets for a reply would be the single English thing in a Czech app.
+///
+/// NOT `LocaleSettings.useDeviceLocaleSync()` for the no-override case, even
+/// though that is what main() calls: it resolves through
+/// `WidgetsBinding.instance`, and this isolate never creates a binding —
+/// `DartPluginRegistrant.ensureInitialized()` wires plugin channels and
+/// nothing else. `PlatformDispatcher.instance` is a `dart:ui` singleton that
+/// needs no binding, and `AppLocaleUtils.parse` falls back to the base locale
+/// rather than returning null, which is the behaviour wanted for a tag this
+/// build cannot serve.
+///
+/// Guarded through [_attempt]: this runs before [replyFrom] and outside every
+/// other guard in [onNotificationReply], so an unguarded
+/// `SharedPreferences.getInstance()` throwing here — there is no known trigger,
+/// this closes a failure *class*, not a live bug — would have taken the whole
+/// reply down with it: no notification drawn, the typed text never stored, not
+/// even a log line. That is the exact silent-failure shape
+/// [onNotificationReply]'s own doc comment says must not happen, so it must
+/// not reappear here either.
+Future<void> applyStoredLocale() async {
+  AppLocale? storedLocale;
+
+  await _attempt(
+    () async =>
+        storedLocale = await const SharedPreferencesLocaleStore().read(),
+    'Could not read the stored locale for the reply notification',
+  );
+
+  LocaleSettings.setLocaleSync(
+    storedLocale ??
+        AppLocaleUtils.parse(
+          PlatformDispatcher.instance.locale.toLanguageTag(),
+        ),
+  );
+}
+
 /// Handles a press on an action that does not open the app.
 ///
 /// Must be top-level and annotated so AOT compilation keeps it reachable: the
@@ -134,27 +182,7 @@ Future<void> onNotificationReply(NotificationResponse response) async {
   // for it.
   DartPluginRegistrant.ensureInitialized();
 
-  // The isolate starts cold — main() never ran here — and the store is the only thing
-  // that knows the user's choice. Without this the one notification a user gets for a
-  // reply would be the single English thing in a Czech app.
-  //
-  // NOT LocaleSettings.useDeviceLocaleSync() for the no-override case, even though
-  // that is what main() calls: it resolves through WidgetsBinding.instance, and this
-  // isolate never creates a binding — DartPluginRegistrant.ensureInitialized() wires
-  // plugin channels and nothing else. The call throws in debug and null-crashes in
-  // release, and because it sits before replyFrom() and outside every _attempt(), it
-  // would take the whole reply down with it: no notification drawn, the typed text
-  // never stored, not even a log line. PlatformDispatcher.instance is a dart:ui
-  // singleton that needs no binding, and AppLocaleUtils.parse falls back to the base
-  // locale rather than returning null, which is the behaviour wanted for a tag this
-  // build cannot serve.
-  final storedLocale = await const SharedPreferencesLocaleStore().read();
-  LocaleSettings.setLocaleSync(
-    storedLocale ??
-        AppLocaleUtils.parse(
-          PlatformDispatcher.instance.locale.toLanguageTag(),
-        ),
-  );
+  await applyStoredLocale();
 
   final reply = replyFrom(response);
   if (reply == null) {
