@@ -157,6 +157,11 @@ class Translations$drawer$en {
 	///
 	/// en: 'Telemetry'
 	String get telemetry => 'Telemetry';
+
+	/// Drawer destination
+	///
+	/// en: 'Channels'
+	String get channels => 'Channels';
 }
 
 // Path: inbox
@@ -913,6 +918,71 @@ class Translations$channels$en {
 	late final Translations$channels$dnd_bypass$en dnd_bypass = Translations$channels$dnd_bypass$en._(_root);
 	late final Translations$channels$alarms$en alarms = Translations$channels$alarms$en._(_root);
 	late final Translations$channels$group$en group = Translations$channels$group$en._(_root);
+
+	/// AppBar title on the Channels page
+	///
+	/// en: 'Notification channels'
+	String get title => 'Notification channels';
+
+	/// Column heading: what the app asked Android for
+	///
+	/// en: 'Requested'
+	String get requested => 'Requested';
+
+	/// Column heading: what Android answered
+	///
+	/// en: 'Reported by the system'
+	String get reported => 'Reported by the system';
+
+	/// Shown when the system holds no channel with this id
+	///
+	/// en: 'Not registered'
+	String get not_registered => 'Not registered';
+
+	/// Row label on a channel card
+	///
+	/// en: 'Importance'
+	String get importance => 'Importance';
+
+	/// Row label on a channel card
+	///
+	/// en: 'Sound'
+	String get sound => 'Sound';
+
+	/// Row label on a channel card
+	///
+	/// en: 'Vibration'
+	String get vibration => 'Vibration';
+
+	/// Row label on a channel card
+	///
+	/// en: 'Bypasses Do Not Disturb'
+	String get bypass_dnd => 'Bypasses Do Not Disturb';
+
+	/// Row label on a channel card; not channels.group.chat.name, which already exists as a nested key for the group heading
+	///
+	/// en: 'Group'
+	String get group_label => 'Group';
+
+	/// Row label on a channel card
+	///
+	/// en: 'Shows a badge'
+	String get badge => 'Shows a badge';
+
+	/// Button on chat_v1; performs d7 by asking Android to change a frozen importance
+	///
+	/// en: 'Try to lower it'
+	String get try_lower => 'Try to lower it';
+
+	/// Explains what the d7 button does
+	///
+	/// en: 'Importance is frozen when a channel is created. Press this and watch the reported value stay put.'
+	String get immutability_hint => 'Importance is frozen when a channel is created. Press this and watch the reported value stay put.';
+
+	/// AppBar action on the Channels page
+	///
+	/// en: 'Refresh'
+	String get refresh => 'Refresh';
 }
 
 // Path: shell.title
@@ -2724,6 +2794,7 @@ extension on Translations {
 			'drawer.sandbox' => 'Sandbox',
 			'drawer.runs' => 'Runs',
 			'drawer.telemetry' => 'Telemetry',
+			'drawer.channels' => 'Channels',
 			'inbox.registration_token' => 'Registration token',
 			'inbox.empty' => 'No pushes received yet.',
 			'inbox.malformed_dropped' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} malformed payload dropped', few: '${n} malformed payloads dropped', other: '${n} malformed payloads dropped', ), 
@@ -3010,6 +3081,19 @@ extension on Translations {
 			'channels.alarms.name' => 'Alarms',
 			'channels.alarms.description' => 'Uses the alarm audio stream rather than the notification one.',
 			'channels.group.chat.name' => 'Chat',
+			'channels.title' => 'Notification channels',
+			'channels.requested' => 'Requested',
+			'channels.reported' => 'Reported by the system',
+			'channels.not_registered' => 'Not registered',
+			'channels.importance' => 'Importance',
+			'channels.sound' => 'Sound',
+			'channels.vibration' => 'Vibration',
+			'channels.bypass_dnd' => 'Bypasses Do Not Disturb',
+			'channels.group_label' => 'Group',
+			'channels.badge' => 'Shows a badge',
+			'channels.try_lower' => 'Try to lower it',
+			'channels.immutability_hint' => 'Importance is frozen when a channel is created. Press this and watch the reported value stay put.',
+			'channels.refresh' => 'Refresh',
 			_ => null,
 		};
 	}

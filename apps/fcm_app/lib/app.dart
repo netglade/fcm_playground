@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'di/service_locator.dart';
+import 'domains/notifications/entities/notification_channel_reader.dart';
 import 'domains/push/repositories/push_repository.dart';
 import 'domains/runs/entities/active_run_store.dart';
 import 'domains/runs/entities/run_scheduler.dart';
@@ -45,6 +46,9 @@ class App extends StatelessWidget {
       ),
       RepositoryProvider<TelemetryReader>(
         create: (_) => getIt<TelemetryReader>(),
+      ),
+      RepositoryProvider<NotificationChannelReader>(
+        create: (_) => getIt<NotificationChannelReader>(),
       ),
     ],
     child: MultiBlocProvider(

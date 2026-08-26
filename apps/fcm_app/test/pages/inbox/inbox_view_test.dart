@@ -1,3 +1,4 @@
+import 'package:fcm_app/domains/notifications/entities/notification_channel_reader.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
@@ -19,6 +20,7 @@ import '../../fakes/fake_push_source.dart';
 import '../../fakes/fake_run_scheduler.dart';
 import '../../fakes/fake_telemetry_reader.dart';
 import '../../fakes/in_memory_active_run_store.dart';
+import '../channels/cubit/channels_cubit_test.dart' show FakeChannelReader;
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
   'id': id,
@@ -65,6 +67,9 @@ void main() {
               ),
               RepositoryProvider<TelemetryReader>.value(
                 value: FakeTelemetryReader(),
+              ),
+              RepositoryProvider<NotificationChannelReader>.value(
+                value: FakeChannelReader([]),
               ),
             ],
             child: MultiBlocProvider(

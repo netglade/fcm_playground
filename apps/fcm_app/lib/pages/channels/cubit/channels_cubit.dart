@@ -26,9 +26,7 @@ class ChannelsCubit extends Cubit<ChannelsState> {
   Future<void> load() async {
     emit(const ChannelsState());
     try {
-      emit(
-        ChannelsState(isLoading: false, comparisons: await _compare()),
-      );
+      emit(ChannelsState(isLoading: false, comparisons: await _compare()));
     } on Object catch (error) {
       emit(ChannelsState(isLoading: false, error: '$error'));
     }
@@ -51,7 +49,9 @@ class ChannelsCubit extends Cubit<ChannelsState> {
   }
 
   Future<List<ChannelComparison>> _compare() async {
-    final actual = {for (final channel in await _reader.read()) channel.id: channel};
+    final actual = {
+      for (final channel in await _reader.read()) channel.id: channel,
+    };
 
     return [
       for (final requested in notificationChannels)

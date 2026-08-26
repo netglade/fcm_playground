@@ -134,6 +134,9 @@ class _Translations$drawer$cs implements Translations$drawer$en {
 
 	/// Drawer destination
 	@override String get telemetry => 'Telemetrie';
+
+	/// Drawer destination
+	@override String get channels => 'Kanály';
 }
 
 // Path: inbox
@@ -720,6 +723,45 @@ class _Translations$channels$cs implements Translations$channels$en {
 	@override late final _Translations$channels$dnd_bypass$cs dnd_bypass = _Translations$channels$dnd_bypass$cs._(_root);
 	@override late final _Translations$channels$alarms$cs alarms = _Translations$channels$alarms$cs._(_root);
 	@override late final _Translations$channels$group$cs group = _Translations$channels$group$cs._(_root);
+
+	/// AppBar title on the Channels page
+	@override String get title => 'Kanály oznámení';
+
+	/// Column heading: what the app asked Android for
+	@override String get requested => 'Vyžádáno';
+
+	/// Column heading: what Android answered
+	@override String get reported => 'Hlášeno systémem';
+
+	/// Shown when the system holds no channel with this id
+	@override String get not_registered => 'Neregistrováno';
+
+	/// Row label on a channel card
+	@override String get importance => 'Důležitost';
+
+	/// Row label on a channel card
+	@override String get sound => 'Zvuk';
+
+	/// Row label on a channel card
+	@override String get vibration => 'Vibrace';
+
+	/// Row label on a channel card
+	@override String get bypass_dnd => 'Obchází Nerušit';
+
+	/// Row label on a channel card; not channels.group.chat.name, which already exists as a nested key for the group heading
+	@override String get group_label => 'Skupina';
+
+	/// Row label on a channel card
+	@override String get badge => 'Zobrazuje odznak';
+
+	/// Button on chat_v1; performs d7 by asking Android to change a frozen importance
+	@override String get try_lower => 'Zkusit snížit';
+
+	/// Explains what the d7 button does
+	@override String get immutability_hint => 'Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne.';
+
+	/// AppBar action on the Channels page
+	@override String get refresh => 'Načíst znovu';
 }
 
 // Path: shell.title
@@ -2123,6 +2165,7 @@ extension on TranslationsCs {
 			'drawer.sandbox' => 'Sandbox',
 			'drawer.runs' => 'Běhy',
 			'drawer.telemetry' => 'Telemetrie',
+			'drawer.channels' => 'Kanály',
 			'inbox.registration_token' => 'Registrační token',
 			'inbox.empty' => 'Zatím nedorazil žádný push.',
 			'inbox.malformed_dropped' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '${n} poškozený payload zahozen', few: '${n} poškozené payloady zahozeny', other: '${n} poškozených payloadů zahozeno', ), 
@@ -2409,6 +2452,19 @@ extension on TranslationsCs {
 			'channels.alarms.name' => 'Budíky',
 			'channels.alarms.description' => 'Používá zvukový kanál budíku místo oznámení.',
 			'channels.group.chat.name' => 'Chat',
+			'channels.title' => 'Kanály oznámení',
+			'channels.requested' => 'Vyžádáno',
+			'channels.reported' => 'Hlášeno systémem',
+			'channels.not_registered' => 'Neregistrováno',
+			'channels.importance' => 'Důležitost',
+			'channels.sound' => 'Zvuk',
+			'channels.vibration' => 'Vibrace',
+			'channels.bypass_dnd' => 'Obchází Nerušit',
+			'channels.group_label' => 'Skupina',
+			'channels.badge' => 'Zobrazuje odznak',
+			'channels.try_lower' => 'Zkusit snížit',
+			'channels.immutability_hint' => 'Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne.',
+			'channels.refresh' => 'Načíst znovu',
 			_ => null,
 		};
 	}

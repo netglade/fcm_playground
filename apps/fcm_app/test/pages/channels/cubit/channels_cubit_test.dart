@@ -5,8 +5,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// A reader whose answers the test dictates, and which records what it was asked.
-class _FakeReader implements NotificationChannelReader {
-  _FakeReader(this._channels);
+class FakeChannelReader implements NotificationChannelReader {
+  FakeChannelReader(this._channels);
 
   final List<AndroidNotificationChannel> _channels;
   final attempts = <(String, Importance)>[];
@@ -27,7 +27,7 @@ class _FakeReader implements NotificationChannelReader {
   }
 }
 
-AndroidNotificationChannel _system(
+AndroidNotificationChannel systemChannel(
   String id, {
   Importance importance = Importance.high,
   bool bypassDnd = false,
@@ -40,26 +40,29 @@ AndroidNotificationChannel _system(
 
 void main() {
   group('ChannelsCubit', () {
-    test('pairs every requested channel with what the system reports', () async {
-      final cubit = ChannelsCubit(
-        _FakeReader([
-          for (final channel in notificationChannels)
-            _system(channel.id, importance: channel.importance),
-        ]),
-      );
+    test(
+      'pairs every requested channel with what the system reports',
+      () async {
+        final cubit = ChannelsCubit(
+          FakeChannelReader([
+            for (final channel in notificationChannels)
+              systemChannel(channel.id, importance: channel.importance),
+          ]),
+        );
 
-      await cubit.load();
+        await cubit.load();
 
-      expect(cubit.state.isLoading, isFalse);
-      expect(cubit.state.comparisons, hasLength(notificationChannels.length));
-      expect(
-        cubit.state.comparisons.every((c) => c.importanceMatches),
-        isTrue,
-      );
-    });
+        expect(cubit.state.isLoading, isFalse);
+        expect(cubit.state.comparisons, hasLength(notificationChannels.length));
+        expect(
+          cubit.state.comparisons.every((c) => c.importanceMatches),
+          isTrue,
+        );
+      },
+    );
 
     test('marks a channel the system does not have', () async {
-      final cubit = ChannelsCubit(_FakeReader([]));
+      final cubit = ChannelsCubit(FakeChannelReader([]));
 
       await cubit.load();
 
@@ -70,7 +73,9 @@ void main() {
     test('reports bypassDnd asked for but not granted', () async {
       final requested = channelById('dnd_bypass')!;
       final cubit = ChannelsCubit(
-        _FakeReader([_system('dnd_bypass', importance: requested.importance)]),
+        FakeChannelReader([
+          systemChannel('dnd_bypass', importance: requested.importance),
+        ]),
       );
 
       await cubit.load();
@@ -85,8 +90,8 @@ void main() {
     });
 
     test('asks to lower chat_v1 and re-reads afterwards', () async {
-      final reader = _FakeReader([
-        _system('chat_v1', importance: Importance.defaultImportance),
+      final reader = FakeChannelReader([
+        systemChannel('chat_v1', importance: Importance.defaultImportance),
       ]);
       final cubit = ChannelsCubit(reader);
 
@@ -102,7 +107,9 @@ void main() {
     });
 
     test('turns a read failure into a message rather than an error', () async {
-      final cubit = ChannelsCubit(_FakeReader([])..failWith = Exception('nope'));
+      final cubit = ChannelsCubit(
+        FakeChannelReader([])..failWith = Exception('nope'),
+      );
 
       await cubit.load();
 

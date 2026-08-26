@@ -8,13 +8,18 @@ const deepLinkKey = 'deep_link';
 /// The shell's destinations, in the order `AppShell`'s `IndexedStack` builds them.
 ///
 /// Public and here rather than private to `_AppShellState`, because the deep-link
-/// mapping below names the same five and two copies would drift the first time a
+/// mapping below names the same six and two copies would drift the first time a
 /// destination is added.
+///
+/// Appended only, never renumbered: a deep link already in flight — or baked
+/// into a saved run, a bookmark, anything outside this codebase — names an
+/// index, and shifting an existing one would silently send it to the wrong page.
 const inboxDestination = 0;
 const scenariosDestination = 1;
 const sandboxDestination = 2;
 const runsDestination = 3;
 const telemetryDestination = 4;
+const channelsDestination = 5;
 
 /// Where a deep link points.
 ///
@@ -24,7 +29,7 @@ sealed class DeepLinkDestination {
   const DeepLinkDestination();
 }
 
-/// One of the five drawer destinations. Nothing is pushed for these — they live in
+/// One of the drawer destinations. Nothing is pushed for these — they live in
 /// an `IndexedStack`, so arriving is a change of index.
 class ShellDestination extends DeepLinkDestination {
   const ShellDestination(this.index);

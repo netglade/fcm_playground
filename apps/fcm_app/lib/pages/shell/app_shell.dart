@@ -5,12 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/service_locator.dart';
+import '../../domains/notifications/entities/notification_channel_reader.dart';
 import '../../domains/runs/entities/active_run_store.dart';
 import '../../domains/runs/entities/run_scheduler.dart';
 import '../../domains/runs/entities/run_scheduler_exception.dart';
 import '../../domains/settings/entities/locale_store.dart';
 import '../../domains/telemetry/entities/telemetry_reader.dart';
 import '../../i18n/translations.g.dart';
+import '../channels/channels_view.dart';
+import '../channels/cubit/channels_cubit.dart';
 import '../inbox/cubit/inbox_cubit.dart';
 import '../inbox/cubit/inbox_state.dart';
 import '../inbox/inbox_view.dart';
@@ -25,7 +28,7 @@ import 'deep_link_destination.dart';
 /// Owns the app's chrome: one `AppBar` whose title follows the drawer's selection,
 /// and one body per destination.
 ///
-/// The destinations sit in an `IndexedStack` so all five keep their state — the
+/// The destinations sit in an `IndexedStack` so all six keep their state — the
 /// half-filled Sandbox form survives a look at the inbox or the gallery. Both
 /// cubits come from `context`, which is what lets Scenarios and Sandbox share one
 /// [SandboxCubit] across a tab switch. Runs reads its `RunScheduler` from
@@ -50,6 +53,7 @@ class _AppShellState extends State<AppShell> {
     t.shell.title.sandbox,
     t.shell.title.runs,
     t.shell.title.telemetry,
+    t.channels.title,
   ];
   late final AppLifecycleListener _lifecycle;
 
@@ -73,6 +77,19 @@ class _AppShellState extends State<AppShell> {
   /// `IndexedStack` keeps every destination alive, so a page-local cubit built once
   /// at launch would `load()` once and never again.
   int _telemetryVisits = 0;
+
+  /// Bumped every time Channels is chosen from the drawer, and used as the key on
+  /// the `BlocProvider` wrapping [ChannelsView] below, for the reason
+  /// [_runsVisits] spells out.
+  ///
+  /// Unlike Runs and Telemetry, [ChannelsView] itself takes no reader and builds
+  /// no cubit — it just reads one from `context`, the same way `SandboxView`
+  /// does — so the `BlocProvider` that creates a fresh [ChannelsCubit] on every
+  /// visit lives here instead of inside the view. Android channel state changes
+  /// underneath the app whenever the user edits a channel in system settings, so
+  /// a stale read here would be actively misleading rather than merely out of
+  /// date.
+  int _channelsVisits = 0;
 
   @override
   void initState() {
@@ -160,6 +177,10 @@ class _AppShellState extends State<AppShell> {
               icon: const Icon(Icons.analytics_outlined),
               label: Text(t.drawer.telemetry),
             ),
+            NavigationDrawerDestination(
+              icon: const Icon(Icons.tune_outlined),
+              label: Text(t.drawer.channels),
+            ),
           ],
         ),
         // top: false because the AppBar already sits below the status bar. Applied
@@ -182,6 +203,13 @@ class _AppShellState extends State<AppShell> {
                 key: ValueKey(_telemetryVisits),
                 reader: context.read<TelemetryReader>(),
               ),
+              BlocProvider(
+                key: ValueKey(_channelsVisits),
+                create: (_) =>
+                    ChannelsCubit(context.read<NotificationChannelReader>())
+                      ..load(),
+                child: const ChannelsView(),
+              ),
             ],
           ),
         ),
@@ -199,6 +227,9 @@ class _AppShellState extends State<AppShell> {
       }
       if (index == telemetryDestination) {
         _telemetryVisits++;
+      }
+      if (index == channelsDestination) {
+        _channelsVisits++;
       }
     });
     Navigator.pop(context);

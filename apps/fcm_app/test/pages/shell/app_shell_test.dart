@@ -1,4 +1,6 @@
 import 'package:fcm_app/di/service_locator.dart';
+import 'package:fcm_app/domains/notifications/data_sources/notification_channels.dart';
+import 'package:fcm_app/domains/notifications/entities/notification_channel_reader.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
 import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
@@ -17,6 +19,7 @@ import 'package:fcm_app/pages/shell/deep_link_destination.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +32,8 @@ import '../../fakes/fake_run_scheduler.dart';
 import '../../fakes/fake_telemetry_reader.dart';
 import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_navigator_observer.dart';
+import '../channels/cubit/channels_cubit_test.dart'
+    show FakeChannelReader, systemChannel;
 
 Map<String, Object?> payload({String id = 'msg-1', String? deepLink}) => {
   'id': id,
@@ -76,6 +81,7 @@ void main() {
     ActiveRunStore? active,
     FakeRunScheduler? scheduler,
     TelemetryReader? reader,
+    NotificationChannelReader? channelReader,
     // Set before the first frame, so it is already outstanding by the time
     // `_openAwaitedRun`'s post-frame callback checks for one — unlike the other
     // notification-tap tests below, which fire `requestOpen` after settling to
@@ -110,6 +116,9 @@ void main() {
               ),
               RepositoryProvider<TelemetryReader>.value(
                 value: reader ?? FakeTelemetryReader(),
+              ),
+              RepositoryProvider<NotificationChannelReader>.value(
+                value: channelReader ?? FakeChannelReader([]),
               ),
             ],
             child: MultiBlocProvider(
@@ -167,7 +176,7 @@ void main() {
     expect(selectedDestination(tester), 0);
   });
 
-  testWidgets('offers all five destinations in the drawer', (tester) async {
+  testWidgets('offers all six destinations in the drawer', (tester) async {
     await pumpApp(tester);
 
     await openDrawer(tester);
@@ -177,6 +186,7 @@ void main() {
     expect(find.text('Sandbox'), findsOne);
     expect(find.text('Runs'), findsOne);
     expect(find.text('Telemetry'), findsOne);
+    expect(find.text('Channels'), findsOne);
   });
 
   testWidgets('switches to the scenarios page and retitles the bar', (
@@ -313,6 +323,59 @@ void main() {
 
       expect(find.textContaining('Nothing recorded yet'), findsNothing);
       expect(find.textContaining('t1'), findsWidgets);
+    },
+  );
+
+  testWidgets('opens Channels from the drawer', (tester) async {
+    await pumpApp(tester);
+    await openDrawer(tester);
+    await tester.tap(find.text('Channels'));
+    await tester.pumpAndSettle();
+
+    // The title comes from the shell, so this is what proves the destination is
+    // selected rather than merely present in the drawer.
+    expect(
+      find.widgetWithText(AppBar, 'Notification channels'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'reloads the Channels page each time it is chosen, not just at launch',
+    (tester) async {
+      // Growable, and held onto by the test, mirroring Runs and Telemetry above:
+      // `FakeChannelReader` answers whatever is in this list at the moment
+      // `read()` is called, so mutating it between two visits stands in for the
+      // user editing a channel in system settings in between.
+      final channels = <AndroidNotificationChannel>[];
+      await pumpApp(tester, channelReader: FakeChannelReader(channels));
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Channels'));
+      await tester.pumpAndSettle();
+
+      // Six properties per channel, all unregistered.
+      const propertiesPerCard = 6;
+      expect(
+        find.text('Not registered'),
+        findsNWidgets(notificationChannels.length * propertiesPerCard),
+      );
+
+      channels.add(systemChannel('fcm_sample_high'));
+
+      await openDrawer(tester);
+      await tester.tap(find.text('Inbox'));
+      await tester.pumpAndSettle();
+      await openDrawer(tester);
+      await tester.tap(find.text('Channels'));
+      await tester.pumpAndSettle();
+
+      // One channel's six rows are no longer unregistered — the count would be
+      // unchanged from the first visit if the page were showing a stale read.
+      expect(
+        find.text('Not registered'),
+        findsNWidgets((notificationChannels.length - 1) * propertiesPerCard),
+      );
     },
   );
 

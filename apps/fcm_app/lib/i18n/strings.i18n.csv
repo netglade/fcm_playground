@@ -14,6 +14,7 @@ drawer.scenarios,Scenarios,Scénáře,Drawer destination
 drawer.sandbox,Sandbox,Sandbox,Drawer destination
 drawer.runs,Runs,Běhy,Drawer destination
 drawer.telemetry,Telemetry,Telemetrie,Drawer destination
+drawer.channels,Channels,Kanály,Drawer destination
 inbox.registration_token,Registration token,Registrační token,Tile above the FCM token
 inbox.empty,No pushes received yet.,Zatím nedorazil žádný push.,Empty state
 inbox.malformed_dropped.one,$n malformed payload dropped,$n poškozený payload zahozen,Banner counting payloads the parser refused
@@ -313,3 +314,16 @@ channels.dnd_bypass.description,Requested. Granted only with notification-policy
 channels.alarms.name,Alarms,Budíky,Android channel name; h2
 channels.alarms.description,Uses the alarm audio stream rather than the notification one.,Používá zvukový kanál budíku místo oznámení.,Android channel description; h2
 channels.group.chat.name,Chat,Chat,"Android channel group heading; d8. A product word, so the same in both"
+channels.title,Notification channels,Kanály oznámení,AppBar title on the Channels page
+channels.requested,Requested,Vyžádáno,"Column heading: what the app asked Android for"
+channels.reported,Reported by the system,Hlášeno systémem,"Column heading: what Android answered"
+channels.not_registered,Not registered,Neregistrováno,Shown when the system holds no channel with this id
+channels.importance,Importance,Důležitost,Row label on a channel card
+channels.sound,Sound,Zvuk,Row label on a channel card
+channels.vibration,Vibration,Vibrace,Row label on a channel card
+channels.bypass_dnd,Bypasses Do Not Disturb,Obchází Nerušit,Row label on a channel card
+channels.group_label,Group,Skupina,"Row label on a channel card; not channels.group.chat.name, which already exists as a nested key for the group heading"
+channels.badge,Shows a badge,Zobrazuje odznak,Row label on a channel card
+channels.try_lower,Try to lower it,Zkusit snížit,"Button on chat_v1; performs d7 by asking Android to change a frozen importance"
+channels.immutability_hint,Importance is frozen when a channel is created. Press this and watch the reported value stay put.,"Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne.",Explains what the d7 button does
+channels.refresh,Refresh,Načíst znovu,AppBar action on the Channels page
