@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Generate res/raw/chime.wav, the sound d5_custom_sound plays.
 
-Generated rather than sourced: no licence question, byte-identical on every
-machine, and a reader can see exactly what it is. Run from apps/fcm_app:
+Generated rather than sourced: no licence question, byte-identical on repeated
+runs on the same machine, and a reader can see exactly what it is. Not
+guaranteed byte-identical across different machines or platforms — that rests
+on libm's sin() agreeing to the last bit, which the IEEE 754 standard does not
+require. Run from apps/fcm_app:
 
     python3 tool/generate_chime.py
 

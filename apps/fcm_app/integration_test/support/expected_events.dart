@@ -287,7 +287,7 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
 String? skipReasonFor(Scenario scenario) {
   if (scenario.needs.isNotEmpty) {
     // `name` rather than a localized label: this is a skip reason in a test
-    // report, not UI. `needs channels, styles` reads as well as the prose did,
+    // report, not UI. `needs interaction, styles` reads as well as the prose did,
     // and the enum name is stable where a translated label would mean building
     // translations inside the Patrol harness for no benefit.
     return 'needs ${scenario.needs.map((need) => need.name).join(', ')}';

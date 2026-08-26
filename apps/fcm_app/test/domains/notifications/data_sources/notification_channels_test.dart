@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Every `channel_id` named by a scenario this app is expected to serve.
 ///
 /// Scenarios blocked by some other unbuilt need are skipped: `f8_full_screen_intent`
-/// names `interaction` and `g1_group_summary` names `targeting`, and neither belongs
+/// and `g1_group_summary` both name `interaction`, and neither belongs
 /// to the channels sub-project, which is finished. Guessing their importance here
 /// would be worse than not having them — Android freezes a channel's importance at
 /// creation, so a wrong guess is permanent on every device that ran it. h1's need
@@ -58,16 +58,19 @@ void main() {
       expect(ids.toSet(), hasLength(ids.length));
     });
 
-    test('files both chat channels under one group, with frozen importances', () {
-      final v1 = channelById('chat_v1')!;
-      final v2 = channelById('chat_v2')!;
+    test(
+      'files both chat channels under one group, with frozen importances',
+      () {
+        final v1 = channelById('chat_v1')!;
+        final v2 = channelById('chat_v2')!;
 
-      expect(v1.groupId, chatChannelGroupId);
-      expect(v2.groupId, chatChannelGroupId);
-      // d7's whole point: the two differ in the one property Android will not
-      // let the app change after creation.
-      expect(v1.importance, isNot(v2.importance));
-    });
+        expect(v1.groupId, chatChannelGroupId);
+        expect(v2.groupId, chatChannelGroupId);
+        // d7's whole point: the two differ in the one property Android will not
+        // let the app change after creation.
+        expect(v1.importance, isNot(v2.importance));
+      },
+    );
 
     test('carries the properties h1 and h2 turn on', () {
       expect(channelById('dnd_bypass')!.bypassDnd, isTrue);
@@ -96,7 +99,8 @@ void main() {
           expect(
             t.channelDescription(channel.id),
             isNotEmpty,
-            reason: '${channel.id} has no description in ${locale.languageCode}',
+            reason:
+                '${channel.id} has no description in ${locale.languageCode}',
           );
         }
         expect(t.chatChannelGroupName, isNotEmpty);

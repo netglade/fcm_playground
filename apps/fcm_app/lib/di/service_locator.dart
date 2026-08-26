@@ -71,9 +71,10 @@ Future<void> configureDependencies({
     onBackgroundMessage,
     options ?? DefaultFirebaseOptions.currentPlatform,
   );
-  // One instance shared with the channel reader below: both merely talk to the
-  // same platform channel, so two instances would work too, but one is the
-  // honest picture of what this app has open on the plugin.
+  // Shared with the channel reader below, though "shared" undersells it:
+  // `FlutterLocalNotificationsPlugin()` is a factory constructor that always
+  // returns the same singleton instance, so there is no second one to have
+  // instead — this is simply the one the plugin hands out.
   final plugin = FlutterLocalNotificationsPlugin();
   final presenter = await _startPresenter(plugin);
   getIt
