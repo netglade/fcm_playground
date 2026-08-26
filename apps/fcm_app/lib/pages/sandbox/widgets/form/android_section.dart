@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
 import '../../../../../i18n/translations.g.dart';
-import '../../../forms/android_config_form.dart';
-import '../enum_field.dart';
-import '../form_section.dart';
-import '../string_map_rows.dart';
-import '../tristate_field.dart';
+import '../../forms/android_config_form.dart';
+import 'enum_field.dart';
+import 'form_section.dart';
+import 'string_map_rows.dart';
+import 'tristate_field.dart';
 import 'android_notification_section.dart';
 import 'fcm_options_section.dart';
 

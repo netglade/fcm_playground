@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../i18n/translations.g.dart';
-import '../../../forms/fcm_message_form.dart';
-import '../form_section.dart';
-import '../string_map_rows.dart';
+import '../../forms/fcm_message_form.dart';
+import 'form_section.dart';
+import 'string_map_rows.dart';
 import 'android_section.dart';
 import 'apns_section.dart';
 import 'fcm_options_section.dart';

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../i18n/translations.g.dart';
-import '../../../forms/webpush_config_form.dart';
-import '../form_section.dart';
-import '../path_rows_field.dart';
-import '../string_map_rows.dart';
+import '../../forms/webpush_config_form.dart';
+import 'form_section.dart';
+import 'path_rows_field.dart';
+import 'string_map_rows.dart';
 import 'webpush_fcm_options_section.dart';
 
 /// Edits `webpush` — what FCM hands to a browser's push gateway.

@@ -1,5 +1,5 @@
 import 'package:fcm_app/pages/sandbox/forms/fcm_message_form.dart';
-import 'package:fcm_app/pages/sandbox/widgets/form/sections/message_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/message_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glade_forms/glade_forms.dart';

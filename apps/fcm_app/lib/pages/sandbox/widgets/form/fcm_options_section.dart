@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../i18n/translations.g.dart';
-import '../../../forms/fcm_options_form.dart';
-import '../form_section.dart';
+import '../../forms/fcm_options_form.dart';
+import 'form_section.dart';
 
 /// Edits the platform-independent `fcm_options` block. The APNs and WebPush
 /// blocks carry extra fields FCM rejects here, so they have sections of their own.

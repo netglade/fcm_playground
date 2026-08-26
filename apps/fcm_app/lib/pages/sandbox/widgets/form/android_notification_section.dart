@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
 import '../../../../../i18n/translations.g.dart';
-import '../../../forms/android_notification_form.dart';
-import '../enum_field.dart';
-import '../form_section.dart';
-import '../string_list_rows.dart';
-import '../tristate_field.dart';
+import '../../forms/android_notification_form.dart';
+import 'enum_field.dart';
+import 'form_section.dart';
+import 'string_list_rows.dart';
+import 'tristate_field.dart';
 import 'light_settings_section.dart';
 
 /// Edits `android.notification` — 27 fields, the largest section in the form.

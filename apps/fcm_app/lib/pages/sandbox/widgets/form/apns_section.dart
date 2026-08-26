@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../i18n/translations.g.dart';
-import '../../../forms/apns_config_form.dart';
-import '../form_section.dart';
-import '../path_rows_field.dart';
-import '../string_map_rows.dart';
+import '../../forms/apns_config_form.dart';
+import 'form_section.dart';
+import 'path_rows_field.dart';
+import 'string_map_rows.dart';
 import 'apns_fcm_options_section.dart';
 
 /// Edits `apns` — what FCM hands to Apple's push service.

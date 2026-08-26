@@ -5,7 +5,7 @@ import '../../i18n/scenario_text.dart';
 import '../../i18n/translations.g.dart';
 import 'cubit/sandbox_cubit.dart';
 import 'cubit/sandbox_state.dart';
-import 'widgets/form/sections/message_section.dart';
+import 'widgets/form/message_section.dart';
 import 'widgets/manual_steps_block.dart';
 import 'widgets/scenario_needs_banner.dart';
 import 'widgets/send_footer.dart';
