@@ -1,719 +1,147 @@
 # FCM sample app
 
-A small Flutter monorepo that receives Firebase Cloud Messaging pushes, set up
-with **fvm** (pinned SDK), **melos** (workspace scripts) and **DCM** (static
-analysis).
+A Flutter app that receives Firebase Cloud Messaging (FCM) pushes, a
+catalogue of payloads built to send at it, and a small server that sends
+them. It exists to show how notifications actually behave across a device's
+states, and how to structure an app around that — not to be a real product.
+Three workspace members make it up: `apps/fcm_app` (the app), `apps/fcm_api`
+(the server), and `packages/fcm_gallery_shared` (the payload types and
+templates both sides import).
 
-## Layout
+## Setup
 
-```
-.
-├── .fvmrc                      Flutter SDK pin (3.44.8)
-├── pubspec.yaml                pub workspace root + melos config
-├── analysis_options.yaml       shared analyzer, linter and DCM rules
-├── apps/fcm_app/               Flutter app (Android, iOS, web)
-├── apps/fcm_api/               local HTTP server that sends pushes through FCM
-├── packages/core/              pure Dart: push payload model + parser
-└── packages/fcm_gallery_shared/ pure Dart: the contract the app and API share
-```
+### Prerequisites
 
-`packages/core` has **no Flutter dependency**. The message model and the payload
-parser live there so they can be tested with plain `dart test`, with no device,
-no Flutter binding and no Firebase project. Everything plugin-shaped lives in
-the app behind `PushSource`, an interface with two implementations
-(`FirebasePushSource`, `DisabledPushSource`) plus a fake in the tests — which is
-why the widget tests never touch Firebase.
-
-`packages/fcm_gallery_shared` holds what the two sides must agree on: FCM's own
-`Message` model, typed as `FcmMessage` and its nested blocks
-(`AndroidConfig`, `ApnsConfig`, `WebpushConfig`, `FcmNotification`, …), the
-scenario gallery's raw payload templates, and the `/send` request and response
-DTOs. It no longer depends on `core` for anything — the inbox's four reserved
-`data` keys are `core`'s concern alone, and this package only knows the shape
-FCM itself defines.
-
-`apps/fcm_api` is a plain `shelf` server, not a Cloud Function: `dart run` and
-`curl` are the whole story, and the interesting logic — the FCM v1 payload and
-the status mapping — is pure and unit-tested without a credential.
-
-## Prerequisites
-
-- [fvm](https://fvm.app) — the SDK itself is downloaded by fvm, not installed by hand
+- [fvm](https://fvm.app) — the pinned Flutter SDK is fetched by fvm, not
+  installed by hand
 - [DCM](https://dcm.dev) on `PATH`, with a license activated (`dcm license`)
 
-Everything else comes from `pub get`, melos included.
+Everything else, melos included, comes from `pub get`.
 
-## Getting started
+### Firebase project
 
-```bash
-fvm install                     # fetch the SDK named in .fvmrc
-fvm dart pub get                # resolve the workspace (needed once, for melos)
-fvm dart run melos bootstrap    # link packages, generate IDE files
-fvm dart run melos run ci       # format check → analyze → DCM → tests
-```
-
-`melos` is a dev dependency of the workspace root rather than a global install,
-so the version is pinned per checkout. Run it as `fvm dart run melos …` — that
-routes through the fvm-pinned Dart, so a globally activated `melos` (which needs
-a `dart` on `PATH`) is not required.
-
-## Scripts
-
-| Command | What it does |
-| --- | --- |
-| `melos run analyze` | `dart analyze --fatal-infos --fatal-warnings` per package |
-| `melos run dcm` | `dcm analyze --fatal-style --fatal-warnings` over the workspace |
-| `melos run format` | format all Dart sources in place |
-| `melos run format:check` | fail if anything is unformatted |
-| `melos run fix` | apply automated analyzer fixes |
-| `melos run api:serve` | run the send API on `127.0.0.1:8080` |
-| `melos run test:core` | `dart test` in pure-Dart packages |
-| `melos run test:app` | `flutter test` in Flutter packages |
-| `melos run test` | both suites |
-| `melos run ci` | the full gate, in order |
-
-Each script shells out through `fvm`, so the pinned SDK is used no matter what
-is on `PATH`. Note `fvm exec dcm …` rather than `fvm dcm …`: fvm only proxies
-`dart` and `flutter`, and `exec` is how third-party tools get the pinned SDK.
-
-**Every `melos run` needs `--no-select` in a non-interactive shell** —
-`fvm dart run melos run --no-select ci`, not `fvm dart run melos run ci` —
-or melos prompts for a package to run against and dies with
-`StdinException: Error getting terminal echo mode`, which reads like a broken
-toolchain rather than a missing flag.
-
-## Languages
-
-English and Czech, switched from the `translate` icon in the AppBar — System
-(follows the device), English, or Čeština — with the choice persisted across
-launches. `apps/fcm_app/lib/i18n/strings.i18n.csv` is the single source of
-truth for both languages: edit it, run `melos run l10n`, and commit the
-regenerated `lib/i18n/translations*.g.dart` alongside the CSV change.
-
-The header must stay exactly `key,en,cs,(description)`. The parentheses are
-load-bearing — without them slang reads the fourth column as a third locale
-rather than as metadata — and the description's text becomes the doc comment
-on the generated getter, so it is what shows up in the IDE when a widget calls
-it. **Quote every prose cell.** An unquoted comma silently splits the row, and
-the failure only surfaces much later, as a key that mysteriously will not
-resolve.
-
-Keys are snake_case dotted paths. Plurals are sibling rows —
-`key.one`, `key.few`, `key.other` — because Czech distinguishes a `few` form
-(counts 2–4) that English does not. Where English draws no distinction, its
-`few` row deliberately repeats the `other` text; that repetition is not
-something to tidy away. Conversely, `run_tile.sends` has no Czech `few` row at
-all, because *odeslání* is invariant across every count in Czech — an absent
-row can be as deliberate as a present one. Interpolation is `$name` or
-`${name}`, never ICU's `{name}` braces.
-
-Never leave a `cs` cell empty. `test/i18n/csv_coverage_test.dart` fails on it
-on purpose: a missing translation needs a person to notice a red test, not a
-silent fallback to English.
-
-`melos run l10n` is not part of `melos run ci`, for the same reason
-`melos run generate` is not: the generated files are committed, so a fresh
-clone analyses and tests without a codegen step. The cost is remembering to
-regenerate after editing the CSV, and that is exactly what
-`test/i18n/csv_coverage_test.dart` catches.
-
-A scenario's prose is not on `Scenario` any more — it is filed in the CSV
-under the scenario's `l10nKey` (the `scenario.<key>.*` rows) and read through
-the six accessors in `lib/i18n/scenario_text.dart`. Adding a scenario means
-adding a row per field there, not a string on the class. `l10nKey` equals
-`id` for every scenario today and is still its own field: `id` is a protocol
-value — it rides in `data.scenario_id` on every push and is what telemetry
-joins on — so a rename made for protocol reasons must not be able to silently
-repoint a scenario's prose at a translation key the CSV does not have.
-
-What stays English, and why:
-
-- **The payload form's field labels** — they mirror FCM's own REST field
-  names, and translating them would break the link to Google's reference docs.
-- **`payloadTemplate` contents and `wireName` values** — wire data, not UI copy.
-- **`ApiError.message` from the server** — which means an error can
-  legitimately read half Czech, half English, and that is accepted rather than
-  papered over.
-- **The notification channel's name and description.** Android creates a
-  channel once and keeps the name it had at creation; re-labelling it on every
-  language change would mean re-creating the channel, and risks resetting the
-  user's own importance setting, which lives on the channel rather than in the
-  app.
-
-The background isolate that draws a reply notification reads the stored
-locale and calls `LocaleSettings.setLocaleSync` itself — never
-`LocaleSettings.useDeviceLocaleSync()`, which `main()` uses for the
-no-override case. That call resolves through `WidgetsBinding.instance`, and
-this isolate never creates one; the constraint is written at the call site in
-`notification_reply.dart` and should stay that way rather than being
-simplified away.
-
-## Debugging in VS Code
-
-`.vscode/launch.json` and `.vscode/settings.json` are tracked; the rest of
-`.vscode/` is not. Four configurations, all with `cwd` set to `apps/fcm_app`
-because the repo root is a pub workspace rather than a Flutter project:
-
-| Configuration | Target |
-| --- | --- |
-| `fcm_app · Android phone` | the phone pinned by serial, debug mode |
-| `fcm_app · Android phone (profile)` | same phone, profile mode for real frame times |
-| `fcm_app · pick device` | whatever is selected in the status bar — use this on another machine |
-| `fcm_app · Chrome` | Chrome on a fixed port, `http://localhost:5555` |
-
-`dart.flutterSdkPath` in `settings.json` points the Dart extension at
-`.fvm/flutter_sdk`. **This is what makes the launch configs work** — without it
-the extension searches `PATH`, where a fvm-only machine has no Flutter at all.
-
-Two things worth knowing about `deviceId`:
-
-- `flutter run -d` matches a **prefix of the device id or name**, not a platform.
-  `"deviceId": "android"` resolves to nothing. The Android configs therefore pin
-  a serial; run `fvm flutter devices` and substitute yours, or use
-  `fcm_app · pick device`.
-- `"deviceId": "chrome"` works because that is literally the device's id.
-
-The web port is fixed rather than random because Firebase authorised domains and
-CORS allowlists are configured per origin, and a moving port makes that
-unworkable. Note that push on web additionally needs a
-`web/firebase-messaging-sw.js` service worker, which `flutterfire configure`
-does not generate for you.
-
-## Tooling notes
-
-**fvm.** `.fvmrc` is tracked; `.fvm/` (the SDK cache) is not. To move the whole
-repo to another SDK, `fvm use <version>` and commit the changed `.fvmrc`.
-
-**pub workspaces.** The root `pubspec.yaml` lists members under `workspace:`,
-and each member declares `resolution: workspace`. One `pubspec.lock` and one
-`.dart_tool` at the root, so `melos bootstrap` is a single resolve rather than
-one per package. Member lockfiles are gitignored because they should not exist.
-
-**melos 8.** Configuration lives under the `melos:` key in the root
-`pubspec.yaml`. A separate `melos.yaml` is *not* read when the root is a pub
-workspace.
-
-**DCM.** Configured under `dart_code_metrics:` in the root
-`analysis_options.yaml`; both packages inherit it via `include:`. The analyzer
-supports a list of includes, so each package combines the shared config with its
-own lint preset — `flutter_lints` for the app, `lints` for `core`.
-
-## Firebase project
-
-The project is **`fcm-sandbox-770fa`**, recorded in two places:
-
-- `.firebaserc` — read by the `firebase` CLI, so its commands default to this project
-- `firebaseProjectId` in `apps/fcm_app/lib/firebase_setup.dart` — used by
-  `firebase_options.dart` for all three platforms
-
-### Still needed before push works
-
-`apiKey`, `appId` and `messagingSenderId` in
-`apps/fcm_app/lib/firebase_options.dart` are **still placeholders**. They are
-per-app credentials issued by Firebase and cannot be derived from the project id,
-so they have to be fetched:
+The project is `fcm-sandbox-770fa`, recorded in `.firebaserc` and in
+`firebaseProjectId` in `apps/fcm_app/lib/firebase_setup.dart`. `apiKey`,
+`appId` and `messagingSenderId` in `apps/fcm_app/lib/firebase_options.dart`
+ship as placeholders — they are per-app credentials Firebase issues and
+cannot be derived from the project id — so fetch real ones once:
 
 ```bash
-npm install -g firebase-tools && firebase login   # the CLI is not installed yet
+npm install -g firebase-tools && firebase login
 fvm dart pub global activate flutterfire_cli
-cd apps/fcm_app
-fvm exec flutterfire configure --project=fcm-sandbox-770fa
+cd apps/fcm_app && fvm exec flutterfire configure --project=fcm-sandbox-770fa
 ```
 
-That overwrites `firebase_options.dart` with real values — the placeholder file
-deliberately mirrors the generated shape, so it is a straight overwrite — and
-handles the Android Gradle and iOS wiring. `google-services.json` and
-`GoogleService-Info.plist` are gitignored; they are per-developer, not per-repo.
+That overwrites `firebase_options.dart` with real values and wires the
+Android and iOS project files. Until you do this the app still runs: it
+falls back to a disabled push source and shows a banner with the commands
+above, instead of crashing on a Firebase init that cannot succeed.
 
-Until then the app still runs. `main()` compares `apiKey` against the sentinel in
-`firebase_setup.dart`, throws before `Firebase.initializeApp`, falls back to
-`DisabledPushSource`, and the UI shows a banner with the commands above. The check
-keys off `apiKey` rather than `projectId` precisely because the project id is now
-real — a real key is the thing that is still missing.
+### Bootstrap
 
-## Message format
+Run these from the repo root, not from `apps/fcm_app` or `apps/fcm_api` — the
+root is a pub workspace, and it alone owns dependency resolution and the
+melos scripts.
 
-What the Sandbox sends is FCM's own v1 `Message` object — typed in
-`packages/fcm_gallery_shared` as `FcmMessage`, with nested blocks for
-`notification`, `android`, `webpush`, `apns` and `fcm_options`. A `Scenario`
-holds a raw JSON template of that object, so it can be pasted straight out of
-[Google's REST reference](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages)
-without translation; the Sandbox's form lets you change the template before
-sending.
-
-`apps/fcm_api`'s `POST /send` is a passthrough. It takes
-
-```json
-{"token": "<registration token>", "validate_only": false, "message": {"…": "…"}}
+```bash
+fvm install                             # fetch the SDK named in .fvmrc
+fvm dart pub get                        # resolve the workspace (needed once, for melos)
+fvm dart run melos bootstrap            # link packages, generate IDE files
+fvm dart run melos run --no-select ci   # format check → analyze → DCM → tests
 ```
 
-parses `message` with `FcmMessage.fromJson`, injects `token` as the delivery
-target — a template must not set its own `token`, `topic` or `condition`, and
-is rejected if it does — forwards the result to FCM verbatim, and on success
-answers
+melos is a dev dependency of the workspace root, not a global install, so run
+it as `fvm dart run melos …`. In a non-interactive shell, every `melos run`
+needs `--no-select`, or melos prompts for a package to run against and dies
+with `StdinException: Error getting terminal echo mode`.
 
-```json
-{"messageId": "projects/p/messages/0:1234…", "sentAt": "2026-08-12T09:30:00Z"}
+### Running the app
+
+```bash
+cd apps/fcm_app && fvm flutter run
 ```
 
-The parser is strict: an unknown key anywhere inside `message`, at any depth,
-is rejected with the JSON path that named it, for example
-`{"error": "message.android.notification: unknown field \"titel\""}`, rather
-than being silently dropped or sent as something else. `apns.payload`,
-`webpush.notification` and every `data` map are the exception — FCM defines
-those as free-form, so whatever is inside them passes through unexamined,
-`aps` dictionary included. The model reads and writes the same snake_case keys
-FCM's REST API does (`fcm_options`, `validate_only`, …), so a payload copied
-from Google's docs round-trips through `FcmMessage.fromJson`/`.toJson()`
-unchanged.
+The first Android build needs core library desugaring enabled, or
+`:app:checkDebugAarMetadata` fails with `Dependency
+':flutter_local_notifications' requires core library desugaring to be
+enabled for :app`. This repo already sets `isCoreLibraryDesugaringEnabled =
+true` and adds `coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")`
+in `android/app/build.gradle.kts`, so a fresh clone builds clean — worth
+knowing if that file ever gets touched.
 
-On arrival, `core`'s parser treats `title` and `body` as optional: a data-only
-push, with no `notification` block at all, still reaches the inbox, showing a
-`(no title)` placeholder in place of the missing headline. As a result,
-`PushInbox.rejections` is now a **rare** signal rather than an expected one —
-only a blank `id` or an unparseable `sentAt` still trips it. Neither comes from
-the server: the client fills them from the FCM envelope itself (`messageId` and
-`sentTime`) and then spreads the message's own `data` over the top, so they are
-always present unless a `data` entry overrides one of them with something
-broken. Adding `id` or `sentAt` to the `data` map in the Sandbox form is
-therefore the one way to trip it on purpose.
+### Running the API
 
-**A real loss of observability:** the send response no longer carries a
-payload id — only FCM's own `messageId`, which has no relationship to
-anything the inbox stores. Matching a send to its arrival therefore needs an
-`id` you put in the message's `data` map yourself; there is no longer any
-other way to tell which arriving push came from which send.
-
-## The payload form
-
-The Sandbox edits the message through a form, not a JSON text field. Ten
-collapsible sections mirror FCM's own objects one for one — `message`,
-`notification`, `android`, `android.notification`, `android.notification.
-light_settings`, `apns`, `webpush` and the three `fcm_options` variants — nesting
-four levels deep exactly as the payload does. Every section starts closed except
-the outermost, so arriving shows the payload's shape rather than a wall of
-fields; each header carries an error badge that lights when anything inside it is
-invalid, at any depth, so a bad field cannot hide behind a closed section while
-Send sits disabled.
-
-**Optional booleans are tristate, and that is not a nicety.** FCM distinguishes
-"absent" from "false": omitting `direct_boot_ok` leaves the platform default in
-place, while sending `false` states a choice. A plain checkbox has only two
-states and would silently send `false` for every flag the user never touched, so
-each one offers unset / true / false and shows "Not sent" when unset. The same
-rule drives the text fields — an empty box means the key is omitted, not sent as
-`""` — and emptying a list or map editor omits the key rather than sending `[]`
-or `{}`.
-
-**`apns.payload` and `webpush.notification` are edited as dotted-path rows**
-(`aps.alert.title`, `aps.badge`) instead of nested controls. FCM defines both as
-free-form — Apple's `aps` dictionary is Apple's, not Google's — so no form can
-enumerate their fields. Rows expand back into nested JSON on send, with numeric
-path segments becoming list indices.
-
-**The accepted limitation: there is no JSON escape hatch.** Only fields the form
-models can be sent. That is the deliberate trade for a form that cannot produce
-a malformed payload, and the typed model in `packages/fcm_gallery_shared` covers
-the whole of FCM's v1 `Message`, so the gap is FCM's future additions rather
-than its present surface. All 66 catalogue scenarios round-trip through the form
-unchanged — a test asserts it, so a field missing from a form fails the build.
-
-## The scenario catalogue
-
-The Scenarios page (drawer → Scenarios, one of five destinations alongside
-Inbox, Sandbox, Runs and Telemetry) holds **66 scenarios in eleven groups,
-A–K**, mirroring the FCM playground test plan. Tapping one applies its payload
-to the Sandbox form and switches you there; ticking several and scheduling
-them instead sends you to Runs, as one run with a spacing between them. The
-groups are the facets of FCM each scenario probes: basic delivery, app states,
-priority and delivery window, channels and importance, appearance,
-interaction, groups and badges, intrusive delivery, silent and data,
-targeting, and edge cases.
-
-**32 of the 66 work today.** The rest carry a marker naming what is missing —
-notification channels, notification styles, a launcher badge, a device registry,
-a manual step, approval from Apple or the OS that this project cannot grant
-itself, or native code this Dart-only gallery has decided not to carry. That
-count is asserted by a test, so this README cannot drift from the code: if a
-scenario is quietly unmarked to look supported, the build fails.
-
-A blocked scenario is **still sendable**. The push is genuine and valid; only the
-behaviour it demonstrates is missing, and watching a client that has only one
-notification channel receive a payload aimed at another is itself worth seeing.
-The banner above the form says what is missing rather than disabling Send. Where
-a payload cannot produce the scenario at all — a reboot, a Doze window, a revoked
-permission — the scenario carries the exact command or procedure in a selectable
-block, because an adb line that cannot be copied is one that will be mistyped.
-
-Every one of the 66 templates round-trips `raw → FcmMessage → raw` unchanged, and
-none may set its own delivery target at any depth. Both are asserted across the
-whole catalogue, which is what makes 66 hand-written templates trustworthy.
-
-## Choosing who receives a send
-
-The delivery target lives in the **send envelope**, never in the payload:
-`FcmMessage` rejects `token`, `topic` and `condition` outright, so a template
-pasted out of Google's reference cannot quietly broadcast. The Sandbox offers one
-selector above the form — this device, an explicit token, a topic, a condition, or
-every device — and the button names the audience it will actually send to.
-
-Only a send to *this device* needs this device's registration token; a topic or a
-condition names its own audience. **Every device is refused with a 501** and a
-stated reason: FCM has no such audience, so honouring it needs a registry of
-tokens this API does not keep.
-
-`curl` examples below are unchanged by this, because the target sits at the top
-level of the request exactly where `token` always did.
-
-## Telemetry
-
-Every send gets a `trace_id`, and both sides record events against it, so
-`sent → received` latency is a number rather than an impression. That is the point
-of the whole thing: it turns *"push feels slow on Xiaomi"* into *"median 4m12s on
-Xiaomi, 1.1s on Pixel, same payload, same minute"*.
-
-**The API mints the trace id**, not the app, and injects it into `data.trace_id`.
-Three reasons: none of the 66 catalogue templates carries one, so templates stay
-untouched and their round-trip invariant is unaffected; the API is the only party
-present for `queued`, `sent` and `send_failed`; and a send made by hand with `curl`
-gets a trace id too, which is how half of this project's testing happens. It also
-injects `data.scenario_id`, because **the payload a scenario produces does not
-identify the scenario** — without the sender naming it, the scenario axis of the
-matrix would be empty. Both are reserved keys in `PushMessageParser`, so neither
-shows up as an "extra data" row in the inbox.
-
-Ten events, nine of which are recorded today:
-
-| Event | Where it comes from |
-| --- | --- |
-| `queued`, `sent`, `send_failed` | the API. `send_failed` carries FCM's error **code**, which is what groups a hundred failures into three causes |
-| `received_fg` | the foreground stream |
-| `received_bg` | the background handler — **data payloads only**, since a notification-only push never wakes it |
-| `displayed` | after the local notification is actually drawn, never before |
-| `opened` | a tap, carrying which of `foreground` / `background` / `killed` the app was in. On Android the tap is reported as the app resumes, *before* the payload carrying the trace id exists, so it is held and reported once that arrives |
-| `action` | pressing an action button or an inline reply, but **Android only** — iOS takes actions from a `UNNotificationCategory` registered at startup, and a per-message payload cannot reach one |
-| `dismissed` | a swipe, but **Android only** — the plugin's dismissal report lives on `AndroidNotificationDetails` alone, so iOS has no route to it — and only for notifications the app itself drew, and only while the process is still running |
-| `not_received` | the one event a human asserts, and the only evidence available when the interesting answer is silence |
-
-`opened` records its "from which state" qualifier as of this branch. `dismissed` is
-the one event still short of what it should carry: it is produced now, but only on
-Android, only for a banner the app itself drew — foreground or background, since
-both go through the same builder — and only while the process is still alive to
-receive the callback. A swipe after the process has been killed, and any FCM-drawn
-tray entry, reaches no isolate at all and shows a permanently blank row. `action`
-carries the same Android-only limitation, for the same underlying reason as the
-buttons themselves: iOS takes actions from a `UNNotificationCategory` registered at
-startup, and a per-message payload cannot reach one, so no iOS device ever
-produces this event. That includes an inline reply — it is still an
-`AndroidNotificationAction`, just one that takes typed input rather than a bare
-press, and it reaches this same event with `detail: 'reply'`.
-
-**Events buffer on the device and flush to `POST /events`.** They are deleted only
-once the API acknowledges them, and only the ones acknowledged — a blanket clear
-after a partial flush would lose whatever arrived during it, which is the common
-case rather than an edge one. `record` never throws, because it is called from
-inside push handlers and a throw there would take down delivery itself. The
-background handler buffers without flushing: its isolate can be killed mid-request,
-and the event would go with it.
-
-**A negative latency means the clocks disagree, not that delivery beat the send.**
-`GET /latency` reports both timestamps rather than clamping to zero, because
-clamping turns a measurement error into a false result — and a "1 ms on Xiaomi"
-would discredit every other number in the system.
-
-**The device is identified by a generated id plus a label you type.** Not the FCM
-token: it rotates on reinstall and clear-data, which would split one handset into
-several columns — and `b6_token_refresh` exists precisely to make that happen. No
-automatic value is as useful as "Xiaomi 13" typed by someone who knows which phone
-is on the desk.
-
-**No telemetry on web.** `drift_flutter`'s web path needs a `sqlite3.wasm` and a
-drift worker shipped as assets, and the app cannot receive a push on web at all
-without a VAPID key — so there is nothing there for a buffer to hold.
-
-**The Telemetry page (drawer → Telemetry)** is where this surfaces on the device
-itself: an Events tab listing every trace with all ten rows, arrived or not, and a
-Latency tab drawing the `scenario × device` matrix above from `GET /latency`.
-Neither tab polls — the arrival of a push is reported by the device, not by this
-page, so a refresh button reloads both.
-
-### Independent confirmation
-
-FCM can export delivery data to BigQuery, where Google reports how many messages it
-dropped and why — `DROPPED_DEVICE_INACTIVE`, `DROPPED_TOO_MANY_MESSAGES`. Enabled in
-the Firebase console under Cloud Messaging, not here.
-
-It answers the one question our own telemetry cannot: when a message never arrived,
-whether **Google** dropped it or the **handset** did. Our events end at the network;
-Google's begin there. It is therefore the arbiter when our numbers and a tester
-disagree, and worth turning on before trusting either.
-
-## Sending a test push
-
-The Sandbox page (drawer → Sandbox) composes a payload and sends it to the
-device the app is running on, through `apps/fcm_api`. *Schedule…* holds the
-same payload for later instead of sending it now, landing it on the Runs page
-(drawer → Runs) rather than in the Inbox until it fires.
-
-**One-time:** download a service account key from the
-[Firebase console](https://console.firebase.google.com/project/fcm-sandbox-770fa/settings/serviceaccounts/adminsdk)
-(**Generate new private key**) and save it outside the repo, e.g.
-`~/.config/fcm-sandbox-service-account.json`. It grants send rights on the whole
-project, so it is not committed — `*service-account*.json` is gitignored as a
-second line of defence.
-
-Run the API:
+`apps/fcm_api` is a development tool, not a production service: no
+authentication, bound to loopback only.
 
 ```bash
 GOOGLE_APPLICATION_CREDENTIALS=~/.config/fcm-sandbox-service-account.json \
-  fvm dart run melos run api:serve
+  fvm dart run melos run --no-select api:serve
 ```
 
-It listens on `127.0.0.1:8080` and takes `FCM_PROJECT_ID` and `PORT` as optional
-overrides. Check it with `curl -s http://127.0.0.1:8080/health`.
+It needs a service account key — Firebase console → Project settings →
+Service accounts → Generate new private key — referenced by
+`GOOGLE_APPLICATION_CREDENTIALS`. Telemetry events land in a SQLite file next
+to it by default; set `FCM_TELEMETRY_DB` to put it somewhere else. To reach
+the API from a physical Android device rather than an emulator, `adb reverse
+tcp:8080 tcp:8080`.
 
-The app defaults to `http://localhost:8080`, which needs one of:
+### End-to-end tests
 
-| Target | What makes `localhost` resolve |
-| --- | --- |
-| Physical Android device | `adb reverse tcp:8080 tcp:8080` |
-| Android emulator | `--dart-define=FCM_API_BASE_URL=http://10.0.2.2:8080` |
-| Anything else | `--dart-define=FCM_API_BASE_URL=http://<host>:8080` |
-
-Sending by hand instead:
+The Patrol suite needs `patrol_cli` activated globally. `melos bootstrap`
+does not install it, and the suite cannot run at all without it:
 
 ```bash
-curl -X POST http://127.0.0.1:8080/send \
-  -H 'content-type: application/json' \
-  -d '{"token":"<registration token from the Inbox page>",
-       "validate_only":false,
-       "message":{
-         "notification":{"title":"Build finished","body":"Release 1.0.0 is ready."},
-         "data":{"id":"msg-1","sentAt":"2026-08-12T09:30:00Z","deepLink":"/builds/42"}
-       }}'
+fvm dart pub global activate patrol_cli
 ```
 
-The `id` and `sentAt` above are read by `core`'s parser once the push arrives —
-they are plain `data` keys as far as FCM and this API are concerned, not
-something the server stamps. See [Message format](#message-format) above for
-why: the response no longer echoes an id, so the `id` in `data` is the only
-thing that ties a send to the row it produces in the inbox.
+`patrol_cli` and the `patrol` package are version-locked: the CLI declares a
+minimum `patrol` version and refuses to run against anything older. If a
+dependency re-resolution ever drifts `patrol` below that floor, every e2e
+target breaks at once — check both versions before assuming the app itself
+is at fault.
 
-Holding a send until the app is gone, which is what `b3_killed` needs:
+With the API running and a physical handset connected:
 
 ```bash
-curl -X POST http://127.0.0.1:8080/runs \
-  -H 'content-type: application/json' \
-  -d '{"delay_seconds":30,"spacing_seconds":0,
-       "items":[{"token":"<registration token>",
-                 "scenario_id":"b3_killed",
-                 "message":{"data":{"event":"killed_probe"},
-                            "android":{"priority":"HIGH"}}}]}'
+# shell 1
+GOOGLE_APPLICATION_CREDENTIALS=~/.config/fcm-sandbox-service-account.json \
+  fvm dart run melos run --no-select api:serve
+adb reverse tcp:8080 tcp:8080
+
+# shell 2
+fvm dart run melos run --no-select test:e2e
 ```
 
-It answers `201` with a `run_id` and a `due_at` per item, and sends nothing yet.
-Swipe the app away, then read the result back with
-`curl -s http://127.0.0.1:8080/runs/<run_id>` — each item carries its own
-telemetry, so `queued → sent → received_bg` is one response rather than a join you
-do by hand. `DELETE /runs/<run_id>` cancels whatever has not gone out; an item
-already on its way to FCM is past cancelling, and says so by staying `dispatching`
-or landing on `sent`.
+## Scripts
 
-**`POST /runs` has no idempotency key.** A response lost on the way back to the
-caller and retried creates a second run and a second set of pushes — the server has
-no way to tell "the same schedule again" from "a new one that happens to match".
-Every other write in this feature is safely repeatable; this is the one at-least-once
-path in it, worth knowing before retrying a call that might already have landed.
+Run any of these as `fvm dart run melos run --no-select <name>`:
 
-**A schedule survives the server being restarted.** Runs are stored in the same
-SQLite file as the telemetry, and the server sweeps them at startup: an item due
-within the last two minutes is sent immediately, and anything older is marked
-`missed` rather than delivered into a state nobody is watching.
-
-**The API is a development tool.** It has no authentication and binds loopback,
-so only the machine running it can reach it. Do not deploy it as is — bound to
-`0.0.0.0` it is an open relay to any token an attacker already holds.
-
-## Delayed sending
-
-`b3_killed` is the hardest scenario in the catalogue and the reason this exists: the
-send has to happen *after* the app is gone, so it cannot be a button the app presses.
-
-**A run is a group of sends created by one action, and a single delayed send is a run
-of one.** `POST /runs` stores it with an absolute due time per item; a one-second
-ticker in the server dispatches whatever has fallen due, through the same
-`sendMessage` an immediate send uses, so a scheduled push writes the same telemetry.
-The Sandbox schedules one message from *Schedule…*; the Scenarios page ticks any set
-of scenarios and schedules them as one run with a spacing between them.
-
-**Not Cloud Tasks, deliberately.** That would be right for a Cloud Function, whose
-container can be killed between accepting a request and firing a timer. This API is a
-long-lived loopback process, and the property that actually matters — a schedule that
-survives the process dying — comes from writing it to SQLite and sweeping it at
-startup, not from who owns the timer. Cloud Tasks would additionally mean deploying
-the API, which the warning above says not to do.
-
-**A run that came due while the server was down** is sent if it is less than two
-minutes late, and marked `missed` otherwise. Three hours late is worse than never: it
-arrives in a state nobody was observing and pollutes the latency figures it lands in.
-
-**Cancelling reaches only what has not gone out.** An item the scheduler has already
-claimed is on its way to FCM, and reporting it cancelled would be contradicted by the
-timeline a minute later. A crash mid-dispatch is resolved rather than guessed: the
-trace id is written before the send, so at startup the item's own telemetry says
-whether FCM ever answered.
-
-**The countdown counts on the phone's clock**, not against the server's `due_at`.
-Disagreeing clocks are a documented fact here — `GET /latency` reports both
-timestamps rather than clamping — and a ten-second skew would show "40 s remaining"
-with thirty seconds left. It keeps the screen on so the display does not sleep
-before you have swiped the app away. On Android that is `FLAG_KEEP_SCREEN_ON`, a
-window flag rather than a wakelock, which is why it needs no permission of its
-own; on iOS it is the idle timer. *"Dim the screen"* does not switch the display
-off: an ordinary Android app cannot, without DeviceAdmin. It dims and stops
-keeping the screen on, and the system's own timeout does the rest — which is what
-the screen says beside the button.
-
-**Coming back**, the app reopens the run it was waiting on, from an id in
-`shared_preferences` — the only thing that survives being swiped away. That timing is
-what makes the killed case readable: `received_bg` is buffered by the background
-isolate and flushed at the next launch, which is the moment you are looking at the
-timeline.
-
-## Notifications
-
-A received push is shown as a notification as well as landing in the inbox, and
-tapping either the notification or an inbox row opens a detail page for it.
-
-| When the push arrives | What draws the notification |
+| Script | What it does |
 | --- | --- |
-| App backgrounded or terminated, payload carries a `notification` block | FCM's own SDK, from the block `apps/fcm_api` sends. No app code involved. |
-| App backgrounded or terminated, payload is data-only | The background message isolate, via `shouldDrawInBackground`. Several scenarios are data-only on purpose: FCM's own draw has no field for action buttons, a group, an ongoing flag or a full-screen intent, so a scenario about any of those must be drawn by the app in every state. |
-| App in the foreground | `LocalNotificationPresenter`, because Android shows nothing itself in this case. On iOS a single `setForegroundNotificationPresentationOptions` call is enough. |
+| `analyze` | run the Dart analyzer, treating infos as failures |
+| `dcm` | run DCM over the whole workspace |
+| `format` | format all Dart sources in place |
+| `format:check` | fail if anything is unformatted |
+| `fix` | apply automated analyzer fixes |
+| `generate` | regenerate Drift's database code |
+| `l10n` | regenerate the typed translations from the CSV |
+| `api:serve` | run the send API on `127.0.0.1:8080` |
+| `test:core` | pure-Dart tests, no Flutter binding |
+| `test:app` | Flutter widget tests |
+| `test:e2e` | the device-driven Patrol suite |
+| `test` | `test:core` and `test:app` together |
+| `ci` | the full gate: `format:check`, `analyze`, `dcm`, `test` |
 
-All three use one high-importance Android channel, `fcm_sample_high`. The app creates
-it, and `AndroidManifest.xml` points FCM at the same id with
-`default_notification_channel_id` — without that, FCM's own background entries
-fall back to FCM's fallback channel at default importance and stop popping. The
-paths the app draws itself are unaffected, because each names the channel
-outright and the app has already created it.
+## Where to read next
 
-The inbox is durable: the newest 100 payloads are kept in `shared_preferences`
-and reloaded at launch, so a push that arrived while the app was away is there
-whether or not it was ever tapped. The background handler writes to a separate
-key that only it appends to, and the UI drains that key at launch and on every
-resume — two keys rather than one, so neither isolate read-modify-writes the
-other's data.
-
-**A push is never notified twice.** Only messages arriving on the live foreground
-stream produce a banner; anything restored from storage was already shown while
-the app was away — by FCM, or by the background isolate where the payload was
-data-only — so replaying it on launch is exactly what the code avoids.
-
-Notification permission is requested at startup by `firebase_messaging`, which
-covers Android 13+'s `POST_NOTIFICATIONS` grant. Denying it costs the banners
-and nothing else — the inbox still fills.
-
-The manifest also declares `WAKE_LOCK`, which nothing in this app uses directly:
-`firebase_messaging` declares it too, for the service that wakes the background
-handler, so the app's own line is redundant and kept only to say so out loud.
-
-Beside that, the manifest declares one further permission:
-`USE_FULL_SCREEN_INTENT`, purely so that `f8_full_screen_intent` has something
-to be refused. Android 14 and later grant it only to calling and alarm apps, so
-this one is expected to degrade to a heads-up notification rather than take over
-the lock screen — the refusal is what the scenario demonstrates. Declaring it is
-what makes that a refusal rather than a silent no-op: undeclared, Android never
-considers the request and f8 degrades for the wrong reason.
-
-## Verified on this machine
-
-`melos run ci` passes clean — 42 `core` tests, 238 `fcm_gallery_shared` tests, 218
-`fcm_api` tests and 638 `fcm_app` tests. `fvm flutter build web --release` succeeds
-(a compile check only: the web build cannot receive FCM pushes without a VAPID
-key). `fvm flutter build apk --debug` succeeds too — see below for the plugin
-that used to break it. The iOS build has **not** been verified here either;
-there is no Xcode on this machine.
-
-There is a fifth layer `melos run ci` does not run: `melos run test:e2e`, a Patrol
-suite in `apps/fcm_app/integration_test/` that drives the real app on a **connected
-Android device**, needs the API serving with `GOOGLE_APPLICATION_CREDENTIALS` set,
-and is deliberately excluded from the gate because a device-dependent suite has no
-business in a hermetic one. Of the catalogue's 66 scenarios, 26 run there; the other
-40 are skipped with a stated reason — 34 wait on a `ScenarioNeed` the app has not
-built, 4 need a physical iPhone, and two (`b3_killed` and `f5_deeplink_killed`) would
-each have to kill the app the test runs inside. That split has not been run on this
-machine either — no Android device is attached — so it is asserted by
-`apps/fcm_app/test/integration_coverage_test.dart` rather than by an actual pass on
-hardware.
-
-The Android build needs one thing that is easy to miss:
-`flutter_local_notifications` requires **core library desugaring**, and without
-it `:app:checkDebugAarMetadata` fails with
-`Dependency ':flutter_local_notifications' requires core library desugaring to be
-enabled for :app`. `android/app/build.gradle.kts` therefore sets
-`isCoreLibraryDesugaringEnabled = true` and adds
-`coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")`. This is
-needed even though the app only ever shows notifications immediately and never
-schedules one.
-
-**A second plugin used to break the debug APK build, in the same family of
-failure.** `app_settings` — added for the "Battery settings" link on the
-countdown screen — pinned `compileSdkVersion 33` in its own
-`android/build.gradle`, while fifteen of its transitive AndroidX dependencies
-required consumers to compile against API 34 or later. That module's pin was the
-failure, not this app's: `android/app/build.gradle.kts` already compiles against
-`flutter.compileSdkVersion`, never a hardcoded 33. The fix was to bump
-`app_settings` to 7.0.0, which compiles against 36 and keeps the
-`AppSettings.openAppSettings` API this app uses — not to raise this app's own
-`compileSdk`, which was never the thing pinned low. `fvm flutter build apk --debug`
-now succeeds.
-
-Seven things remain explicitly **not verified** on this machine:
-
-- **The `validate_only` sweep over the catalogue** — opening each of the 66
-  scenarios in the Sandbox and sending it with validate-only on, expecting a 200
-  for every one whose needs do not include a device registry or a manual step.
-  The round-trip test proves the templates agree with the *typed model*; only this
-  proves they agree with *Google*, which is a different claim and the one that
-  would catch a field FCM rejects for a reason no local parser can know. It needs
-  a service account key downloaded from the Firebase console and the API running
-  against it, which this machine cannot do unattended.
-- **The on-device payload checks** — that `e2_image_remote` renders its image,
-  that `a2_data_only` reaches the inbox and draws only a blank tray entry (icon
-  and app name, no text — it carries no title or body for anyone to draw), that
-  `k2_invalid_token` reports UNREGISTERED rather than a generic 404, and that
-  `direct_boot_ok` sends `false` when set to false and omits the key when left
-  unset. That last one is the only real-world proof of the tristate design; a
-  widget test can show the three states cycling but not what leaves the device.
-- **The telemetry round trip on a real device.** Send a scenario, then read
-  `GET /latency` and confirm the figure is plausible; repeat with the app
-  backgrounded and killed. The killed case is the one that matters and the one that
-  needs `b3_killed`'s delayed send to arrange properly. *Partly verified here:* the
-  pipeline was driven end to end against the real router and the real SQLite file
-  with a stubbed FCM sender — a send, an arrival, `{"recorded":1}` then
-  `{"recorded":0}` on replay, and one latency row carrying the right device and
-  scenario. What is **not** verified is the FCM leg, a real handset, or the entry
-  point's own socket, none of which can run without a service-account key.
-- **The delayed send on a real handset.** Schedule `b3_killed`, swipe the app out of
-  recents, and confirm on relaunch that the timeline holds `queued → sent →
-  received_bg`. *Verified here:* a run is scheduled, claimed, dispatched through a
-  stubbed sender, cancelled, missed past the grace period, and recovered across a
-  restart from its own telemetry. What is **not** verified is the FCM leg, a real
-  handset, the three display plugins, or that a killed app's background isolate wakes
-  at all — which is the very question the scenario asks.
-- **Two devices, one send** — the point of the whole pipeline, and the only way to
-  see the matrix do its job. Send to a topic both have subscribed to (which needs
-  the targeting work) or twice by token, and confirm two rows with different
-  latencies and different labels.
-- **The needs banner and the manual-steps block on a device** — that a blocked
-  scenario names what it needs, that a working one shows no banner at all, and
-  that an adb command can actually be selected and copied out of
-  `ManualStepsBlock`. Selection behaviour is the one thing a widget test cannot
-  stand in for.
-- **The notification behaviour** — foreground banners, heads-up tray entries
-  while backgrounded, tapping a notification into the detail page, and a
-  background push reaching the inbox.
-
-No service account key has been generated for this project and no Android device
-has been attached on this machine, so none of the above has actually been run.
+- [`docs/architecture.md`](docs/architecture.md) — how the workspace and the
+  app's code are laid out, and why
+- [`docs/notifications.md`](docs/notifications.md) — what a push actually
+  does: the four payload shapes against the three app states
+- [`docs/scenarios.md`](docs/scenarios.md) — how to drive the app: the
+  catalogue, the payload form, delayed sending
+- [`docs/telemetry.md`](docs/telemetry.md) — what gets measured, and why the
+  trace id starts at the API
+- [`docs/localization.md`](docs/localization.md) — how a string gets from the
+  CSV into the app
