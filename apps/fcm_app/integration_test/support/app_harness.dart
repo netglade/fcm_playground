@@ -118,7 +118,13 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
   // once the telemetry database is large enough every test would fail right here
   // with a bare "pumpAndSettle timed out" and no hint that the remedy is deleting
   // the database.
-  await $.pumpWidget(const App());
+  //
+  // Wrapped in TranslationProvider for the same reason main.dart wraps runApp with
+  // it: App.build reads TranslationProvider.of(context), which throws
+  // 'Please wrap your app with "TranslationProvider".' with no ancestor to find.
+  // The LocaleSettings pin above decides which language; this is the separate,
+  // equally required piece that lets App read any language at all.
+  await $.pumpWidget(TranslationProvider(child: const App()));
   await $.pumpAndTrySettle();
   await _waitForToken($);
 }
