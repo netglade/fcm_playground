@@ -2,11 +2,14 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 
 import '../domains/notifications/data_sources/local_notification_presenter.dart';
+import '../domains/notifications/data_sources/plugin_notification_channel_reader.dart';
 import '../domains/notifications/data_sources/silent_notification_presenter.dart';
+import '../domains/notifications/entities/notification_channel_reader.dart';
 import '../domains/notifications/entities/notification_presenter.dart';
 import '../domains/push/data_sources/disabled_push_source.dart';
 import '../domains/push/data_sources/firebase_push_source.dart';
@@ -68,7 +71,11 @@ Future<void> configureDependencies({
     onBackgroundMessage,
     options ?? DefaultFirebaseOptions.currentPlatform,
   );
-  final presenter = await _startPresenter();
+  // One instance shared with the channel reader below: both merely talk to the
+  // same platform channel, so two instances would work too, but one is the
+  // honest picture of what this app has open on the plugin.
+  final plugin = FlutterLocalNotificationsPlugin();
+  final presenter = await _startPresenter(plugin);
   getIt
     ..registerSingleton<PushPayloadStore>(SharedPreferencesPushPayloadStore())
     ..registerSingleton<PressedActionStore>(
@@ -79,6 +86,9 @@ Future<void> configureDependencies({
     ..registerSingleton<ActiveRunStore>(SharedPreferencesActiveRunStore())
     ..registerSingleton<LocaleStore>(const SharedPreferencesLocaleStore())
     ..registerSingleton<NotificationPresenter>(presenter)
+    ..registerSingleton<NotificationChannelReader>(
+      PluginNotificationChannelReader(plugin),
+    )
     ..registerSingleton<NotificationSender>(_senderFor(setupError))
     ..registerSingleton<RunScheduler>(_runSchedulerFor(setupError))
     ..registerSingleton<TelemetryReader>(
@@ -205,8 +215,10 @@ Future<PushSource> _startPushSource(
 
 /// Starts local notifications, degrading to silence rather than failing: a broken
 /// plugin should cost the banners, not the app.
-Future<NotificationPresenter> _startPresenter() async {
-  final presenter = LocalNotificationPresenter();
+Future<NotificationPresenter> _startPresenter(
+  FlutterLocalNotificationsPlugin plugin,
+) async {
+  final presenter = LocalNotificationPresenter(plugin: plugin);
   try {
     await presenter.initialize();
 
