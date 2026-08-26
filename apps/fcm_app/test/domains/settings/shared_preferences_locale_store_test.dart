@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:fcm_app/domains/settings/data_sources/shared_preferences_locale_store.dart';
+import 'package:fcm_app/domains/settings/shared_preferences_locale_store.dart';
 import 'package:fcm_app/i18n/translations.g.dart';
 
 void main() {

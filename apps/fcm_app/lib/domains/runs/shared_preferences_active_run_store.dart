@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../entities/active_run_store.dart';
+import 'active_run_store.dart';
 
 /// An [ActiveRunStore] over `shared_preferences`.
 ///

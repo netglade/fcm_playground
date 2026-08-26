@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../domains/runs/entities/countdown_screen.dart';
+import '../../../domains/runs/countdown_screen.dart';
 import '../../../i18n/translations.g.dart';
 import '../cubit/countdown_state.dart';
 

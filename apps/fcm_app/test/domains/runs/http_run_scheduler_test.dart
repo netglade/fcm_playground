@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:fcm_app/domains/runs/data_sources/http_run_scheduler.dart';
-import 'package:fcm_app/domains/runs/data_sources/unavailable_run_scheduler.dart';
-import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
+import 'package:fcm_app/domains/runs/http_run_scheduler.dart';
+import 'package:fcm_app/domains/runs/unavailable_run_scheduler.dart';
+import 'package:fcm_app/domains/runs/run_scheduler_exception.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;

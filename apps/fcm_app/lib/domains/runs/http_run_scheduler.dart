@@ -4,8 +4,8 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../i18n/translations.g.dart';
-import '../entities/run_scheduler.dart';
-import '../entities/run_scheduler_exception.dart';
+import 'run_scheduler.dart';
+import 'run_scheduler_exception.dart';
 
 /// Talks to `/runs` on the local API.
 class HttpRunScheduler implements RunScheduler {

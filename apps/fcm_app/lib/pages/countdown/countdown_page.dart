@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domains/runs/data_sources/plugin_countdown_screen.dart';
-import '../../domains/runs/entities/countdown_screen.dart';
+import '../../domains/runs/plugin_countdown_screen.dart';
+import '../../domains/runs/countdown_screen.dart';
 import 'cubit/countdown_cubit.dart';
 import 'cubit/countdown_state.dart';
 import 'widgets/countdown_body.dart';

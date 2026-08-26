@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../di/service_locator.dart';
-import '../../domains/runs/entities/active_run_store.dart';
-import '../../domains/runs/entities/run_scheduler.dart';
-import '../../domains/runs/entities/run_scheduler_exception.dart';
-import '../../domains/settings/entities/locale_store.dart';
+import '../../domains/runs/active_run_store.dart';
+import '../../domains/runs/run_scheduler.dart';
+import '../../domains/runs/run_scheduler_exception.dart';
+import '../../domains/settings/locale_store.dart';
 import '../../domains/telemetry/entities/telemetry_reader.dart';
 import '../../i18n/translations.g.dart';
 import '../inbox/cubit/inbox_cubit.dart';

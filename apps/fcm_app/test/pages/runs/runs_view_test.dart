@@ -1,4 +1,4 @@
-import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
+import 'package:fcm_app/domains/runs/run_scheduler_exception.dart';
 import 'package:fcm_app/pages/runs/runs_view.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';

@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../i18n/translations.g.dart';
-import '../entities/locale_store.dart';
+import 'locale_store.dart';
 
 /// The key the override is stored under.
 ///

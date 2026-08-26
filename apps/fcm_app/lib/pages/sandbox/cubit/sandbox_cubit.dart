@@ -2,10 +2,10 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../domains/runs/entities/run_scheduler_exception.dart';
+import '../../../domains/runs/run_scheduler_exception.dart';
 import '../../../domains/runs/start_run.dart';
-import '../../../domains/sandbox/entities/notification_send_exception.dart';
-import '../../../domains/sandbox/entities/notification_sender.dart';
+import '../../../domains/sandbox/notification_send_exception.dart';
+import '../../../domains/sandbox/notification_sender.dart';
 import '../../../domains/telemetry/data_sources/silent_push_telemetry.dart';
 import '../../../domains/telemetry/entities/push_telemetry.dart';
 import '../../../i18n/translations.g.dart';

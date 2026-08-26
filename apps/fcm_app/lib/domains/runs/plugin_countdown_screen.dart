@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../entities/countdown_screen.dart';
+import 'countdown_screen.dart';
 
 /// The real [CountdownScreen].
 ///

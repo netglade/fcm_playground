@@ -1,4 +1,4 @@
-import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
+import 'package:fcm_app/domains/runs/active_run_store.dart';
 
 /// An [ActiveRunStore] in a field, so a cubit test needs no preferences platform.
 class InMemoryActiveRunStore implements ActiveRunStore {

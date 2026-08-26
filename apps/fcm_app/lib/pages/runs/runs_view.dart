@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domains/runs/entities/run_scheduler.dart';
+import '../../domains/runs/run_scheduler.dart';
 import '../../i18n/translations.g.dart';
 import 'cubit/runs_cubit.dart';
 import 'cubit/runs_state.dart';

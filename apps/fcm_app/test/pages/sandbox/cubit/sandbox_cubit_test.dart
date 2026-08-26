@@ -1,6 +1,6 @@
-import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
+import 'package:fcm_app/domains/runs/run_scheduler_exception.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
-import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
+import 'package:fcm_app/domains/sandbox/notification_send_exception.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_send_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';

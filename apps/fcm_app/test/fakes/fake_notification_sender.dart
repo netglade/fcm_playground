@@ -1,5 +1,5 @@
-import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
-import 'package:fcm_app/domains/sandbox/entities/notification_sender.dart';
+import 'package:fcm_app/domains/sandbox/notification_send_exception.dart';
+import 'package:fcm_app/domains/sandbox/notification_sender.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A [NotificationSender] driven by the test rather than by the API.

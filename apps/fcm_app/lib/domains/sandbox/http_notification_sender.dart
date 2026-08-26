@@ -4,8 +4,8 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../i18n/translations.g.dart';
-import '../entities/notification_send_exception.dart';
-import '../entities/notification_sender.dart';
+import 'notification_send_exception.dart';
+import 'notification_sender.dart';
 
 /// Where the send API is expected to be.
 ///

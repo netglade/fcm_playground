@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../domains/runs/entities/run_scheduler.dart';
-import '../../../domains/runs/entities/run_scheduler_exception.dart';
+import '../../../domains/runs/run_scheduler.dart';
+import '../../../domains/runs/run_scheduler_exception.dart';
 import 'run_timeline_state.dart';
 
 /// Loads one run and its events.

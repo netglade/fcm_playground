@@ -6,7 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../i18n/translations.g.dart';
 import '../../push/data_sources/shared_preferences_reply_store.dart';
 import '../../push/entities/pending_reply.dart';
-import '../../settings/data_sources/shared_preferences_locale_store.dart';
+import '../../settings/shared_preferences_locale_store.dart';
 import '../entities/notification_content.dart';
 
 /// The reply [response] carries, or null when it carries none.

@@ -1,10 +1,10 @@
 import 'package:fcm_app/di/service_locator.dart';
 import 'package:fcm_app/domains/push/repositories/push_repository.dart';
-import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
-import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
-import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
+import 'package:fcm_app/domains/runs/active_run_store.dart';
+import 'package:fcm_app/domains/runs/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/run_scheduler_exception.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
-import 'package:fcm_app/domains/settings/entities/locale_store.dart';
+import 'package:fcm_app/domains/settings/locale_store.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
 import 'package:fcm_app/i18n/scenario_text.dart';
 import 'package:fcm_app/i18n/translations.g.dart';

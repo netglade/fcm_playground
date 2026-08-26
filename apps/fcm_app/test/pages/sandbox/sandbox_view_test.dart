@@ -1,5 +1,5 @@
 import 'package:fcm_app/domains/runs/start_run.dart';
-import 'package:fcm_app/domains/sandbox/entities/notification_send_exception.dart';
+import 'package:fcm_app/domains/sandbox/notification_send_exception.dart';
 import 'package:fcm_app/i18n/scenario_text.dart';
 import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/sandbox/cubit/sandbox_cubit.dart';

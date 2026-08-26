@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
+import 'package:fcm_app/domains/runs/run_scheduler_exception.dart';
 import 'package:fcm_app/pages/countdown/cubit/countdown_cubit.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';

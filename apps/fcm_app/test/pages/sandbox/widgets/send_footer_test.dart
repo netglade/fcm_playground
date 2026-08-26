@@ -1,5 +1,5 @@
-import 'package:fcm_app/domains/runs/entities/active_run_store.dart';
-import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/active_run_store.dart';
+import 'package:fcm_app/domains/runs/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
 import 'package:fcm_app/pages/countdown/countdown_page.dart';
 import 'package:fcm_app/pages/runs/run_timeline_page.dart';

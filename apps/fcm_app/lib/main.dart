@@ -16,7 +16,7 @@ import 'domains/push/data_sources/shared_preferences_push_payload_store.dart';
 import 'domains/push/entities/push_source.dart';
 import 'domains/push/entities/remote_message_payload.dart';
 import 'domains/push/repositories/push_repository.dart';
-import 'domains/settings/entities/locale_store.dart';
+import 'domains/settings/locale_store.dart';
 import 'domains/telemetry/data_sources/shared_preferences_device_identity.dart';
 import 'domains/telemetry/entities/push_telemetry.dart';
 import 'domains/telemetry/report_push_event.dart';

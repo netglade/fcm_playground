@@ -1,5 +1,5 @@
-import 'package:fcm_app/domains/runs/entities/run_scheduler.dart';
-import 'package:fcm_app/domains/runs/entities/run_scheduler_exception.dart';
+import 'package:fcm_app/domains/runs/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/run_scheduler_exception.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A [RunScheduler] driven by the test rather than by the API.

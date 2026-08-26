@@ -1,6 +1,6 @@
 import 'package:fcm_app/domains/notifications/data_sources/notification_reply.dart';
 import 'package:fcm_app/domains/push/entities/pending_reply.dart';
-import 'package:fcm_app/domains/settings/data_sources/shared_preferences_locale_store.dart'
+import 'package:fcm_app/domains/settings/shared_preferences_locale_store.dart'
     show localeKey;
 import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
