@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domains/telemetry/entities/telemetry_reader.dart';
+import '../../domains/telemetry/telemetry_reader.dart';
 import '../../i18n/translations.g.dart';
 import 'cubit/telemetry_cubit.dart';
 import 'cubit/telemetry_state.dart';

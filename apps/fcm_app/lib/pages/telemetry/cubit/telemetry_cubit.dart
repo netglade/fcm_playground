@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../domains/telemetry/entities/telemetry_reader.dart';
-import '../../../domains/telemetry/entities/telemetry_reader_exception.dart';
+import '../../../domains/telemetry/telemetry_reader.dart';
+import '../../../domains/telemetry/telemetry_reader_exception.dart';
 import 'telemetry_state.dart';
 import 'trace_timeline.dart';
 

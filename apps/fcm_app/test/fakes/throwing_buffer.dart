@@ -1,4 +1,4 @@
-import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_buffer.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A buffer where every operation fails, as a corrupt or full database does.

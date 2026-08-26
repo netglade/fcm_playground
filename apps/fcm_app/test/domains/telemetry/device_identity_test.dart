@@ -1,4 +1,4 @@
-import 'package:fcm_app/domains/telemetry/data_sources/shared_preferences_device_identity.dart';
+import 'package:fcm_app/domains/telemetry/shared_preferences_device_identity.dart';
 import 'package:fcm_app/domains/telemetry/new_device_id.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

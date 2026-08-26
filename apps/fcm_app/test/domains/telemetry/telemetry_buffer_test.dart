@@ -1,10 +1,10 @@
 import 'package:drift/native.dart';
-import 'package:fcm_app/domains/telemetry/data_sources/drift_telemetry_buffer.dart';
-import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/drift_telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_buffer.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../system_sqlite.dart';
+import 'system_sqlite.dart';
 
 void main() {
   late DriftTelemetryBuffer database;

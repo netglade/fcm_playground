@@ -200,47 +200,28 @@ class $BufferedEventsTable extends BufferedEvents
 }
 
 class BufferedEvent extends DataClass implements Insertable<BufferedEvent> {
-  /// The row identity a flush forgets by, surfaced as `PendingEvent.id`.
-  ///
-  /// Load-bearing rather than incidental: this buffer keeps duplicates on
-  /// purpose, so this is the only thing that distinguishes two identical
-  /// events, and `forget` deletes by it.
+  /// Surfaced as `PendingEvent.id`. Load-bearing: this buffer keeps duplicates on
+  /// purpose, so this is the only thing that distinguishes two identical events.
   final int id;
-
-  /// The send this event belongs to.
   final String traceId;
 
-  /// The event type's wire name, not its `Enum.index`.
-  ///
-  /// An index is a number whose meaning is a position in a Dart declaration, so
-  /// inserting a value into `TelemetryEventType` would silently retype every
-  /// buffered row. The wire name is the string both sides already agree on and
-  /// is pinned by test.
+  /// The event type's wire name, not its `Enum.index` — an index means a position
+  /// in a Dart declaration, so inserting a value into `TelemetryEventType` would
+  /// silently retype every buffered row.
   final String type;
 
-  /// When the event happened, as microseconds since the Unix epoch in UTC.
+  /// Microseconds since the Unix epoch in UTC.
   ///
-  /// Deliberately not Drift's `dateTime()`: that stores whole Unix seconds by
-  /// default, which would floor every stamp and make a 300 ms delivery read as
-  /// zero — the one number this pipeline exists to produce.
-  ///
-  /// Deliberately not ISO-8601 text either, although that is what the wire
-  /// carries. `pending` sorts on this column, and `DateTime.toIso8601String`
-  /// emits either three or six fractional digits, so a lexicographic sort puts
-  /// `…02.000Z` *after* `…02.000001Z`. An integer sorts chronologically by
-  /// construction and keeps microsecond precision.
+  /// Not Drift's `dateTime()`, which stores whole seconds and would make a 300 ms
+  /// delivery read as zero. Not ISO-8601 text either: `pending` sorts on this
+  /// column, and `toIso8601String` emits three or six fractional digits, so a
+  /// lexicographic sort puts `…02.000Z` *after* `…02.000001Z`.
   final int atMicros;
-
-  /// Which install this happened on.
   final String deviceId;
 
-  /// The scenario that produced the send, when it came from the gallery.
-  ///
-  /// Nullable rather than defaulted to `''`: "no scenario" and "a scenario
-  /// named nothing" are different answers when reading the matrix.
+  /// Nullable rather than defaulted to `''`: "no scenario" and "a scenario named
+  /// nothing" are different answers when reading the matrix.
   final String? scenarioId;
-
-  /// Whatever the event type says it carries.
   final String? detail;
   const BufferedEvent({
     required this.id,

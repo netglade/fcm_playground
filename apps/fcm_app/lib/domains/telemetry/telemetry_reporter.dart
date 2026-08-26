@@ -4,9 +4,9 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import '../entities/device_identity.dart';
-import '../entities/push_telemetry.dart';
-import '../entities/telemetry_buffer.dart';
+import 'device_identity.dart';
+import 'push_telemetry.dart';
+import 'telemetry_buffer.dart';
 
 /// Records what happens to a push on this device, and sends it to the API.
 ///

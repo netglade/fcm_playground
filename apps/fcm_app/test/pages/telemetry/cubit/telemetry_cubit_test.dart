@@ -1,4 +1,4 @@
-import 'package:fcm_app/domains/telemetry/entities/telemetry_reader_exception.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_reader_exception.dart';
 import 'package:fcm_app/pages/telemetry/cubit/telemetry_cubit.dart';
 import 'package:fcm_app/pages/telemetry/cubit/telemetry_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';

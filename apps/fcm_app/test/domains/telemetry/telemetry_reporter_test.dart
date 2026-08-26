@@ -2,18 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/native.dart';
-import 'package:fcm_app/domains/telemetry/data_sources/drift_telemetry_buffer.dart';
-import 'package:fcm_app/domains/telemetry/data_sources/telemetry_reporter.dart';
-import 'package:fcm_app/domains/telemetry/entities/push_telemetry.dart';
-import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/drift_telemetry_buffer.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_reporter.dart';
+import 'package:fcm_app/domains/telemetry/push_telemetry.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_buffer.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-import '../../../fakes/fixed_device_identity.dart';
-import '../../../fakes/throwing_buffer.dart';
-import '../system_sqlite.dart';
+import '../../fakes/fixed_device_identity.dart';
+import '../../fakes/throwing_buffer.dart';
+import 'system_sqlite.dart';
 
 void main() {
   late DriftTelemetryBuffer database;

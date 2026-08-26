@@ -3,7 +3,7 @@ import 'package:fcm_app/domains/push/push_repository.dart';
 import 'package:fcm_app/domains/runs/active_run_store.dart';
 import 'package:fcm_app/domains/runs/run_scheduler.dart';
 import 'package:fcm_app/domains/runs/start_run.dart';
-import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_reader.dart';
 import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
 import 'package:fcm_app/pages/inbox/message_detail_page.dart';

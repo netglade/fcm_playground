@@ -5,7 +5,7 @@ import 'package:fcm_app/domains/push/shared_preferences_reply_store.dart';
 import 'package:fcm_app/domains/push/pending_reply.dart';
 import 'package:fcm_app/domains/push/pressed_action.dart';
 import 'package:fcm_app/domains/push/push_repository.dart';
-import 'package:fcm_app/domains/telemetry/data_sources/silent_push_telemetry.dart';
+import 'package:fcm_app/domains/telemetry/silent_push_telemetry.dart';
 import 'package:fcm_app/pages/inbox/cubit/inbox_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';

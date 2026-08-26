@@ -1,13 +1,13 @@
 import 'dart:convert';
 
-import 'package:fcm_app/domains/telemetry/data_sources/http_telemetry_reader.dart';
-import 'package:fcm_app/domains/telemetry/entities/telemetry_reader_exception.dart';
+import 'package:fcm_app/domains/telemetry/http_telemetry_reader.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_reader_exception.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-import '../../../fakes/socket_exception_stub.dart';
+import '../../fakes/socket_exception_stub.dart';
 
 void main() {
   final baseUrl = Uri.parse('http://localhost:8080');

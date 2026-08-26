@@ -1,5 +1,5 @@
-import 'package:fcm_app/domains/telemetry/entities/telemetry_reader.dart';
-import 'package:fcm_app/domains/telemetry/entities/telemetry_reader_exception.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_reader.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_reader_exception.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A [TelemetryReader] driven by the test rather than by the API.

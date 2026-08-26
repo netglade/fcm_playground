@@ -1,4 +1,4 @@
-import 'package:fcm_app/domains/telemetry/entities/push_telemetry.dart';
+import 'package:fcm_app/domains/telemetry/push_telemetry.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// A [PushTelemetry] that fails, as a corrupt database or an absent plugin does.
