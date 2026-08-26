@@ -685,9 +685,6 @@ class _Translations$scenario_need$cs implements Translations$scenario_need$en {
 
 	// Translations
 
-	/// Label for the channels scenario need
-	@override String get channels => 'notifikační kanály';
-
 	/// Label for the styles scenario need
 	@override String get styles => 'styly notifikací';
 
@@ -2422,7 +2419,6 @@ extension on TranslationsCs {
 			'scenario_group.i' => 'I — Tiché a datové',
 			'scenario_group.j' => 'J — Cílení',
 			'scenario_group.k' => 'K — Krajní případy a chyby',
-			'scenario_need.channels' => 'notifikační kanály',
 			'scenario_need.styles' => 'styly notifikací',
 			'scenario_need.interaction' => 'akce notifikací',
 			'scenario_need.badge' => 'odznak na ikoně aplikace',

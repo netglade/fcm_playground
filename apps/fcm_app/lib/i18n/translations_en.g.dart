@@ -867,11 +867,6 @@ class Translations$scenario_need$en {
 
 	// Translations
 
-	/// Label for the channels scenario need
-	///
-	/// en: 'notification channels'
-	String get channels => 'notification channels';
-
 	/// Label for the styles scenario need
 	///
 	/// en: 'notification styles'
@@ -3051,7 +3046,6 @@ extension on Translations {
 			'scenario_group.i' => 'I — Silent and data',
 			'scenario_group.j' => 'J — Targeting',
 			'scenario_group.k' => 'K — Edge cases and errors',
-			'scenario_need.channels' => 'notification channels',
 			'scenario_need.styles' => 'notification styles',
 			'scenario_need.interaction' => 'notification actions',
 			'scenario_need.badge' => 'launcher badge',
