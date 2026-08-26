@@ -66,6 +66,8 @@ class TranslationsCs with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$scenario$cs scenario = _Translations$scenario$cs._(_root);
 	@override late final _Translations$scenario_group$cs scenario_group = _Translations$scenario_group$cs._(_root);
 	@override late final _Translations$scenario_need$cs scenario_need = _Translations$scenario_need$cs._(_root);
+	@override late final _Translations$form_section$cs form_section = _Translations$form_section$cs._(_root);
+	@override late final _Translations$form_field$cs form_field = _Translations$form_field$cs._(_root);
 }
 
 // Path: app
@@ -154,6 +156,9 @@ class _Translations$inbox$cs implements Translations$inbox$en {
 		few: '${n} poškozené payloady zahozeny',
 		other: '${n} poškozených payloadů zahozeno',
 	);
+
+	/// Banner shown when the push store fails to restore its history on launch
+	@override String setup_error({required Object error}) => 'Uložené pushe se nepodařilo načíst: ${error}';
 }
 
 // Path: message_detail
@@ -359,6 +364,8 @@ class _Translations$sandbox$cs implements Translations$sandbox$en {
 
 	/// Banner listing what a scenario is missing; under sandbox.* rather than scenario_needs.* so it cannot be confused with the scenario_need.* labels it interpolates
 	@override String needs_banner({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.';
+
+	@override late final _Translations$sandbox$send_blocked$cs send_blocked = _Translations$sandbox$send_blocked$cs._(_root);
 }
 
 // Path: send
@@ -700,6 +707,66 @@ class _Translations$scenario_need$cs implements Translations$scenario_need$en {
 	@override String get external_approval => 'externí schválení';
 }
 
+// Path: form_section
+class _Translations$form_section$cs implements Translations$form_section$en {
+	_Translations$form_section$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Subtitle of the outermost payload-form section
+	@override String get message => 'Zpráva FCM v1 bez cíle doručení, který nastavuje server.';
+
+	/// Subtitle of the cross-platform notification section
+	@override String get notification => 'Zobrazuje se na všech platformách, pokud ho nepřebije blok konkrétní platformy.';
+
+	/// Subtitle of the android section
+	@override String get android => 'Možnosti doručení a zobrazení pro Android.';
+
+	/// Subtitle of the android.notification section
+	@override String get android_notification => 'Vše, co umí panel oznámení Androidu navíc oproti sdílenému bloku.';
+
+	/// Subtitle of the apns section
+	@override String get apns => 'Možnosti doručení a zobrazení pro iOS a macOS.';
+
+	/// Subtitle of the APNs fcm_options section
+	@override String get apns_fcm_options => 'Možnosti doručení, včetně obrázku, který přijímá jen APNs.';
+
+	/// Subtitle of the webpush section
+	@override String get webpush => 'Možnosti doručení a zobrazení pro prohlížeče.';
+
+	/// Subtitle of the WebPush fcm_options section
+	@override String get webpush_fcm_options => 'Možnosti doručení, včetně odkazu, který se otevře po kliknutí.';
+
+	/// Subtitle of the platform-independent fcm_options section
+	@override String get fcm_options => 'Možnosti doručení, které FCM uplatňuje na všech platformách.';
+
+	/// Subtitle of the light_settings section
+	@override String get light_settings => 'Jakmile je tento blok přítomen, FCM vyžaduje všechna jeho pole.';
+}
+
+// Path: form_field
+class _Translations$form_field$cs implements Translations$form_field$en {
+	_Translations$form_field$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Icon-button tooltip that deletes one row of a string list or map editor; shared by both editors, so one key covers both
+	@override String get remove_row => 'Odebrat tento řádek';
+
+	/// Button that appends a new empty row to a string list or map editor; shared by both editors, so one key covers both
+	@override String get add_row => 'Přidat';
+
+	/// Dropdown entry standing in for an omitted optional enum field
+	@override String get not_set => 'Nenastaveno';
+
+	/// Subtitle under a tristate checkbox when the underlying FCM field is left out of the payload
+	@override String get not_sent => 'Neodesláno';
+}
+
 // Path: shell.title
 class _Translations$shell$title$cs implements Translations$shell$title$en {
 	_Translations$shell$title$cs._(this._root);
@@ -722,6 +789,27 @@ class _Translations$shell$title$cs implements Translations$shell$title$en {
 
 	/// AppBar title
 	@override String get telemetry => 'Telemetrie';
+}
+
+// Path: sandbox.send_blocked
+class _Translations$sandbox$send_blocked$cs implements Translations$sandbox$send_blocked$en {
+	_Translations$sandbox$send_blocked$cs._(this._root);
+
+	final TranslationsCs _root; // ignore: unused_field
+
+	// Translations
+
+	/// Reason Send is disabled: no delivery target is chosen
+	@override String get no_target => 'Vyplň cíl doručení, nebo se přepni zpět na toto zařízení.';
+
+	/// Reason Send is disabled: this device has not registered yet; shares its Czech clause with scenarios.no_token, whose English carries one more sentence
+	@override String get no_token => 'Zatím není registrační token, takže není kam posílat.';
+
+	/// Reason Send is disabled while this page's own send is in flight; kept apart from reply.sending, which titles a background notification for an unrelated send
+	@override String get sending => 'Odesílám…';
+
+	/// Reason Send is disabled: the payload form has an invalid field
+	@override String get invalid_field => 'Některé pole je neplatné. Které, poznáš podle sekcí s ikonou chyby.';
 }
 
 // Path: telemetry.tab
@@ -1917,6 +2005,7 @@ extension on TranslationsCs {
 			'inbox.registration_token' => 'Registrační token',
 			'inbox.empty' => 'Zatím nedorazil žádný push.',
 			'inbox.malformed_dropped' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('cs'))(n, one: '${n} poškozený payload zahozen', few: '${n} poškozené payloady zahozeny', other: '${n} poškozených payloadů zahozeno', ), 
+			'inbox.setup_error' => ({required Object error}) => 'Uložené pushe se nepodařilo načíst: ${error}',
 			'message_detail.opened_by_action' => ({required Object label}) => 'Otevřeno akcí: ${label}',
 			'message_detail.from' => ({required Object from}) => 'Zdroj: ${from}',
 			'message_detail.replied' => ({required Object text}) => 'Odpovězeno: ${text}',
@@ -1948,6 +2037,10 @@ extension on TranslationsCs {
 			'run_item.nothing_recorded' => 'Zatím nic nezaznamenáno.',
 			'sandbox.validate_only' => 'Jen validovat',
 			'sandbox.needs_banner' => ({required Object needs}) => 'Potřebuje ${needs}. Push se pošle, ale tento scénář se ještě nedá pozorovat.',
+			'sandbox.send_blocked.no_target' => 'Vyplň cíl doručení, nebo se přepni zpět na toto zařízení.',
+			'sandbox.send_blocked.no_token' => 'Zatím není registrační token, takže není kam posílat.',
+			'sandbox.send_blocked.sending' => 'Odesílám…',
+			'sandbox.send_blocked.invalid_field' => 'Některé pole je neplatné. Které, poznáš podle sekcí s ikonou chyby.',
 			'send.to_this_device' => 'Poslat na toto zařízení',
 			'send.to_that_token' => 'Poslat na ten token',
 			'send.to_topic' => ({required Object topic}) => 'Poslat do tématu „${topic}“',
@@ -2177,6 +2270,20 @@ extension on TranslationsCs {
 			'scenario_need.targeting' => 'registr zařízení',
 			'scenario_need.manual_step' => 'manuální krok',
 			'scenario_need.external_approval' => 'externí schválení',
+			'form_section.message' => 'Zpráva FCM v1 bez cíle doručení, který nastavuje server.',
+			'form_section.notification' => 'Zobrazuje se na všech platformách, pokud ho nepřebije blok konkrétní platformy.',
+			'form_section.android' => 'Možnosti doručení a zobrazení pro Android.',
+			'form_section.android_notification' => 'Vše, co umí panel oznámení Androidu navíc oproti sdílenému bloku.',
+			'form_section.apns' => 'Možnosti doručení a zobrazení pro iOS a macOS.',
+			'form_section.apns_fcm_options' => 'Možnosti doručení, včetně obrázku, který přijímá jen APNs.',
+			'form_section.webpush' => 'Možnosti doručení a zobrazení pro prohlížeče.',
+			'form_section.webpush_fcm_options' => 'Možnosti doručení, včetně odkazu, který se otevře po kliknutí.',
+			'form_section.fcm_options' => 'Možnosti doručení, které FCM uplatňuje na všech platformách.',
+			'form_section.light_settings' => 'Jakmile je tento blok přítomen, FCM vyžaduje všechna jeho pole.',
+			'form_field.remove_row' => 'Odebrat tento řádek',
+			'form_field.add_row' => 'Přidat',
+			'form_field.not_set' => 'Nenastaveno',
+			'form_field.not_sent' => 'Neodesláno',
 			_ => null,
 		};
 	}

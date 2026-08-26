@@ -69,6 +69,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$scenario$en scenario = Translations$scenario$en._(_root);
 	late final Translations$scenario_group$en scenario_group = Translations$scenario_group$en._(_root);
 	late final Translations$scenario_need$en scenario_need = Translations$scenario_need$en._(_root);
+	late final Translations$form_section$en form_section = Translations$form_section$en._(_root);
+	late final Translations$form_field$en form_field = Translations$form_field$en._(_root);
 }
 
 // Path: app
@@ -182,6 +184,11 @@ class Translations$inbox$en {
 		few: '${n} malformed payloads dropped',
 		other: '${n} malformed payloads dropped',
 	);
+
+	/// Banner shown when the push store fails to restore its history on launch
+	///
+	/// en: 'Stored pushes could not be read: $error'
+	String setup_error({required Object error}) => 'Stored pushes could not be read: ${error}';
 }
 
 // Path: message_detail
@@ -448,6 +455,8 @@ class Translations$sandbox$en {
 	///
 	/// en: 'Needs $needs. The push will still be sent, but this scenario cannot be observed yet.'
 	String needs_banner({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.';
+
+	late final Translations$sandbox$send_blocked$en send_blocked = Translations$sandbox$send_blocked$en._(_root);
 }
 
 // Path: send
@@ -893,6 +902,94 @@ class Translations$scenario_need$en {
 	String get external_approval => 'external approval';
 }
 
+// Path: form_section
+class Translations$form_section$en {
+	Translations$form_section$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Subtitle of the outermost payload-form section
+	///
+	/// en: 'The FCM v1 message, minus the delivery target the server sets'
+	String get message => 'The FCM v1 message, minus the delivery target the server sets';
+
+	/// Subtitle of the cross-platform notification section
+	///
+	/// en: 'Shown on every platform unless a platform block overrides it'
+	String get notification => 'Shown on every platform unless a platform block overrides it';
+
+	/// Subtitle of the android section
+	///
+	/// en: 'Delivery and rendering options for Android'
+	String get android => 'Delivery and rendering options for Android';
+
+	/// Subtitle of the android.notification section
+	///
+	/// en: 'Everything Android's tray understands, beyond the shared block'
+	String get android_notification => 'Everything Android\'s tray understands, beyond the shared block';
+
+	/// Subtitle of the apns section
+	///
+	/// en: 'Delivery and rendering options for iOS and macOS'
+	String get apns => 'Delivery and rendering options for iOS and macOS';
+
+	/// Subtitle of the APNs fcm_options section
+	///
+	/// en: 'Delivery options, with the image only APNs accepts'
+	String get apns_fcm_options => 'Delivery options, with the image only APNs accepts';
+
+	/// Subtitle of the webpush section
+	///
+	/// en: 'Delivery and rendering options for browsers'
+	String get webpush => 'Delivery and rendering options for browsers';
+
+	/// Subtitle of the WebPush fcm_options section
+	///
+	/// en: 'Delivery options, with the link a click opens'
+	String get webpush_fcm_options => 'Delivery options, with the link a click opens';
+
+	/// Subtitle of the platform-independent fcm_options section
+	///
+	/// en: 'Delivery options FCM applies on every platform'
+	String get fcm_options => 'Delivery options FCM applies on every platform';
+
+	/// Subtitle of the light_settings section
+	///
+	/// en: 'FCM requires every field once this block is present'
+	String get light_settings => 'FCM requires every field once this block is present';
+}
+
+// Path: form_field
+class Translations$form_field$en {
+	Translations$form_field$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Icon-button tooltip that deletes one row of a string list or map editor; shared by both editors, so one key covers both
+	///
+	/// en: 'Remove this row'
+	String get remove_row => 'Remove this row';
+
+	/// Button that appends a new empty row to a string list or map editor; shared by both editors, so one key covers both
+	///
+	/// en: 'Add'
+	String get add_row => 'Add';
+
+	/// Dropdown entry standing in for an omitted optional enum field
+	///
+	/// en: 'Not set'
+	String get not_set => 'Not set';
+
+	/// Subtitle under a tristate checkbox when the underlying FCM field is left out of the payload
+	///
+	/// en: 'Not sent'
+	String get not_sent => 'Not sent';
+}
+
 // Path: shell.title
 class Translations$shell$title$en {
 	Translations$shell$title$en._(this._root);
@@ -925,6 +1022,35 @@ class Translations$shell$title$en {
 	///
 	/// en: 'Telemetry'
 	String get telemetry => 'Telemetry';
+}
+
+// Path: sandbox.send_blocked
+class Translations$sandbox$send_blocked$en {
+	Translations$sandbox$send_blocked$en._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// Reason Send is disabled: no delivery target is chosen
+	///
+	/// en: 'Fill in the delivery target, or switch back to this device.'
+	String get no_target => 'Fill in the delivery target, or switch back to this device.';
+
+	/// Reason Send is disabled: this device has not registered yet; shares its Czech clause with scenarios.no_token, whose English carries one more sentence
+	///
+	/// en: 'No registration token yet, so there is nowhere to send.'
+	String get no_token => 'No registration token yet, so there is nowhere to send.';
+
+	/// Reason Send is disabled while this page's own send is in flight; kept apart from reply.sending, which titles a background notification for an unrelated send
+	///
+	/// en: 'Sending…'
+	String get sending => 'Sending…';
+
+	/// Reason Send is disabled: the payload form has an invalid field
+	///
+	/// en: 'A field is invalid. The sections marked with an error icon say which.'
+	String get invalid_field => 'A field is invalid. The sections marked with an error icon say which.';
 }
 
 // Path: telemetry.tab
@@ -2472,6 +2598,7 @@ extension on Translations {
 			'inbox.registration_token' => 'Registration token',
 			'inbox.empty' => 'No pushes received yet.',
 			'inbox.malformed_dropped' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} malformed payload dropped', few: '${n} malformed payloads dropped', other: '${n} malformed payloads dropped', ), 
+			'inbox.setup_error' => ({required Object error}) => 'Stored pushes could not be read: ${error}',
 			'message_detail.opened_by_action' => ({required Object label}) => 'Opened by action: ${label}',
 			'message_detail.from' => ({required Object from}) => 'from: ${from}',
 			'message_detail.replied' => ({required Object text}) => 'Replied: ${text}',
@@ -2503,6 +2630,10 @@ extension on Translations {
 			'run_item.nothing_recorded' => 'Nothing recorded yet.',
 			'sandbox.validate_only' => 'Validate only',
 			'sandbox.needs_banner' => ({required Object needs}) => 'Needs ${needs}. The push will still be sent, but this scenario cannot be observed yet.',
+			'sandbox.send_blocked.no_target' => 'Fill in the delivery target, or switch back to this device.',
+			'sandbox.send_blocked.no_token' => 'No registration token yet, so there is nowhere to send.',
+			'sandbox.send_blocked.sending' => 'Sending…',
+			'sandbox.send_blocked.invalid_field' => 'A field is invalid. The sections marked with an error icon say which.',
 			'send.to_this_device' => 'Send to this device',
 			'send.to_that_token' => 'Send to that token',
 			'send.to_topic' => ({required Object topic}) => 'Send to topic "${topic}"',
@@ -2732,6 +2863,20 @@ extension on Translations {
 			'scenario_need.targeting' => 'a device registry',
 			'scenario_need.manual_step' => 'a manual step',
 			'scenario_need.external_approval' => 'external approval',
+			'form_section.message' => 'The FCM v1 message, minus the delivery target the server sets',
+			'form_section.notification' => 'Shown on every platform unless a platform block overrides it',
+			'form_section.android' => 'Delivery and rendering options for Android',
+			'form_section.android_notification' => 'Everything Android\'s tray understands, beyond the shared block',
+			'form_section.apns' => 'Delivery and rendering options for iOS and macOS',
+			'form_section.apns_fcm_options' => 'Delivery options, with the image only APNs accepts',
+			'form_section.webpush' => 'Delivery and rendering options for browsers',
+			'form_section.webpush_fcm_options' => 'Delivery options, with the link a click opens',
+			'form_section.fcm_options' => 'Delivery options FCM applies on every platform',
+			'form_section.light_settings' => 'FCM requires every field once this block is present',
+			'form_field.remove_row' => 'Remove this row',
+			'form_field.add_row' => 'Add',
+			'form_field.not_set' => 'Not set',
+			'form_field.not_sent' => 'Not sent',
 			_ => null,
 		};
 	}

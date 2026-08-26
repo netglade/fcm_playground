@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
+import '../../../../../i18n/translations.g.dart';
 import '../../../forms/light_settings_form.dart';
 import '../form_section.dart';
 
@@ -16,26 +17,30 @@ class LightSettingsSection extends StatelessWidget {
   final LightSettingsForm form;
 
   @override
-  Widget build(BuildContext context) => FormSection(
-    title: 'light_settings',
-    subtitle: 'FCM requires every field once this block is present',
-    isValid: form.isValid,
-    children: [
-      for (final (label, input) in _numbers(form))
-        TextFormField(
-          controller: input.controller,
-          validator: input.textFormFieldInputValidator,
-          decoration: InputDecoration(labelText: label),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        ),
-      for (final (label, input) in _texts(form))
-        TextFormField(
-          controller: input.controller,
-          validator: input.textFormFieldInputValidator,
-          decoration: InputDecoration(labelText: label),
-        ),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return FormSection(
+      title: 'light_settings',
+      subtitle: t.form_section.light_settings,
+      isValid: form.isValid,
+      children: [
+        for (final (label, input) in _numbers(form))
+          TextFormField(
+            controller: input.controller,
+            validator: input.textFormFieldInputValidator,
+            decoration: InputDecoration(labelText: label),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+        for (final (label, input) in _texts(form))
+          TextFormField(
+            controller: input.controller,
+            validator: input.textFormFieldInputValidator,
+            decoration: InputDecoration(labelText: label),
+          ),
+      ],
+    );
+  }
 }
 
 /// The colour components, each a decimal between 0.0 and 1.0.

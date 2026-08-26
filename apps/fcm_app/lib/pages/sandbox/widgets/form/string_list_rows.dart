@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../i18n/translations.g.dart';
+
 /// Edits a `List<String>` as one row per item — see [StringMapRows] for why the
 /// controllers live here as view state.
 class StringListRows extends StatefulWidget {
@@ -51,33 +53,40 @@ class _StringListRowsState extends State<StringListRows> {
   }
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Text(widget.label, style: Theme.of(context).textTheme.titleSmall),
-      const SizedBox(height: 8),
-      for (final (index, row) in _rows.indexed)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(controller: row, onChanged: (_) => _push()),
-              ),
-              IconButton(
-                onPressed: () => _removeRow(index),
-                icon: const Icon(Icons.remove_circle_outline),
-                tooltip: 'Remove this row',
-              ),
-            ],
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(widget.label, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        for (final (index, row) in _rows.indexed)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(controller: row, onChanged: (_) => _push()),
+                ),
+                IconButton(
+                  onPressed: () => _removeRow(index),
+                  icon: const Icon(Icons.remove_circle_outline),
+                  tooltip: t.form_field.remove_row,
+                ),
+              ],
+            ),
+          ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: _addRow,
+            child: Text(t.form_field.add_row),
           ),
         ),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: TextButton(onPressed: _addRow, child: const Text('Add')),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 
   void _addRow() {
     setState(() => _rows.add(TextEditingController()));

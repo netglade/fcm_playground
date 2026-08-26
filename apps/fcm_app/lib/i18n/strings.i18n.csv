@@ -290,3 +290,22 @@ scenario_need.badge,launcher badge,odznak na ikoně aplikace,Label for the badge
 scenario_need.targeting,a device registry,registr zařízení,Label for the targeting scenario need
 scenario_need.manualStep,a manual step,manuální krok,Label for the manualStep scenario need
 scenario_need.externalApproval,external approval,externí schválení,Label for the externalApproval scenario need
+form_section.message,"The FCM v1 message, minus the delivery target the server sets","Zpráva FCM v1 bez cíle doručení, který nastavuje server.",Subtitle of the outermost payload-form section
+form_section.notification,Shown on every platform unless a platform block overrides it,"Zobrazuje se na všech platformách, pokud ho nepřebije blok konkrétní platformy.",Subtitle of the cross-platform notification section
+form_section.android,Delivery and rendering options for Android,Možnosti doručení a zobrazení pro Android.,Subtitle of the android section
+form_section.android_notification,"Everything Android's tray understands, beyond the shared block","Vše, co umí panel oznámení Androidu navíc oproti sdílenému bloku.",Subtitle of the android.notification section
+form_section.apns,Delivery and rendering options for iOS and macOS,Možnosti doručení a zobrazení pro iOS a macOS.,Subtitle of the apns section
+form_section.apns_fcm_options,"Delivery options, with the image only APNs accepts","Možnosti doručení, včetně obrázku, který přijímá jen APNs.",Subtitle of the APNs fcm_options section
+form_section.webpush,Delivery and rendering options for browsers,Možnosti doručení a zobrazení pro prohlížeče.,Subtitle of the webpush section
+form_section.webpush_fcm_options,"Delivery options, with the link a click opens","Možnosti doručení, včetně odkazu, který se otevře po kliknutí.",Subtitle of the WebPush fcm_options section
+form_section.fcm_options,Delivery options FCM applies on every platform,"Možnosti doručení, které FCM uplatňuje na všech platformách.",Subtitle of the platform-independent fcm_options section
+form_section.light_settings,FCM requires every field once this block is present,"Jakmile je tento blok přítomen, FCM vyžaduje všechna jeho pole.",Subtitle of the light_settings section
+form_field.remove_row,Remove this row,Odebrat tento řádek,"Icon-button tooltip that deletes one row of a string list or map editor; shared by both editors, so one key covers both"
+form_field.add_row,Add,Přidat,"Button that appends a new empty row to a string list or map editor; shared by both editors, so one key covers both"
+form_field.not_set,Not set,Nenastaveno,Dropdown entry standing in for an omitted optional enum field
+form_field.not_sent,Not sent,Neodesláno,Subtitle under a tristate checkbox when the underlying FCM field is left out of the payload
+sandbox.send_blocked.no_target,"Fill in the delivery target, or switch back to this device.","Vyplň cíl doručení, nebo se přepni zpět na toto zařízení.",Reason Send is disabled: no delivery target is chosen
+sandbox.send_blocked.no_token,"No registration token yet, so there is nowhere to send.","Zatím není registrační token, takže není kam posílat.","Reason Send is disabled: this device has not registered yet; shares its Czech clause with scenarios.no_token, whose English carries one more sentence"
+sandbox.send_blocked.sending,Sending…,Odesílám…,"Reason Send is disabled while this page's own send is in flight; kept apart from reply.sending, which titles a background notification for an unrelated send"
+sandbox.send_blocked.invalid_field,"A field is invalid. The sections marked with an error icon say which.","Některé pole je neplatné. Které, poznáš podle sekcí s ikonou chyby.",Reason Send is disabled: the payload form has an invalid field
+inbox.setup_error,"Stored pushes could not be read: $error","Uložené pushe se nepodařilo načíst: $error",Banner shown when the push store fails to restore its history on launch

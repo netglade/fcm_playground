@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../i18n/translations.g.dart';
 import '../../../forms/webpush_config_form.dart';
 import '../form_section.dart';
 import '../path_rows_field.dart';
@@ -17,27 +18,31 @@ class WebpushSection extends StatelessWidget {
   final WebpushConfigForm form;
 
   @override
-  Widget build(BuildContext context) => FormSection(
-    title: 'webpush',
-    subtitle: 'Delivery and rendering options for browsers',
-    isValid: form.isValid,
-    children: [
-      StringMapRows(
-        label: 'headers',
-        value: form.headers.value ?? const {},
-        onChanged: form.headers.updateValue,
-      ),
-      StringMapRows(
-        label: 'data',
-        value: form.data.value ?? const {},
-        onChanged: form.data.updateValue,
-      ),
-      PathRowsField(
-        label: 'notification',
-        value: form.notification.value ?? const {},
-        onChanged: form.notification.updateValue,
-      ),
-      WebpushFcmOptionsSection(form: form.fcmOptions),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final t = context.t;
+
+    return FormSection(
+      title: 'webpush',
+      subtitle: t.form_section.webpush,
+      isValid: form.isValid,
+      children: [
+        StringMapRows(
+          label: 'headers',
+          value: form.headers.value ?? const {},
+          onChanged: form.headers.updateValue,
+        ),
+        StringMapRows(
+          label: 'data',
+          value: form.data.value ?? const {},
+          onChanged: form.data.updateValue,
+        ),
+        PathRowsField(
+          label: 'notification',
+          value: form.notification.value ?? const {},
+          onChanged: form.notification.updateValue,
+        ),
+        WebpushFcmOptionsSection(form: form.fcmOptions),
+      ],
+    );
+  }
 }

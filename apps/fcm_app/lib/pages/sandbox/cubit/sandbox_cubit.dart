@@ -8,6 +8,7 @@ import '../../../domains/sandbox/entities/notification_send_exception.dart';
 import '../../../domains/sandbox/entities/notification_sender.dart';
 import '../../../domains/telemetry/data_sources/silent_push_telemetry.dart';
 import '../../../domains/telemetry/entities/push_telemetry.dart';
+import '../../../i18n/translations.g.dart';
 import '../forms/fcm_message_form.dart';
 import 'sandbox_send_state.dart';
 import 'sandbox_state.dart';
@@ -47,23 +48,29 @@ class SandboxCubit extends Cubit<SandboxState> {
   FcmMessageForm get form => _form;
 
   /// Why Send cannot be pressed, or null when it can.
+  ///
+  /// Reads the global `t` rather than a `context.t` passed in: this cubit has no
+  /// `BuildContext` of its own, the same reason the three `http_*` data sources
+  /// read the global. `send_footer.dart` still rebuilds on a locale change
+  /// because it rereads this getter from inside its own `context.t`-watching
+  /// `build`, so the two stay in step even though only one of them holds a
+  /// context.
   String? get sendBlockedReason {
     if (_isTargetBlank) {
-      return 'Fill in the delivery target, or switch back to this device.';
+      return t.sandbox.send_blocked.no_target;
     }
     // Only a send to *this device* needs this device's token — a topic,
     // condition or explicit token names its own audience.
     if (state.target == null && _token() == null) {
-      return 'No registration token yet, so there is nowhere to send.';
+      return t.sandbox.send_blocked.no_token;
     }
     if (state.sendState is SandboxSending) {
-      return 'Sending…';
+      return t.sandbox.send_blocked.sending;
     }
     // An invalid field can sit behind a closed section, so this has to point at
     // where to look rather than just state that something is wrong.
     if (!state.isFormValid) {
-      return 'A field is invalid. The sections marked with an error icon say '
-          'which.';
+      return t.sandbox.send_blocked.invalid_field;
     }
 
     return null;
