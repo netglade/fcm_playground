@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:fcm_app/domains/notifications/data_sources/notification_details_builder.dart';
 import 'package:fcm_app/domains/notifications/entities/notification_content.dart';
+import 'package:fcm_app/domains/push/entities/remote_message_payload.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -127,6 +128,58 @@ void main() {
             'no category means no buttons — asserting isNotNull above would '
             'still pass if the builder started setting one',
       );
+    });
+  });
+
+  group('the channel it draws through', () {
+    PushMessage messageWith(Map<String, String> data) => PushMessage(
+      id: 'id-1',
+      title: 'Title',
+      body: 'Body',
+      sentAt: DateTime.utc(2026, 8, 26),
+      data: data,
+    );
+
+    test('is the one the payload names', () {
+      final details = buildNotificationDetails(
+        messageWith({pushChannelKey: 'importance_low'}),
+      );
+
+      expect(details.android?.channelId, 'importance_low');
+      expect(details.android?.importance, Importance.low);
+    });
+
+    test('falls back to the default for an unknown channel', () {
+      final details = buildNotificationDetails(
+        messageWith({pushChannelKey: 'no_such_channel'}),
+      );
+
+      // A channel the app never registered would draw nothing at all on
+      // Android O+, so an unknown id must not be passed through.
+      expect(details.android?.channelId, notificationChannelId);
+    });
+
+    test('falls back to the default when the payload names none', () {
+      expect(
+        buildNotificationDetails(messageWith({})).android?.channelId,
+        notificationChannelId,
+      );
+    });
+
+    test('sets the alarm category h2 asks for', () {
+      final details = buildNotificationDetails(
+        messageWith({pushChannelKey: 'alarms', pushCategoryKey: 'alarm'}),
+      );
+
+      expect(details.android?.category, AndroidNotificationCategory.alarm);
+    });
+
+    test('ignores a category it does not recognise', () {
+      final details = buildNotificationDetails(
+        messageWith({pushCategoryKey: 'not_a_category'}),
+      );
+
+      expect(details.android?.category, isNull);
     });
   });
 }
