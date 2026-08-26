@@ -65,20 +65,21 @@ ever run in this repo — so treat it as an open question rather than a
 confirmed bug, and check it before copying this pattern into another app.
 
 **A notification block, when present, is drawn by the system while the app
-is not on screen**, straight from that block, with no app code involved. For
-the *both* shape, the app still runs quietly alongside the system's own
-drawing — it has to, in order to save the push and answer a later tap — but
-it does not draw a second banner, because FCM's own tray entry already
-covers it.
+is not on screen**, straight from that block. For *notification only*, that
+is the whole story: nothing else happens until the notification is tapped.
+For *both*, the app still runs quietly alongside the system's own drawing
+— it has to, in order to save the push and answer a later tap — but it
+does not draw a second banner, because FCM's own tray entry already covers
+it.
 
-**A payload with no notification block never wakes the app at all while it
-is backgrounded or killed**, unless a `data` map rides along with it — FCM
-does not start the app for a bare `notification` block outside the
-foreground, so a notification-only push that is never tapped is never seen
-by the app's own code, only by the system tray. A `data` map is what starts
-the app's own drawing code, which is why the *data only* and *nothing to
-show* rows read "App" throughout: the app runs precisely because there is
-data to hand it, whether or not that data has anything to draw.
+**A payload with no `data` map never wakes the app at all while it is
+backgrounded or killed.** FCM does not start the app for a bare
+`notification` block outside the foreground, so a notification-only push
+that is never tapped is never seen by the app's own code, only by the
+system tray. A `data` map is what starts the app's own drawing code
+instead, which is why the *data only* and *nothing to show* rows read
+"App" throughout: the app runs precisely because there is data to hand it,
+whether or not that data has anything to draw.
 
 **"Data present, nothing to show" still produces a banner.** Nothing in the
 app reads a payload for an intent to stay silent; what varies is only
