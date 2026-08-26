@@ -1,0 +1,111 @@
+# Notifications
+
+Most confusion about whether a push "arrived" is not actually about arrival at
+all — it is one payload shape and one app state mistaken for another, because
+the two together decide who draws the banner and whether anything visible
+happens at all. This document is the four shapes, the three states, and the
+table the two make together. For where the code that implements any of this
+actually lives, see [architecture.md](./architecture.md).
+
+## The four shapes a message can take
+
+FCM's `Message` object carries an optional `notification` block and an
+optional `data` map, and what a device does with a push depends on which of
+the two are present.
+
+- **Notification only.** A `notification` block with no `data` at all. FCM's
+  own SDK knows how to draw this without the app's help.
+- **Data only.** A `data` map with no `notification` block, but with its own
+  `title` and `body` among the data keys, so the app has real text to show —
+  a sender can put those keys straight in `data` for exactly this reason.
+  Nothing but the app itself can ever draw this shape, because FCM has no
+  block to draw it from.
+- **Both.** A `notification` block and a `data` map together, the shape most
+  production pushes actually take.
+- **Data present, nothing to show.** A `data` map with no `notification`
+  block and no `title` or `body` among its keys either — a log line, a sync
+  marker, a flag meant only for the app's own logic. Nothing in this shape
+  suppresses a banner; it leaves nothing for one to say.
+
+## The three states the app can be in
+
+- **Foreground.** The app is on screen. Android draws nothing on its own here
+  for any shape, `notification`-only included.
+- **Backgrounded.** The process is alive but nothing of the app is on screen.
+- **Killed.** The process does not exist until something — the push itself,
+  or a later tap — starts it.
+
+Backgrounded and killed behave identically for who draws a notification: the
+same background code path handles both, and the difference between them only
+shows up in what a tap can deliver, below.
+
+## Which layer draws
+
+| Shape                          | Foreground | Backgrounded | Killed |
+| ------------------------------ | ---------- | ------------ | ------ |
+| Notification only              | App        | System       | System |
+| Data only                      | App        | App          | App    |
+| Both                           | App        | System       | System |
+| Data present, nothing to show  | App        | App          | App    |
+
+**Foreground is always the app**, whatever the shape: Android draws nothing on
+its own for a push that arrives while the app is on screen, so the app's own
+notification-drawing code, `LocalNotificationPresenter`, draws every
+foreground push itself — the row is uniform on purpose.
+
+**A notification block, when present, is drawn by the system while the app
+is not on screen**, straight from that block, with no app code involved. For
+the *both* shape, the app still runs quietly alongside the system's own
+drawing — it has to, in order to save the push and answer a later tap — but
+it does not draw a second banner, because FCM's own tray entry already
+covers it.
+
+**A payload with no notification block never wakes the app at all while it
+is backgrounded or killed**, unless a `data` map rides along with it — FCM
+does not start the app for a bare `notification` block outside the
+foreground, so a notification-only push that is never tapped is never seen
+by the app's own code, only by the system tray. A `data` map is what starts
+the app's own drawing code, which is why the *data only* and *nothing to
+show* rows read "App" throughout: the app runs precisely because there is
+data to hand it, whether or not that data has anything to draw.
+
+**"Data present, nothing to show" still produces a banner.** Nothing in the
+app reads a payload for an intent to stay silent; what varies is only
+whether `title` and `body` come out non-empty. A `data` map with no `title`
+or `body` key still reaches the app's drawing code the same way a `data` map
+with them does, and still posts a banner — an empty one, icon and app name
+with no text, rather than no banner at all. Mistaking a blank banner for a
+missing one, or expecting a `data`-only push to stay invisible because it
+carries nothing a person would read, is exactly the kind of confusion this
+table exists to head off.
+
+## What a tap delivers
+
+A tap always delivers two things: which message it was for, and where the
+tap should navigate to. Which message resolves to the actual push content —
+its title, body and full `data` map — pulled back out of what the app has
+already stored. Where to navigate is read from one `data` key the message
+itself carries: if it names a screen or a specific run the app already
+knows, the tap goes straight there; if it names nothing the app recognises,
+or the payload carries no such key at all, the tap opens that message's own
+detail page instead, showing the raw payload rather than guessing at an
+intent nobody stated.
+
+**How the tap reaches the app differs by which layer drew the banner.** A
+banner the app drew itself — every foreground case, and every backgrounded
+or killed case with no notification block — reports the tap through the
+notification plugin the app used to draw it. A banner the system drew —
+backgrounded or killed, with a notification block present — reports the tap
+through FCM's own delivery instead, because the app was never involved in
+drawing it and has no plugin callback to hear from.
+
+**Killed is the state where this stops being symmetric.** A tap that starts
+the process from nothing is the only kind of tap a killed app can receive —
+there is no other way for it to learn a tap happened at all — and which
+route reports it still depends on which layer drew the banner: the system's
+own route for a notification block, the notification plugin's own launch
+details for one the app would have drawn once it was running. The two do not
+always arrive in the same order — a tap can be reported before the message
+it names has finished being stored — so the app holds an unresolved tap
+rather than dropping it, and resolves it the moment the message it was
+waiting for turns up.
