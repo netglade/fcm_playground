@@ -9,6 +9,7 @@ import 'package:fcm_app/domains/push/repositories/push_repository.dart';
 import 'package:fcm_app/domains/sandbox/data_sources/http_notification_sender.dart';
 import 'package:fcm_app/domains/telemetry/data_sources/drift_telemetry_buffer.dart';
 import 'package:fcm_app/domains/telemetry/entities/telemetry_buffer.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:glade_forms/glade_forms.dart';
 import 'package:patrol/patrol.dart';
@@ -101,6 +102,13 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
     (tap) => repository.requestOpen(tap.id, tap.from, actionId: tap.actionId),
   );
   getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
+
+  // Pinned rather than inherited, and deliberately NOT mirroring main.dart's
+  // read-the-stored-preference block: every finder in this suite is English copy, so
+  // the suite has to run in English regardless of what the handset or a previous
+  // manual walkthrough left behind. Without this it passes only by accident — slang
+  // starts on the base locale and nothing here tells it otherwise.
+  LocaleSettings.setLocaleSync(AppLocale.en);
 
   // `pumpWidget` then `pumpAndTrySettle` rather than the one-shot
   // `pumpWidgetAndSettle`: `AppShell`'s `IndexedStack` builds `TelemetryView` at

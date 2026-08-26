@@ -61,15 +61,17 @@ meant to commit), `melos run analyze` and `melos run dcm` all walk it too — de
 it before running the gate. `melos run test:e2e` deletes it itself when the loop
 finishes; this warning is for anyone invoking `patrol` directly instead.
 
-The suite is written against **English**: its finders match English copy, so
-it needs a device or emulator set to English (or with no stored language
-override, since the app's own default follows the device) to pass. Pinning
-the locale this way is cheaper than making every finder locale-aware or
-translating the suite twice over. The one place that would have been the
-worst offender avoids the problem instead: scenario group tiles are found by
-`Key('group-<letter>')` rather than by their display name, precisely so that
-one finder does not depend on the copy at all — see
-`integration_test/support/scenario_drive.dart`.
+The suite runs against **English**: its finders match English copy, and
+`app_harness.dart` pins `LocaleSettings` to `AppLocale.en` before pumping the
+app, rather than mirroring `main.dart`'s read-the-stored-preference block as
+the rest of the harness does. Pinning is cheaper than making every finder
+locale-aware or translating the suite twice over, and it is deliberate — left
+to inherit, the suite would only pass in English by accident, at the mercy of
+whatever locale a device carries in from a previous manual walkthrough. The
+one place that would have been the worst offender avoids the problem
+instead: scenario group tiles are found by `Key('group-<letter>')` rather
+than by their display name, precisely so that one finder does not depend on
+the copy at all — see `integration_test/support/scenario_drive.dart`.
 
 Structure:
 
