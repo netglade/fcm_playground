@@ -1,13 +1,13 @@
-/// The name recorded for this sample's own Firebase project — the one it was
-/// developed against, not one a stranger's checkout can reach.
+/// Placeholder project name, matching `.firebaserc` at the repo root — the
+/// `firebase` CLI reads that file for its own default `--project`. Nothing in
+/// the running app reads this constant any more (the in-app banner no longer
+/// names a project either); it exists only so `.firebaserc`'s value has a
+/// Dart-side mirror for `service_locator_test.dart`'s fixture to use.
 ///
-/// Also recorded in `.firebaserc` at the repo root, which is what the `firebase`
-/// CLI reads for its own default `--project`. Nothing in the running app reads
-/// this constant — `flutterfire configure` does not read or write either file,
-/// and it asks interactively rather than taking a project on the command line —
-/// so update both by hand only if you plan to drive the `firebase` CLI directly
-/// against your own project.
-const firebaseProjectId = 'fcm-sandbox-770fa';
+/// `flutterfire configure` does not read or write this or `.firebaserc` — it
+/// asks which project interactively — so update both by hand only if you
+/// plan to drive the `firebase` CLI directly against your own project.
+const firebaseProjectId = 'your-project-id';
 
 /// Marker for the placeholder credentials this public sample ships in
 /// `firebase_options.dart`. Every field there — `apiKey`, `appId`,
