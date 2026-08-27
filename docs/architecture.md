@@ -27,12 +27,12 @@ file needs to exist. A domain — `notifications`, `push`, `runs`, `sandbox`,
 `settings`, `telemetry` — holds the state and behaviour that outlives any one
 screen: a model, a store, an interface, and the classes that implement it.
 None of it imports a page, and none of it needs a `BuildContext`. A page is one
-destination of the app's drawer — Inbox, Scenarios, Sandbox, Runs, Telemetry —
-or a screen pushed over one, and holds the widgets and the cubit that turn a
-domain's state into pixels for that one screen and feed taps back into it. A
-file that would still make sense with no UI attached belongs in a domain; a
-file that exists only because one screen needs it belongs in that screen's
-page.
+destination of the app's drawer — Inbox, Scenarios, Sandbox, Channels, Runs,
+Telemetry — or a screen pushed over one, and holds the widgets and the cubit
+that turn a domain's state into pixels for that one screen and feed taps back
+into it. A file that would still make sense with no UI attached belongs in a
+domain; a file that exists only because one screen needs it belongs in that
+screen's page.
 
 Inbox is the drawer's first destination and the app's memory: every push the
 app accepts is stored, not just the ones drawn as a banner, and the Inbox

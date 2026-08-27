@@ -91,6 +91,61 @@ missing one, or expecting a `data`-only push to stay invisible because it
 carries nothing a person would read, is exactly the kind of confusion this
 table exists to head off.
 
+## Which channel it lands on
+
+From Android 8 onwards a notification's *behaviour* is not its payload's to
+decide. How loudly it announces itself, whether it makes a sound at all, what
+it vibrates, whether it can cut through Do Not Disturb — all of that belongs to
+the **channel** it is posted to, and the channel is created by the app before
+any push arrives. This is the single most common surprise in Android
+notifications: you put `sound` in the payload, nothing changes, and nothing
+reports an error either.
+
+A payload picks a channel by id, in `android.notification.channel_id`. This app
+registers eleven of them and the catalogue's `d` and `h` groups exist to walk
+through what they control — four that differ only in importance, one with a
+custom sound, one with a vibration pattern, one asking to bypass Do Not
+Disturb, one using the alarm audio stream, and two chat channels filed under a
+shared group so they appear together in system settings.
+
+**An id the app never registered draws nothing at all.** Not a fallback, not a
+default — on Android O+ a notification posted to a channel that does not exist
+is dropped silently. So an unrecognised id is replaced with the app's default
+channel rather than passed through to Android, because honouring the payload
+literally would lose the notification. The default is the first channel in the
+table, the same one `AndroidManifest.xml` names as FCM's
+`default_notification_channel_id`.
+
+**A channel's properties are fixed the first time it is created**, and the two
+ways an app might try to change one fail differently. Registering it again does
+not update it: the plugin refuses the call outright once the channel exists,
+which is why this app registering all eleven from each of its three drawing
+isolates is a real no-op past the first. Asking Android directly to change an
+existing channel's importance fails the other way — the request is accepted and
+the value simply does not move. Only the user can change these, in system
+settings.
+
+One consequence catches people out: a channel keeps the name it was created
+with. Install the app in Czech and the channels are named in Czech; switch the
+app to English afterwards and they stay Czech, because renaming them is exactly
+the call Android refuses. The single fix available to an app that got a channel
+wrong is to create a new one under a new id and abandon the old — which is why
+the catalogue ships `chat_v1` alongside `chat_v2`: the mistake and the only
+repair Android permits.
+
+The **Channels** page is where this stops being theory. It lists every channel
+the app asked for beside what Android actually reports holding, so a
+divergence is visible rather than inferred, and it has a button that asks
+Android to lower `chat_v1`'s importance and then re-reads the system's answer.
+The re-read is the point: the request succeeds and the value does not move.
+The same page is where `bypassDnd` shows its own asymmetry — the app requests
+it, and Android grants it only if the user has given the app
+notification-policy access, so requested and granted are two different columns.
+
+Channel names and descriptions are shown to the user by Android itself, which
+is why they are translated rather than const, and read by id at registration
+time — see [localization.md](./localization.md).
+
 ## What a tap delivers
 
 A tap always delivers two things: which message it was for, and where the
