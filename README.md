@@ -95,17 +95,17 @@ this at; make the banner go away with a Firebase project of your own:
    `com.google.gms.google-services` plugin when it is present, precisely so
    a checkout without one still builds.
 
-`firebaseProjectId` in `apps/fcm_app/lib/firebase_setup.dart` and the
-project name in `.firebaserc` still say `fcm-sandbox-770fa` — the project
-this sample was developed against, not the one `flutterfire configure` just
-wired up, and neither file is touched by that command. `.firebaserc` is what
-the `firebase` CLI reads for its own default `--project`, so update it if
-you drive that CLI directly from this repo (`flutterfire configure` itself
-does not need it — it asks interactively). `firebaseProjectId` records the
-same name on the Dart side; nothing in the running app reads it any more —
-the in-app banner no longer names a project — but it is kept in sync with
-`.firebaserc` so a reader has one place to check rather than two. Update
-both by hand if you want them to name your project instead.
+`.firebaserc`'s project name is the placeholder `your-project-id` —
+the same placeholder `firebase_options.dart` uses — not a real one, so there
+is nothing for the `firebase` CLI's own default `--project` to resolve until
+you put your project's id there yourself (`firebase use <your-project-id>`,
+or edit the file directly). `flutterfire configure` does not read or write
+it — it asks which project interactively — so this is only worth doing if
+you drive the `firebase` CLI directly from this repo. `firebaseProjectId` in
+`apps/fcm_app/lib/firebase_setup.dart` still names `fcm-sandbox-770fa`, the
+project this sample was developed against; nothing in the running app reads
+it any more — the in-app banner no longer names a project — it is kept here
+only as a record of that history.
 
 Run the app again and push works.
 
@@ -117,7 +117,7 @@ authentication, bound to loopback only — see
 thing protecting it.
 
 ```bash
-GOOGLE_APPLICATION_CREDENTIALS=~/.config/fcm-sandbox-service-account.json \
+GOOGLE_APPLICATION_CREDENTIALS=~/.config/fcm-app-service-account.json \
   fvm dart run melos run --no-select api:serve
 ```
 
@@ -147,7 +147,7 @@ With the API running and a physical handset connected:
 
 ```bash
 # shell 1
-GOOGLE_APPLICATION_CREDENTIALS=~/.config/fcm-sandbox-service-account.json \
+GOOGLE_APPLICATION_CREDENTIALS=~/.config/fcm-app-service-account.json \
   fvm dart run melos run --no-select api:serve
 adb reverse tcp:8080 tcp:8080
 
