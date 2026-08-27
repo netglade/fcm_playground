@@ -1,5 +1,5 @@
-import '../json_field.dart';
-import '../send_message_request.dart';
+import 'package:fcm_gallery_shared/src/json_field.dart';
+import 'package:fcm_gallery_shared/src/send_message_request.dart';
 
 /// The most items one run may hold. The catalogue has 66, so selecting all of them
 /// fits; the cap is there to stop a typo scheduling a hundred thousand sends.

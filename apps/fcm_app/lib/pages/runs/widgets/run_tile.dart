@@ -1,8 +1,7 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/runs/widgets/run_time.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
-import 'run_time.dart';
 
 /// One run in the list: how big it was, how it went, and when the next item is due.
 class RunTile extends StatelessWidget {

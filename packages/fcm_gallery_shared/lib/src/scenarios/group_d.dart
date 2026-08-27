@@ -1,4 +1,4 @@
-import 'scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
 
 /// **D — Channels and importance.** What the user, not the sender, controls.
 ///

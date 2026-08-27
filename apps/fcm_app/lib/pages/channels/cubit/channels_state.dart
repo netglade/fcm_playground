@@ -1,6 +1,5 @@
+import 'package:fcm_app/domains/notifications/notifications.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../../../domains/notifications/app_notification_channel.dart';
 
 class ChannelsState {
   const ChannelsState({

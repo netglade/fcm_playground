@@ -1,5 +1,4 @@
 export 'all_devices_note.dart';
-export 'form/form.dart';
 export 'manual_steps_block.dart';
 export 'not_received_button.dart';
 export 'preset_chips.dart';
@@ -10,3 +9,4 @@ export 'schedule_sheet_body.dart';
 export 'send_footer.dart';
 export 'send_result_card.dart';
 export 'send_target_field.dart';
+export 'form/form.dart';

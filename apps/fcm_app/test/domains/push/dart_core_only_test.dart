@@ -16,6 +16,16 @@ const _files = [
   'notification_action.dart',
 ];
 
+/// Where these four sit, for turning a file name into the `package:` URI the
+/// others import it by.
+///
+/// They name each other absolutely, like everything else in `lib`, and
+/// deliberately not through `domains/push/push.dart`: that barrel also exports
+/// `firebase_push_source.dart`, so a single import of it would pull
+/// firebase_messaging — and Flutter behind it — into every file here and undo
+/// the property this test exists to hold.
+const _directory = 'package:fcm_app/domains/push';
+
 final _importLine = RegExp('''^import ['"]([^'"]+)['"]''', multiLine: true);
 
 void main() {
@@ -26,7 +36,10 @@ void main() {
           .allMatches(source)
           .map((match) => match.group(1)!)
           .toList();
-      final siblings = _files.where((sibling) => sibling != file).toSet();
+      final siblings = _files
+          .where((sibling) => sibling != file)
+          .map((sibling) => '$_directory/$sibling')
+          .toSet();
 
       expect(
         imports.every(siblings.contains),

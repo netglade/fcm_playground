@@ -1,5 +1,5 @@
-import 'scenario.dart';
-import 'scenario_need.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
 
 /// **B — Application states.** The same push, delivered into six different
 /// conditions of the app.

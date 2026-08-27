@@ -1,7 +1,6 @@
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
 
 /// One of `TraceCard`'s ten rows: the type, whether it arrived, and if so when.
 ///

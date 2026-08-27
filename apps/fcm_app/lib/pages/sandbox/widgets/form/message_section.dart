@@ -1,14 +1,13 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/forms/forms.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/android_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/apns_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/fcm_options_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/form_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/notification_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/string_map_rows.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/webpush_section.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../i18n/translations.g.dart';
-import '../../forms/fcm_message_form.dart';
-import 'form_section.dart';
-import 'string_map_rows.dart';
-import 'android_section.dart';
-import 'apns_section.dart';
-import 'fcm_options_section.dart';
-import 'notification_section.dart';
-import 'webpush_section.dart';
 
 /// The whole payload form: FCM's `message` and every block beneath it.
 ///

@@ -1,17 +1,17 @@
-import '../push/push_message.dart';
-import '../push/push_tap.dart';
 import 'dart:async';
-import 'notification_channels.dart';
-import 'notification_content.dart';
-import 'notification_details_builder.dart';
-import 'notification_group_store.dart';
-import 'notification_group_summary.dart';
-import 'notification_presenter.dart';
-import 'notification_reply.dart';
+
+import 'package:fcm_app/domains/notifications/notification_channels.dart';
+import 'package:fcm_app/domains/notifications/notification_content.dart';
+import 'package:fcm_app/domains/notifications/notification_details_builder.dart';
+import 'package:fcm_app/domains/notifications/notification_group_store.dart';
+import 'package:fcm_app/domains/notifications/notification_group_summary.dart';
+import 'package:fcm_app/domains/notifications/notification_presenter.dart';
+import 'package:fcm_app/domains/notifications/notification_reply.dart';
+import 'package:fcm_app/domains/notifications/shared_preferences_notification_group_store.dart';
+import 'package:fcm_app/domains/push/push.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'shared_preferences_notification_group_store.dart';
 
 /// A [NotificationPresenter] over `flutter_local_notifications`, needed only
 /// because Android shows nothing for a message that arrives while the app is in

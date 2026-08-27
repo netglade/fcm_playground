@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/settings/locale_store.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../i18n/translations.g.dart';
-import 'locale_store.dart';
 
 /// The key the override is stored under.
 ///

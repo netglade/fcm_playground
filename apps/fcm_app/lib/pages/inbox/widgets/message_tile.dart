@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/push/push.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/material.dart';
-
-import '../../../domains/push/push_message.dart';
-import '../../../i18n/translations.g.dart';
 
 /// One row in the inbox.
 class MessageTile extends StatelessWidget {

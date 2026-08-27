@@ -1,11 +1,10 @@
 import 'package:collection/collection.dart';
-
-import 'android_config.dart';
-import 'apns_config.dart';
-import 'fcm_notification.dart';
-import 'fcm_options.dart';
-import 'json_object_reader.dart';
-import 'webpush_config.dart';
+import 'package:fcm_gallery_shared/src/message/android_config.dart';
+import 'package:fcm_gallery_shared/src/message/apns_config.dart';
+import 'package:fcm_gallery_shared/src/message/fcm_notification.dart';
+import 'package:fcm_gallery_shared/src/message/fcm_options.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/webpush_config.dart';
 
 /// FCM's v1 `Message`, minus the delivery target — `token`, `topic` and
 /// `condition`, which the server assigns rather than a payload template — and minus

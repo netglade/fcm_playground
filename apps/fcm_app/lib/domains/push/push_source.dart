@@ -1,4 +1,4 @@
-import 'push_tap.dart';
+import 'package:fcm_app/domains/push/push_tap.dart';
 
 /// The seam that keeps `firebase_messaging` out of the widget tree and out of
 /// the tests.

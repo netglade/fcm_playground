@@ -1,10 +1,8 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/channels/cubit/cubit.dart';
+import 'package:fcm_app/pages/channels/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../i18n/translations.g.dart';
-import 'cubit/channels_cubit.dart';
-import 'cubit/channels_state.dart';
-import 'widgets/channel_card.dart';
 
 /// What the app asked Android for, against what Android actually reports back.
 ///

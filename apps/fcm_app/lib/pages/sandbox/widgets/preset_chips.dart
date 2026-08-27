@@ -1,6 +1,5 @@
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
 
 /// A row of choice chips for picking one of [values], in seconds.
 ///

@@ -1,10 +1,9 @@
 import 'dart:async';
 
+import 'package:fcm_app/domains/push/push.dart';
+import 'package:fcm_app/pages/inbox/cubit/inbox_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../domains/push/push_repository.dart';
-import 'inbox_state.dart';
 
 /// The widget tree's projection of [PushRepository]. Its state *is* what the
 /// repository publishes; everything worth testing stays app-scoped there.

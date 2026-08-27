@@ -1,10 +1,9 @@
+import 'package:fcm_api/src/fcm_sender.dart';
+import 'package:fcm_api/src/run_store.dart';
+import 'package:fcm_api/src/send_message.dart';
+import 'package:fcm_api/src/send_outcome.dart';
+import 'package:fcm_api/src/telemetry_store.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'fcm_sender.dart';
-import 'run_store.dart';
-import 'send_message.dart';
-import 'send_outcome.dart';
-import 'telemetry_store.dart';
 
 /// Decides when a scheduled send happens, and records what became of it.
 ///

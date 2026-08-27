@@ -1,4 +1,4 @@
-import '../../i18n/translations.g.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 
 /// The language the user picked, or null for "follow the system".
 ///

@@ -1,7 +1,6 @@
+import 'package:fcm_app/pages/sandbox/forms/forms.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/string_map_rows.dart';
 import 'package:flutter/material.dart';
-
-import '../../forms/path_rows.dart';
-import 'string_map_rows.dart';
 
 /// Edits a free-form nested payload as dotted-path rows.
 ///

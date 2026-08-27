@@ -1,11 +1,9 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/cubit/cubit.dart';
+import 'package:fcm_app/pages/scenarios/widgets/scenario_card.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../i18n/scenario_text.dart';
-import '../../../i18n/translations.g.dart';
-import '../../sandbox/cubit/sandbox_cubit.dart';
-import 'scenario_card.dart';
 
 /// The gallery of message-payload templates, grouped by the facet of FCM each one
 /// demonstrates.

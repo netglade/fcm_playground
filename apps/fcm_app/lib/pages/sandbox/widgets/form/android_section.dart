@@ -1,15 +1,14 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/forms/forms.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/android_notification_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/enum_field.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/fcm_options_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/form_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/string_map_rows.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/tristate_field.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
-
-import '../../../../i18n/translations.g.dart';
-import '../../forms/android_config_form.dart';
-import 'enum_field.dart';
-import 'form_section.dart';
-import 'string_map_rows.dart';
-import 'tristate_field.dart';
-import 'android_notification_section.dart';
-import 'fcm_options_section.dart';
 
 /// Edits `android` — how FCM delivers to an Android device and how that device
 /// renders the result.

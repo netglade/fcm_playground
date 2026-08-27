@@ -1,6 +1,6 @@
-import '../json_field.dart';
-import 'run_item_state.dart';
-import 'scheduled_run.dart';
+import 'package:fcm_gallery_shared/src/json_field.dart';
+import 'package:fcm_gallery_shared/src/runs/run_item_state.dart';
+import 'package:fcm_gallery_shared/src/runs/scheduled_run.dart';
 
 /// One row of `GET /runs`: enough to list a run without carrying its messages.
 ///

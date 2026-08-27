@@ -1,15 +1,14 @@
 import 'dart:convert';
 
+import 'package:fcm_api/src/events_handler.dart';
+import 'package:fcm_api/src/fcm_sender.dart';
+import 'package:fcm_api/src/send_message.dart';
+import 'package:fcm_api/src/send_outcome.dart';
+import 'package:fcm_api/src/send_scheduler.dart';
+import 'package:fcm_api/src/telemetry_store.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-
-import 'events_handler.dart';
-import 'fcm_sender.dart';
-import 'send_message.dart';
-import 'send_outcome.dart';
-import 'send_scheduler.dart';
-import 'telemetry_store.dart';
 
 /// The HTTP surface: nine routes, JSON in and JSON out.
 ///

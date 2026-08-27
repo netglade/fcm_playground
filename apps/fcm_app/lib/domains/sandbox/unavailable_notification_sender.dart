@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/sandbox/notification_send_exception.dart';
+import 'package:fcm_app/domains/sandbox/notification_sender.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'notification_send_exception.dart';
-import 'notification_sender.dart';
 
 /// A [NotificationSender] used when Firebase failed to start: it always fails
 /// with the reason, so the app never special-cases a null sender.

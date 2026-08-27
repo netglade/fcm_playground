@@ -1,11 +1,9 @@
+import 'package:fcm_app/domains/runs/runs.dart';
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/runs/cubit/cubit.dart';
+import 'package:fcm_app/pages/runs/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../domains/runs/run_scheduler.dart';
-import '../../i18n/translations.g.dart';
-import 'cubit/run_timeline_cubit.dart';
-import 'cubit/run_timeline_state.dart';
-import 'widgets/run_item_card.dart';
 
 /// One run, item by item, each with its events.
 ///

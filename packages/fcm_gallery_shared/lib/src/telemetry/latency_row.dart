@@ -1,4 +1,4 @@
-import '../json_field.dart';
+import 'package:fcm_gallery_shared/src/json_field.dart';
 
 /// One `sent → received` measurement: a trace, a device, and the two times.
 ///

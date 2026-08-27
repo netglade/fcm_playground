@@ -1,11 +1,10 @@
 import 'dart:io';
 
+import 'package:fcm_api/src/fcm_send_exception.dart';
+import 'package:fcm_api/src/fcm_sender.dart';
+import 'package:fcm_api/src/send_outcome.dart';
+import 'package:fcm_api/src/telemetry_store.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'fcm_send_exception.dart';
-import 'fcm_sender.dart';
-import 'send_outcome.dart';
-import 'telemetry_store.dart';
 
 /// Injects the delivery target and a trace id into the message and forwards it to
 /// FCM, recording `queued` before FCM is asked and then `sent` or `send_failed`.

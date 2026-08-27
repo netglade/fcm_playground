@@ -1,10 +1,9 @@
 import 'dart:convert';
 
+import 'package:fcm_app/domains/push/pressed_action.dart';
+import 'package:fcm_app/domains/push/pressed_action_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'pressed_action.dart';
-import 'pressed_action_store.dart';
 
 /// A [PressedActionStore] over `shared_preferences`.
 ///

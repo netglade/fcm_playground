@@ -1,11 +1,10 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/forms/forms.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/form_section.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/path_rows_field.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/string_map_rows.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/webpush_fcm_options_section.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../i18n/translations.g.dart';
-import '../../forms/webpush_config_form.dart';
-import 'form_section.dart';
-import 'path_rows_field.dart';
-import 'string_map_rows.dart';
-import 'webpush_fcm_options_section.dart';
 
 /// Edits `webpush` — what FCM hands to a browser's push gateway.
 ///

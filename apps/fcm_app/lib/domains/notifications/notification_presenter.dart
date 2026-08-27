@@ -1,5 +1,4 @@
-import '../push/push_message.dart';
-import '../push/push_tap.dart';
+import 'package:fcm_app/domains/push/push.dart';
 
 /// Shows a received push as an operating-system notification — the same shape of
 /// seam as `PushSource`, so the widget tests never construct

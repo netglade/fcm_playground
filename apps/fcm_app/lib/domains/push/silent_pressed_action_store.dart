@@ -1,5 +1,5 @@
-import 'pressed_action.dart';
-import 'pressed_action_store.dart';
+import 'package:fcm_app/domains/push/pressed_action.dart';
+import 'package:fcm_app/domains/push/pressed_action_store.dart';
 
 /// A [PressedActionStore] that keeps nothing, for the tests and for the app
 /// running without storage — the same seam `SilentNotificationPresenter` and

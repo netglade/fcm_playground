@@ -1,5 +1,5 @@
-import 'pending_reply.dart';
-import 'reply_store.dart';
+import 'package:fcm_app/domains/push/pending_reply.dart';
+import 'package:fcm_app/domains/push/reply_store.dart';
 
 /// A [ReplyStore] that keeps nothing, for the tests and for the app running
 /// without storage — the same seam `SilentPressedActionStore` and

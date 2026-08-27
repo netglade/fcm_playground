@@ -1,6 +1,5 @@
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
 
 /// Reports that the push for [traceId] never arrived — the only evidence available
 /// when the interesting answer is silence.

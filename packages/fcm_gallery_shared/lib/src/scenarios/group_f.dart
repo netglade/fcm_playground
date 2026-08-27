@@ -1,5 +1,5 @@
-import 'scenario.dart';
-import 'scenario_need.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
 
 /// **F — Interaction.** What happens when the user touches it, or does not.
 ///

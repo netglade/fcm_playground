@@ -1,11 +1,8 @@
+import 'package:fcm_app/domains/runs/runs.dart';
+import 'package:fcm_app/pages/countdown/cubit/cubit.dart';
+import 'package:fcm_app/pages/countdown/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../domains/runs/plugin_countdown_screen.dart';
-import '../../domains/runs/countdown_screen.dart';
-import 'cubit/countdown_cubit.dart';
-import 'cubit/countdown_state.dart';
-import 'widgets/countdown_body.dart';
 
 /// The screen the user reads while they kill the app.
 ///

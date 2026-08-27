@@ -1,7 +1,6 @@
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../i18n/translations.g.dart';
 
 /// Edits a `Map<String, String>` as one key/value row per entry.
 ///

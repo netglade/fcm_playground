@@ -1,8 +1,6 @@
+import 'package:fcm_app/domains/runs/runs.dart';
+import 'package:fcm_app/pages/runs/cubit/runs_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../domains/runs/run_scheduler.dart';
-import '../../../domains/runs/run_scheduler_exception.dart';
-import 'runs_state.dart';
 
 /// Loads the recent runs.
 ///

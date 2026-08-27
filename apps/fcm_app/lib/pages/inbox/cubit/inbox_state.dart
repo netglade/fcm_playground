@@ -1,5 +1,4 @@
-import '../../../domains/push/pressed_action.dart';
-import '../../../domains/push/push_message.dart';
+import 'package:fcm_app/domains/push/push.dart';
 
 /// What the inbox holds, as one immutable snapshot. `PushRepository` publishes
 /// it and `InboxCubit`'s state *is* it.

@@ -1,9 +1,8 @@
 import 'package:collection/collection.dart';
-
-import 'android_message_priority.dart';
-import 'android_notification.dart';
-import 'fcm_options.dart';
-import 'json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/android_message_priority.dart';
+import 'package:fcm_gallery_shared/src/message/android_notification.dart';
+import 'package:fcm_gallery_shared/src/message/fcm_options.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
 
 /// FCM's `AndroidConfig`, nested under `Message.android`: priority, TTL, data
 /// payload and Android's own notification rendering.

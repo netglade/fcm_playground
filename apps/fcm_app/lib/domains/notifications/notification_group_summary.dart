@@ -1,12 +1,10 @@
+import 'package:fcm_app/domains/notifications/notification_content.dart';
+import 'package:fcm_app/domains/notifications/notification_group_store.dart';
+import 'package:fcm_app/domains/notifications/shared_preferences_notification_group_store.dart';
+import 'package:fcm_app/domains/push/push.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../../../i18n/channel_text.dart';
-import '../../../i18n/translations.g.dart';
-import '../push/push_message.dart';
-import 'notification_content.dart';
-import 'notification_group_store.dart';
-import 'shared_preferences_notification_group_store.dart';
 
 /// [groups] with [messageId] recorded in [group], unchanged if it is already there.
 ///

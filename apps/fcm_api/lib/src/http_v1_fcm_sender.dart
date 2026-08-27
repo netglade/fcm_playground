@@ -1,9 +1,8 @@
 import 'dart:convert';
 
+import 'package:fcm_api/src/fcm_send_exception.dart';
+import 'package:fcm_api/src/fcm_sender.dart';
 import 'package:http/http.dart' as http;
-
-import 'fcm_send_exception.dart';
-import 'fcm_sender.dart';
 
 /// The one OAuth2 scope this server needs — FCM's HTTP v1 API requires no more to
 /// send.

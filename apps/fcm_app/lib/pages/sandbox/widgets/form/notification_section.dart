@@ -1,9 +1,8 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/forms/forms.dart';
+import 'package:fcm_app/pages/sandbox/widgets/form/form_section.dart';
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
-
-import '../../../../i18n/translations.g.dart';
-import '../../forms/fcm_notification_form.dart';
-import 'form_section.dart';
 
 /// Edits FCM's cross-platform `notification` block.
 class NotificationSection extends StatelessWidget {

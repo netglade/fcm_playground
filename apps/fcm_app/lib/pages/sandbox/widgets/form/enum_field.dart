@@ -1,7 +1,6 @@
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
-
-import '../../../../i18n/translations.g.dart';
 
 /// A dropdown for an FCM enum field that may be absent.
 ///

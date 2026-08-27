@@ -1,8 +1,7 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/cubit/cubit.dart';
+import 'package:fcm_app/pages/sandbox/widgets/not_received_button.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
-import '../cubit/sandbox_send_state.dart';
-import 'not_received_button.dart';
 
 /// What became of the last send.
 ///

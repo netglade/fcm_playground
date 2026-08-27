@@ -1,8 +1,6 @@
+import 'package:fcm_app/domains/runs/runs.dart';
+import 'package:fcm_app/pages/runs/cubit/run_timeline_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../domains/runs/run_scheduler.dart';
-import '../../../domains/runs/run_scheduler_exception.dart';
-import 'run_timeline_state.dart';
 
 /// Loads one run and its events.
 class RunTimelineCubit extends Cubit<RunTimelineState> {

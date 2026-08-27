@@ -1,4 +1,4 @@
-import 'json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
 
 /// Delivery options FCM applies on every platform. Separate from [ApnsFcmOptions]
 /// and [WebpushFcmOptions] because those accept extra fields this block rejects.

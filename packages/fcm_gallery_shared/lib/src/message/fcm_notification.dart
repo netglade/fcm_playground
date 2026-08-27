@@ -1,4 +1,4 @@
-import 'json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
 
 /// The notification FCM renders itself when the app is not in the foreground.
 ///

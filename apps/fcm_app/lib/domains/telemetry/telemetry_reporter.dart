@@ -1,12 +1,11 @@
 import 'dart:convert';
 
+import 'package:fcm_app/domains/telemetry/device_identity.dart';
+import 'package:fcm_app/domains/telemetry/push_telemetry.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_buffer.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-
-import 'device_identity.dart';
-import 'push_telemetry.dart';
-import 'telemetry_buffer.dart';
 
 /// Records what happens to a push on this device, and sends it to the API.
 ///

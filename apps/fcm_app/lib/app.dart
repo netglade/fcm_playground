@@ -1,11 +1,10 @@
+import 'package:fcm_app/di/service_locator.dart';
+import 'package:fcm_app/domains/domains.dart';
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/pages.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
-import 'di/service_locator.dart';
-import 'domains/domains.dart';
-import 'i18n/translations.g.dart';
-import 'pages/pages.dart';
 
 /// Root widget, and the one place the cubits are created.
 ///

@@ -1,4 +1,4 @@
-import 'pressed_action.dart';
+import 'package:fcm_app/domains/push/pressed_action.dart';
 
 /// Where pressed actions are kept so the detail page can still report one after
 /// a restart.

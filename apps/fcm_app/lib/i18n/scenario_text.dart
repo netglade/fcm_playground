@@ -1,6 +1,5 @@
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'translations.g.dart';
 
 /// The catalogue's prose, by scenario key.
 ///

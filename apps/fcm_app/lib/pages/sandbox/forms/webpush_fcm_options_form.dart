@@ -1,7 +1,6 @@
+import 'package:fcm_app/pages/sandbox/forms/fcm_notification_form.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:glade_forms/glade_forms.dart';
-
-import 'fcm_notification_form.dart';
 
 /// Edits the WebPush-specific `fcm_options` block.
 ///

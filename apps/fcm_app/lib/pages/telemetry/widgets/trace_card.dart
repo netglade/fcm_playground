@@ -1,9 +1,8 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/telemetry/cubit/cubit.dart';
+import 'package:fcm_app/pages/telemetry/widgets/event_row.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
-import '../cubit/trace_timeline.dart';
-import 'event_row.dart';
 
 /// One trace, with all ten event types listed whether or not they arrived.
 ///

@@ -1,8 +1,7 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/telemetry/cubit/cubit.dart';
+import 'package:fcm_app/pages/telemetry/widgets/trace_card.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
-import '../cubit/trace_timeline.dart';
-import 'trace_card.dart';
 
 /// Every trace the API remembers, newest first.
 class EventsTab extends StatelessWidget {

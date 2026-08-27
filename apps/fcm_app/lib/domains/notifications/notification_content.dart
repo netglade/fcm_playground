@@ -1,4 +1,4 @@
-import '../push/push_message.dart';
+import 'package:fcm_app/domains/push/push.dart';
 
 /// The Android channel every notification from this app goes to.
 ///

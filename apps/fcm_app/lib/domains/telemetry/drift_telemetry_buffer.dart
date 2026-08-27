@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_buffer.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'telemetry_buffer.dart';
 
 part 'drift_telemetry_buffer.g.dart';
 

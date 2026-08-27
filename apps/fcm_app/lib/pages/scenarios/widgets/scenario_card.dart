@@ -1,8 +1,6 @@
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/scenario_text.dart';
-import '../../../i18n/translations.g.dart';
 
 /// One scenario in the gallery, as a card.
 ///

@@ -1,4 +1,4 @@
-import 'json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
 
 /// FCM's `ApnsFcmOptions`, separate from [FcmOptions] because APNs accepts an
 /// `image` neither the generic block nor WebPush does.

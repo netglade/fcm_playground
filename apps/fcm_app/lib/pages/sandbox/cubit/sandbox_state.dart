@@ -1,6 +1,5 @@
+import 'package:fcm_app/pages/sandbox/cubit/sandbox_send_state.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'sandbox_send_state.dart';
 
 /// Sentinel for "this field was not passed", so that passing null to
 /// [SandboxState.copyWith] clears a nullable field instead of keeping it.

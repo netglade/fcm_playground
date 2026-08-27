@@ -1,5 +1,5 @@
-import 'push_source.dart';
-import 'push_tap.dart';
+import 'package:fcm_app/domains/push/push_source.dart';
+import 'package:fcm_app/domains/push/push_tap.dart';
 
 /// A [PushSource] that never emits, substituted for `FirebasePushSource` when
 /// Firebase fails to start.

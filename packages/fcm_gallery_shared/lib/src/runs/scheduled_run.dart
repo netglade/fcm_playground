@@ -1,5 +1,5 @@
-import '../json_field.dart';
-import 'scheduled_run_item.dart';
+import 'package:fcm_gallery_shared/src/json_field.dart';
+import 'package:fcm_gallery_shared/src/runs/scheduled_run_item.dart';
 
 /// A group of sends created by one action.
 ///

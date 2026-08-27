@@ -1,10 +1,9 @@
 import 'dart:convert';
 
+import 'package:fcm_app/domains/push/pending_reply.dart';
+import 'package:fcm_app/domains/push/reply_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'pending_reply.dart';
-import 'reply_store.dart';
 
 /// A [ReplyStore] over `shared_preferences`.
 ///

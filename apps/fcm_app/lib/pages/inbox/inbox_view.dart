@@ -1,15 +1,12 @@
 import 'dart:async';
 
+import 'package:fcm_app/domains/notifications/notifications.dart';
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/inbox/cubit/cubit.dart';
+import 'package:fcm_app/pages/inbox/message_detail_page.dart';
+import 'package:fcm_app/pages/inbox/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../domains/notifications/notification_presenter.dart';
-import '../../i18n/translations.g.dart';
-import 'cubit/inbox_cubit.dart';
-import 'cubit/inbox_state.dart';
-import 'message_detail_page.dart';
-import 'widgets/message_tile.dart';
-import 'widgets/setup_error_banner.dart';
 
 /// Lists every push received this session, newest first.
 ///

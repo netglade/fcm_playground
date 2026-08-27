@@ -1,6 +1,5 @@
+import 'package:fcm_app/pages/telemetry/cubit/trace_timeline.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'trace_timeline.dart';
 
 /// What the telemetry page is showing.
 ///

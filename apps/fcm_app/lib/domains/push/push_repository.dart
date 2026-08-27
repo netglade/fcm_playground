@@ -1,26 +1,22 @@
 import 'dart:async';
 
+import 'package:fcm_app/domains/notifications/notifications.dart';
+import 'package:fcm_app/domains/push/pending_reply.dart';
+import 'package:fcm_app/domains/push/pressed_action.dart';
+import 'package:fcm_app/domains/push/pressed_action_store.dart';
+import 'package:fcm_app/domains/push/push_message.dart';
+import 'package:fcm_app/domains/push/push_message_format_exception.dart';
+import 'package:fcm_app/domains/push/push_message_parser.dart';
+import 'package:fcm_app/domains/push/push_payload_store.dart';
+import 'package:fcm_app/domains/push/push_source.dart';
+import 'package:fcm_app/domains/push/reply_store.dart';
+import 'package:fcm_app/domains/push/silent_pressed_action_store.dart';
+import 'package:fcm_app/domains/push/silent_reply_store.dart';
+import 'package:fcm_app/domains/telemetry/telemetry.dart';
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/inbox/cubit/cubit.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
-
-import '../../i18n/translations.g.dart';
-import '../../pages/inbox/cubit/inbox_state.dart';
-import '../notifications/silent_notification_presenter.dart';
-import '../notifications/notification_presenter.dart';
-import '../telemetry/silent_push_telemetry.dart';
-import '../telemetry/push_telemetry.dart';
-import '../telemetry/report_push_event.dart';
-import 'silent_pressed_action_store.dart';
-import 'silent_reply_store.dart';
-import 'pending_reply.dart';
-import 'pressed_action.dart';
-import 'pressed_action_store.dart';
-import 'push_message.dart';
-import 'push_message_format_exception.dart';
-import 'push_message_parser.dart';
-import 'push_payload_store.dart';
-import 'push_source.dart';
-import 'reply_store.dart';
 
 /// Everything about received pushes that outlives a page: the subscription, the
 /// ordering, the de-duplication and the persistence.

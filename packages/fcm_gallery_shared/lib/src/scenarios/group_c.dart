@@ -1,5 +1,5 @@
-import 'scenario.dart';
-import 'scenario_need.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
 
 /// **C — Priority and delivery window.** How hard FCM tries, and for how long.
 ///

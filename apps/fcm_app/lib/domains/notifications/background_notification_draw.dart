@@ -1,13 +1,12 @@
+import 'package:fcm_app/domains/notifications/notification_channels.dart';
+import 'package:fcm_app/domains/notifications/notification_content.dart';
+import 'package:fcm_app/domains/notifications/notification_details_builder.dart';
+import 'package:fcm_app/domains/notifications/notification_group_summary.dart';
+import 'package:fcm_app/domains/notifications/notification_reply.dart';
+import 'package:fcm_app/domains/push/push.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../../../i18n/isolate_locale.dart';
-import '../push/push_message.dart';
-import 'notification_channels.dart';
-import 'notification_content.dart';
-import 'notification_details_builder.dart';
-import 'notification_group_summary.dart';
-import 'notification_reply.dart';
 
 /// Whether the background isolate should draw [message] itself.
 ///

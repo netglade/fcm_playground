@@ -1,9 +1,7 @@
+import 'package:fcm_app/domains/telemetry/telemetry.dart';
+import 'package:fcm_app/pages/telemetry/cubit/telemetry_state.dart';
+import 'package:fcm_app/pages/telemetry/cubit/trace_timeline.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../domains/telemetry/telemetry_reader.dart';
-import '../../../domains/telemetry/telemetry_reader_exception.dart';
-import 'telemetry_state.dart';
-import 'trace_timeline.dart';
 
 /// Loads the recent events and the latency matrix in one go.
 ///

@@ -1,6 +1,5 @@
+import 'package:fcm_api/src/run_store.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'run_store.dart';
 
 /// A [RunStore] in a map, for tests and for a server started without a database.
 ///

@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/runs/run_scheduler.dart';
+import 'package:fcm_app/domains/runs/run_scheduler_exception.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'run_scheduler.dart';
-import 'run_scheduler_exception.dart';
 
 /// A [RunScheduler] used when Firebase failed to start: every call fails with the
 /// reason, so the app never special-cases a null scheduler.

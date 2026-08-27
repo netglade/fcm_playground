@@ -1,6 +1,5 @@
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
 
 /// Warning shown under the delivery-target dropdown once "All devices" is
 /// picked.

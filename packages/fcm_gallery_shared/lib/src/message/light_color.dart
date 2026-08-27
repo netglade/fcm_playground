@@ -1,4 +1,4 @@
-import 'json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
 
 /// An RGBA colour for an Android device's notification LED. All four components are
 /// required, because FCM rejects a colour that does not fully specify them.

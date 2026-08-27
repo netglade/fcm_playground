@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
-
-import 'json_object_reader.dart';
-import 'webpush_fcm_options.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/webpush_fcm_options.dart';
 
 /// FCM's `WebpushConfig`, nested under `Message.webpush`: gateway headers, a data
 /// payload only WebPush receives, and the Web Notification API's own options.

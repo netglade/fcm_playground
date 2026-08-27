@@ -1,4 +1,4 @@
-import 'json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
 
 /// FCM's `WebpushFcmOptions`, separate from [FcmOptions] because WebPush accepts a
 /// `link` neither the generic block nor APNs does.

@@ -1,11 +1,10 @@
 import 'dart:async';
 
+import 'package:fcm_app/domains/push/push_source.dart';
+import 'package:fcm_app/domains/push/push_tap.dart';
+import 'package:fcm_app/domains/push/remote_message_payload.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
-import 'push_source.dart';
-import 'push_tap.dart';
-import 'remote_message_payload.dart';
 
 /// A [PushSource] backed by `firebase_messaging`.
 class FirebasePushSource implements PushSource {

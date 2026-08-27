@@ -1,7 +1,6 @@
+import 'package:fcm_app/pages/sandbox/widgets/schedule_choice.dart';
+import 'package:fcm_app/pages/sandbox/widgets/schedule_sheet_body.dart';
 import 'package:flutter/material.dart';
-
-import 'schedule_choice.dart';
-import 'schedule_sheet_body.dart';
 
 export 'schedule_choice.dart';
 

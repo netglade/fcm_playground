@@ -1,5 +1,5 @@
-import 'json_object_reader.dart';
-import 'light_color.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/light_color.dart';
 
 /// How Android should flash a device's notification LED. All three fields are
 /// required, because FCM rejects light settings that do not fully specify them.

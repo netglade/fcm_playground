@@ -1,9 +1,7 @@
+import 'package:fcm_app/domains/notifications/notifications.dart';
+import 'package:fcm_app/pages/channels/cubit/channels_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../../../domains/notifications/notification_channels.dart';
-import '../../../domains/notifications/notification_channel_reader.dart';
-import 'channels_state.dart';
 
 /// The importance the page asks Android to give [immutabilityProbeChannelId].
 ///

@@ -1,7 +1,7 @@
-import '../json_field.dart';
-import '../send_message_request.dart';
-import '../telemetry/telemetry_event.dart';
-import 'run_item_state.dart';
+import 'package:fcm_gallery_shared/src/json_field.dart';
+import 'package:fcm_gallery_shared/src/runs/run_item_state.dart';
+import 'package:fcm_gallery_shared/src/send_message_request.dart';
+import 'package:fcm_gallery_shared/src/telemetry/telemetry.dart';
 
 /// One send inside a run: what to send, when it is due, and what became of it.
 ///

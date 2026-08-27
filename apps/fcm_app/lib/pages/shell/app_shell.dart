@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:fcm_app/di/service_locator.dart';
 import 'package:fcm_app/domains/domains.dart';
-import 'package:fcm_app/i18n/translations.g.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:fcm_app/pages/pages.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';

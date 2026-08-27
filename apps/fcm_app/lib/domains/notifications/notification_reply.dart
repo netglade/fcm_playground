@@ -1,15 +1,11 @@
 import 'dart:ui' show DartPluginRegistrant;
 
+import 'package:fcm_app/domains/notifications/notification_channels.dart';
+import 'package:fcm_app/domains/notifications/notification_content.dart';
+import 'package:fcm_app/domains/push/push.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../../../i18n/channel_text.dart';
-import '../../../i18n/isolate_locale.dart';
-import '../../../i18n/translations.g.dart';
-import '../push/shared_preferences_reply_store.dart';
-import '../push/pending_reply.dart';
-import 'notification_content.dart';
-import 'notification_channels.dart';
 
 /// The reply [response] carries, or null when it carries none.
 ///

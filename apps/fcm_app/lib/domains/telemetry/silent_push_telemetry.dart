@@ -1,6 +1,5 @@
+import 'package:fcm_app/domains/telemetry/push_telemetry.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'push_telemetry.dart';
 
 /// A [PushTelemetry] that observes nothing — the default every hook falls back to,
 /// so an app whose telemetry database could not be opened still receives pushes.

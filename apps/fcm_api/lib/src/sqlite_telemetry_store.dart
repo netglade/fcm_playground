@@ -1,10 +1,9 @@
 import 'dart:ffi';
 
+import 'package:fcm_api/src/telemetry_store.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
-
-import 'telemetry_store.dart';
 
 /// The production [TelemetryStore]: one SQLite file, held open for the life of the
 /// server, for the one thing `InMemoryTelemetryStore` cannot do — survive a restart.

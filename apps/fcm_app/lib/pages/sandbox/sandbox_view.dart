@@ -1,15 +1,8 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/cubit/cubit.dart';
+import 'package:fcm_app/pages/sandbox/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../i18n/scenario_text.dart';
-import '../../i18n/translations.g.dart';
-import 'cubit/sandbox_cubit.dart';
-import 'cubit/sandbox_state.dart';
-import 'widgets/form/message_section.dart';
-import 'widgets/manual_steps_block.dart';
-import 'widgets/scenario_needs_banner.dart';
-import 'widgets/send_footer.dart';
-import 'widgets/send_target_field.dart';
 
 /// Composes a push from a scenario or from scratch, and sends it to this device.
 ///

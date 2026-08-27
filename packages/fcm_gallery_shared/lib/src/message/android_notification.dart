@@ -1,10 +1,9 @@
 import 'package:collection/collection.dart';
-
-import 'android_notification_priority.dart';
-import 'json_object_reader.dart';
-import 'light_settings.dart';
-import 'notification_proxy.dart';
-import 'notification_visibility.dart';
+import 'package:fcm_gallery_shared/src/message/android_notification_priority.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/light_settings.dart';
+import 'package:fcm_gallery_shared/src/message/notification_proxy.dart';
+import 'package:fcm_gallery_shared/src/message/notification_visibility.dart';
 
 /// FCM's `AndroidNotification`, nested under `Message.android.notification` —
 /// everything Android's tray understands on top of, or in place of, the generic

@@ -1,5 +1,5 @@
-import 'message/fcm_message.dart';
-import 'send_target.dart';
+import 'package:fcm_gallery_shared/src/message/message.dart';
+import 'package:fcm_gallery_shared/src/send_target.dart';
 
 /// A request to send a message through the local FCM API.
 class SendMessageRequest {

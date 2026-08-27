@@ -1,9 +1,8 @@
 import 'dart:convert';
 
+import 'package:fcm_app/domains/push/push_payload_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'push_payload_store.dart';
 
 /// A [PushPayloadStore] over `shared_preferences`.
 ///

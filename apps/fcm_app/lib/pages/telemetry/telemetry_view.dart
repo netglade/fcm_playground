@@ -1,12 +1,9 @@
+import 'package:fcm_app/domains/telemetry/telemetry.dart';
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/telemetry/cubit/cubit.dart';
+import 'package:fcm_app/pages/telemetry/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../domains/telemetry/telemetry_reader.dart';
-import '../../i18n/translations.g.dart';
-import 'cubit/telemetry_cubit.dart';
-import 'cubit/telemetry_state.dart';
-import 'widgets/events_tab.dart';
-import 'widgets/latency_matrix.dart';
 
 /// What became of every push: the ten events per trace, and the latency matrix.
 ///

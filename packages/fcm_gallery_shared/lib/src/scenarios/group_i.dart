@@ -1,5 +1,5 @@
-import 'scenario.dart';
-import 'scenario_need.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
 
 /// **I — Silent and data.** Delivery the user is not meant to notice.
 ///

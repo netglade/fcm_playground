@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/settings/settings.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:flutter/foundation.dart';
-
-import '../domains/settings/shared_preferences_locale_store.dart';
-import 'translations.g.dart';
 
 /// Points slang at the user's language, read directly from storage rather than
 /// through a widget binding.

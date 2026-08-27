@@ -1,11 +1,9 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/cubit/cubit.dart';
+import 'package:fcm_app/pages/sandbox/widgets/all_devices_note.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../i18n/translations.g.dart';
-import '../cubit/sandbox_cubit.dart';
-import '../cubit/sandbox_state.dart';
-import 'all_devices_note.dart';
 
 /// Chooses who a send goes to: one dropdown and one text field, because the kinds
 /// are mutually exclusive and a form that lets two be filled at once invites the

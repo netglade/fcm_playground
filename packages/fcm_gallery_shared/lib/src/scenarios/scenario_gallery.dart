@@ -1,15 +1,15 @@
-import 'group_a.dart';
-import 'group_b.dart';
-import 'group_c.dart';
-import 'group_d.dart';
-import 'group_e.dart';
-import 'group_f.dart';
-import 'group_g.dart';
-import 'group_h.dart';
-import 'group_i.dart';
-import 'group_j.dart';
-import 'group_k.dart';
-import 'scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_a.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_b.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_c.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_d.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_e.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_f.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_g.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_h.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_i.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_j.dart';
+import 'package:fcm_gallery_shared/src/scenarios/group_k.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
 
 /// The scenario catalogue, in the order of the source document: eleven groups, each
 /// authored in its own file against one table of that document.

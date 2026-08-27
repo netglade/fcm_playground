@@ -1,5 +1,5 @@
-import '../send_target.dart';
-import 'scenario_need.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
+import 'package:fcm_gallery_shared/src/send_target.dart';
 
 /// A payload template the Sandbox can send as-is, to demonstrate one facet of FCM's
 /// `Message` model.

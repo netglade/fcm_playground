@@ -1,4 +1,4 @@
-import 'pending_reply.dart';
+import 'package:fcm_app/domains/push/pending_reply.dart';
 
 /// Where typed replies live between the isolate that receives one and the app.
 ///

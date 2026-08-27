@@ -1,6 +1,5 @@
+import 'package:fcm_app/pages/sandbox/widgets/form/form_depth.dart';
 import 'package:flutter/material.dart';
-
-import 'form_depth.dart';
 
 /// One collapsible object of the payload.
 ///

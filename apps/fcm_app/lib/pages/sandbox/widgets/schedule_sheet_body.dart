@@ -1,8 +1,7 @@
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/sandbox/widgets/preset_chips.dart';
+import 'package:fcm_app/pages/sandbox/widgets/schedule_choice.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
-import 'preset_chips.dart';
-import 'schedule_choice.dart';
 
 const _delayPresets = [10, 20, 30, 60];
 const _spacingPresets = [0, 2, 5, 10];

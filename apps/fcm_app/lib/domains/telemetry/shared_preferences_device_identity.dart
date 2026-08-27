@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/telemetry/device_identity.dart';
+import 'package:fcm_app/domains/telemetry/new_device_id.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'device_identity.dart';
-import 'new_device_id.dart';
 
 /// A [DeviceIdentity] over `shared_preferences`.
 ///

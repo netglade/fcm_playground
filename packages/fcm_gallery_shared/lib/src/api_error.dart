@@ -1,4 +1,4 @@
-import 'json_field.dart';
+import 'package:fcm_gallery_shared/src/json_field.dart';
 
 /// The body of every non-2xx answer from the send API, shared so the app parses
 /// failures with the same type the server produced them with.

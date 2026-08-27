@@ -1,8 +1,7 @@
+import 'package:fcm_app/domains/runs/runs.dart';
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/countdown/cubit/cubit.dart';
 import 'package:flutter/material.dart';
-
-import '../../../domains/runs/countdown_screen.dart';
-import '../../../i18n/translations.g.dart';
-import '../cubit/countdown_state.dart';
 
 /// The countdown's face: the seconds left, the instruction to swipe the app away,
 /// and the two buttons a user reaches for while they wait.

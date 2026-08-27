@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/notifications/notification_channel_reader.dart';
+import 'package:fcm_app/domains/notifications/notification_channels.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import 'notification_channel_reader.dart';
-import 'notification_channels.dart';
 
 /// A [NotificationChannelReader] over `flutter_local_notifications`.
 class PluginNotificationChannelReader implements NotificationChannelReader {

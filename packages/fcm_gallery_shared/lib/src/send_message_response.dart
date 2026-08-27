@@ -1,4 +1,4 @@
-import 'json_field.dart';
+import 'package:fcm_gallery_shared/src/json_field.dart';
 
 /// The response to a successful `POST /send`. Every field is server-generated, so
 /// all three are trustworthy for correlating with FCM's logs and the inbox.

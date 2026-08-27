@@ -1,5 +1,5 @@
-import 'scenario.dart';
-import 'scenario_need.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
 
 /// **H — Intrusive and priority.** Breaking through the user's quiet.
 ///

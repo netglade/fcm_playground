@@ -1,19 +1,13 @@
+import 'package:fcm_app/domains/runs/runs.dart';
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/countdown/countdown.dart';
+import 'package:fcm_app/pages/runs/runs.dart';
+import 'package:fcm_app/pages/sandbox/cubit/cubit.dart';
+import 'package:fcm_app/pages/sandbox/widgets/widgets.dart';
+import 'package:fcm_app/pages/scenarios/widgets/widgets.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../domains/runs/active_run_store.dart';
-import '../../domains/runs/run_scheduler.dart';
-import '../../domains/runs/run_scheduler_exception.dart';
-import '../../domains/runs/start_run.dart';
-import '../../i18n/translations.g.dart';
-import '../countdown/countdown_page.dart';
-import '../countdown/cubit/countdown_cubit.dart';
-import '../runs/run_timeline_page.dart';
-import '../sandbox/cubit/sandbox_cubit.dart';
-import '../sandbox/widgets/schedule_sheet.dart';
-import 'widgets/scenario_group_list.dart';
-import 'widgets/selection_bar.dart';
 
 /// The scenario gallery's own page.
 ///

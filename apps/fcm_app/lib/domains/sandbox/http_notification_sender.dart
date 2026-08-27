@@ -1,11 +1,10 @@
 import 'dart:convert';
 
+import 'package:fcm_app/domains/sandbox/notification_send_exception.dart';
+import 'package:fcm_app/domains/sandbox/notification_sender.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
-
-import '../../i18n/translations.g.dart';
-import 'notification_send_exception.dart';
-import 'notification_sender.dart';
 
 /// Where the send API is expected to be.
 ///

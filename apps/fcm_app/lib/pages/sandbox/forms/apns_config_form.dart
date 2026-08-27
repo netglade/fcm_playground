@@ -1,8 +1,7 @@
+import 'package:fcm_app/pages/sandbox/forms/absent_if_empty.dart';
+import 'package:fcm_app/pages/sandbox/forms/apns_fcm_options_form.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:glade_forms/glade_forms.dart';
-
-import 'absent_if_empty.dart';
-import 'apns_fcm_options_form.dart';
 
 /// Edits `apns` — how FCM hands a message to Apple's push notification service,
 /// and what it hands over.

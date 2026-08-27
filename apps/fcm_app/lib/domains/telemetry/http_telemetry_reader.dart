@@ -1,11 +1,10 @@
 import 'dart:convert';
 
+import 'package:fcm_app/domains/telemetry/telemetry_reader.dart';
+import 'package:fcm_app/domains/telemetry/telemetry_reader_exception.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
-
-import '../../i18n/translations.g.dart';
-import 'telemetry_reader.dart';
-import 'telemetry_reader_exception.dart';
 
 /// Talks to `GET /events` and `GET /latency` on the local API.
 class HttpTelemetryReader implements TelemetryReader {

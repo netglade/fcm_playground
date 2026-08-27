@@ -1,14 +1,11 @@
 import 'dart:typed_data';
 
+import 'package:fcm_app/domains/notifications/notifications.dart';
+import 'package:fcm_app/i18n/i18n.dart';
+import 'package:fcm_app/pages/channels/cubit/cubit.dart';
+import 'package:fcm_app/pages/channels/widgets/channel_property_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../domains/notifications/notification_channels.dart';
-import '../../../i18n/channel_text.dart';
-import '../../../i18n/translations.g.dart';
-import '../cubit/channels_cubit.dart';
-import '../cubit/channels_state.dart';
-import 'channel_property_row.dart';
 
 /// One channel, requested against reported, with an extra button on the one
 /// channel this app deliberately cannot fix.

@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/telemetry/push_telemetry.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
-
-import 'push_telemetry.dart';
 
 /// The key the send API injects the trace id into.
 ///

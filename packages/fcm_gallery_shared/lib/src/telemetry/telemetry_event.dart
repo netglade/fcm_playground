@@ -1,5 +1,5 @@
-import '../json_field.dart';
-import 'telemetry_event_type.dart';
+import 'package:fcm_gallery_shared/src/json_field.dart';
+import 'package:fcm_gallery_shared/src/telemetry/telemetry_event_type.dart';
 
 /// One recorded moment in a message's life, on the API or on a device.
 ///

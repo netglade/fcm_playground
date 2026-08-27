@@ -1,9 +1,8 @@
 import 'package:app_settings/app_settings.dart';
+import 'package:fcm_app/domains/runs/countdown_screen.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-
-import 'countdown_screen.dart';
 
 /// The real [CountdownScreen].
 ///

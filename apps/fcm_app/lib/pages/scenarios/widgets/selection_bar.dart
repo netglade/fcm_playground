@@ -1,6 +1,5 @@
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/material.dart';
-
-import '../../../i18n/translations.g.dart';
 
 /// Turns batch selection on, and drives it once it is on.
 ///

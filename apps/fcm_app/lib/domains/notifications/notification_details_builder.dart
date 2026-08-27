@@ -1,12 +1,8 @@
+import 'package:fcm_app/domains/notifications/notification_channels.dart';
+import 'package:fcm_app/domains/notifications/notification_content.dart';
+import 'package:fcm_app/domains/push/push.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../../../i18n/channel_text.dart';
-import '../../../i18n/translations.g.dart';
-import '../push/notification_action.dart';
-import '../push/push_message.dart';
-import '../push/remote_message_payload.dart';
-import 'notification_channels.dart';
-import 'notification_content.dart';
 
 /// Where a notification's Android category rides in the payload.
 ///

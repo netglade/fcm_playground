@@ -1,6 +1,6 @@
-import '../send_target.dart';
-import 'scenario.dart';
-import 'scenario_need.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
+import 'package:fcm_gallery_shared/src/send_target.dart';
 
 /// **J — Targeting.** Who receives it, rather than what it says.
 ///

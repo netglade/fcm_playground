@@ -1,4 +1,4 @@
-import 'translations.g.dart';
+import 'package:fcm_app/i18n/translations.g.dart';
 
 /// A channel's user-visible copy, by channel id.
 ///

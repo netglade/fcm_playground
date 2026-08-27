@@ -1,7 +1,6 @@
+import 'package:fcm_app/domains/runs/active_run_store.dart';
+import 'package:fcm_app/domains/runs/run_scheduler.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
-
-import 'active_run_store.dart';
-import 'run_scheduler.dart';
 
 /// Schedules a run and records it as the one whose result is awaited.
 ///

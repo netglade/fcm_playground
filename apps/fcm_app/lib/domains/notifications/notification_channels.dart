@@ -1,11 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:fcm_app/domains/notifications/app_notification_channel.dart';
+import 'package:fcm_app/domains/notifications/notification_content.dart';
+import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../../../i18n/channel_text.dart';
-import '../../../i18n/translations.g.dart';
-import 'app_notification_channel.dart';
-import 'notification_content.dart';
 
 /// The id of the channel group both chat channels are filed under.
 ///

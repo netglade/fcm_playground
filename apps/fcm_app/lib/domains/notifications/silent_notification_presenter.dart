@@ -1,6 +1,5 @@
-import '../push/push_message.dart';
-import '../push/push_tap.dart';
-import 'notification_presenter.dart';
+import 'package:fcm_app/domains/notifications/notification_presenter.dart';
+import 'package:fcm_app/domains/push/push.dart';
 
 /// A [NotificationPresenter] that never shows anything — the default in widget
 /// tests, and the fallback when the notification plugin fails to initialise.

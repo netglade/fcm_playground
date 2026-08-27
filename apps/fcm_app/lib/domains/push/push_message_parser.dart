@@ -1,5 +1,5 @@
-import 'push_message.dart';
-import 'push_message_format_exception.dart';
+import 'package:fcm_app/domains/push/push_message.dart';
+import 'package:fcm_app/domains/push/push_message_format_exception.dart';
 
 /// Turns the flat `data` map of an FCM message into a [PushMessage].
 ///

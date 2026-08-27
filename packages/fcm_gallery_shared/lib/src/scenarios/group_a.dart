@@ -1,4 +1,4 @@
-import 'scenario.dart';
+import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
 
 /// **A — Basic delivery.** The four shapes an FCM message can take, and which layer
 /// draws each one.

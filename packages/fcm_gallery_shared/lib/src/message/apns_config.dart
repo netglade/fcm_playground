@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
-
-import 'apns_fcm_options.dart';
-import 'json_object_reader.dart';
+import 'package:fcm_gallery_shared/src/message/apns_fcm_options.dart';
+import 'package:fcm_gallery_shared/src/message/json_object_reader.dart';
 
 /// FCM's `ApnsConfig`, nested under `Message.apns`: headers for Apple's push
 /// service, plus Apple's own `aps` dictionary carried verbatim.

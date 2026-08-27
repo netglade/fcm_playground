@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fcm_api/src/run_store.dart';
+import 'package:fcm_api/src/sqlite_telemetry_store.dart' show useSystemSqlite;
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:sqlite3/sqlite3.dart';
-
-import 'run_store.dart';
-import 'sqlite_telemetry_store.dart' show useSystemSqlite;
 
 /// The production [RunStore]: the same SQLite file the telemetry uses, for the one
 /// thing `InMemoryRunStore` cannot do — outlive the process.

@@ -1,48 +1,18 @@
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:fcm_app/domains/notifications/notifications.dart';
+import 'package:fcm_app/domains/push/push.dart';
+import 'package:fcm_app/domains/runs/runs.dart';
+import 'package:fcm_app/domains/sandbox/sandbox.dart';
+import 'package:fcm_app/domains/settings/settings.dart';
+import 'package:fcm_app/domains/telemetry/telemetry.dart';
+import 'package:fcm_app/firebase_options.dart';
+import 'package:fcm_app/firebase_setup.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
-
-import '../domains/notifications/local_notification_presenter.dart';
-import '../domains/notifications/plugin_notification_channel_reader.dart';
-import '../domains/notifications/silent_notification_presenter.dart';
-import '../domains/notifications/notification_channel_reader.dart';
-import '../domains/notifications/notification_presenter.dart';
-import '../domains/push/disabled_push_source.dart';
-import '../domains/push/firebase_push_source.dart';
-import '../domains/push/shared_preferences_pressed_action_store.dart';
-import '../domains/push/shared_preferences_push_payload_store.dart';
-import '../domains/push/shared_preferences_reply_store.dart';
-import '../domains/push/pressed_action_store.dart';
-import '../domains/push/push_payload_store.dart';
-import '../domains/push/push_source.dart';
-import '../domains/push/reply_store.dart';
-import '../domains/push/push_repository.dart';
-import '../domains/runs/http_run_scheduler.dart';
-import '../domains/runs/shared_preferences_active_run_store.dart';
-import '../domains/runs/unavailable_run_scheduler.dart';
-import '../domains/runs/active_run_store.dart';
-import '../domains/runs/run_scheduler.dart';
-import '../domains/runs/start_run.dart';
-import '../domains/sandbox/http_notification_sender.dart';
-import '../domains/sandbox/unavailable_notification_sender.dart';
-import '../domains/sandbox/notification_sender.dart';
-import '../domains/settings/shared_preferences_locale_store.dart';
-import '../domains/settings/locale_store.dart';
-import '../domains/telemetry/drift_telemetry_buffer.dart';
-import '../domains/telemetry/http_telemetry_reader.dart';
-import '../domains/telemetry/shared_preferences_device_identity.dart';
-import '../domains/telemetry/silent_push_telemetry.dart';
-import '../domains/telemetry/telemetry_reporter.dart';
-import '../domains/telemetry/device_identity.dart';
-import '../domains/telemetry/push_telemetry.dart';
-import '../domains/telemetry/telemetry_buffer.dart';
-import '../domains/telemetry/telemetry_reader.dart';
-import '../firebase_options.dart';
-import '../firebase_setup.dart';
 
 /// The app's locator, holding only what outlives a page.
 ///
