@@ -28,8 +28,11 @@ Future<void> _handler(RemoteMessage _) => Future<void>.value();
 /// What `firebase_options.dart` looks like in a checkout nobody has run
 /// `flutterfire configure` on.
 ///
-/// Passed in rather than read from the generated file, because this checkout's
-/// credentials are real and the fresh clone is the case worth guarding.
+/// Passed in rather than read from the generated file so this test does not
+/// depend on whatever placeholder values happen to be sitting there — only on
+/// the sentinel `apiKey`, which is the only field `_startPushSource` actually
+/// checks. `firebase_options_test.dart` is what checks the generated file
+/// itself still carries that sentinel.
 const _unconfigured = FirebaseOptions(
   apiKey: unconfiguredApiKey,
   appId: '1:000000000000:android:0000000000000000000000',

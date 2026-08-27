@@ -46,29 +46,36 @@ class DefaultFirebaseOptions {
     }
   }
 
+  // Placeholder credentials: this public sample ships without a real Firebase
+  // project wired up. `apiKey` is the sentinel `service_locator.dart` checks
+  // for (`unconfiguredApiKey` in `firebase_setup.dart`) — everything else here
+  // is an obviously fake value in the shape FlutterFire generates, not a real
+  // project's identifiers. Run `flutterfire configure` from `apps/fcm_app` to
+  // overwrite this file with your own project's values; see README.md.
+
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBl3PejUiWANv0OhtWKQ9WZYab10FcdVi4',
-    appId: '1:182816004013:web:2bc2af0c6c2e512871f324',
-    messagingSenderId: '182816004013',
-    projectId: 'fcm-sandbox-770fa',
-    authDomain: 'fcm-sandbox-770fa.firebaseapp.com',
-    storageBucket: 'fcm-sandbox-770fa.firebasestorage.app',
+    apiKey: 'replace-me-with-flutterfire-configure',
+    appId: '1:000000000000:web:0000000000000000000000',
+    messagingSenderId: '000000000000',
+    projectId: 'your-project-id',
+    authDomain: 'your-project-id.firebaseapp.com',
+    storageBucket: 'your-project-id.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDOIsl5RcWsqjGkO7BOpaQxwHy8Orx_2kI',
-    appId: '1:182816004013:android:763cb97ab5f419ad71f324',
-    messagingSenderId: '182816004013',
-    projectId: 'fcm-sandbox-770fa',
-    storageBucket: 'fcm-sandbox-770fa.firebasestorage.app',
+    apiKey: 'replace-me-with-flutterfire-configure',
+    appId: '1:000000000000:android:0000000000000000000000',
+    messagingSenderId: '000000000000',
+    projectId: 'your-project-id',
+    storageBucket: 'your-project-id.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD5IGF_I-7Yo7_z8M1-jbwWFoaz9WXDAes',
-    appId: '1:182816004013:ios:e6c27d6b315eb5ba71f324',
-    messagingSenderId: '182816004013',
-    projectId: 'fcm-sandbox-770fa',
-    storageBucket: 'fcm-sandbox-770fa.firebasestorage.app',
-    iosBundleId: 'cz.netglade.fcmApp',
+    apiKey: 'replace-me-with-flutterfire-configure',
+    appId: '1:000000000000:ios:0000000000000000000000',
+    messagingSenderId: '000000000000',
+    projectId: 'your-project-id',
+    storageBucket: 'your-project-id.firebasestorage.app',
+    iosBundleId: 'com.example.fcmApp',
   );
 }

@@ -1,11 +1,19 @@
-/// The Firebase project this app talks to.
+/// The name recorded for this sample's own Firebase project — the one it was
+/// developed against, not one a stranger's checkout can reach.
 ///
 /// Also recorded in `.firebaserc` at the repo root, which is what the `firebase`
-/// CLI reads.
+/// CLI reads for its own default `--project`. Nothing in the running app reads
+/// this constant — `flutterfire configure` does not read or write either file,
+/// and it asks interactively rather than taking a project on the command line —
+/// so update both by hand only if you plan to drive the `firebase` CLI directly
+/// against your own project.
 const firebaseProjectId = 'fcm-sandbox-770fa';
 
-/// Marker for the placeholder credentials still in `firebase_options.dart`. The
-/// project id is real, so the API key carries the sentinel instead.
+/// Marker for the placeholder credentials this public sample ships in
+/// `firebase_options.dart`. Every field there — `apiKey`, `appId`,
+/// `messagingSenderId`, `projectId` and the rest — is an obvious placeholder
+/// rather than a real project's values; this constant is what `apiKey` carries,
+/// and the only field `service_locator.dart` actually checks.
 ///
 /// It lives here rather than in the generated file so that overwriting that file
 /// with real `flutterfire configure` output does not delete the check.
@@ -13,11 +21,12 @@ const unconfiguredApiKey = 'replace-me-with-flutterfire-configure';
 
 /// Shown in-app while the credentials are still placeholders.
 const firebaseSetupInstructions =
-    'Firebase project "$firebaseProjectId" is set, but the API key, app id and '
-    'sender id are still placeholders, so no pushes can arrive.\n'
-    'Install the Firebase CLI and log in:\n'
+    'No Firebase project is configured, so no pushes can arrive.\n'
+    'Create a Firebase project of your own at console.firebase.google.com, '
+    'then install the Firebase CLI and log in:\n'
     '  npm install -g firebase-tools && firebase login\n'
     'Then, from apps/fcm_app:\n'
     '  fvm dart pub global activate flutterfire_cli\n'
-    '  fvm exec flutterfire configure --project=$firebaseProjectId\n'
-    'That overwrites lib/firebase_options.dart with the real values.';
+    '  fvm exec flutterfire configure\n'
+    "That overwrites lib/firebase_options.dart with your project's real "
+    'values — see README.md for the full walkthrough.';
