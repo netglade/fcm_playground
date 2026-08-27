@@ -2,7 +2,7 @@ import 'package:fcm_app/pages/sandbox/widgets/schedule_choice.dart';
 import 'package:fcm_app/pages/sandbox/widgets/schedule_sheet_body.dart';
 import 'package:flutter/material.dart';
 
-export 'schedule_choice.dart';
+export 'package:fcm_app/pages/sandbox/widgets/schedule_choice.dart';
 
 /// Asks for a delay, and for a spacing when there is more than one message.
 ///

@@ -5,4 +5,4 @@
 /// directly.
 library;
 
-export 'src/src.dart';
+export 'package:fcm_api/src/src.dart';

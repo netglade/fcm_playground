@@ -1,2 +1,2 @@
-export 'inbox_cubit.dart';
-export 'inbox_state.dart';
+export 'package:fcm_app/pages/inbox/cubit/inbox_cubit.dart';
+export 'package:fcm_app/pages/inbox/cubit/inbox_state.dart';

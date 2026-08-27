@@ -1,3 +1,3 @@
-export 'telemetry_view.dart';
-export 'cubit/cubit.dart';
-export 'widgets/widgets.dart';
+export 'package:fcm_app/pages/telemetry/telemetry_view.dart';
+export 'package:fcm_app/pages/telemetry/cubit/cubit.dart';
+export 'package:fcm_app/pages/telemetry/widgets/widgets.dart';

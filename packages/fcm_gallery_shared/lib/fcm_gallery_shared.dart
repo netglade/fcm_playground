@@ -4,4 +4,4 @@
 /// every rule in it is exercised by plain `dart test`.
 library;
 
-export 'src/src.dart';
+export 'package:fcm_gallery_shared/src/src.dart';

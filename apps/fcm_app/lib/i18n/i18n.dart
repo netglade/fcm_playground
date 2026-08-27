@@ -1,4 +1,4 @@
-export 'channel_text.dart';
-export 'isolate_locale.dart';
-export 'scenario_text.dart';
-export 'translations.g.dart';
+export 'package:fcm_app/i18n/channel_text.dart';
+export 'package:fcm_app/i18n/isolate_locale.dart';
+export 'package:fcm_app/i18n/scenario_text.dart';
+export 'package:fcm_app/i18n/translations.g.dart';

@@ -1,8 +1,8 @@
-export 'channels/channels.dart';
-export 'countdown/countdown.dart';
-export 'inbox/inbox.dart';
-export 'runs/runs.dart';
-export 'sandbox/sandbox.dart';
-export 'scenarios/scenarios.dart';
-export 'shell/shell.dart';
-export 'telemetry/telemetry.dart';
+export 'package:fcm_app/pages/channels/channels.dart';
+export 'package:fcm_app/pages/countdown/countdown.dart';
+export 'package:fcm_app/pages/inbox/inbox.dart';
+export 'package:fcm_app/pages/runs/runs.dart';
+export 'package:fcm_app/pages/sandbox/sandbox.dart';
+export 'package:fcm_app/pages/scenarios/scenarios.dart';
+export 'package:fcm_app/pages/shell/shell.dart';
+export 'package:fcm_app/pages/telemetry/telemetry.dart';

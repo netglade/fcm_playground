@@ -1,2 +1,2 @@
-export 'scenarios_view.dart';
-export 'widgets/widgets.dart';
+export 'package:fcm_app/pages/scenarios/scenarios_view.dart';
+export 'package:fcm_app/pages/scenarios/widgets/widgets.dart';
