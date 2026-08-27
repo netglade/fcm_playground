@@ -7,14 +7,12 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// Decides when a scheduled send happens, and records what became of it.
 ///
-/// It owns no timer. [tick] is driven from outside — `bin/server.dart` calls it once
-/// a second — so the tests drive it with a fake clock and the suite creates no real
-/// timer at all. That is the same seam [sendMessage] already has through its
-/// injected `now` and `newTraceId`.
+/// Owns no timer: [tick] is driven from outside — `bin/server.dart` once a
+/// second — so tests use a fake clock and the suite creates no real timer.
 ///
-/// It is a delayed trigger rather than a second route to FCM: every dispatch goes
-/// through [sendMessage], so a scheduled send writes the same telemetry an immediate
-/// one does.
+/// A delayed trigger, not a second route to FCM. Every dispatch goes through
+/// [sendMessage], so a scheduled send writes the same telemetry as an immediate
+/// one.
 class SendScheduler {
   SendScheduler({
     required this._runs,
@@ -24,33 +22,28 @@ class SendScheduler {
     required this._now,
   });
 
-  /// How late a due item may be, when the server comes back up, and still be sent.
+  /// How late a due item may be after a restart and still be sent.
   ///
-  /// Both halves matter. A server restarted two seconds before a batch was due
-  /// should still run it. A push delivered three hours after somebody asked for it
-  /// arrives in a state nobody was observing and pollutes the latency figures it
-  /// lands in — [RunItemState.missed] is the honest answer there.
+  /// A server back up two seconds late should still run the batch. One three
+  /// hours late arrives in a state nobody was watching and pollutes the latency
+  /// figures — [RunItemState.missed] is the honest answer there.
   static const graceOnRestart = Duration(seconds: 120);
 
   final RunStore _runs;
   final TelemetryStore _telemetry;
   final FcmSender _sender;
 
-  /// Mints run ids and trace ids alike — both are ids unique across every server,
-  /// which is exactly what `newTraceId` produces.
+  /// Mints run ids and trace ids alike — both want global uniqueness.
   final String Function() _newId;
 
-  /// Read once per item actually dispatched, never once per [tick]. A batch
-  /// claimed together is still sent one item after another, and a single reading
-  /// shared across all of them would stamp every one with the instant the *tick*
-  /// happened rather than the instant each individual send did — turning the
-  /// server's own serialisation delay into what `GET /latency` reports as
-  /// delivery latency. [tick]'s own `now` parameter stays the due-time argument;
-  /// this is a separate reading for a separate question.
+  /// Read once per dispatched item, never once per [tick]: a claimed batch is
+  /// still sent one item at a time, and one shared reading would charge the
+  /// server's own serialisation delay to `GET /latency`. [tick]'s `now` stays the
+  /// due-time argument — a separate question.
   final DateTime Function() _now;
 
-  /// Guards against a tick starting while the previous one is still awaiting FCM.
-  /// A slow send must not have the next second's tick claim the same batch again.
+  /// Stops the next second's tick claiming a batch the current one is still
+  /// awaiting FCM for.
   bool _ticking = false;
 
   /// Turns a request into a stored run, due from [now].
@@ -100,17 +93,17 @@ class SendScheduler {
     for (final run in await _runs.recent()) RunSummary.of(run),
   ];
 
-  /// Cancels every still-pending item of [runId], or null when there is no such run.
+  /// Cancels every still-pending item of [runId], or null when no such run
+  /// exists.
   ///
-  /// A claimed item is deliberately out of reach: at that moment it is already on
-  /// its way to FCM, and reporting it cancelled would be a lie the timeline then
-  /// contradicts.
+  /// A claimed item is out of reach on purpose — it is already on its way to FCM,
+  /// so "cancelled" would be a lie the timeline contradicts.
   Future<int?> cancel(String runId) => _runs.cancelPending(runId);
 
   /// Settles every outstanding item after a restart.
   ///
-  /// Runs once, before the server starts serving, so nothing else is touching the
-  /// store while it works.
+  /// Runs once before the server starts serving, so nothing else touches the
+  /// store meanwhile.
   Future<void> recover(DateTime now) async {
     for (final run in await _runs.unfinished()) {
       for (final item in run.items) {
@@ -149,10 +142,10 @@ class SendScheduler {
 
   /// Reads the outcome of an item the process died in the middle of.
   ///
-  /// Nothing is assumed: `sendMessage` writes `queued` before asking FCM and `sent`
-  /// or `send_failed` after, so the telemetry already holds the answer. A trace with
-  /// only `queued` means FCM never answered, which is a failure — claiming it sent
-  /// would put a phantom into the latency figures.
+  /// Nothing is assumed: `sendMessage` writes `queued` before asking FCM and the
+  /// result after, so telemetry holds the answer. Only `queued` means FCM never
+  /// replied — a failure, and calling it sent would put a phantom in the latency
+  /// figures.
   Future<void> _resolveInterrupted(String runId, ScheduledRunItem item) async {
     final traceId = item.traceId;
     if (traceId == null) {
@@ -197,29 +190,16 @@ class SendScheduler {
 
   /// Sends one claimed item and writes its outcome back.
   ///
-  /// The trace id is minted and **persisted before the send**, which is what makes an
-  /// interrupted dispatch recoverable: without it, an item found in `dispatching`
-  /// after a crash would name no trace to look up.
+  /// The trace id is minted and **persisted before the send**, which is what
+  /// makes an interrupted dispatch recoverable: otherwise an item found
+  /// `dispatching` after a crash names no trace to look up.
   ///
-  /// Everything from that persist onward sits inside one `try`. `sendMessage`
-  /// only ever throws when the transport itself failed — a socket fault, a
-  /// `HandshakeException`, the production client's own token refresh — because it
-  /// already catches `FcmSendException` and reports that as a normal
-  /// [SendRejected]; and `_runs.updateItem` can throw too, on a store that is
-  /// briefly unavailable. Either kind must still leave this item `failed` and let
-  /// the rest of the batch go out, exactly as a `SendRejected` already does — the
-  /// spec's "one item's failure does not stop a batch" draws no line between a
-  /// bad token and a dropped connection.
-  ///
-  /// The `try` starts at the trace-id persist itself, not at `sendMessage`,
-  /// deliberately: that first `updateItem` can throw too, and if it did and this
-  /// only wrapped the send, the item would stay `dispatching` in the store —
-  /// correct until the next restart's [recover] notices it, but silent for
-  /// however long that takes, and this method would have returned having
-  /// written nothing despite the batch supposedly continuing. Catching it here
-  /// means the *same* unexpected-failure handling covers both: the item is
-  /// written `failed` immediately, using [pending] so a trace id minted before
-  /// the failure is not thrown away.
+  /// The `try` starts at that persist, not at `sendMessage`, so both failures it
+  /// can raise land in the same handler: a transport fault from the send, and an
+  /// unavailable store from the write. Either must leave the item `failed` and
+  /// let the batch continue. Wrapping only the send would leave a failed write
+  /// stuck in `dispatching` until the next [recover] — silent for however long
+  /// that takes.
   Future<void> _dispatch(String runId, ScheduledRunItem claimed) async {
     final traceId = claimed.traceId ?? _newId();
     final pending = claimed.copyWith(traceId: traceId);

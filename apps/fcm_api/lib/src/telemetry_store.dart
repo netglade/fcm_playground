@@ -2,43 +2,40 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 
 /// Where telemetry events are kept, and the figure derived from them.
 ///
-/// Two implementations for one reason: the production store is SQLite, and a
-/// native library that may not be installed must not decide whether the test suite
-/// can run. Every behaviour below is pinned against `InMemoryTelemetryStore`.
+/// Two implementations because the production store is SQLite, and a native
+/// library that may not be installed must not decide whether the suite can run.
+/// Every behaviour here is pinned against `InMemoryTelemetryStore`.
 abstract interface class TelemetryStore {
-  /// Stores [events], ignoring any that is already stored.
+  /// Stores [events], ignoring any already stored.
   ///
   /// Idempotent on `(traceId, type, deviceId)`, deliberately excluding `at`: a
-  /// flush whose acknowledgement was lost is retried, possibly re-stamped, and a
-  /// second `received_fg` row for one arrival would corrupt the one number this
-  /// pipeline exists to produce. Where two records share a key the earliest `at`
-  /// wins, since that is the first observation.
+  /// retried flush may be re-stamped, and a second `received_fg` for one arrival
+  /// would corrupt the one number this pipeline produces. On a shared key the
+  /// earliest `at` wins.
   ///
-  /// Returns how many were *newly* stored — a retried batch stores none and must
-  /// still succeed, and `POST /events` reports the number so a client can tell a
-  /// duplicate-suppressed retry from a lost flush.
+  /// Returns how many were *newly* stored, so a retry storing none still
+  /// succeeds and a client can tell suppression from a lost flush.
   Future<int> record(List<TelemetryEvent> events);
 
-  /// Every stored event, in the order it was recorded — not `at` order, because
-  /// the API stamps `queued` and `sent` from one clock reading.
+  /// Every stored event in recorded order — not `at` order, since the API stamps
+  /// `queued` and `sent` from one clock reading.
   Future<List<TelemetryEvent>> all();
 
   /// The most recent [limit] events, newest first.
   ///
-  /// Newest first and bounded, unlike [all]: a page shows the last thing that happened,
-  /// and a store that has been recording for days should not be read whole to answer
-  /// that. [limit] must be positive — `GET /events` is what refuses a caller's bad one,
-  /// so this does not repeat the check. The two implementations disagree on what a bad
-  /// value does anyway: in memory, `take(-1)` throws a `RangeError`, while SQLite's
-  /// `LIMIT -1` answers the whole table — a caller that skipped the route's check
-  /// would see a different failure, or none, depending on which store is behind it.
+  /// Bounded, unlike [all]: a page shows what just happened, and days of records
+  /// should not be read whole to answer that.
+  ///
+  /// [limit] must be positive, and `GET /events` is what refuses a bad one. The
+  /// implementations disagree otherwise — in memory `take(-1)` throws, SQLite's
+  /// `LIMIT -1` returns everything — so skipping the route's check fails
+  /// differently depending on the store.
   Future<List<TelemetryEvent>> recent({int limit = 500});
 
   /// Every stored event belonging to one of [traceIds], in recorded order.
   ///
-  /// Narrower than [all] because a run's timeline asks about six traces and reading
-  /// an entire database to answer that is not a query. An empty [traceIds] answers
-  /// empty rather than everything — the caller asked about nothing.
+  /// An empty [traceIds] answers empty, not everything — the caller asked about
+  /// nothing.
   Future<List<TelemetryEvent>> eventsForTraces(List<String> traceIds);
 
   /// One row per trace and device where both a send and an arrival are stored,
@@ -52,9 +49,9 @@ abstract interface class TelemetryStore {
 
 /// The one implementation of [TelemetryStore.latencies], called by both stores.
 ///
-/// The same rules as a SQL query would be faster on a large database, but would run
-/// only where the native library is installed, so `melos run ci` could not see the
-/// two definitions of "first arrival" drift apart.
+/// A SQL query would be faster but would only run where the native library is
+/// installed, so `melos run ci` could not catch two definitions of "first
+/// arrival" drifting apart.
 List<LatencyRow> pairLatencies(Iterable<TelemetryEvent> events) {
   final sends = <String, TelemetryEvent>{};
   final arrivals = <_PairKey, TelemetryEvent>{};
@@ -76,9 +73,9 @@ List<LatencyRow> pairLatencies(Iterable<TelemetryEvent> events) {
 /// measurements, and one send to two handsets is why the matrix exists.
 typedef _PairKey = (String traceId, String deviceId);
 
-/// Both arrival types count, and they are separate idempotency keys, so one trace
-/// can hold a foreground *and* a background arrival for one device — hence the
-/// comparison in [_keepEarliest] rather than reliance on the key.
+/// Both arrival types count and have separate idempotency keys, so one trace can
+/// hold a foreground *and* a background arrival for one device — which is why
+/// [_keepEarliest] compares rather than trusting the key.
 bool _isArrival(TelemetryEventType type) =>
     type == TelemetryEventType.receivedFg ||
     type == TelemetryEventType.receivedBg;
@@ -91,9 +88,8 @@ void _keepEarliest(Map<_PairKey, TelemetryEvent> arrivals, TelemetryEvent at) {
   }
 }
 
-/// The scenario comes from the sending side when it knew it, and from the device
-/// otherwise: the API knows it for a gallery send, the device reads it off the
-/// payload, and a row with neither is a row nobody can group.
+/// The scenario comes from the sender when it knew it and the device otherwise;
+/// a row with neither cannot be grouped.
 LatencyRow _rowFor(TelemetryEvent sent, TelemetryEvent arrival) => LatencyRow(
   traceId: sent.traceId,
   deviceId: arrival.deviceId,
