@@ -6,6 +6,29 @@ what turns one into the other: every send gets a trace id, both the API and
 the app record events against it as things happen to that message, and the
 two together let a delay be attributed to a device instead of shrugged at.
 
+## What the API answers
+
+`apps/fcm_api` exposes nine routes: `POST /send` for one push; `POST /runs`,
+`GET /runs`, `GET /runs/<id>` and `DELETE /runs/<id>` for a delayed batch;
+`POST /events` and `GET /events` for telemetry; `GET /latency` for the
+matrix below; `GET /health`. A send names exactly one delivery target —
+`token`, `topic`, `condition`, or `all_devices`, refused with a 501 until a
+device registry exists to fan a send out over — and its `message` is parsed
+strictly: an unknown key is rejected naming its own JSON path, so a typo in a
+hand-edited payload fails loudly instead of being silently dropped.
+
+`POST /events` takes a batch, all-or-nothing: one malformed event is a 400
+that stores none of it, since a buffering client cannot tell which half of a
+partial success to keep. `recorded` counts only events newly stored, so a
+lost acknowledgement (`200` with `0`) reads differently from a lost flush
+(nothing recorded). The idempotency key is `(trace_id, type, device_id)`,
+excluding `at` on purpose, so a retry can move a duplicate's recorded time
+earlier but never pass as a second event. `?limit=` on `GET /events` is
+bounded to 1–2000; outside that is a 400 naming the parameter, not a silent
+fallback. Both sides normalise every timestamp to UTC, and an arrival for a
+trace the server never sent — a push made by hand — is stored but produces
+no latency row, since there is nothing to measure it against.
+
 ## Where the trace id comes from
 
 The API mints the trace id, not the app, and writes it into the payload's own
@@ -40,10 +63,11 @@ three grouped causes. Everything else comes from the device: `received_fg`
 and `received_bg` mark which of the app's states the push arrived in;
 `displayed` fires only once a notification has actually been drawn, never
 before; `opened` records a tap and which state it came from; `action` and
-`dismissed` are Android-only, for reasons that mirror the ones in
-[notifications.md](./notifications.md); and `not_received` is the one event
-a human asserts, pressed from the Sandbox after sending, for the case where
-silence is the only evidence there is.
+`dismissed` are Android-only, for the reason action buttons in general are —
+see [notifications.md](./notifications.md#what-a-person-can-do-to-a-notification);
+and `not_received` is the one event a human asserts, pressed from the
+Sandbox after sending, for the case where silence is the only evidence there
+is.
 
 Device-side events buffer locally and flush to the API, and are deleted only
 once the API confirms it has them — never as a blanket clear, since that
@@ -53,11 +77,19 @@ would drop whatever arrived during a partial flush.
 
 The Telemetry page (drawer → Telemetry) is where all of this surfaces. The
 Events tab lists every trace with its ten rows, arrived or not, so a blank
-row is information rather than an absence. The Latency tab draws the
-`scenario × device` matrix implied by the intro above, built from every pair
-of a `sent` and a `received_*` event that share a trace. Neither tab polls —
-a push's arrival is reported by the device, not discovered by this page — so
-a refresh button is how either one grows.
+row is drawn neutrally rather than as a failure — most absences are correct,
+not a sign that anything went wrong. The most common blank pair is also the
+easiest to misread: an ordinary notification-only push arriving while the app
+is backgrounded produces neither `received_bg` nor `displayed`, because
+nothing wakes the app's own code for a bare notification block outside the
+foreground (see [notifications.md](./notifications.md)). Two blank device
+rows there are the push behaving exactly as it should, not a reason to press
+`not_received`.
+
+The Latency tab draws the `scenario × device` matrix implied by the intro
+above, built from every pair of a `sent` and a `received_*` event that share
+a trace. Neither tab polls — a push's arrival is reported by the device, not
+discovered by this page — so a refresh button is how either one grows.
 
 **The load-bearing caveat sits under the Latency tab itself:** `sent` is when
 the API received the send request, not when FCM answered it, so every figure

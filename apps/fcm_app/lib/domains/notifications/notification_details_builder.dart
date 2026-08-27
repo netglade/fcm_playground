@@ -56,7 +56,7 @@ NotificationDetails buildNotificationDetails(
   ),
   // No actions: iOS takes them from a `UNNotificationCategory` registered at
   // startup with a fixed set, so an arbitrary per-message list has nowhere
-  // to go. Documented in the README beside the same limitation on
+  // to go. Documented in docs/notifications.md beside the same limitation on
   // `dismissed`.
   iOS: const DarwinNotificationDetails(),
 );

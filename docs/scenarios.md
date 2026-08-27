@@ -6,9 +6,11 @@ groups, A through K, mirroring FCM's own test surface: basic delivery, app
 states, priority and delivery window, channels and importance, appearance,
 interaction, groups and badges, intrusive delivery, silent and data,
 targeting, and edge cases. Each one is a real FCM `Message`, built to show one
-specific thing FCM can do. For what a device does once a payload like this
-arrives, see [notifications.md](./notifications.md); for where the catalogue
-lives in the code, see [architecture.md](./architecture.md).
+specific thing FCM can do — a test asserts that all 66 round-trip through
+`FcmMessage.fromJson`/`.toJson()` unchanged, so a template cannot silently
+drift into something FCM would refuse. For what a device does once a payload
+like this arrives, see [notifications.md](./notifications.md); for where the
+catalogue lives in the code, see [architecture.md](./architecture.md).
 
 This document does not list the 66 — the app already shows them, and a list
 here would be wrong within a month of someone adding a scenario.

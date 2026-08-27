@@ -121,3 +121,21 @@ always arrive in the same order — a tap can be reported before the message
 it names has finished being stored — so the app holds an unresolved tap
 rather than dropping it, and resolves it the moment the message it was
 waiting for turns up.
+
+## What a person can do to a notification
+
+A notification the app drew itself can also carry up to three action
+buttons, named in the payload's own `data.actions` key rather than in any
+FCM field — FCM has no way to express a button, so the convention lives on
+this project's side, and the client builds the buttons from it
+(`notification_action.dart`). Pressing a plain button behaves like a tap: it
+opens the app, and the press is reported alongside which button it was. One
+button can instead be marked to take typed input — inline reply — which does
+not open the app at all: a background isolate saves the typed text and
+redraws the notification in place to show it went through, and the app only
+sees the reply once it is next opened.
+
+This is Android-only in this app, for the same reason `dismissed` is: iOS
+takes its actions from a fixed `UNNotificationCategory` registered once at
+startup, and a per-message payload has nowhere to hand it a different set.
+See [telemetry.md](./telemetry.md) for how a press and a reply are recorded.

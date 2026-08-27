@@ -34,6 +34,17 @@ file that would still make sense with no UI attached belongs in a domain; a
 file that exists only because one screen needs it belongs in that screen's
 page.
 
+Inbox is the drawer's first destination and the app's memory: every push the
+app accepts is stored, not just the ones drawn as a banner, and the Inbox
+page lists all of them. That store is what a tap resolves back to — the push
+domain keeps the message, `InboxCubit` and `inbox_view.dart` list it, and
+`message_detail_page.dart` is the "message's own detail page" a tap opens
+when it names nowhere more specific to go (see
+[notifications.md](./notifications.md#what-a-tap-delivers)). It is also what
+makes "did it arrive?" answerable after the fact — a message sitting in the
+Inbox is a message the app definitely received, independent of whatever
+telemetry says.
+
 ## Every data source has an interface, and a twin that does nothing
 
 `apps/fcm_app/lib/di/service_locator.dart` builds every long-lived collaborator
