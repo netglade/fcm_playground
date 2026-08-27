@@ -182,9 +182,11 @@ Future<String?> _registerPushSource(
 
 /// Starts Firebase and returns a live [PushSource].
 ///
-/// Throws [StateError] while `firebase_options.dart` still holds placeholder
-/// credentials. The project id is real, so the API key is what gets checked —
-/// initialising with a fake key fails later with a far less useful message.
+/// Throws [StateError] while `firebase_options.dart` still holds the
+/// placeholder credentials it ships with. Every field is a placeholder, so any
+/// of them would do as the signal; the API key is the one checked because it is
+/// the field `Firebase.initializeApp` itself rejects, and it does so far later
+/// with a far less useful message than [firebaseSetupInstructions].
 Future<PushSource> _startPushSource(
   BackgroundMessageHandler onBackgroundMessage,
   FirebaseOptions options,
