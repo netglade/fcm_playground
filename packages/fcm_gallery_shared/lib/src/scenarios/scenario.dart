@@ -20,43 +20,38 @@ class Scenario {
 
   /// The key its prose is filed under in the app's `strings.i18n.csv`.
   ///
-  /// Equal to [id] for every scenario today, and still its own field: [id] is a
-  /// *protocol* value. It rides in `data.scenario_id` on every push, it is what
-  /// telemetry rows join on, and the server reads it. A field renamed for a protocol
-  /// reason would silently repoint that scenario's prose at a key the CSV does not
-  /// have, and the failure would surface as a missing translation rather than as the
-  /// wire change it was. Two names that happen to match are cheaper than one name
-  /// serving two masters.
+  /// Equal to [id] today, and still its own field, because [id] is a *protocol*
+  /// value: it rides in `data.scenario_id`, telemetry joins on it, the server
+  /// reads it. Renaming it for a wire reason would silently repoint this
+  /// scenario's prose at a key the CSV lacks, surfacing as a missing translation
+  /// rather than the wire change it was.
   final String l10nKey;
 
   /// The single letter its source table is filed under — `'A'` through `'K'`.
   ///
-  /// The display name that letter expands to (`'A — Basic delivery'`) is prose now,
-  /// read through `ScenarioText.scenarioGroupName` in the app; this field stays a
-  /// bare letter so grouping and ordering do not depend on the translations.
+  /// Stays a bare letter so grouping and ordering do not depend on the
+  /// translations; the display name comes from
+  /// `ScenarioText.scenarioGroupName`.
   final String group;
 
   /// An FCM v1 message, without a delivery target — the server sets that.
   ///
-  /// Deliberately a raw map rather than an [FcmMessage]: this is the authoring
-  /// format, so a template can be pasted straight out of Google's REST reference.
+  /// A raw map, not an [FcmMessage]: this is the authoring format, so a template
+  /// can be pasted straight from Google's REST reference.
   final Map<String, dynamic> payloadTemplate;
 
-  /// Whether the scenario is meaningless unless the app has been killed first.
+  /// Whether the scenario is meaningless unless the app was killed first.
   ///
-  /// Shown on the card and used as the hint that this is one to schedule rather
-  /// than send.
+  /// Shown on the card, and the hint to schedule rather than send.
   final bool requiresKilledApp;
 
-  /// The delay the schedule sheet opens on. Zero means "no opinion", and the sheet
-  /// falls back to its own default.
+  /// The delay the schedule sheet opens on. Zero means "no opinion".
   final int defaultDelaySeconds;
 
   /// Empty when the scenario works today.
   final List<ScenarioNeed> needs;
 
-  /// Who to deliver to, or null for this device, which is what all but four
-  /// scenarios want.
+  /// Who to deliver to, or null for this device — what all but four want.
   final SendTarget? target;
 
   bool get isSupported => needs.isEmpty;

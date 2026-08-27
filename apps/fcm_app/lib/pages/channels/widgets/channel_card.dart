@@ -10,10 +10,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// One channel, requested against reported, with an extra button on the one
 /// channel this app deliberately cannot fix.
 ///
-/// A card rather than a table row: `notificationChannels` is a short, fixed
-/// list, and each entry carries six properties plus a name and description —
-/// there is no width a single table row could hold that in without wrapping
-/// back into exactly this shape.
+/// A card, not a table row: each entry carries six properties plus a name and
+/// description, which no row width holds without wrapping into this shape
+/// anyway.
 class ChannelCard extends StatelessWidget {
   const ChannelCard({required this.comparison, super.key});
 
@@ -36,9 +35,9 @@ class ChannelCard extends StatelessWidget {
               t.channelName(requested.id),
               style: theme.textTheme.titleMedium,
             ),
-            // Monospace and secondary: this is the vocabulary a reader
-            // cross-references against `android.notification.channel_id` in a
-            // scenario payload, not prose meant to be read on its own.
+            // Monospace and secondary — this is cross-referenced against
+            // `android.notification.channel_id` in a payload, not read as
+            // prose.
             Text(
               requested.id,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -100,10 +99,8 @@ class ChannelCard extends StatelessWidget {
 
 /// One property row's data: a label and the two values to compare.
 ///
-/// Plain data rather than a widget, so building the list stays a function
-/// [ChannelCard] can call from its `children`, not a second widget in this file
-/// — DCM's `avoid-returning-widgets` rule would flag a helper that handed back
-/// a `Widget` directly.
+/// Plain data, not a widget, so building the list stays a function — DCM's
+/// `avoid-returning-widgets` would flag a helper returning a `Widget`.
 typedef _RowData = ({
   String label,
   String requested,
@@ -111,12 +108,11 @@ typedef _RowData = ({
   bool mismatches,
 });
 
-/// Every property row for [comparison], in the fixed order the card lists them:
-/// importance, sound, vibration, DND bypass, group, badge.
+/// Every property row for [comparison], in card order: importance, sound,
+/// vibration, DND bypass, group, badge.
 ///
-/// A channel the system does not hold reports every row as
-/// `channels.not_registered` rather than blank, so a missing channel and a
-/// channel with merely-default properties never read the same.
+/// An unregistered channel reports every row as `channels.not_registered` rather
+/// than blank, so it never reads like a channel with default properties.
 List<_RowData> _rows(Translations t, ChannelComparison comparison) {
   final requested = comparison.requested;
   final actual = comparison.actual;
@@ -136,11 +132,10 @@ List<_RowData> _rows(Translations t, ChannelComparison comparison) {
       label: t.channels.sound,
       requested: _soundText(t, requested.sound?.sound),
       reported: reportedText(() => _soundText(t, actual!.sound?.sound)),
-      // A null requested sound means "whatever the system default is" — this
-      // app never sets `playSound`, so every channel but `custom_sound` asks
-      // for nothing in particular. Comparing that against the default URI
-      // Android reports back would flag all ten of them as disagreeing with a
-      // request that was never made.
+      // A null requested sound means "the system default", which is what every
+      // channel but `custom_sound` asks for. Comparing it against the URI
+      // Android reports back would flag all ten as disagreeing with a request
+      // never made.
       mismatches:
           !registered ||
           (requested.sound != null &&
@@ -168,9 +163,8 @@ List<_RowData> _rows(Translations t, ChannelComparison comparison) {
     ),
     (
       label: t.channels.badge,
-      // AndroidNotificationChannel defaults showBadge to true, and this app
-      // never overrides it — AppNotificationChannel has no field for it because
-      // there is nothing to ask for beyond that default.
+      // AndroidNotificationChannel defaults showBadge to true and this app
+      // never overrides it, so AppNotificationChannel has no field for it.
       requested: 'true',
       reported: reportedText(() => '${actual!.showBadge}'),
       mismatches: !registered || actual?.showBadge != true,
@@ -178,14 +172,12 @@ List<_RowData> _rows(Translations t, ChannelComparison comparison) {
   ];
 }
 
-/// The URI Android reports for a channel this app registered with no explicit
-/// sound: `RingtoneManager.getDefaultUri(TYPE_NOTIFICATION)`, assigned by the
-/// plugin's Android side rather than by anything this app asked for.
+/// The URI Android reports for a channel registered with no explicit sound —
+/// assigned by the plugin's Android side, not asked for here.
 const _systemDefaultSoundUri = 'content://settings/system/notification_sound';
 
-/// [sound] rendered for display: a dash for none, a readable word for the
-/// platform default, or the raw value — a resource name, since only
-/// `custom_sound` asks for a URI and it never gets this one back.
+/// [sound] for display: a dash for none, a word for the platform default, or the
+/// raw resource name.
 String _soundText(Translations t, String? sound) {
   if (sound == null) {
     return '—';

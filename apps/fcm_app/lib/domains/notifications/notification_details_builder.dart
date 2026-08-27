@@ -6,20 +6,19 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Where a notification's Android category rides in the payload.
 ///
-/// A category is a property of the *notification*, not of the channel, which is
-/// why it is read per message here instead of sitting in the channel table.
+/// A property of the *notification*, not the channel — hence read per message
+/// rather than kept in the channel table.
 const pushCategoryKey = 'category';
 
 /// The notification both isolates draw.
 ///
-/// Top-level rather than a method on the presenter, for the reason
-/// `remoteMessageToPayload` is top-level: the background isolate needs the same
-/// construction, and a second copy would let a notification drawn while the app
-/// was dead differ from one drawn while it was on screen.
+/// Top-level, not a method on the presenter: the background isolate needs the
+/// same construction, and a second copy would let a notification drawn while the
+/// app was dead differ from one drawn on screen.
 NotificationDetails buildNotificationDetails(PushMessage message) {
-  // An unknown id falls back rather than being passed through: a channel the app
-  // never registered draws nothing at all on Android O+, so honouring the
-  // payload literally would lose the notification.
+  // An unknown id falls back rather than passing through: an unregistered
+  // channel draws nothing at all on Android O+, so obeying the payload
+  // literally would lose the notification.
   final channel =
       channelById(message.data[pushChannelKey]) ?? defaultNotificationChannel;
 
@@ -31,10 +30,9 @@ NotificationDetails buildNotificationDetails(PushMessage message) {
       importance: channel.importance,
       priority: _priorityFor(channel.importance),
       category: _categoryFor(message.data[pushCategoryKey]),
-      // Without this, a swipe is not reported at all. `main` rather than
-      // `background`: a background dismissal reaches a fresh isolate carrying
-      // only the message id, and `dismissed` has to be recorded against the
-      // trace id on the stored payload.
+      // Without this a swipe is not reported at all. `main`, because a
+      // background dismissal reaches a fresh isolate holding only the message
+      // id, and `dismissed` needs the trace id on the stored payload.
       dismissIsolate: NotificationDismissedIsolate.main,
       // Only the documented value. See `notificationOngoingKey`.
       ongoing: message.data[notificationOngoingKey] == 'true',
@@ -50,14 +48,13 @@ NotificationDetails buildNotificationDetails(PushMessage message) {
           AndroidNotificationAction(
             action.id,
             action.label,
-            // A reply is answered in the shade, so it must NOT show UI: that
-            // is what routes the press to the background isolate instead of
-            // the main one. Every other action opens the app, which is what
-            // lets `LocalNotificationPresenter` answer for it.
+            // A reply is answered in the shade, so it must NOT show UI —
+            // that is what routes the press to the background isolate. Every
+            // other action opens the app instead.
             showsUserInterface: !action.takesInput,
-            // A plain action's notification is stale the moment it is
-            // pressed. A reply's is not — the background isolate updates it
-            // in place, and cancelling would delete the thing being updated.
+            // A plain action's notification is stale once pressed; a
+            // reply's is not, and cancelling would delete what the background
+            // isolate is updating in place.
             cancelNotification: !action.takesInput,
             inputs: [
               if (action.takesInput)
@@ -66,19 +63,18 @@ NotificationDetails buildNotificationDetails(PushMessage message) {
           ),
       ],
     ),
-    // No actions: iOS takes them from a `UNNotificationCategory` registered at
-    // startup with a fixed set, so an arbitrary per-message list has nowhere
-    // to go. Documented in docs/notifications.md beside the same limitation on
-    // `dismissed`.
+    // No actions: iOS takes them from a fixed `UNNotificationCategory`
+    // registered at startup, so a per-message list has nowhere to go. See
+    // docs/notifications.md.
     iOS: const DarwinNotificationDetails(),
   );
 }
 
 /// The pre-Oreo priority matching [importance].
 ///
-/// Ignored from Android O onwards, where the channel decides — but the app's
-/// `minSdk` is below that, and a `Priority.high` on a low-importance channel
-/// would make the two disagree on exactly the devices that read it.
+/// Ignored from Android O on, where the channel decides — but `minSdk` is below
+/// that, and a `Priority.high` on a low-importance channel would disagree on
+/// exactly the devices that still read it.
 Priority _priorityFor(Importance importance) => switch (importance) {
   Importance.min => Priority.min,
   Importance.low => Priority.low,
@@ -88,8 +84,8 @@ Priority _priorityFor(Importance importance) => switch (importance) {
 
 /// The category [value] names, or null when it names none.
 ///
-/// Null rather than a throw: a category the plugin does not know costs a
-/// grouping hint, not the notification.
+/// Null rather than a throw — an unknown category costs a grouping hint, not the
+/// notification.
 AndroidNotificationCategory? _categoryFor(String? value) => switch (value) {
   'alarm' => AndroidNotificationCategory.alarm,
   'call' => AndroidNotificationCategory.call,
