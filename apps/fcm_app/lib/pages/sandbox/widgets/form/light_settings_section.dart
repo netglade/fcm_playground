@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import '../../../../../i18n/translations.g.dart';
+import '../../../../i18n/translations.g.dart';
 import '../../forms/light_settings_form.dart';
 import 'form_section.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../i18n/translations.g.dart';
+import '../../../../i18n/translations.g.dart';
 import '../../forms/webpush_fcm_options_form.dart';
 import 'form_section.dart';
 

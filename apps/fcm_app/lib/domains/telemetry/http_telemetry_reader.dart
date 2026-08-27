@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../i18n/translations.g.dart';
+import '../../i18n/translations.g.dart';
 import 'telemetry_reader.dart';
 import 'telemetry_reader_exception.dart';
 

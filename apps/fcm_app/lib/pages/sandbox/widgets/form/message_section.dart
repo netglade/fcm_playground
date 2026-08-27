@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../i18n/translations.g.dart';
+import '../../../../i18n/translations.g.dart';
 import '../../forms/fcm_message_form.dart';
 import 'form_section.dart';
 import 'string_map_rows.dart';

@@ -1,4 +1,4 @@
-import '../../../i18n/translations.g.dart';
+import '../../i18n/translations.g.dart';
 
 /// The language the user picked, or null for "follow the system".
 ///

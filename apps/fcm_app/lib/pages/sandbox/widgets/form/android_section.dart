@@ -2,7 +2,7 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-import '../../../../../i18n/translations.g.dart';
+import '../../../../i18n/translations.g.dart';
 import '../../forms/android_config_form.dart';
 import 'enum_field.dart';
 import 'form_section.dart';
