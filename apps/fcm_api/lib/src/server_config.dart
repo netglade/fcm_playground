@@ -25,7 +25,7 @@ class ServerConfig {
     if (path == null || path.trim().isEmpty) {
       throw StateError(
         'GOOGLE_APPLICATION_CREDENTIALS is not set. It must point at a Firebase '
-        'service account JSON key — see apps/fcm_api/README.md.',
+        'service account JSON key — see the root README.md.',
       );
     }
 

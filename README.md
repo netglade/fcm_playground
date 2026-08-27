@@ -54,8 +54,8 @@ The first Android build needs core library desugaring enabled, or
 ':flutter_local_notifications' requires core library desugaring to be
 enabled for :app`. This repo already sets `isCoreLibraryDesugaringEnabled =
 true` and adds `coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")`
-in `android/app/build.gradle.kts`, so a fresh clone builds clean — worth
-knowing if that file ever gets touched.
+in `apps/fcm_app/android/app/build.gradle.kts`, so a fresh clone builds
+clean — worth knowing if that file ever gets touched.
 
 ### Firebase project
 

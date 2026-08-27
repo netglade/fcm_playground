@@ -81,7 +81,7 @@ melos:
     api:serve:
       description: >-
         Run the send API on 127.0.0.1:8080. Needs GOOGLE_APPLICATION_CREDENTIALS
-        pointing at a Firebase service account key — see apps/fcm_api/README.md.
+        pointing at a Firebase service account key — see the root README.md.
       run: fvm dart run apps/fcm_api/bin/server.dart
 
     test:core:

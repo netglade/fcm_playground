@@ -64,10 +64,11 @@ first frame.
 `push_message.dart`, `push_message_format_exception.dart`,
 `push_message_parser.dart` and `notification_action.dart`, all in
 `apps/fcm_app/lib/domains/push`, import nothing but `dart:core`, so the rules
-for what makes a payload valid run under `melos run test:core` — plain
-`dart test`, no widget, no Flutter binding, no device. `melos run test:app`
-(`flutter test`) covers everything Flutter-shaped, and Firebase itself is
-never started there either: `apps/fcm_app/test/fakes/fake_push_source.dart`
+for what makes a payload valid run under `melos run --no-select test:core` —
+plain `dart test`, no widget, no Flutter binding, no device. `melos run
+--no-select test:app` (`flutter test`) covers everything Flutter-shaped, and
+Firebase itself is never started there either:
+`apps/fcm_app/test/fakes/fake_push_source.dart`
 implements `PushSource` in memory and is what a test hands to the code under
 test, the same way `DisabledPushSource` is what a real device falls back to.
 `apps/fcm_app/test/di/service_locator_test.dart` drives
