@@ -9,9 +9,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// The reply [response] carries, or null when it carries none.
 ///
-/// Null covers a plain action press as well as a malformed response: a plain
-/// action opens the app and is answered in the main isolate, so this isolate has
-/// nothing to do with it.
+/// Null also covers a plain action press, which opens the app and is answered
+/// in the main isolate instead.
 PendingReply? replyFrom(NotificationResponse response) {
   final id = response.payload;
   final text = response.input;
@@ -24,43 +23,21 @@ PendingReply? replyFrom(NotificationResponse response) {
 
 /// Redraws the notification to show where the reply has got to.
 ///
-/// Keyed on [messageId] alone, via [notificationIdFor] rather than
-/// `notificationIdOf` — this isolate gets only the payload string off the
-/// notification response, never the `PushMessage` a tag lives on. For every
-/// scenario that uses inline reply the original message carries no tag, so
-/// `notificationIdOf` reduces to the same id and this still replaces it as
-/// intended.
+/// Keyed on [messageId] via [notificationIdFor], not `notificationIdOf`: this
+/// isolate gets only the payload string, never the `PushMessage` a tag lives
+/// on.
 ///
-/// Known limitation: the redraw below diverges from the original draw in six
-/// ways — five because it builds a fixed `NotificationDetails`, and one because
-/// of the id it is keyed on, explained above.
+/// The redraw builds a fixed `NotificationDetails`, so it diverges from the
+/// original draw. Two divergences hit `f2_inline_reply` every time: no
+/// `actions`, so the Reply button does not come back; and no `dismissIsolate`,
+/// which the plugin treats as "do not report dismissals" — so swiping the
+/// progress notification records nothing. Four more (tag, group, ongoing,
+/// full-screen all dropped) need a hand-composed Sandbox payload, since no
+/// catalogue scenario pairs a reply action with them.
 ///
-/// Four are reachable only by hand. A tagged message's progress notification
-/// lands beside the original instead of replacing it. A grouped one leaves its
-/// group — it stops counting toward the summary's total even though the store
-/// still counts it as a member. An ongoing one becomes dismissable. A
-/// full-screen one stops asking to take over the screen, which is the one
-/// divergence worth keeping: a "Sending…" redraw seizing the lock screen would
-/// be worse than the flag being dropped. Reaching any of the four means
-/// hand-composing a Sandbox payload that pairs a reply action with a tag, a
-/// group, the ongoing flag or a full-screen request, and no catalogue scenario
-/// does: `f2_inline_reply` is the only entry carrying an input action, and its
-/// payload carries none of the four.
-///
-/// The other two are reached by f2 itself, every time. The redraw carries no
-/// `actions`, so the Reply button does not come back once the reply is sent.
-/// And it carries no `dismissIsolate`, which the plugin documents as null
-/// meaning not to report a dismissal at all — so swiping the progress
-/// notification away records nothing, and the `dismissed` event the
-/// `f6_delete_intent` scenario exists to show is off on exactly the
-/// notification `f2_inline_reply` produces. Both stay as they are because
-/// the alternative is plumbing the original payload into an isolate that
-/// receives only a message id.
-///
-/// The original title is not restored, because this isolate does not have it —
-/// finding it would mean reading the payload store's pending queue, which the UI
-/// isolate owns and drains. Showing the reply itself is both honest and more
-/// useful: it is what the user just typed.
+/// All of it stays as-is: the alternative is plumbing the original payload into
+/// an isolate that receives only a message id. The original title is not
+/// restored for the same reason — and showing the typed reply is more useful.
 Future<void> showReplyProgress(
   String messageId,
   String text, {
@@ -70,16 +47,14 @@ Future<void> showReplyProgress(
 
 /// Redraws the notification to say the reply did not go through.
 ///
-/// Only reached when the reply could not be persisted at all: leaving the
-/// notification on "Sending…" at that point would be a permanent lie, since the
-/// app will never see a reply that never reached storage. "Not sent" is the
-/// honest reading — worse-looking than "Sent", but not false.
+/// Only when the reply could not be persisted at all. Leaving "Sending…" would
+/// be a permanent lie: the app will never see a reply that never reached
+/// storage.
 Future<void> _showReplyFailed(String messageId, String text) =>
     _draw(messageId, title: t.reply.not_sent, body: text);
 
-/// The plugin call both draw functions share, built fresh each time: this runs
-/// in an isolate where `configureDependencies` has not run, so there is no
-/// existing plugin instance to reuse.
+/// The plugin call both draws share, built fresh each time — this isolate never
+/// ran `configureDependencies`, so there is no instance to reuse.
 Future<void> _draw(
   String messageId, {
   required String title,
@@ -91,10 +66,9 @@ Future<void> _draw(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(),
     ),
-    // The same callback `drawBackgroundNotification` and the main isolate both
-    // register — passing it here is defence in case a future plugin version
-    // clears handles on a partial initialize, not a fix for an observed one; see
-    // `background_notification_draw.dart` for why.
+    // Defence in case a future plugin version clears handles on a partial
+    // initialize, not a fix for an observed bug — see
+    // `background_notification_draw.dart`.
     onDidReceiveBackgroundNotificationResponse: onNotificationReply,
   );
   await registerNotificationChannels(plugin);
@@ -120,11 +94,8 @@ Future<void> _draw(
 /// Runs [action], logging rather than propagating a failure, and reporting
 /// whether it succeeded.
 ///
-/// [onNotificationReply] is a plugin entry point running in a fresh isolate: an
-/// exception escaping it has nowhere useful to go, the same reasoning
-/// `report_push_event.dart`'s `_swallow` and `main.dart`'s background-draw
-/// `debugPrint` already apply to their own calls. [label] names the step that
-/// failed, so the log line says which one without the caller having to repeat it.
+/// An exception escaping a plugin entry point in a fresh isolate has nowhere to
+/// go. [label] names the step, so the log line says which one failed.
 Future<bool> _attempt(Future<void> Function() action, String label) async {
   try {
     await action();
@@ -139,28 +110,23 @@ Future<bool> _attempt(Future<void> Function() action, String label) async {
 
 /// Handles a press on an action that does not open the app.
 ///
-/// Must be top-level and annotated so AOT compilation keeps it reachable: the
-/// plugin stores a handle to it natively and calls it in a fresh isolate, where
-/// `configureDependencies` has not run and a `getIt` lookup would throw.
+/// Must be top-level and annotated so AOT keeps it reachable: the plugin stores
+/// a native handle and calls it in a fresh isolate, where `getIt` would throw.
 ///
-/// There is no server. The gap between `Sending…` and `Sent` is simulated — the
-/// same note the catalogue scenario that exercises this carries — because what
-/// this demonstrates is a background isolate updating a notification in place
-/// after a press that never opened the app, not a network round trip.
+/// There is no server — the gap between "Sending…" and "Sent" is simulated.
+/// What this demonstrates is a background isolate updating a notification in
+/// place after a press that never opened the app.
 ///
-/// Every step is guarded with [_attempt] rather than left to throw, because a
-/// bare exception here would abandon whichever draw was on screen — most often
-/// "Sending…" — forever, with no error, no log and no test to catch it. That is
-/// the exact silent-failure shape this isolate exists to close, so it must not
-/// reappear inside its own error handling.
+/// Every step is guarded with [_attempt]: a bare exception would abandon
+/// whichever draw is on screen — usually "Sending…" — forever, with no error
+/// and no log. That is the silent failure this isolate exists to close, so it
+/// must not reappear in its own error handling.
 @pragma('vm:entry-point')
 Future<void> onNotificationReply(NotificationResponse response) async {
-  // This isolate has its own memory and its own plugin registry, so both need
-  // setting up before shared_preferences can be reached — the same reasoning
-  // `main.dart`'s `_onBackgroundMessage` gives for its own call. Without this,
-  // `SharedPreferencesReplyStore`'s `SharedPreferencesAsync` throws the moment
-  // it is constructed, and every reply is lost with only a `debugPrint` to show
-  // for it.
+  // Own memory, own plugin registry, so both need setting up before
+  // shared_preferences is reachable. Without this,
+  // `SharedPreferencesReplyStore` throws on construction and every reply is
+  // lost with only a `debugPrint`.
   DartPluginRegistrant.ensureInitialized();
 
   await restoreStoredLocale();
@@ -175,17 +141,15 @@ Future<void> onNotificationReply(NotificationResponse response) async {
     'Could not draw the "Sending…" notification for ${reply.messageId}',
   );
 
-  // Attempted before the second draw, so a reply survives this isolate being
-  // killed between the two — the app has it either way.
+  // Before the second draw, so a reply survives this isolate being killed
+  // between the two.
   final saved = await _attempt(
     () => SharedPreferencesReplyStore().appendPending(reply),
     'Reply to ${reply.messageId} could not be saved',
   );
   if (!saved) {
-    // The reply never reached storage, so the app will never merge it — leaving
-    // "Sending…" standing would promise a delivery that is not coming. Guarded
-    // the same way, so a failure in the recovery draw itself is logged instead
-    // of escaping unguarded.
+    // Never reached storage, so the app will never merge it — leaving
+    // "Sending…" would promise a delivery that is not coming.
     await _attempt(
       () => _showReplyFailed(reply.messageId, reply.text),
       'Could not draw the failure notification for ${reply.messageId}',
@@ -201,9 +165,8 @@ Future<void> onNotificationReply(NotificationResponse response) async {
     'Could not draw the "Sent" notification for ${reply.messageId}',
   );
   if (!drawnSent) {
-    // The reply is safely saved even though this draw failed, so one more
-    // attempt is worth making rather than leaving "Sending…" as the last word
-    // for a reply that in fact went through.
+    // The reply is saved, so one retry beats leaving "Sending…" as the last
+    // word for a reply that went through.
     await _attempt(
       () => showReplyProgress(reply.messageId, reply.text, sent: true),
       'Retry of the "Sent" notification for ${reply.messageId} also failed',

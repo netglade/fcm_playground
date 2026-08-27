@@ -18,12 +18,11 @@ import 'package:fcm_app/pages/inbox/cubit/cubit.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 
-/// Everything about received pushes that outlives a page: the subscription, the
-/// ordering, the de-duplication and the persistence.
+/// Everything about received pushes that outlives a page: the subscription,
+/// ordering, de-duplication and persistence.
 ///
 /// App-scoped rather than a cubit, because a push arrives whichever tab is
-/// showing and the Sandbox needs the registration token this holds. Only the
-/// projection for the screen is a cubit.
+/// showing and the Sandbox needs the token this holds.
 class PushRepository {
   PushRepository(
     this._source, {
@@ -42,10 +41,7 @@ class PushRepository {
   final NotificationPresenter _presenter;
   final PushTelemetry _telemetry;
   final PressedActionStore _pressedActions;
-  // Named `_replyStore` rather than `this._replies`, so the merged map below can
-  // keep the name that mirrors `_pressed` — the pressed-action store and its
-  // merged map do not collide this way because "actions" is not in the map's
-  // name, but "replies" would be in both here.
+  // `_replyStore`, not `_replies` — the merged map below needs that name.
   final ReplyStore _replyStore;
   final _parser = const PushMessageParser();
   final _pressed = <String, PressedAction>{};
@@ -53,25 +49,22 @@ class PushRepository {
   final _accepted = <_AcceptedPush>[];
   final _rejections = <String>[];
   final _seenIds = <String>{};
-  // Broadcast because the shell and the inbox page both watch it.
+  // Broadcast: the shell and the inbox page both watch it.
   //
-  // `sync: true` is load-bearing: an asynchronous broadcast controller delivers
-  // through a microtask scheduled in *the subscriber's* zone, so a watcher
-  // subscribed from a widget test's `setUp` — outside the zone `testWidgets`
-  // drives the clock of — never hears anything, however long the test pumps.
+  // `sync: true` is load-bearing — an async controller delivers via a microtask
+  // in the *subscriber's* zone, so anything subscribed in a widget test's
+  // `setUp` never hears a thing.
   final _changes = StreamController<InboxState>.broadcast(sync: true);
   StreamSubscription<Map<String, Object?>>? _subscription;
   String? _setupError;
   String? _token;
   String? _pendingOpenId;
 
-  /// A tap whose message the repository did not hold when it arrived — the Android
-  /// warm-start path, where FCM reports the tap before the background isolate's payload
-  /// has been drained.
+  /// A tap whose message was not held yet — the Android warm start, where FCM
+  /// reports the tap before the payload is drained.
   ///
-  /// The state travels with the id, because by the time the payload turns up nothing
-  /// else remembers which channel the tap came through, or which action button — if
-  /// any — was pressed. Cleared once reported, so one press cannot record two opens.
+  /// Carries the state because nothing else will remember it. Cleared once
+  /// reported, so one press cannot record two opens.
   ({String id, OpenedFrom from, String? actionId})? _unreportedOpen;
 
   Stream<InboxState> get changes => _changes.stream;
@@ -97,26 +90,23 @@ class PushRepository {
 
   bool get hasPendingOpen => _pendingOpenId != null;
 
-  /// The message a tap asked to open, or null when there is no tap outstanding
-  /// or its message is not held.
+  /// The message a tap asked to open, or null when no tap is outstanding or its
+  /// message is not held.
   ///
-  /// Resolved on every read rather than when the tap arrived: the tap and the
-  /// payload come from two different streams, so the message may land after the
-  /// request.
+  /// Resolved on every read: the tap and the payload come from two streams, so
+  /// the message may land after the request.
   PushMessage? get pendingOpen => state.pendingOpen;
 
   void requestOpen(String id, OpenedFrom from, {String? actionId}) {
     _pendingOpenId = id;
-    // A tap is handled whether or not it can be reported. The trace id lives on the
-    // payload, so an unresolvable tap is held until the payload turns up rather than
-    // recorded against a fabricated trace.
+    // The trace id lives on the payload, so an unresolvable tap is held until
+    // the payload turns up rather than recorded against a fabricated trace.
     final opened = _acceptedFor(id);
     _unreportedOpen = opened == null
         ? (id: id, from: from, actionId: actionId)
         : null;
-    // Written after `_unreportedOpen`, so `_savePressed`'s prune — which runs
-    // synchronously up to its first `await` — sees this tap as outstanding rather
-    // than deleting the press it was just given.
+    // After `_unreportedOpen`, so `_savePressed`'s prune sees this tap as
+    // outstanding rather than deleting the press it was just given.
     if (actionId != null) {
       _pressed[id] = PressedAction(actionId: actionId, from: from);
       unawaited(_savePressed());
@@ -146,11 +136,9 @@ class PushRepository {
 
   /// Records that the user swiped the notification for [id] away.
   ///
-  /// Nothing is published: a dismissal changes nothing the screen shows — the message
-  /// stays in the inbox, because the tray and the inbox are different lists.
-  ///
-  /// An id the repository does not hold records nothing, unlike a tap: there is no
-  /// screen to open afterwards, so there is nothing to hold the dismissal for.
+  /// Publishes nothing — the message stays in the inbox, because the tray and
+  /// the inbox are different lists. An id not held records nothing, unlike a
+  /// tap: there is no screen to open afterwards.
   void reportDismissed(String id) {
     final dismissed = _acceptedFor(id);
     if (dismissed == null) {
@@ -168,10 +156,9 @@ class PushRepository {
 
   /// Called by the shell once it has navigated, so it does not navigate twice.
   ///
-  /// Published like every other change: the tap is a field of the snapshot on
-  /// [changes], so a silent clear would leave watchers holding a state that
-  /// still claims a tap is outstanding. Clearing *before* navigating means the
-  /// extra event carries no pending open, so the shell's guard does nothing.
+  /// Published like any other change: the tap is a field of the snapshot on
+  /// [changes], so a silent clear would leave watchers still claiming a tap is
+  /// outstanding.
   void clearPendingOpen() {
     _pendingOpenId = null;
     _publish();
@@ -184,13 +171,13 @@ class PushRepository {
   /// Loads the kept messages and everything the background isolate left.
   ///
   /// A storage failure surfaces in [setupError] rather than throwing —
-  /// persistence failing must not stop the app from opening.
+  /// persistence failing must not stop the app opening.
   Future<void> restore() async {
     try {
       final stored = await _store.loadInbox();
       final pending = await _store.takePending();
       // Stored payloads are newest first and each ingest inserts at the front,
-      // so they go in reversed. Pending payloads were appended oldest first.
+      // so they go in reversed. Pending were appended oldest first.
       for (final payload in stored.reversed) {
         _ingest(payload, notify: false);
       }
@@ -201,15 +188,13 @@ class PushRepository {
       _pressed.addAll(await _pressedActions.load());
       await _savePressed();
       _replies.addAll(await _replyStore.load());
-      // Runs even when nothing is pending: a reply loaded above may point at a
-      // message [restore] just found the cap had evicted, and that has to be
-      // pruned here too, or it sits in the store forever.
+      // Runs even with nothing pending: a reply loaded above may point at a
+      // message the cap has evicted, and that must be pruned too.
       await _mergeReplies(await _replyStore.takePending());
     } catch (error) {
-      // The global `t` rather than a passed-in `context.t`: this repository has
-      // no `BuildContext`, the same reason the three `http_*` data sources read
-      // the global. `SetupErrorBanner` still redraws on a locale change because
-      // `InboxView` rebuilds through its own `context.t`-watching `build`.
+      // The global `t`, not `context.t` — no `BuildContext` here, same as the
+      // `http_*` data sources. `SetupErrorBanner` still redraws on a locale
+      // change, via `InboxView`'s own `context.t`-watching build.
       _setupError ??= t.inbox.setup_error(error: error);
       _publish();
     }
@@ -217,23 +202,12 @@ class PushRepository {
 
   /// Merges anything the background isolate appended since the last drain.
   ///
-  /// Payloads are ingested first, replies second — the same order [restore]
-  /// uses, and deliberately so: a reply typed against the push that arrived in
-  /// this very drain must find its message already held, or [_saveReplies]'s
-  /// prune deletes it on the spot, merged into `_replies` and immediately
-  /// written back out as absent before the caller ever observes it. That is
-  /// not a hypothetical; draining replies first was tried, and it lost exactly
-  /// this reply in exactly this way.
+  /// Payloads first, replies second, and the order is load-bearing: a reply
+  /// answering a push from this same drain must find its message held, or
+  /// [_saveReplies] prunes it immediately.
   ///
-  /// The empty check below guards only the payload-ingest work, never the
-  /// reply merge that follows it: a reply action deliberately does not
-  /// foreground the app, so the ordinary resume carries a reply with no
-  /// accompanying payload at all, and gating the merge on the payload queue
-  /// would leave that reply stranded until the next cold start's [restore] —
-  /// silently late by however long the app happens to stay backgrounded.
-  /// [_mergeReplies] therefore runs unconditionally, exactly as it does in
-  /// [restore]: even an empty drain can still need to prune a reply whose
-  /// message this call's own payload-ingest just evicted from the cap.
+  /// [_mergeReplies] runs outside the empty check — a reply action does not
+  /// foreground the app, so a resume often carries a reply and no payload.
   Future<void> drainPending() async {
     final pending = await _store.takePending();
     if (pending.isNotEmpty) {
@@ -259,18 +233,18 @@ class PushRepository {
 
   /// Releases the push subscription and stops publishing.
   ///
-  /// Both closes are unawaited deliberately: a controller's `close()` future
-  /// only completes once a listener has taken the done event, so awaiting one
-  /// that was never listened to — the ordinary case in a test — never returns.
+  /// Both closes are unawaited deliberately: `close()` only completes once a
+  /// listener takes the done event, so awaiting an unlistened controller — the
+  /// ordinary case in a test — never returns.
   void dispose() {
     unawaited(_subscription?.cancel());
     unawaited(_changes.close());
   }
 
   void _onLivePayload(Map<String, Object?> payload) {
-    // Reported before parsing, and only for the live stream. A rejected payload
-    // still arrived, and its trace id is readable either way. Restored and
-    // drained payloads were already recorded as `received_bg` when they landed.
+    // Before parsing, and only for the live stream: a rejected payload still
+    // arrived. Restored and drained payloads were already recorded as
+    // `received_bg` when they landed.
     unawaited(
       reportAndFlush(_telemetry, TelemetryEventType.receivedFg, payload),
     );
@@ -284,8 +258,8 @@ class PushRepository {
       if (_seenIds.add(message.id)) {
         _accepted.insert(0, _AcceptedPush(message, payload));
         if (_accepted.length > maxStoredMessages) {
-          // The evicted id stays in _seenIds, so a re-delivery cannot resurrect
-          // it mid-session. A restart rebuilds the set from what was kept.
+          // The evicted id stays in _seenIds, so a re-delivery cannot
+          // resurrect it mid-session. A restart rebuilds the set.
           _accepted.removeLast();
         }
         if (notify) {
@@ -326,8 +300,8 @@ class PushRepository {
 
   /// Draws the banner for [message], and reports it only once that has worked.
   ///
-  /// The order matters: a `displayed` recorded before [show] returned would
-  /// claim a notification a failing presenter never drew.
+  /// A `displayed` recorded before [show] returned would claim a notification a
+  /// failing presenter never drew.
   Future<void> _show(PushMessage message, Map<String, Object?> payload) async {
     try {
       await _presenter.show(message);
@@ -353,16 +327,12 @@ class PushRepository {
   Future<void> _save() =>
       _store.saveInbox(_accepted.map((push) => push.payload).toList());
 
-  /// Writes the presses for messages still held, or still awaiting one, dropping
-  /// the rest.
+  /// Writes the presses for messages still held, or still awaiting one,
+  /// dropping the rest.
   ///
-  /// Pruning here rather than on a timer keeps the store bounded by
-  /// [maxStoredMessages] without inventing a second cap: a press whose message
-  /// the cap evicted can never be shown again. The [_unreportedOpen] exception
-  /// can push the store one entry past that cap — at most one tap is ever
-  /// outstanding at a time — and it clears the moment its payload lands or
-  /// another tap replaces it, so the store settles back within the cap on its
-  /// own.
+  /// Pruning keeps the store bounded by [maxStoredMessages]: a press whose
+  /// message was evicted can never be shown again. [_unreportedOpen] can push
+  /// it one over, briefly.
   Future<void> _savePressed() async {
     _pressed.removeWhere(
       (id, _) => _acceptedFor(id) == null && id != _unreportedOpen?.id,
@@ -371,15 +341,12 @@ class PushRepository {
     await _pressedActions.save(Map.of(_pressed));
   }
 
-  /// Merges [pending] into the merged replies map, records the `action`
-  /// telemetry event once per reply whose message this repository holds, then
-  /// re-persists.
+  /// Merges [pending], records one `action` event per reply whose message is
+  /// held, then re-persists.
   ///
-  /// A reply never reaches [requestOpen] — it produced no tap, because it never
-  /// opened the app — so this drain is the only place the event can be recorded
-  /// with a real trace id. The cost: the event's timestamp is the moment the
-  /// app resumed and drained the reply, not the moment the user actually typed
-  /// it, so a latency figure computed from this event measures the wrong
+  /// A reply opens no app, so produces no tap and never reaches [requestOpen] —
+  /// this is the only place the event gets a real trace id. Its timestamp is
+  /// the drain, not the typing, so latency from it measures the wrong
   /// interval.
   Future<void> _mergeReplies(List<PendingReply> pending) async {
     for (final reply in pending) {
@@ -400,16 +367,9 @@ class PushRepository {
 
   /// Writes the merged replies for messages still held, dropping the rest.
   ///
-  /// Pruning here rather than on a timer keeps the store bounded by
-  /// [maxStoredMessages] without inventing a second cap, the same reasoning
-  /// [_savePressed] gives. A reply needs no [_unreportedOpen]-style holding
-  /// field to survive this prune, but not because a reply can never be
-  /// outstanding while its message is missing — [drainPending] used to get
-  /// exactly that wrong, pruning a freshly merged reply the instant it ran
-  /// ahead of the payload it answered. It survives because [drainPending] and
-  /// [restore] both ingest their payloads before merging their replies, so by
-  /// the time this prune runs, a reply's message has already been given the
-  /// chance to exist.
+  /// Bounded like [_savePressed]. Needs no holding field only because
+  /// [drainPending] and [restore] ingest payloads before merging replies —
+  /// [drainPending] once had that backwards and lost a reply.
   Future<void> _saveReplies() async {
     _replies.removeWhere((id, _) => _acceptedFor(id) == null);
     await _replyStore.save(Map.of(_replies));
@@ -420,8 +380,8 @@ class PushRepository {
   }
 }
 
-/// One accepted push: the parsed message the UI shows, beside the raw payload
-/// that produced it, so the two cannot drift out of step as the cap trims them.
+/// One accepted push: the parsed message the UI shows beside the raw payload
+/// that produced it, so the cap cannot trim them out of step.
 class _AcceptedPush {
   const _AcceptedPush(this.message, this.payload);
 

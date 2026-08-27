@@ -5,28 +5,24 @@ import 'package:fcm_app/domains/notifications/notification_content.dart';
 import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-/// The id of the channel group both chat channels are filed under.
+/// The channel group both chat channels are filed under.
 ///
-/// d8's demonstration: two channels that appear together in system settings,
-/// under a heading of their own.
+/// d8: two channels appearing together in system settings, under one heading.
 const chatChannelGroupId = 'chat';
 
-/// The channel `d7` demonstrates on: importance is asked to change, and the
-/// Channels page's card is where the refusal becomes visible.
+/// The channel `d7` probes: its importance is asked to change, and the Channels
+/// card shows the refusal.
 ///
-/// The single source of truth for that id — `ChannelsCubit` and `ChannelCard`
-/// both need it, and a copy in each is a copy that can drift out of step with
-/// which channel actually carries the button.
+/// One source of truth: `ChannelsCubit` and `ChannelCard` both need it.
 const immutabilityProbeChannelId = 'chat_v1';
 
 /// Every channel this app registers.
 ///
-/// A `final` rather than a `const` list: `Int64List.fromList` is not a const
-/// constructor, so `vibration_pattern` alone rules const out for the whole table.
+/// `final`, not `const`: `Int64List.fromList` is not a const constructor.
 ///
-/// The first entry is the app's default — the one `AndroidManifest.xml` names as
-/// FCM's `default_notification_channel_id` — and everything after it exists for a
-/// scenario that names it in `android.notification.channel_id`.
+/// The first entry is the default, named in `AndroidManifest.xml` as FCM's
+/// `default_notification_channel_id`. The rest serve a scenario that names them
+/// in `android.notification.channel_id`.
 final List<AppNotificationChannel> notificationChannels = [
   const AppNotificationChannel(
     id: notificationChannelId,
@@ -56,8 +52,8 @@ final List<AppNotificationChannel> notificationChannels = [
     importance: Importance.defaultImportance,
     sound: RawResourceAndroidNotificationSound('chime'),
   ),
-  // d6. Same lesson as d5: `vibrate_timings` in the payload cannot reach a
-  // channel that was created without a pattern.
+  // d6, same lesson as d5: payload `vibrate_timings` cannot reach a channel
+  // created without a pattern.
   AppNotificationChannel(
     id: 'vibration_pattern',
     importance: Importance.defaultImportance,
@@ -80,8 +76,8 @@ final List<AppNotificationChannel> notificationChannels = [
     importance: Importance.high,
     bypassDnd: true,
   ),
-  // h2. The alarm usage is the channel's half; the notification's category is
-  // set per message in `notification_details_builder.dart`.
+  // h2. The channel's half; the per-message category is set in
+  // `notification_details_builder.dart`.
   const AppNotificationChannel(
     id: 'alarms',
     importance: Importance.high,
@@ -89,21 +85,14 @@ final List<AppNotificationChannel> notificationChannels = [
   ),
 ];
 
-/// [channel] as the plugin's own channel type, ready for
-/// `createNotificationChannel`.
+/// [channel] as the plugin's channel type.
 ///
-/// The one place these nine fields are assembled — registration and the d7
-/// probe both call this rather than each building an `AndroidNotificationChannel`
-/// itself, so a field added to [AppNotificationChannel] cannot update one call
-/// site and silently miss the other.
+/// The only place these nine fields are assembled, so a new field cannot reach
+/// registration but miss the d7 probe. [importanceOverride] is for that probe.
 ///
-/// [importanceOverride] lets the d7 probe ask for a different importance than
-/// [channel] itself carries, without needing a second channel to describe it.
-///
-/// No `enableVibration:` argument: the plugin defaults it to true, and passing
-/// a computed value (say, `channel.vibrationPattern != null`) would disable
-/// vibration outright on every channel with no pattern, rather than leaving it
-/// to Android's own default buzz.
+/// No `enableVibration:` — passing `vibrationPattern != null` would kill
+/// vibration on every patternless channel instead of leaving Android its
+/// default buzz.
 AndroidNotificationChannel toPluginChannel(
   AppNotificationChannel channel, {
   Importance? importanceOverride,
@@ -126,9 +115,8 @@ AppNotificationChannel get defaultNotificationChannel =>
 
 /// The channel [id] names, or null when it names none this app registers.
 ///
-/// Null rather than the default, so a caller can tell "the payload asked for a
-/// channel we do not have" from "the payload asked for nothing" if it ever needs
-/// to. Today both callers treat them the same.
+/// Null rather than the default, so a caller could tell "asked for a channel we
+/// lack" from "asked for nothing". Both callers treat them the same today.
 AppNotificationChannel? channelById(String? id) {
   if (id == null) return null;
   for (final channel in notificationChannels) {
@@ -140,22 +128,14 @@ AppNotificationChannel? channelById(String? id) {
 
 /// Creates the chat group and every channel in [notificationChannels].
 ///
-/// Called from all three isolates that draw: the UI isolate's presenter, the
-/// background-message isolate, and the reply-response isolate. A channel's name,
-/// description and every other property are fixed the first time it is created —
-/// `AndroidNotificationChannel.toMap()` always sends `CreateIfNotExists`, and the
-/// plugin's Android side refuses the call outright once the channel already
-/// exists (`canCreateNotificationChannel`,
-/// `FlutterLocalNotificationsPlugin.java:483-492`). So calling this from three
-/// isolates is a genuine no-op past the first: a fresh install in Czech gets
-/// Czech channel names, and switching language afterwards does not rename a
-/// channel that already exists.
+/// Called from all three drawing isolates, and a no-op past the first: the
+/// plugin refuses the call once a channel exists. So an install in Czech keeps
+/// Czech channel names even after the app switches to English.
 ///
-/// The group goes first: Android drops the grouping of a channel filed under a
-/// group that does not exist yet, silently.
+/// The group goes first — Android silently drops the grouping of a channel
+/// whose group does not exist yet.
 ///
-/// Reads the copy through `t`, so the caller must have a locale set — see
-/// `restoreStoredLocale` for the two isolates where that is not automatic.
+/// Reads copy through `t`, so the caller needs a locale set.
 Future<void> registerNotificationChannels(
   FlutterLocalNotificationsPlugin plugin,
 ) async {
