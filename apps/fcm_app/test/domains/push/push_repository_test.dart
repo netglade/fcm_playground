@@ -20,9 +20,8 @@ import '../../fakes/throwing_push_telemetry.dart';
 
 /// A received payload, optionally carrying the keys the send API injects.
 ///
-/// `trace_id` and `scenario_id` sit at the top level rather than under a `data`
-/// map because that is where they arrive: `remoteMessageToPayload` spreads FCM's
-/// `data` over the envelope-derived keys.
+/// `trace_id` and `scenario_id` sit at the top level because that is where they
+/// arrive — `remoteMessageToPayload` spreads FCM's `data` over the envelope.
 Map<String, Object?> payload({
   String id = 'msg-1',
   String title = 'Hello',
@@ -218,8 +217,7 @@ void main() {
 
   group('PushRepository.drainPending', () {
     test('merges a payload that arrived while backgrounded', () async {
-      // Fresh: setUp's source is already listened to, and payloads is
-      // single-subscription.
+      // Fresh: setUp's is already subscribed, and payloads is single-listen.
       source = FakePushSource();
       final store = FakePushPayloadStore();
       repository = PushRepository(source, store: store)..listen();
@@ -253,8 +251,7 @@ void main() {
 
   group('PushRepository persistence of live messages', () {
     test('persists a payload that arrives on the stream', () async {
-      // Fresh: setUp's source is already listened to, and payloads is
-      // single-subscription.
+      // Fresh: setUp's is already subscribed, and payloads is single-listen.
       source = FakePushSource();
       final store = FakePushPayloadStore();
       repository = PushRepository(source, store: store)..listen();
@@ -268,8 +265,7 @@ void main() {
 
   group('PushRepository disposal', () {
     test('stops consuming the source, so a later payload is dropped', () async {
-      // Fresh: setUp's source is already listened to, and payloads is
-      // single-subscription.
+      // Fresh: setUp's is already subscribed, and payloads is single-listen.
       source = FakePushSource();
       repository = PushRepository(source, store: FakePushPayloadStore())
         ..listen();
@@ -293,8 +289,7 @@ void main() {
     test(
       'keeps only the newest maxStoredMessages and drops the oldest',
       () async {
-        // Fresh: setUp's source is already listened to, and payloads is
-        // single-subscription.
+        // Fresh: setUp's is already subscribed, and payloads is single-listen.
         source = FakePushSource();
         final store = FakePushPayloadStore();
         repository = PushRepository(source, store: store)..listen();
@@ -324,8 +319,7 @@ void main() {
     );
 
     test('persists the capped list, not the full history', () async {
-      // Fresh: setUp's source is already listened to, and payloads is
-      // single-subscription.
+      // Fresh: setUp's is already subscribed, and payloads is single-listen.
       source = FakePushSource();
       final store = FakePushPayloadStore();
       repository = PushRepository(source, store: store)..listen();
@@ -351,8 +345,7 @@ void main() {
     });
 
     test('shows a banner for a payload arriving on the stream', () async {
-      // Fresh: setUp's source is already listened to, and payloads is
-      // single-subscription.
+      // Fresh: setUp's is already subscribed, and payloads is single-listen.
       source = FakePushSource();
       repository = PushRepository(
         source,
@@ -399,8 +392,7 @@ void main() {
     );
 
     test('shows nothing for a payload that fails validation', () async {
-      // Fresh: setUp's source is already listened to, and payloads is
-      // single-subscription.
+      // Fresh: setUp's is already subscribed, and payloads is single-listen.
       source = FakePushSource();
       repository = PushRepository(
         source,
@@ -415,8 +407,7 @@ void main() {
     });
 
     test('shows a repeated id once, matching the inbox', () async {
-      // Fresh: setUp's source is already listened to, and payloads is
-      // single-subscription.
+      // Fresh: setUp's is already subscribed, and payloads is single-listen.
       source = FakePushSource();
       repository = PushRepository(
         source,
@@ -458,8 +449,7 @@ void main() {
     test(
       'resolves once the message arrives, whatever the stream order',
       () async {
-        // Fresh: setUp's source is already listened to, and payloads is
-        // single-subscription.
+        // Fresh: setUp's is already subscribed, and payloads is single-listen.
         source = FakePushSource();
         repository = PushRepository(source, store: FakePushPayloadStore())
           ..listen();
@@ -505,9 +495,9 @@ void main() {
     });
 
     test('publishes the clear, so no watcher keeps a stale tap', () async {
-      // The getters read the fields directly, so they would pass either way. Every
-      // watcher reads the snapshot instead, where a silent clear would leave the
-      // shell claiming a tap is still outstanding.
+      // The getters read the fields directly and would pass either way. Watchers
+      // read the snapshot, where a silent clear leaves the shell claiming a tap
+      // is still outstanding.
       repository = PushRepository(
         source,
         store: FakePushPayloadStore(inbox: [payload(id: 'msg-1')]),
@@ -530,8 +520,7 @@ void main() {
 
     setUp(() {
       telemetry = RecordingPushTelemetry();
-      // Fresh: setUp's source is already listened to, and payloads is
-      // single-subscription.
+      // Fresh: setUp's is already subscribed, and payloads is single-listen.
       source = FakePushSource();
     });
 
@@ -562,7 +551,7 @@ void main() {
     });
 
     test('records nothing for a push with no trace id', () async {
-      // A hand-made `curl` send has none. Inventing one would put a message
+      // A hand-made `curl` send has none, and inventing one would put a message
       // nobody sent into the matrix.
       repository = PushRepository(
         source,
@@ -594,8 +583,8 @@ void main() {
     });
 
     test('records the arrival of a payload that fails validation', () async {
-      // It arrived. A push the parser rejects is exactly the kind the matrix is
-      // wanted for, and its trace id is readable whether the rest of it parses.
+      // It still arrived, and a rejected push is exactly what the matrix is
+      // wanted for — the trace id reads either way.
       repository = PushRepository(
         source,
         store: FakePushPayloadStore(),
@@ -610,8 +599,8 @@ void main() {
     });
 
     test('records both deliveries of a repeated message id', () async {
-      // Two deliveries are two arrivals: the inbox collapses them because it shows
-      // messages, while the matrix wants to know it happened.
+      // Two deliveries are two arrivals: the inbox collapses them, the matrix
+      // wants to know it happened.
       repository = PushRepository(
         source,
         store: FakePushPayloadStore(),
@@ -631,8 +620,8 @@ void main() {
     });
 
     test('records no arrival for a restored payload', () async {
-      // The background handler already recorded these as `received_bg`. Recording
-      // them again would report a database read as an arrival.
+      // Already recorded as `received_bg`; recording again would report a
+      // database read as an arrival.
       repository = PushRepository(
         source,
         store: FakePushPayloadStore(
@@ -751,8 +740,8 @@ void main() {
       repository.requestOpen('m1', OpenedFrom.killed);
       await pumpEventQueue();
 
-      // The detail, not merely the type: an `opened` with a null detail is exactly
-      // what this closes, and the type alone was already recorded before.
+      // The detail, not just the type — an `opened` with a null detail is what
+      // this closes.
       final opened = telemetry.recorded
           .where((event) => event.type == TelemetryEventType.opened)
           .single;
@@ -775,8 +764,7 @@ void main() {
       repository.requestOpen('m2', OpenedFrom.background);
       await pumpEventQueue();
 
-      // Both, in order: with one only, an implementation that hard-coded a single
-      // state would pass.
+      // Both, in order: with one, a hard-coded single state would pass.
       expect(
         [
           for (final event in telemetry.recorded)
@@ -795,9 +783,9 @@ void main() {
       )..listen();
       addTearDown(repository.dispose);
 
-      // The Android warm-start path: the tap arrives before the payload has been
-      // drained, so the state has to be held alongside the id rather than re-derived
-      // when the payload turns up — by then nothing knows where the tap came from.
+      // The Android warm start: the tap precedes the payload, so the state must
+      // ride with the id — by the time the payload lands, nothing knows where the
+      // tap came from.
       repository.requestOpen('m1', OpenedFrom.killed);
       await pumpEventQueue();
       source.emit(payload(id: 'm1', traceId: 't1'));
@@ -810,9 +798,8 @@ void main() {
     });
 
     test('delivers the push even when the reporter fails', () async {
-      // The hooks are fire-and-forget from the stream handler, so a throw would
-      // arrive as an unhandled async error on the delivery path — which fails this
-      // test.
+      // The hooks are fire-and-forget, so a throw arrives as an unhandled async
+      // error on the delivery path — which fails this test.
       final failing = ThrowingPushTelemetry();
       repository = PushRepository(
         source,
@@ -881,8 +868,8 @@ void main() {
       expect(repository.hasPendingOpen, isTrue);
       expect(telemetry.recorded, isEmpty);
 
-      // Tapping this one does record, so the silence above is about the missing
-      // payload rather than a hook that never fires.
+      // This one does record, so the silence above is the missing payload, not a
+      // hook that never fires.
       source.emit(payload(id: 'msg-1', traceId: 'tr-1'));
       await pumpEventQueue();
       repository.requestOpen('msg-1', OpenedFrom.background);
@@ -933,8 +920,8 @@ void main() {
       repository.requestOpen('m1', OpenedFrom.foreground);
       await pumpEventQueue();
 
-      // The plugin promises this and the repository must not undo it: one press is one
-      // event, or the only count a human produces gets a companion nobody asked for.
+      // One press is one event; the repository must not undo the plugin's
+      // promise.
       expect(
         telemetry.recorded.map((event) => event.type),
         isNot(contains(TelemetryEventType.dismissed)),
@@ -955,8 +942,9 @@ void main() {
         repository.reportDismissed('never-arrived');
         await pumpEventQueue();
 
-        // Unlike a tap, a dismissal is not held for a payload that may never come: there
-        // is nothing to open afterwards, and a fabricated trace is worse than a gap.
+        // Unlike a tap, a dismissal is not held for a payload that may never
+        // come — nothing to open afterwards, and a fabricated trace is worse
+        // than a gap.
         expect(telemetry.recorded, isEmpty);
       },
     );
@@ -981,8 +969,8 @@ void main() {
       await pressSource.dispose();
     });
 
-    /// Its own source and store, because `FakePushSource`'s stream takes one
-    /// listener and the repository built in the outer `setUp` already holds it.
+    /// Its own source and store: `FakePushSource` takes one listener, and the
+    /// outer `setUp` already holds it.
     PushRepository build({RecordingPushTelemetry? telemetry}) =>
         pressRepository = PushRepository(
           pressSource,
@@ -1193,9 +1181,8 @@ void main() {
       await replySource.dispose();
     });
 
-    /// Its own source and store, because `FakePushSource`'s stream takes one
-    /// listener and the repositories built in the outer `setUp` and in `a
-    /// pressed action` already hold theirs.
+    /// Its own source and store: `FakePushSource` takes one listener, and the
+    /// outer `setUp` and `a pressed action` already hold theirs.
     PushRepository build({RecordingPushTelemetry? telemetry}) =>
         replyRepository = PushRepository(
           replySource,
@@ -1216,11 +1203,9 @@ void main() {
     });
 
     test('drains a reply typed while no new push arrived', () async {
-      // The normal case: a reply action deliberately does not foreground the
-      // app, so the far more common shape of a resume is a reply with no
-      // accompanying payload — never the other way around. A drain that only
-      // ran when the payload queue was non-empty would leave this reply
-      // stranded until the next cold start.
+      // The normal case: a reply action does not foreground the app, so a resume
+      // usually carries a reply and no payload. Draining only when the payload
+      // queue is non-empty would strand it until the next cold start.
       final repository = build();
       replySource.emit(payload(id: 'msg-1'));
       await pumpEventQueue();
@@ -1241,14 +1226,11 @@ void main() {
     test(
       'drains a reply in the same drain as the push it answers, backgrounded',
       () async {
-        // The canonical f2 path: the reply action never foregrounds the app, so
-        // both the push and its reply are still sitting in their pending queues
-        // when the app next resumes and drains them together. Unlike the two
-        // tests above, the payload here is never put on the live stream at
-        // all — it must come from `replyPayloadStore.pending`, or this test
-        // would pass the way every other reply test already did before this
-        // one was written, without ever exercising the order `drainPending`
-        // merges the two queues in.
+        // The canonical f2 path: push and reply both sit in their pending queues
+        // until one resume drains them together. The payload deliberately never
+        // reaches the live stream — it must come from
+        // `replyPayloadStore.pending`, or this passes without ever exercising the
+        // order `drainPending` merges the two queues in.
         final repository = build();
         replyPayloadStore.pending.add(payload(id: 'msg-1'));
         await replies.appendPending(const PendingReply('msg-1', 'on my way'));
@@ -1318,9 +1300,8 @@ void main() {
     test(
       'records the reply action\'s own id as the action event\'s detail',
       () async {
-        // A payload can name its input action anything — 'note:Note:input' is
-        // as valid as 'reply:Reply:input' — so a literal here would be wrong
-        // for every scenario but the one it was copied from.
+        // A payload can name its input action anything, so a literal here would
+        // be wrong for every scenario but the one it came from.
         final telemetry = RecordingPushTelemetry();
         final repository = build(telemetry: telemetry);
         replySource.emit(payload(id: 'msg-1', traceId: 'trace-1'));

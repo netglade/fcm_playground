@@ -11,15 +11,14 @@ void main() {
   // same verdict.
   final skipReason = sqliteAvailability();
 
-  // The same expectations `in_memory_telemetry_store_test.dart` pins, against a real
-  // database, plus the ones only a file can show. The pairing is shared code, so what
-  // these latency tests check is that storage hands it back what it was given.
+  // The same expectations the in-memory suite pins, against a real database,
+  // plus what only a file can show. The pairing is shared code, so these latency
+  // tests check that storage returns what it was given.
   group('SqliteTelemetryStore', _storeBehaviour, skip: skipReason);
 }
 
-/// Every behaviour of the store, hoisted out of the `group` call so it fits on one
-/// line: `dart format` and `prefer-trailing-comma` cannot both be satisfied while the
-/// body is written inline.
+/// Hoisted out of the `group` call so it fits on one line — `dart format` and
+/// `prefer-trailing-comma` cannot both be satisfied inline.
 void _storeBehaviour() {
   late Directory directory;
   late String databasePath;
@@ -68,18 +67,21 @@ void _storeBehaviour() {
       expect(await store.all(), [event]);
     });
 
-    test('reads events back in recorded order, not in timestamp order', () async {
-      // A device that was offline flushes older events after one that was not, so
-      // a store ordering by `at` — or by its primary key — fails here.
-      await store.record([
-        arrivalAt('tr-1', 'dev-a', DateTime.utc(2026, 8, 13, 9, 5)),
-      ]);
-      await store.record([
-        arrivalAt('tr-2', 'dev-b', DateTime.utc(2026, 8, 13, 9, 1)),
-      ]);
+    test(
+      'reads events back in recorded order, not in timestamp order',
+      () async {
+        // An offline device flushes older events after a live one, so a store
+        // ordering by `at` or by primary key fails here.
+        await store.record([
+          arrivalAt('tr-1', 'dev-a', DateTime.utc(2026, 8, 13, 9, 5)),
+        ]);
+        await store.record([
+          arrivalAt('tr-2', 'dev-b', DateTime.utc(2026, 8, 13, 9, 1)),
+        ]);
 
-      expect((await store.all()).map((e) => e.deviceId), ['dev-a', 'dev-b']);
-    });
+        expect((await store.all()).map((e) => e.deviceId), ['dev-a', 'dev-b']);
+      },
+    );
 
     test(
       'ignores a duplicate of the same event from the same device',
@@ -92,8 +94,8 @@ void _storeBehaviour() {
     );
 
     test('ignores a duplicate re-sent with a later timestamp', () async {
-      // The key is (trace, type, device) and excludes `at`, and the earliest
-      // observation is the one kept.
+      // The key is (trace, type, device), excluding `at`; the earliest
+      // observation wins.
       await store.record([event]);
       await store.record([
         arrivalAt('tr-1', 'dev-1', event.at.add(const Duration(seconds: 30))),
@@ -114,21 +116,22 @@ void _storeBehaviour() {
       expect(await store.all(), [event]);
     });
 
-    test('keeps the earliest when the duplicate is a microsecond later', () async {
-      // Earliest-wins is decided in SQL, so the column's type decides whether the
-      // comparison is right: as ISO-8601 text these two compare backwards, because
-      // '…02.000001Z' sorts before '…02.000Z'.
-      await store.record([arrivalAt('tr-1', 'dev', at9)]);
-      await store.record([
-        arrivalAt('tr-1', 'dev', at9.add(const Duration(microseconds: 1))),
-      ]);
+    test(
+      'keeps the earliest when the duplicate is a microsecond later',
+      () async {
+        // Earliest-wins is decided in SQL, so the column type decides correctness:
+        // as text these two compare backwards, '…02.000001Z' sorting first.
+        await store.record([arrivalAt('tr-1', 'dev', at9)]);
+        await store.record([
+          arrivalAt('tr-1', 'dev', at9.add(const Duration(microseconds: 1))),
+        ]);
 
-      expect((await store.all()).single.at, at9);
-    });
+        expect((await store.all()).single.at, at9);
+      },
+    );
 
     test('keeps the same event type from two different devices', () async {
-      // The matrix's whole point: two phones receiving one broadcast are two
-      // rows, not a duplicate.
+      // Two phones on one broadcast are two rows, not a duplicate.
       await store.record([
         event,
         TelemetryEvent(
@@ -160,8 +163,8 @@ void _storeBehaviour() {
     });
 
     test('round-trips every field, including the optional two', () async {
-      // `''` read back where `null` was written would group a hand-made send with the
-      // gallery's own rows.
+      // `''` read back for a written `null` would group a hand-made send with the
+      // gallery's rows.
       final full = TelemetryEvent(
         traceId: 'tr-1',
         type: TelemetryEventType.sendFailed,
@@ -192,8 +195,8 @@ void _storeBehaviour() {
         (await store.latencies())
             .map((row) => (row.deviceId, row.latency))
             .toSet(),
-        // Wrapped in `equals` so the formatter and `prefer-trailing-comma` agree; a
-        // Duration cannot be a constant set element.
+        // `equals` so the formatter and `prefer-trailing-comma` agree; a
+        // Duration cannot be a const set element.
         equals({
           ('fast', const Duration(seconds: 1)),
           ('slow', const Duration(minutes: 4, seconds: 12)),
@@ -202,9 +205,8 @@ void _storeBehaviour() {
     });
 
     test('keeps one trace apart from another for the same device', () async {
-      // Two sends to one handset are two measurements. A primary key that dropped
-      // `trace_id` would keep whichever was recorded last, and every test above uses
-      // one trace so none of them would notice.
+      // Two sends to one handset are two measurements. A key without `trace_id`
+      // would keep the last, and every test above uses one trace.
       await store.record([
         sentAt('tr-1', DateTime.utc(2026, 8, 13, 9, 0, 0)),
         arrivalAt('tr-1', 'dev', DateTime.utc(2026, 8, 13, 9, 0, 1)),
@@ -237,8 +239,8 @@ void _storeBehaviour() {
     });
 
     test('takes the earlier of a foreground and a background arrival', () async {
-      // Two different types, so both survive the idempotency key and the pairing
-      // has to compare across them. Asserted in both recording orders.
+      // Two types, so both survive the key and the pairing must compare across
+      // them. Asserted in both recording orders.
       for (final order in [
         [TelemetryEventType.receivedFg, TelemetryEventType.receivedBg],
         [TelemetryEventType.receivedBg, TelemetryEventType.receivedFg],
@@ -293,8 +295,8 @@ void _storeBehaviour() {
     });
 
     test('omits an arrival whose send was never recorded here', () async {
-      // A push sent by hand produces no `sent` row, so there is nothing to
-      // measure from. The arrival is still kept as evidence of delivery.
+      // A hand-made send has no `sent` row to measure from. The arrival is still
+      // kept as evidence of delivery.
       await store.record([arrivalAt('never-sent', 'dev', at9)]);
 
       expect(await store.latencies(), isEmpty);
@@ -360,16 +362,14 @@ void _storeBehaviour() {
     });
 
     test('counts a duplicate inside one batch once', () async {
-      // The client buffers, and a buffer that was flushed twice can hold the
-      // same event twice in one request.
+      // A buffer flushed twice can hold the same event twice in one request.
       expect(await store.record([event, event]), 1);
     });
   });
 
   group('persistence', () {
     test('keeps events across closing and reopening the file', () async {
-      // The one behaviour the in-memory store cannot have, and the reason the
-      // production store is SQLite at all.
+      // The one behaviour the in-memory store cannot have.
       final full = TelemetryEvent(
         traceId: 'tr-1',
         type: TelemetryEventType.sent,
@@ -395,8 +395,7 @@ void _storeBehaviour() {
     });
 
     test('still suppresses a duplicate flushed after a restart', () async {
-      // The retry case across a restart: an idempotency held only in memory would
-      // double-count it.
+      // Across a restart: idempotency held only in memory would double-count.
       await store.record([event]);
       await store.close();
 
@@ -407,9 +406,9 @@ void _storeBehaviour() {
     });
 
     test('leaves an existing file alone when it opens it', () async {
-      // `CREATE TABLE IF NOT EXISTS`, not `DROP TABLE`: a schema step that wiped the
-      // file would lose every send on every restart, and every test above writes
-      // first so none would notice.
+      // `CREATE TABLE IF NOT EXISTS`, not `DROP TABLE`: a wiping schema step
+      // would lose every send on every restart, and every test above writes
+      // first.
       await store.record([event]);
       await store.close();
 
@@ -427,9 +426,8 @@ void _storeBehaviour() {
         sentAt('tr-2', DateTime.utc(2026, 8, 13, 9, 1)),
       ]);
 
-      // The page shows the last thing that happened first, while `all()` is recorded
-      // order because the API stamps `queued` and `sent` from one clock reading. Both
-      // orders are wanted; this is the one a screen reads.
+      // Newest first, unlike `all()`'s recorded order. Both are wanted; this is
+      // the one a screen reads.
       expect((await store.recent()).map((event) => event.traceId), [
         'tr-2',
         'tr-1',
@@ -443,8 +441,8 @@ void _storeBehaviour() {
         sentAt('tr-3', DateTime.utc(2026, 8, 13, 9, 2)),
       ]);
 
-      // Keeping the newest, not merely keeping two: a store that took the first two
-      // would satisfy a length assertion and answer the wrong question.
+      // The *newest* two: taking the first two would satisfy a length assertion
+      // and answer the wrong question.
       expect((await store.recent(limit: 2)).map((event) => event.traceId), [
         'tr-3',
         'tr-2',
@@ -457,8 +455,8 @@ void _storeBehaviour() {
         arrivalAt('tr-1', 'dev-a', DateTime.utc(2026, 8, 13, 9, 1)),
       ]);
 
-      // A `recent` that dropped a column or a row would pass both tests above.
-      // `TelemetryEvent` has value equality, so this compares contents, not identity.
+      // A `recent` dropping a column or row would pass both tests above; value
+      // equality compares contents.
       expect(await store.recent(), (await store.all()).reversed.toList());
     });
   });
