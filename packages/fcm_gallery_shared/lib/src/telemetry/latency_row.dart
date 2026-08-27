@@ -2,13 +2,13 @@ import 'package:fcm_gallery_shared/src/json_field.dart';
 
 /// One `sent → received` measurement: a trace, a device, and the two times.
 ///
-/// It lives here rather than in the API because the app reads the same rows back to
-/// draw its matrix. A row exists only where both halves were recorded — a send with
-/// no arrival is absent rather than reported as zero.
+/// Here rather than in the API because the app reads the same rows back for its
+/// matrix. A row exists only where both halves were recorded — a send with no
+/// arrival is absent, not zero.
 class LatencyRow {
-  /// Normalises both timestamps to UTC, which is why this is not `const`: a local
-  /// time serialised without a `Z` is read as the reader's own, adding hours of
-  /// latency out of nowhere.
+  /// Normalises both timestamps to UTC, hence not `const`: a local time
+  /// serialised without a `Z` is read as the reader's own, inventing hours of
+  /// latency.
   LatencyRow({
     required this.traceId,
     required this.deviceId,
@@ -20,8 +20,8 @@ class LatencyRow {
 
   /// Parses a row as `GET /latency` answers it.
   ///
-  /// `latency` is deliberately not read: it is derived from the two timestamps, and a
-  /// value carried alongside them is one that can disagree.
+  /// `latency` is deliberately not read — it is derived, and a carried copy can
+  /// disagree.
   factory LatencyRow.fromJson(Map<String, Object?> json) => LatencyRow(
     traceId: requireText(json['trace_id'], 'trace_id'),
     deviceId: requireText(json['device_id'], 'device_id'),
@@ -38,24 +38,24 @@ class LatencyRow {
 
   final DateTime sentAt;
 
-  /// The *first* arrival: a duplicate delivery is real FCM behaviour, and the useful
-  /// figure is time-to-first-delivery.
+  /// The *first* arrival — duplicate delivery is real FCM behaviour, and
+  /// time-to-first is the useful figure.
   final DateTime receivedAt;
 
   /// Null for a send made by hand, which is a real case rather than an error.
   final String? scenarioId;
 
-  /// Negative when the two clocks disagree — see [isSkewed]. Deliberately not
-  /// clamped: clamping turns a measurement error into a false result.
+  /// Negative when the clocks disagree — see [isSkewed]. Not clamped: that would
+  /// turn a measurement error into a false result.
   Duration get latency => receivedAt.difference(sentAt);
 
-  /// Whether this row says the message arrived before it was sent, which means the
-  /// device's clock is behind the server's. Reported rather than hidden: a "1ms on
-  /// Xiaomi" would discredit every other number in the matrix.
+  /// Whether the message arrived before it was sent, meaning the device's clock
+  /// is behind the server's. Reported, not hidden — a "1ms on Xiaomi" would
+  /// discredit every other number in the matrix.
   bool get isSkewed => latency.isNegative;
 
-  /// [latency] is left out on purpose: it is derived from the two timestamps, and a
-  /// second copy on the wire is one that can disagree with them.
+  /// [latency] is left out on purpose — derived, and a copy on the wire can
+  /// disagree.
   Map<String, Object?> toJson() => {
     'trace_id': traceId,
     'device_id': deviceId,
@@ -71,8 +71,8 @@ class LatencyRow {
 
 /// Reads an optional string, keeping absence as `null`.
 ///
-/// The shared [readOptionalText] treats absence as `''`, which is right for a field a
-/// validator later reports on but wrong here, for the reason `scenarioId` documents.
+/// [readOptionalText] treats absence as `''`, right for a field a validator later
+/// reports on, wrong here — see `scenarioId`.
 String? _nullableText(Object? value) {
   if (value == null) {
     return null;

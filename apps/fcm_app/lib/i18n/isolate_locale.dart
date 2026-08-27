@@ -2,35 +2,26 @@ import 'package:fcm_app/domains/settings/settings.dart';
 import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:flutter/foundation.dart';
 
-/// Points slang at the user's language, read directly from storage rather than
-/// through a widget binding.
+/// Points slang at the user's language, read from storage rather than through a
+/// widget binding.
 ///
-/// Three callers: `main()`, ahead of `configureDependencies()` and the first
-/// frame — see the comment at that call site — and the two background isolates,
-/// which start cold with no binding of their own. All three need the locale set
-/// before anything reads channel copy through `t`; without this the notifications
-/// they draw would be the one English thing in a Czech app.
+/// Three callers: `main()`, and the two background isolates, which start cold. All
+/// three need the locale set before anything reads channel copy through `t`, or
+/// the notifications they draw are the one English thing in a Czech app.
 ///
-/// NOT `LocaleSettings.useDeviceLocaleSync()` for the no-override case, even though
-/// `main()` also calls that, later, for its own reason (see the comment there): it
-/// resolves through `WidgetsBinding.instance`, and the two background isolates
-/// never create a binding — `DartPluginRegistrant.ensureInitialized()` wires plugin
-/// channels and nothing else. The call throws in debug and null-crashes in release.
-/// `PlatformDispatcher.instance` is a `dart:ui` singleton that needs no binding, and
-/// `AppLocaleUtils.parse` falls back to the base locale rather than returning null,
-/// which is the behaviour wanted for a tag this build cannot serve.
+/// **Not** `LocaleSettings.useDeviceLocaleSync()` for the no-override case: it
+/// resolves through `WidgetsBinding.instance`, which the background isolates never
+/// create, so the call throws in debug and null-crashes in release.
+/// `PlatformDispatcher.instance` needs no binding, and `AppLocaleUtils.parse`
+/// falls back to the base locale rather than returning null.
 ///
-/// The caller must have run `DartPluginRegistrant.ensureInitialized()` first: the
-/// store reaches `shared_preferences` through a plugin channel. `main()` gets this
-/// for free from `WidgetsFlutterBinding.ensureInitialized()`.
+/// The caller must have run `DartPluginRegistrant.ensureInitialized()` first — the
+/// store reaches `shared_preferences` through a plugin channel.
 ///
-/// The read is guarded, and the fallback still applied when it fails. This runs
-/// before the work its callers exist to do and outside their own error handling,
-/// so an unguarded `SharedPreferences.getInstance()` throwing here would take the
-/// whole reply — or the whole background draw — down with it: nothing drawn,
-/// nothing stored, not even a log line. There is no known trigger; this closes a
-/// failure *class*, not a live bug. A device locale in the wrong language is a far
-/// smaller loss than a notification that never appears.
+/// The read is guarded and the fallback still applied on failure. This runs before
+/// the work its callers exist to do, so an unguarded throw here would take the
+/// whole reply or background draw with it: nothing drawn, nothing stored, not even
+/// a log line. No known trigger; it closes a failure *class*.
 Future<void> restoreStoredLocale() async {
   AppLocale? storedLocale;
   try {

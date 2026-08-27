@@ -4,12 +4,11 @@ import 'package:fcm_app/pages/sandbox/forms/light_settings_form.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:glade_forms/glade_forms.dart';
 
-/// Edits `android.notification` — everything Android's notification tray
-/// understands on top of, or in place of, the cross-platform block.
+/// Edits `android.notification` — what Android's tray understands on top of, or
+/// instead of, the cross-platform block.
 ///
 /// Mirrors [AndroidNotification] one-for-one. FCM requires nothing here, so every
-/// input is optional and [toModel] returns null while the whole block is
-/// untouched.
+/// input is optional and [toModel] returns null while the block is untouched.
 class AndroidNotificationForm extends GladeModel {
   late GladeStringInput title;
 
@@ -64,8 +63,8 @@ class AndroidNotificationForm extends GladeModel {
 
   late GladeInput<int?> notificationCount;
 
-  /// A nested model rather than four more inputs, because FCM requires every one
-  /// of its fields once the block is present — see [LightSettingsForm].
+  /// A nested model, not four more inputs: FCM requires every field once the
+  /// block is present — see [LightSettingsForm].
   late LightSettingsForm lightSettings;
 
   /// A URL for FCM to download, never bytes.
@@ -111,12 +110,11 @@ class AndroidNotificationForm extends GladeModel {
 
   /// Whether every input here and in the nested block is valid.
   ///
-  /// [lightSettings]' inputs are deliberately absent from [inputs] —
-  /// `initialize()` would bind them to *this* model — so the nested block escapes
-  /// the inherited getter and has to be folded back in. It composes at every
-  /// level because `FormSection`'s badge is per section: a green badge on
-  /// `android.notification` hiding a red one inside a closed `light_settings` is
-  /// exactly what the badge exists to prevent.
+  /// [lightSettings]' inputs are kept out of [inputs] — `initialize()` would bind
+  /// them to *this* model — so they escape the inherited getter and are folded
+  /// back in here. It has to compose at every level, or a green badge on
+  /// `android.notification` could hide a red one inside a closed
+  /// `light_settings`.
   @override
   bool get isValid => super.isValid && lightSettings.isValid;
 
@@ -130,11 +128,11 @@ class AndroidNotificationForm extends GladeModel {
       isRequired: false,
       validator: (validator) =>
           (validator..match(
-                // Anchored on purpose: match() calls hasMatch, so an unanchored
-                // pattern would accept 'blue #ff0000 ish'.
+                // Anchored: match() calls hasMatch, so an unanchored pattern
+                // accepts 'blue #ff0000 ish'.
                 pattern: r'^#[0-9a-fA-F]{6}$',
-                // An empty field is absent, not invalid. Without this the regex
-                // runs on '' and an untouched form blocks Send.
+                // Empty is absent, not invalid — otherwise the regex runs on
+                // '' and an untouched form blocks Send.
                 shouldValidate: (value) => value.isNotEmpty,
                 devMessage: (_) => 'must be #rrggbb',
               ))
@@ -156,15 +154,14 @@ class AndroidNotificationForm extends GladeModel {
     defaultSound = _flag('default_sound');
     defaultVibrateTimings = _flag('default_vibrate_timings');
     defaultLightSettings = _flag('default_light_settings');
-    // .create rather than .optional: it is the one collection with a validator,
-    // and .optional hard-codes an empty one internally.
+    // .create, not .optional: this is the one collection with a validator, and
+    // .optional hard-codes an empty one.
     vibrateTimings = GladeInput<List<String>?>.create(
       inputKey: 'android.notification.vibrate_timings',
       value: null,
       validator: (validator) =>
           (validator..satisfy(
-                // Null and empty pass: an unset pattern is absent rather than
-                // invalid, so an untouched form stays valid.
+                // Null and empty pass, so an untouched form stays valid.
                 (value) =>
                     value == null ||
                     value.every(
@@ -178,8 +175,8 @@ class AndroidNotificationForm extends GladeModel {
     notificationCount = GladeIntInputNullable(
       inputKey: 'android.notification.notification_count',
       useTextEditingController: true,
-      // The default converter treats '' as unparseable and keeps the previous
-      // value, so clearing the field would still send the old number.
+      // The default converter treats '' as unparseable and keeps the old
+      // value, so clearing the field would still send the previous number.
       stringToValueConverter: StringToTypeConverter<int?>(
         converter: (raw, _) =>
             (raw == null || raw.trim().isEmpty) ? null : int.parse(raw),
@@ -226,9 +223,8 @@ class AndroidNotificationForm extends GladeModel {
 
   /// The block as FCM's own model, or null when nothing is set.
   ///
-  /// "Is anything set?" is asked by comparing against the empty instance, which
-  /// cannot drift out of step as fields are added — the typed classes have value
-  /// equality precisely so this works.
+  /// "Is anything set?" compares against the empty instance, which cannot drift
+  /// as fields are added — the typed classes have value equality so this works.
   AndroidNotification? toModel() {
     final result = AndroidNotification(
       title: emptyMeansAbsent(title.value),
@@ -264,16 +260,15 @@ class AndroidNotificationForm extends GladeModel {
   }
 }
 
-/// `isRequired: false` on every one — `GladeStringInput` defaults to required,
-/// and missing this on a single input would leave the whole form invalid until
-/// that field was filled.
+/// `isRequired: false` on every one: `GladeStringInput` defaults to required, and
+/// missing it once leaves the whole form invalid until that field is filled.
 GladeStringInput _text(String name) =>
     GladeStringInput(inputKey: 'android.notification.$name', isRequired: false);
 
 /// One of FCM's optional flags, which needs three states rather than two.
 ///
-/// `GladeBoolInput` is a `GladeInput<bool>` and cannot hold null, so it could not
-/// tell "the user chose false" from "the user chose nothing".
+/// `GladeBoolInput` cannot hold null, so it could not tell "chose false" from
+/// "chose nothing".
 GladeInput<bool?> _flag(String name) => GladeInput<bool?>.optional(
   inputKey: 'android.notification.$name',
   value: null,
@@ -284,9 +279,9 @@ GladeInput<E?> _choice<E extends Enum>(String name) => GladeInput<E?>.optional(
   value: null,
 );
 
-/// Typed over the whole collection so the row editor can hand back a list and
-/// `updateValue` takes it like any other value. Holding these outside `inputs`
-/// would put them outside glade's validity and dirty tracking.
+/// Typed over the whole collection, so the row editor hands back a list and
+/// `updateValue` takes it like any value. Outside `inputs` these would fall
+/// outside glade's validity and dirty tracking.
 GladeInput<List<String>?> _stringList(String name) =>
     GladeInput<List<String>?>.optional(
       inputKey: 'android.notification.$name',
