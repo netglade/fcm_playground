@@ -11,13 +11,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Holds the Sandbox's payload [form] and what became of the last send.
 ///
-/// It republishes every model in the form tree as a state of its own, so the page
-/// above needs one cubit while a change four levels down still reaches the
-/// screen: the form controls are stateless readers of `input.value`, and a nested
+/// Republishes every model in the form tree as its own state, so one cubit serves
+/// the page while a change four levels down still reaches the screen — a nested
 /// `GladeModel`'s notification does not travel up to its parent.
 ///
-/// The token arrives through a callback rather than a held `PushRepository`, so
-/// this page can read it without tying its lifetime to another page's cubit.
+/// The token arrives through a callback, so this page reads it without tying its
+/// lifetime to another page's cubit.
 class SandboxCubit extends Cubit<SandboxState> {
   SandboxCubit({
     required this._sender,
@@ -39,18 +38,15 @@ class SandboxCubit extends Cubit<SandboxState> {
 
   /// The message being composed, edited directly by the page's sections.
   ///
-  /// Outside [SandboxState] on purpose: it is mutable and identity-stable, so a
-  /// state holding it could never tell two payloads apart.
+  /// Outside [SandboxState] on purpose: mutable and identity-stable, so a state
+  /// holding it could never tell two payloads apart.
   FcmMessageForm get form => _form;
 
   /// Why Send cannot be pressed, or null when it can.
   ///
-  /// Reads the global `t` rather than a `context.t` passed in: this cubit has no
-  /// `BuildContext` of its own, the same reason the three `http_*` data sources
-  /// read the global. `send_footer.dart` still rebuilds on a locale change
-  /// because it rereads this getter from inside its own `context.t`-watching
-  /// `build`, so the two stay in step even though only one of them holds a
-  /// context.
+  /// Reads the global `t` — this cubit has no `BuildContext`. `send_footer.dart`
+  /// still follows a locale change, because it rereads this from inside its own
+  /// `context.t`-watching build.
   String? get sendBlockedReason {
     if (_isTargetBlank) {
       return t.sandbox.send_blocked.no_target;
@@ -63,8 +59,8 @@ class SandboxCubit extends Cubit<SandboxState> {
     if (state.sendState is SandboxSending) {
       return t.sandbox.send_blocked.sending;
     }
-    // An invalid field can sit behind a closed section, so this has to point at
-    // where to look rather than just state that something is wrong.
+    // An invalid field can hide behind a closed section, so say where to
+    // look.
     if (!state.isFormValid) {
       return t.sandbox.send_blocked.invalid_field;
     }
@@ -76,8 +72,8 @@ class SandboxCubit extends Cubit<SandboxState> {
 
   /// This device's registration token, or null before one exists.
   ///
-  /// Exposed because the gallery's batch needs the same token this page sends to,
-  /// and both pages already share this cubit.
+  /// Exposed because the gallery's batch sends to the same token, and both pages
+  /// share this cubit.
   String? get deviceToken => _token();
 
   void setValidateOnly(bool value) => emit(state.copyWith(validateOnly: value));
@@ -86,16 +82,15 @@ class SandboxCubit extends Cubit<SandboxState> {
 
   /// Replaces every field in [form] with [scenario]'s template.
   ///
-  /// Replaces rather than merges: `readFrom` writes all of the template's fields
-  /// *and* clears the ones it leaves out, so switching scenarios cannot leave the
-  /// previous one's notification behind.
+  /// Replaces, not merges: `readFrom` also clears the fields the template leaves
+  /// out, so switching scenarios cannot strand the previous one's notification.
   void applyScenario(Scenario scenario) {
     _form.readFrom(FcmMessage.fromJson(scenario.payloadTemplate));
     emit(
       state.copyWith(
         selectedScenario: scenario,
-        // Unconditionally, including back to null: a target the previous
-        // scenario chose would silently broadcast the next one.
+        // Including back to null — the previous scenario's target would
+        // silently broadcast the next one.
         target: scenario.target,
         isFormValid: _form.isValid,
       ),
@@ -111,8 +106,8 @@ class SandboxCubit extends Cubit<SandboxState> {
       return;
     }
 
-    // Read before the await: what gets reported as sent must be what left, not
-    // whatever the form holds by the time the response lands.
+    // Before the await: what is reported as sent must be what left, not
+    // whatever the form holds when the response lands.
     final message = _form.toModel();
     emit(state.copyWith(sendState: const SandboxSending()));
 
@@ -122,8 +117,8 @@ class SandboxCubit extends Cubit<SandboxState> {
           target: target,
           message: message,
           validateOnly: state.validateOnly,
-          // The payload alone does not identify which scenario produced it, so
-          // without this the matrix loses its scenario axis.
+          // The payload does not identify its scenario, so without this the
+          // matrix loses that axis.
           scenarioId: state.selectedScenario?.id,
         ),
       );
@@ -135,8 +130,8 @@ class SandboxCubit extends Cubit<SandboxState> {
 
   /// Schedules the composed payload as a run of one, [delaySeconds] from now.
   ///
-  /// It answers the run so the caller can open a countdown on it, and null when
-  /// there was nothing to schedule or the API refused — the state says which.
+  /// Answers the run so the caller can open a countdown, or null when there was
+  /// nothing to schedule or the API refused — the state says which.
   Future<ScheduledRun?> schedule(int delaySeconds) async {
     final token = _token();
     final target = state.target ?? (token == null ? null : TokenTarget(token));
@@ -144,8 +139,8 @@ class SandboxCubit extends Cubit<SandboxState> {
       return null;
     }
 
-    // Read before the await, as `send` does: what gets scheduled must be what the
-    // form held at the press, not whatever it holds when the response lands.
+    // Before the await, as `send` does: schedule what the form held at the
+    // press.
     final request = SendMessageRequest(
       target: target,
       message: _form.toModel(),
@@ -169,12 +164,10 @@ class SandboxCubit extends Cubit<SandboxState> {
   }
 
   /// Records that the user says the push for [traceId] never arrived, and
-  /// flushes straight away — unlike the background arrival hook, this is a
-  /// foreground action the user just took.
+  /// flushes at once — this is a foreground action they just took.
   ///
-  /// Reports nothing about whether it worked: `record` never throws and a failed
-  /// `flush` keeps the event buffered for the next one, so there is nothing to
-  /// alarm the user with.
+  /// Reports nothing about success: `record` never throws, and a failed `flush`
+  /// keeps the event buffered for the next one.
   Future<void> reportNotReceived(String traceId) async {
     try {
       await _telemetry.record(
@@ -184,8 +177,8 @@ class SandboxCubit extends Cubit<SandboxState> {
       );
       await _telemetry.flush();
     } on Object catch (error) {
-      // Telemetry must never break what it observes, and an escaping error from
-      // a button's callback is an unhandled async error on the send screen.
+      // Telemetry must never break what it observes — an escaping error here
+      // is an unhandled async error on the send screen.
       debugPrint('telemetry: not_received for $traceId was not sent: $error');
     }
   }
@@ -199,9 +192,9 @@ class SandboxCubit extends Cubit<SandboxState> {
     return super.close();
   }
 
-  /// Whether a target was chosen but its value is still missing. A kind is
-  /// chosen before its value is typed, so this is a normal state of the form —
-  /// the line is drawn at `trim()`, where `readFrom` draws it.
+  /// Whether a target was chosen but its value is still missing — a normal
+  /// state, since the kind is picked before the value is typed. The line is at
+  /// `trim()`, where `readFrom` draws it.
   bool get _isTargetBlank => switch (state.target) {
     TokenTarget(:final token) => token.trim().isEmpty,
     TopicTarget(:final topic) => topic.trim().isEmpty,
@@ -212,9 +205,9 @@ class SandboxCubit extends Cubit<SandboxState> {
   void _onFormChanged() {
     final sendState = state.sendState;
 
-    // An edit invalidates the previous result: a stale "✓ Sent" beside a changed
-    // payload would claim something untrue. A send in flight is left alone, or
-    // an edit made while waiting would re-enable Send and allow a second one.
+    // An edit invalidates the previous result — a stale "✓ Sent" beside a
+    // changed payload claims something untrue. A send in flight is left alone,
+    // or editing while waiting would re-enable Send.
     emit(
       state.copyWith(
         isFormValid: _form.isValid,

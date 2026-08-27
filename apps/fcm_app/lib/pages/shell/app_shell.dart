@@ -8,14 +8,13 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Owns the app's chrome: one `AppBar` whose title follows the drawer's selection,
-/// and one body per destination.
+/// Owns the app's chrome: one `AppBar` whose title follows the drawer, and one
+/// body per destination.
 ///
-/// The destinations sit in an `IndexedStack` so all six keep their state — the
-/// half-filled Sandbox form survives a look at the inbox or the gallery. Both
-/// cubits come from `context`, which is what lets Scenarios and Sandbox share one
-/// [SandboxCubit] across a tab switch. Runs reads its `RunScheduler` from
-/// `context` too, provided above `App`'s shell rather than looked up here.
+/// The destinations sit in an `IndexedStack` so all six keep their state — a
+/// half-filled Sandbox form survives a look at the inbox. Cubits come from
+/// `context`, which is what lets Scenarios and Sandbox share one
+/// [SandboxCubit].
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -24,12 +23,11 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  /// One AppBar title per destination, in the same order as the `IndexedStack`
-  /// below and the drawer above it.
+  /// One AppBar title per destination, ordered like the `IndexedStack` and the
+  /// drawer.
   ///
-  /// A method rather than the `const` list this used to be: a `const` cannot
-  /// read [Translations], and the title has to follow the language switch same
-  /// as everything else in the shell.
+  /// A method, not a `const` list: a `const` cannot read [Translations], and the
+  /// title must follow the language switch.
   List<String> _titlesFor(Translations t) => [
     t.shell.title.inbox,
     t.shell.title.scenarios,
@@ -45,14 +43,10 @@ class _AppShellState extends State<AppShell> {
   /// Bumped every time Runs is chosen from the drawer, and used as [RunsView]'s
   /// key below.
   ///
-  /// `IndexedStack` builds every destination up front and keeps them alive, so
-  /// without this a page-local `RunsCubit` built once at launch would call
-  /// `load()` exactly once and never again — schedule a run, open Runs, and the
-  /// page would still say nothing has been scheduled. Changing the key forces
-  /// Flutter to discard that element and build a fresh one, whose `BlocProvider`
-  /// runs `create` — and `load()` — again. `RunsView` stays exactly as
-  /// page-local as its own doc already claims: this only changes *when* a new
-  /// page begins, not who owns it.
+  /// `IndexedStack` keeps every destination alive, so a page-local `RunsCubit`
+  /// would `load()` once at launch and never again — schedule a run, open Runs,
+  /// and the page still says nothing is scheduled. A new key discards the element
+  /// so its `BlocProvider` builds and loads afresh.
   int _runsVisits = 0;
 
   /// Bumped every time Telemetry is chosen from the drawer, and used as
@@ -61,27 +55,23 @@ class _AppShellState extends State<AppShell> {
   /// at launch would `load()` once and never again.
   int _telemetryVisits = 0;
 
-  /// Bumped every time Channels is chosen from the drawer, and used as the key on
-  /// the `BlocProvider` wrapping [ChannelsView] below, for the reason
-  /// [_runsVisits] spells out.
+  /// Bumped every time Channels is chosen, keying the `BlocProvider` around
+  /// [ChannelsView], for the reason [_runsVisits] gives.
   ///
-  /// Unlike Runs and Telemetry, [ChannelsView] itself takes no reader and builds
-  /// no cubit — it just reads one from `context`, the same way `SandboxView`
-  /// does — so the `BlocProvider` that creates a fresh [ChannelsCubit] on every
-  /// visit lives here instead of inside the view. Android channel state changes
-  /// underneath the app whenever the user edits a channel in system settings, so
-  /// a stale read here would be actively misleading rather than merely out of
-  /// date.
+  /// The provider lives here rather than in the view, because [ChannelsView]
+  /// reads its cubit from `context` like `SandboxView` does. Android channel
+  /// state changes whenever the user edits it in system settings, so a stale read
+  /// would be misleading rather than merely old.
   int _channelsVisits = 0;
 
   @override
   void initState() {
     super.initState();
-    // A push that arrived while the app was merely backgrounded sits in the
-    // pending key until something drains it, and resuming is that something.
+    // A push arriving while merely backgrounded sits in the pending key until
+    // something drains it; resuming is that something.
     _lifecycle = AppLifecycleListener(onResume: _onResume);
-    // After the first frame, because this pushes a route and there is no navigator
-    // to push onto until the tree is built.
+    // After the first frame: this pushes a route, and there is no navigator
+    // until the tree is built.
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => unawaited(_openAwaitedRun()),
     );
@@ -103,14 +93,13 @@ class _AppShellState extends State<AppShell> {
         appBar: AppBar(
           title: Text(_titlesFor(t)[_destination]),
           actions: [
-            // The one AppBar in the app already owns its chrome, so the language lives
-            // here rather than behind a settings page the app does not have.
+            // Here rather than behind a settings page the app does not have.
             PopupMenuButton<AppLocale?>(
               icon: const Icon(Icons.translate),
               tooltip: t.language.tooltip,
               onSelected: (locale) async {
-                // Persist first, then switch: the switch rebuilds this widget, and a
-                // write awaited afterwards would be racing its own disposal.
+                // Persist, then switch: the switch rebuilds this widget, so a
+                // write awaited after would race its own disposal.
                 await getIt<LocaleStore>().write(locale);
                 if (locale == null) {
                   LocaleSettings.useDeviceLocaleSync();
@@ -166,9 +155,8 @@ class _AppShellState extends State<AppShell> {
             ),
           ],
         ),
-        // top: false because the AppBar already sits below the status bar. Applied
-        // once around the IndexedStack rather than in each destination, so a new
-        // page cannot forget the bottom gesture bar the SendFooter sits above.
+        // top: false — the AppBar is already below the status bar. Applied once
+        // here, so a new page cannot forget the bottom gesture bar.
         body: SafeArea(
           top: false,
           child: IndexedStack(
@@ -227,19 +215,14 @@ class _AppShellState extends State<AppShell> {
 
   /// Opens the timeline of the run the user was waiting on, if it has finished.
   ///
-  /// This is the far end of the countdown: it told the user to swipe the app away,
-  /// so by the time there is a result there is no cubit left holding it — only the
-  /// id in [ActiveRunStore].
+  /// The far end of the countdown: it told the user to swipe the app away, so by
+  /// the time there is a result only the id in [ActiveRunStore] remains.
   ///
-  /// A run still outstanding is left alone, and so is the stored id when the API
-  /// cannot be reached: losing it would lose the only pointer back to the result.
-  /// The timing works out for the killed case in particular — `received_bg` is
-  /// buffered by the background isolate and flushed at the next launch, which is
-  /// this moment.
+  /// An outstanding run is left alone, and so is the stored id when the API is
+  /// unreachable — losing it loses the only pointer back to the result.
   ///
-  /// A notification tap outstanding at the same launch wins over this: the user
-  /// already asked to go somewhere, and this must not push a page on top of that
-  /// unasked for. See the check before the push below.
+  /// An outstanding notification tap wins over this: the user already asked to go
+  /// somewhere. See the check before the push below.
   Future<void> _openAwaitedRun() async {
     final active = context.read<ActiveRunStore>();
     final runId = await active.activeRunId();
@@ -263,15 +246,11 @@ class _AppShellState extends State<AppShell> {
       return;
     }
 
-    // The user's own navigation wins. `b3_killed` is exactly this: the push
-    // arrives while the app is dead, the user taps it, the app starts — and by
-    // the time this method's two awaits are done, `_onInboxChanged` has already
-    // pushed `MessageDetailPage` for that tap. Pushing the timeline on top of it
-    // would ambush the user with a page they did not ask for. The id is cleared
-    // above regardless: it existed to get the user back to the result, and
-    // tapping the notification did that. The timeline stays one tap away on the
-    // Runs page — deferring this push to the next launch would just move the
-    // ambush to a later start rather than remove it.
+    // The user's own navigation wins — `b3_killed` is exactly this case, where
+    // `_onInboxChanged` has already pushed `MessageDetailPage` by the time these
+    // awaits finish. The id is cleared above regardless: it existed to get the
+    // user back to the result, and the tap did that. The timeline stays one tap
+    // away on Runs.
     if (context.read<InboxCubit>().state.hasPendingOpen) {
       return;
     }
@@ -298,13 +277,10 @@ class _AppShellState extends State<AppShell> {
 
   /// Acts on a notification tap once its message is known.
   ///
-  /// Selecting the inbox happens as soon as a tap is outstanding: it is the
-  /// fallback for an id that will never resolve — evicted by the cap, or rejected
-  /// as malformed. Skipped when the link names a destination of its own, because
-  /// the switch below is about to set `_destination` to that destination anyway —
-  /// this just avoids assigning a value only to overwrite it a few lines later;
-  /// for `/runs/<id>` links, the fallback runs and Inbox remains beneath the
-  /// pushed timeline.
+  /// The inbox is selected as soon as a tap is outstanding, as the fallback for an
+  /// id that will never resolve — evicted by the cap, or malformed. Skipped when
+  /// the link names its own destination, which the switch below is about to set
+  /// anyway.
   void _onInboxChanged(BuildContext context, InboxState inbox) {
     if (!inbox.hasPendingOpen) {
       return;
@@ -323,9 +299,8 @@ class _AppShellState extends State<AppShell> {
       return;
     }
 
-    // Cleared before navigating, so a later event cannot push twice — including
-    // the one this clear itself publishes, which arrives with no pending open and
-    // is turned away by the guard above.
+    // Cleared before navigating, so no later event pushes twice — including the
+    // one this clear publishes, which the guard above turns away.
     context.read<InboxCubit>().clearPendingOpen();
 
     switch (destination) {
