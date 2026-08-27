@@ -15,8 +15,14 @@ templates both sides import).
 - [fvm](https://fvm.app) — the pinned Flutter SDK is fetched by fvm, not
   installed by hand
 - [DCM](https://dcm.dev) on `PATH`, with a license activated (`dcm license`)
+- [Node.js and npm](https://nodejs.org) — needed to install `firebase-tools`,
+  which the [Firebase project](#firebase-project) step below shells out to;
+  nothing else in this repo touches them
+- `$HOME/.pub-cache/bin` on `PATH` — where `dart pub global activate` installs
+  a package's executable. This repo needs two: `flutterfire_cli` (below) and,
+  only for the end-to-end tests, `patrol_cli`.
 
-Everything else, melos included, comes from `pub get`.
+Everything else Dart-side, melos included, comes from `pub get`.
 
 ### Bootstrap
 
@@ -59,21 +65,49 @@ clean — worth knowing if that file ever gets touched.
 
 ### Firebase project
 
-The banner above points at the real project, `fcm-sandbox-770fa`, recorded
-in `.firebaserc` and in `firebaseProjectId` in
-`apps/fcm_app/lib/firebase_setup.dart`. `apiKey`, `appId` and
-`messagingSenderId` in `apps/fcm_app/lib/firebase_options.dart` ship as
-placeholders — they are per-app credentials Firebase issues and cannot be
-derived from the project id — so fetch real ones to make the banner go away:
+Every field in `apps/fcm_app/lib/firebase_options.dart` — `apiKey`, `appId`,
+`messagingSenderId`, `projectId`, and the rest — ships as an obvious
+placeholder, not a real project's values, so the banner above is what a
+fresh clone always shows. There is no shared project a stranger can point
+this at; make the banner go away with a Firebase project of your own:
 
-```bash
-npm install -g firebase-tools && firebase login
-fvm dart pub global activate flutterfire_cli
-cd apps/fcm_app && fvm exec flutterfire configure --project=fcm-sandbox-770fa
-```
+1. Create one at [console.firebase.google.com](https://console.firebase.google.com)
+   — the free Spark plan is enough, and Cloud Messaging needs no extra
+   enabling.
+2. Install the Firebase CLI and log in, then activate FlutterFire's CLI:
 
-That overwrites `firebase_options.dart` with real values and wires the
-Android and iOS project files. Run the app again and push works.
+   ```bash
+   npm install -g firebase-tools && firebase login
+   fvm dart pub global activate flutterfire_cli
+   ```
+
+3. From `apps/fcm_app`, run the configuration wizard with no `--project` —
+   it lists every project your logged-in account can reach and lets you pick
+   one, so there is nothing to name on the command line:
+
+   ```bash
+   cd apps/fcm_app && fvm exec flutterfire configure
+   ```
+
+   This overwrites `firebase_options.dart` with your project's real values
+   and, for Android, drops a `google-services.json` into `android/app` —
+   the file `android/app/build.gradle.kts` only applies the
+   `com.google.gms.google-services` plugin when it is present, precisely so
+   a checkout without one still builds.
+
+`firebaseProjectId` in `apps/fcm_app/lib/firebase_setup.dart` and the
+project name in `.firebaserc` still say `fcm-sandbox-770fa` — the project
+this sample was developed against, not the one `flutterfire configure` just
+wired up, and neither file is touched by that command. `.firebaserc` is what
+the `firebase` CLI reads for its own default `--project`, so update it if
+you drive that CLI directly from this repo (`flutterfire configure` itself
+does not need it — it asks interactively). `firebaseProjectId` records the
+same name on the Dart side; nothing in the running app reads it any more —
+the in-app banner no longer names a project — but it is kept in sync with
+`.firebaserc` so a reader has one place to check rather than two. Update
+both by hand if you want them to name your project instead.
+
+Run the app again and push works.
 
 ### Running the API
 
