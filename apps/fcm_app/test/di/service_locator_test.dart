@@ -25,14 +25,13 @@ import 'package:shared_preferences_platform_interface/shared_preferences_async_p
 /// here configures with placeholder credentials.
 Future<void> _handler(RemoteMessage _) => Future<void>.value();
 
-/// What `firebase_options.dart` looks like in a checkout nobody has run
-/// `flutterfire configure` on.
+/// What `firebase_options.dart` looks like before anyone runs `flutterfire
+/// configure`.
 ///
-/// Passed in rather than read from the generated file so this test does not
-/// depend on whatever placeholder values happen to be sitting there — only on
-/// the sentinel `apiKey`, which is the only field `_startPushSource` actually
-/// checks. `firebase_options_test.dart` is what checks the generated file
-/// itself still carries that sentinel.
+/// Passed in rather than read from the generated file, so this depends only on the
+/// sentinel `apiKey` that `_startPushSource` checks.
+/// `firebase_options_test.dart` is what checks the generated file still carries
+/// it.
 const _unconfigured = FirebaseOptions(
   apiKey: unconfiguredApiKey,
   appId: '1:000000000000:android:0000000000000000000000',
@@ -41,21 +40,20 @@ const _unconfigured = FirebaseOptions(
 );
 
 void main() {
-  // The store and the device identity read platform storage the moment they are
-  // built, which no test has.
+  // The store and device identity read platform storage on construction, which
+  // no test has.
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
         InMemorySharedPreferencesAsync.empty();
   });
 
-  // The locator is a global: without this the second `configureDependencies`
-  // throws on re-registration.
+  // A global locator, so without this the second `configureDependencies` throws
+  // on re-registration.
   tearDown(() => getIt.reset());
 
-  // `isWeb: true` everywhere, and that is a limit of the VM: the device branch
-  // opens a file through `path_provider`, which `flutter test` does not have. The
-  // web branch is also the half that matters, since a Drift buffer registered
-  // there kills the app at startup.
+  // `isWeb: true` everywhere, because the device branch opens a file through
+  // `path_provider`, which `flutter test` lacks. It is also the half that
+  // matters: a Drift buffer registered on web kills the app at startup.
   Future<void> configure() => configureDependencies(
     onBackgroundMessage: _handler,
     options: _unconfigured,
@@ -65,20 +63,18 @@ void main() {
   test('an unconfigured checkout is explained rather than fatal', () async {
     await configure();
 
-    // The whole point of the sentinel. Pinned to the instructions themselves,
-    // because any *other* setup error would mean the check was skipped and Firebase
-    // was asked to start with a placeholder key.
+    // Pinned to the instructions themselves: any *other* setup error would mean
+    // the check was skipped and Firebase started with a placeholder key.
     expect(getIt<PushSource>(), isA<DisabledPushSource>());
-    // `Bad state:` and not a trimmed message: the banner shows whatever `'$error'`
-    // produced.
+    // `Bad state:` included — the banner shows whatever `'$error'` produced.
     expect(
       getIt<PushRepository>().setupError,
       'Bad state: $firebaseSetupInstructions',
     );
     expect(getIt<NotificationSender>(), isA<UnavailableNotificationSender>());
     expect(getIt<RunScheduler>(), isA<UnavailableRunScheduler>());
-    // Unlike the sender and the scheduler above, reading telemetry needs nothing
-    // from Firebase, so it stays live even on an unconfigured checkout.
+    // Reading telemetry needs no Firebase, so it stays live on an unconfigured
+    // checkout.
     expect(getIt<TelemetryReader>(), isA<HttpTelemetryReader>());
     expect(getIt<ActiveRunStore>(), isA<SharedPreferencesActiveRunStore>());
     expect(getIt<StartRun>(), isA<StartRun>());
@@ -87,11 +83,11 @@ void main() {
   test('the repository is one instance, whoever asks', () async {
     await configure();
 
-    // A second instance would subscribe a second time to a single-subscription
-    // push stream — which throws — and hold its own token and its own messages.
+    // A second instance would subscribe twice to a single-subscription stream,
+    // which throws, and hold its own token and messages.
     expect(getIt<PushRepository>(), same(getIt<PushRepository>()));
-    // The same collaborators the rest of the app is handed, or the sandbox would
-    // record a `sent` into one database while an arrival went to another.
+    // The same collaborators the app gets, or a `sent` and its arrival land in
+    // different databases.
     expect(getIt<PushSource>(), same(getIt<PushSource>()));
     expect(getIt<PushTelemetry>(), same(getIt<PushTelemetry>()));
     // StartRun wraps the same scheduler everything else reads, not a second one.
@@ -101,9 +97,9 @@ void main() {
   test('web gets silence instead of a drift buffer', () async {
     await configure();
 
-    // `drift_flutter` throws `ArgumentError` synchronously without a `web:`
-    // argument, so a buffer registered here would compile and then kill the app at
-    // startup. This is the only place that failure is observable.
+    // `drift_flutter` throws synchronously without a `web:` argument, so a buffer
+    // registered here compiles and then kills the app at startup. The only place
+    // that is observable.
     expect(getIt.isRegistered<TelemetryBuffer>(), isFalse);
     expect(getIt<PushTelemetry>(), isA<SilentPushTelemetry>());
   });

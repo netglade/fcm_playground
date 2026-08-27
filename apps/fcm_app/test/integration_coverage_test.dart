@@ -4,15 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import '../integration_test/support/expected_events.dart';
 
 /// Which of [skipReasonFor]'s three branches a skipped [scenario] falls under,
-/// `'unclassified'` if none of them account for it, or null when it runs.
+/// `'unclassified'` if none do, or null when it runs.
 ///
-/// Mirrors that function's own order — needs, then platform, then
-/// requiresKilledApp — over the same fields it reads, rather than a hard-coded
-/// list of ids: a scenario that becomes unblocked drops out of its bucket
-/// instead of staying miscounted. The fall-through is a genuine outcome, not
-/// a default: if [skipReasonFor] ever grows a fourth reason to skip, the
-/// scenario it applies to lands here instead of silently joining `'appKill'`,
-/// and the sum assertion below catches it.
+/// Mirrors that function's order over the same fields rather than a list of ids, so
+/// an unblocked scenario drops out of its bucket instead of staying miscounted. The
+/// fall-through is a real outcome: a fourth reason to skip lands here rather than
+/// silently joining `'appKill'`, and the sum assertion catches it.
 String? _skipBucket(Scenario scenario) {
   if (skipReasonFor(scenario) == null) return null;
 
@@ -31,8 +28,8 @@ String? _skipBucket(Scenario scenario) {
 void main() {
   group('integration coverage', () {
     test('every scenario either has an expectation or a reason to skip', () {
-      // The guard that one-file-per-group costs and this buys back: add a scenario
-      // to the catalogue and this fails until the suite accounts for it.
+      // What one-file-per-group costs and this buys back: a new scenario fails
+      // here until the suite accounts for it.
       final unaccounted = [
         for (final scenario in scenarioGallery)
           if (skipReasonFor(scenario) == null &&
@@ -55,9 +52,8 @@ void main() {
     test('runs thirty-six scenarios and skips thirty of sixty-six', () {
       final running = scenarioGallery.where((s) => skipReasonFor(s) == null);
 
-      // Pinned to literals because the split is a claim the spec makes, and drift
-      // in either direction is what is worth catching: a scenario becoming
-      // unblocked should show up here rather than be absorbed silently.
+      // Literals, because the split is a claim the spec makes — a scenario
+      // becoming unblocked should surface here rather than be absorbed.
       expect(scenarioGallery, hasLength(66));
       expect(running, hasLength(36));
       expect(scenarioGallery.length - running.length, 30);
@@ -68,9 +64,8 @@ void main() {
         (s) => s.needs.contains(ScenarioNeed.styles),
       );
 
-      // The reason comes from ScenarioNeed.name now — a stable enum name rather
-      // than a localized label, which is right for a test report but means the
-      // word here is the bare enum member, not the prose the UI shows.
+      // The bare enum name, not the prose the UI shows — right for a test
+      // report.
       expect(skipReasonFor(blocked), contains('styles'));
     });
 
@@ -86,17 +81,16 @@ void main() {
       () {
         final killed = scenarioGallery.firstWhere((s) => s.id == 'b3_killed');
 
-        // It carries no needs — delayed sending unblocked it — so if this ever
-        // reported a need, the skip policy would be reading the wrong field.
+        // No needs, so a reported need here would mean the skip policy is
+        // reading the wrong field.
         expect(killed.needs, isEmpty);
         expect(skipReasonFor(killed), contains('killed'));
       },
     );
 
     test('every expectation names the send-side pair', () {
-      // A send always records queued, and then either sent or send_failed. An
-      // expectation missing those asserts less than the pipeline guarantees,
-      // whatever else it claims about delivery.
+      // A send always records queued and then sent or send_failed, so an
+      // expectation missing those asserts less than the pipeline guarantees.
       for (final entry in scenarioExpectations.entries) {
         expect(
           entry.value.events,
@@ -141,10 +135,8 @@ void main() {
         (s) => _skipBucket(s) == 'appKill',
       );
 
-      // f5_deeplink_killed's ScenarioNeed is gone now that the deep-link
-      // routing it needed is built, so skipReasonFor's needs branch no
-      // longer catches it first — it falls through to the killed-app
-      // branch and joins b3_killed here, in gallery order.
+      // f5_deeplink_killed has no need left, so it falls past the needs branch
+      // into the killed-app one, joining b3_killed in gallery order.
       expect(appKillOnly.map((s) => s.id), ['b3_killed', 'f5_deeplink_killed']);
     });
 
@@ -165,14 +157,12 @@ void main() {
           .where((s) => skipReasonFor(s) != null)
           .length;
 
-      // A non-empty bucket here means skipReasonFor grew a reason to skip
-      // that none of needs/platform/requiresKilledApp accounts for — the
-      // classifier and the function it mirrors have drifted apart.
+      // Non-empty means skipReasonFor grew a reason none of the three branches
+      // accounts for — the classifier and the function have drifted apart.
       expect(unclassified, isEmpty);
 
-      // The buckets must not drift apart from the totals the file already
-      // pins above: 24 + 4 + 2 is the 30 skipped, and 30 + 36 is the
-      // catalogue's 66.
+      // The buckets must agree with the totals pinned above: 24 + 4 + 2 = 30
+      // skipped, and 30 + 36 = 66.
       expect(
         needsCount + iosCount + appKillCount + unclassified.length,
         skippedCount,
