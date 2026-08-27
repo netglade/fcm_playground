@@ -37,13 +37,16 @@ command to run by hand instead, in a block you can select and copy.
 ## Sending one
 
 Tapping a card applies its payload to the Sandbox and switches you there. The
-Sandbox edits the message through a form, not a JSON text box: ten
-collapsible sections mirror FCM's own objects one for one — `message`,
-`notification`, `android`, `apns`, `webpush`, and the rest — nested as deep as
-the payload itself, each closed by default except the outermost, and each
-header flags an error the moment anything inside it is invalid at any depth.
-FCM distinguishes an omitted field from one explicitly set to `false`, and the
-form does too: every optional boolean is a three-way choice — unset, true,
+Sandbox edits the message through a form, not a JSON text box: a collapsible
+section for each of FCM's own objects — `message`, `notification`, `android`,
+`apns`, `webpush`, and the rest — nested as deep as the payload itself.
+`fcm_options` gets one of these sections wherever FCM defines it, which is
+both at the top level and inside `android`, so it is the one object on this
+list that opens two sections rather than one. Every section is closed by
+default except the outermost, and each header flags an error the moment
+anything inside it is invalid at any depth. FCM distinguishes an omitted
+field from one explicitly set to `false`, and the form does too: every
+optional boolean is a three-way choice — unset, true,
 false — rather than a checkbox that would silently send `false` for a flag
 you never touched, and an empty text, list or map field likewise omits the
 key rather than sending it empty. `apns.payload` and `webpush.notification`
@@ -92,11 +95,18 @@ A device-driven Patrol suite exercises part of the catalogue for real, against
 a connected Android handset, outside the ordinary test gate — a suite that
 needs hardware has no business in one that has to pass on every machine. Of the
 66 scenarios, 26 run there; the other 40 are skipped, each with a stated
-reason: 34 wait on a `ScenarioNeed` the app has not built yet; 4 demonstrate
-iOS-only behaviour the suite does not reach — it targets Android by design, and
-separately, no iOS simulator can receive a real FCM push at all, so covering
-these would need physical hardware even if that scope changed; and two —
-`b3_killed` and `f5_deeplink_killed` — would each have to kill the very app the
-test is running inside. The 26/40 split is pinned by a test in the app's own
-suite, so a scenario becoming unblocked shows up as a failing count rather than
-as silence.
+reason: 34 wait on a `ScenarioNeed`, and most of those name a planned piece of
+work the app has not built yet — but two of the catalogue's seven needs never
+will be, `nativeCode` because this project has chosen not to introduce native
+code at all, and `externalApproval` because it names a capability only Apple
+or the OS can grant, not this project. A scenario blocked on either is out of
+the suite for good, not merely not-yet-covered. Separately, 4 scenarios
+demonstrate iOS-only behaviour the suite does not reach — it targets Android
+by design, and no iOS simulator can receive a real FCM push at all, so
+covering these would need physical hardware even if that scope changed — and
+two, `b3_killed` and `f5_deeplink_killed`, would each have to kill the very
+app the test is running inside. See
+[`CALIBRATION.md`](../apps/fcm_app/integration_test/CALIBRATION.md) for how
+the suite's own expectations get checked against a real device. The 26/40
+split is pinned by a test in the app's own suite, so a scenario becoming
+unblocked shows up as a failing count rather than as silence.

@@ -50,7 +50,7 @@ class SendMessageRequest {
 
   /// Always writes `validate_only`, even when false, to capture the caller's explicit
   /// intent. The target is spread at the top level rather than nested, so the body
-  /// keeps the shape FCM uses and every `curl` example in the README still applies.
+  /// keeps the shape documented as `POST /send`'s contract in docs/telemetry.md.
   Map<String, Object?> toJson() => {
     ...target.toJson(),
     'scenario_id': ?scenarioId,
