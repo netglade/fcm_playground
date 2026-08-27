@@ -1,22 +1,18 @@
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/foundation.dart';
 
-// Every consumer imports `support/expected_events.dart` and names
-// `ScenarioExpectation` through it — that import path is the contract Tasks 4
-// and 5 depend on. `ScenarioExpectation` itself lives in its own file so that
-// file's name matches its one class; the export makes the split invisible to
-// every consumer, and the import is what lets this file keep using the type
-// below.
+// `ScenarioExpectation` lives in its own file so the file name matches its one
+// class; the export keeps that split invisible to consumers, which all import
+// this path.
 import 'scenario_expectation.dart';
 export 'scenario_expectation.dart';
 
 /// The platform this suite runs on.
 ///
-/// A constant rather than `defaultTargetPlatform`: the census guard runs under
-/// `flutter test` on Linux, where `defaultTargetPlatform` is `TargetPlatform.linux`
-/// and every Android expectation would read as skipped. The suite is Android-only by
-/// decision — the spec rules iOS setup out — so the decision is written down instead
-/// of sampled from the host.
+/// A constant, not `defaultTargetPlatform`: the census guard runs under `flutter
+/// test` on Linux, where that reads `linux` and every Android expectation would
+/// look skipped. Android-only is a decision, so it is written down rather than
+/// sampled from the host.
 const suitePlatform = TargetPlatform.android;
 
 /// Recorded by the API for every send, before anything reaches a device.
@@ -31,10 +27,8 @@ const _deliveredAndDrawn = {
 
 /// What must stay silent on a delivered trace.
 ///
-/// The app is in the foreground for the whole test, so `onBackgroundMessage`
-/// never runs; nothing taps, presses a button on, or swipes the notification;
-/// and nobody presses "Nepřišlo mi to". Each of those absences is a real
-/// assertion rather than a formality.
+/// The app stays foregrounded, so `onBackgroundMessage` never runs, and nothing
+/// taps, presses, swipes or reports a miss. Each absence is a real assertion.
 const _quiet = {
   TelemetryEventType.receivedBg,
   TelemetryEventType.opened,
@@ -55,10 +49,16 @@ const _sendRefused = {TelemetryEventType.queued, TelemetryEventType.sendFailed};
 
 /// Per-scenario expectations, keyed by [Scenario.id].
 ///
-/// Forty entries: the thirty-six that run on Android plus the four iOS-only
-/// ones, which are written so that unblocking iOS is a skip-policy change rather
-/// than a table rewrite. `b3_killed` and `f5_deeplink_killed` have no entry on
-/// purpose — [skipReasonFor] turns each away before the table is consulted.
+/// Forty entries: the thirty-six that run on Android plus four iOS-only ones,
+/// written so unblocking iOS is a skip-policy change rather than a table rewrite.
+/// `b3_killed` and `f5_deeplink_killed` have no entry — [skipReasonFor] turns
+/// them away first.
+///
+/// Most entries are the same delivered-and-drawn pair, because telemetry cannot
+/// see a channel, a render, a category or a group summary — those are read off
+/// the device by a human. Anything needing a tap, a button press, a typed reply
+/// or a swipe keeps that event in [_quiet] for the same reason: Patrol does not
+/// perform it.
 ///
 /// **Derived from reading the code, not from watching a device.** See
 /// `integration_test/CALIBRATION.md` for how to settle it.
@@ -76,13 +76,9 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
-  // Expects `displayed`: `PushRepository._ingest` calls `_show` for every live
-  // payload and `LocalNotificationPresenter.show` has no title guard, so a4
-  // draws a blank tray entry — icon and app name, no text — rather than
-  // nothing. The catalogue's own copy used to call this "nothing drawn"; that
-  // was wrong and has been corrected there, not here. Whether the app *should*
-  // suppress a titleless banner is still an open question, recorded in
-  // CALIBRATION.md.
+  // Expects `displayed`: `_show` runs for every live payload and `show` has no
+  // title guard, so a4 draws a *blank* tray entry rather than nothing. Whether
+  // it should suppress one is open — see CALIBRATION.md.
   'a4_no_display': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -102,16 +98,13 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
   'c2_priority_normal': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
-    // NORMAL priority entitles FCM to hold the message until the next maintenance
-    // window, which is this scenario's whole point. Two minutes is generous rather
-    // than sufficient — see the spec's Known limitations.
+    // NORMAL priority lets FCM hold the message until the next maintenance
+    // window, which is the point. Two minutes is generous, not sufficient.
     timeout: Duration(minutes: 2),
   ),
-  // Shares c2's "can fail for a correct reason" property, and worse: TTL zero
-  // means FCM makes exactly one delivery attempt and discards the message if it
-  // does not land, so a momentarily unreachable device fails this test for a
-  // correct reason too — and unlike c2, no longer timeout can rescue it, because
-  // there is no later delivery window to wait for. See CALIBRATION.md.
+  // Can fail for a correct reason, like c2, and worse: TTL zero means one
+  // delivery attempt and then discard, so a briefly unreachable device fails
+  // this — and no longer timeout can rescue it. See CALIBRATION.md.
   'c3_ttl_zero': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -121,11 +114,8 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
 
-  // Group D — the channels. Every one of these delivers and draws; what differs
-  // is the channel it draws through, and telemetry cannot see a channel. What
-  // these assert is that the push arrives and is drawn under the id the payload
-  // named — the importance, the sound and the vibration are read off the
-  // Channels page by a human. See CALIBRATION.md.
+  // Group D — the channels. All deliver and draw; the channel they draw through
+  // is read off the Channels page by a human.
   'd1_importance_high': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -134,10 +124,8 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
-  // d3, d4 and i1 draw through low and min importance, where no banner pops at
-  // all — and still record `displayed`, because `_show` reports it once
-  // `plugin.show()` returns rather than according to what the user saw. The
-  // table matches the app; it does not mean what a reader might assume.
+  // d3, d4 and i1 pop no banner at all, and still record `displayed`: `_show`
+  // reports once `plugin.show()` returns, not according to what was seen.
   'd3_importance_low': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -163,8 +151,7 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
 
-  // Group E — appearance. The image cases still deliver; only the render differs,
-  // and the render is not something telemetry can see.
+  // Group E — appearance. Only the render differs, which telemetry cannot see.
   'e2_image_remote': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -186,26 +173,19 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
 
-  // Group F — interaction. f1 draws its buttons itself, so the delivery
-  // assertions are the same as any other data-only push; pressing the button
-  // is a human step, which is why `action` stays in `_quiet` — see
-  // CALIBRATION.md.
+  // Group F — interaction. f1 draws its own buttons, so delivery matches any
+  // data-only push.
   'f1_actions': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
-  // f2 is data-only too, so the same delivery assertions apply. Typing the
-  // reply is a human step, exactly like pressing f1's button, which is why
-  // `action` (the reply is recorded as one, with detail `reply`) stays in
-  // `_quiet` here as well. Patrol cannot type into the notification shade, so
-  // this expectation covers delivery and drawing only — see CALIBRATION.md.
+  // f2 is data-only too. Patrol cannot type into the shade, so this covers
+  // delivery and drawing only.
   'f2_inline_reply': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
-  // Group F — the two deep links that run. The tap itself is a human step, so
-  // `opened` stays in `_quiet`; what these assert is that the push arrives and is
-  // drawn, the same as any other notification payload.
+  // Group F — the two deep links that run. Delivery and drawing only.
   'f3_deeplink_foreground': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -214,36 +194,27 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
-  // f6 is drawn through the plugin while the app is foregrounded — the only
-  // state a swipe can be detected in — so the delivery assertions are the same
-  // as any other notification payload. Swiping it is a human step, which is
-  // why `dismissed` stays in `_quiet`; see CALIBRATION.md.
+  // f6 is drawn through the plugin while foregrounded, the only state a swipe
+  // is detectable in. Delivery assertions are unchanged.
   'f6_delete_intent': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
-  // f7 is ongoing, which affects only whether a swipe dismisses it — delivery
-  // and drawing happen exactly as for any other notification, so this is the
-  // same pair as every other entry. Whether it actually resists a swipe (it
-  // should, short of Android 14+'s own exemption), and that Clear
-  // notifications removes it either way, are both things a human watches in
-  // the tray; see CALIBRATION.md.
+  // f7's ongoing flag affects only whether a swipe dismisses it, which a human
+  // watches in the tray. Same pair as every other entry.
   'f7_ongoing': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
-  // Group F — f8. The refusal is a human observation in the tray; the pipeline
-  // only sees an ordinary delivered-and-drawn push, which is exactly what a
-  // degraded full-screen intent looks like from here.
+  // f8's refusal is a tray observation — a degraded full-screen intent looks
+  // like an ordinary delivered-and-drawn push from here.
   'f8_full_screen_intent': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
 
-  // Group G — groups, badge and updates. g1's summary and rising count, and
-  // g2's replace-in-place, are both observed by looking at the tray, not
-  // through telemetry — each send still delivers and draws exactly as any
-  // other push, so nothing extra is asserted here; see CALIBRATION.md.
+  // Group G — g1's rising summary and g2's replace-in-place are both tray
+  // observations, so nothing extra is asserted.
   'g1_group_summary': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -253,17 +224,14 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
 
-  // Group H — h2's alarm category is drawn through a channel like any other;
-  // the category itself is not something telemetry can see, so the assertion
-  // is delivery and drawing, same as Group D.
+  // Group H — h2's alarm category is invisible to telemetry, same as Group D.
   'h2_category_alarm': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
 
-  // Group I — a silent data sync. Same note as a4_no_display: the row it writes
-  // is silent, but the blank tray entry the app also draws is not — the
-  // catalogue's copy now says so.
+  // Group I — silent data sync. As with a4, the row is silent but the blank tray
+  // entry the app draws is not.
   'i1_silent_no_sound': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -310,16 +278,13 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
 
 /// Why [scenario] cannot run here, or null when it can.
 ///
-/// Three rules, in this order. The scenarios carrying `manualSteps` need no rule of
-/// their own: every one of them also names `ScenarioNeed.manualStep`, so the first
-/// rule already takes them — which is right, because a test running *on* the device
-/// has no adb with which to force Doze or revoke a permission.
+/// Three rules, in order. Scenarios with `manualSteps` need no rule of their own —
+/// each also names `ScenarioNeed.manualStep`, and a test running *on* the device
+/// has no adb to force Doze or revoke a permission.
 String? skipReasonFor(Scenario scenario) {
   if (scenario.needs.isNotEmpty) {
-    // `name` rather than a localized label: this is a skip reason in a test
-    // report, not UI. `needs interaction, styles` reads as well as the prose did,
-    // and the enum name is stable where a translated label would mean building
-    // translations inside the Patrol harness for no benefit.
+    // `name`, not a localized label: this is a test report, not UI, and a
+    // translated label would mean building translations inside the harness.
     return 'needs ${scenario.needs.map((need) => need.name).join(', ')}';
   }
 

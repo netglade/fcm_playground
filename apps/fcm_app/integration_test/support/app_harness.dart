@@ -14,34 +14,27 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:glade_forms/glade_forms.dart';
 import 'package:patrol/patrol.dart';
 
-/// How long FCM registration is given before the run is called a setup failure.
+/// How long FCM registration is given before the run is a setup failure.
 ///
-/// Starting a test before the token exists is the likeliest source of flake here: the
-/// Sandbox disables Send without one, so the test would tap a dead button and fail
-/// somewhere far from the cause.
+/// The likeliest source of flake: without a token the Sandbox disables Send, so
+/// the test taps a dead button and fails far from the cause.
 const _tokenTimeout = Duration(seconds: 45);
 
 /// How long the system permission dialog is waited for, on the first launch in
 /// this process.
 ///
-/// Patrol launches the app once per target and reuses that isolate for every test
-/// in the file, so the dialog is a property of the *process*, not of each test —
-/// there is no Test Orchestrator here to clear app data between tests (see the
-/// build.gradle.kts comment by `clearPackageData`'s old home), so
-/// POST_NOTIFICATIONS is granted once and stays granted. [_firstLaunchInProcess]
-/// is what makes [launchApp] wait the full window only the first time; every
-/// later launch gates on that flag instead of burning the same fifteen seconds
-/// against a dialog that cannot reappear. Bounded rather than required even on
-/// the first launch, in case a device or an API level below 33 never shows one.
+/// Patrol reuses one isolate for every test in a file, so the dialog belongs to the
+/// *process*: POST_NOTIFICATIONS is granted once and stays granted.
+/// [_firstLaunchInProcess] is what stops every later launch burning the same
+/// fifteen seconds. Bounded rather than required, in case a device or an API level
+/// below 33 never shows one.
 const _permissionDialogTimeout = Duration(seconds: 15);
 
 /// Whether the app has not yet been launched in this process.
 ///
-/// Library-level rather than a parameter: every `patrolTest` in a group file
-/// calls [launchApp] independently, with no shared object across them to hold it
-/// on. Set to false the first time the permission dialog is checked for, and
-/// never reset — there is one process per target, and the dialog cannot come
-/// back within it.
+/// Library-level because each `patrolTest` calls [launchApp] independently, with no
+/// shared object to hold it. Never reset — one process per target, and the dialog
+/// cannot reappear within it.
 bool _firstLaunchInProcess = true;
 
 /// How long a TCP connect to a new host is given before it is called unreachable.
@@ -50,20 +43,18 @@ bool _firstLaunchInProcess = true;
 /// as covering the act of reaching a new host, not anything that happens after.
 const _connectTimeout = Duration(seconds: 3);
 
-/// How long the whole `/health` round trip — connect, headers and body — is given
-/// before an API that accepted the connection but never answered is called stuck.
+/// How long the whole `/health` round trip is given before an API that accepted
+/// the connection but never answered is called stuck.
 ///
-/// A separate, longer bound than [_connectTimeout] on purpose: a host can accept a
-/// TCP connection and then never write a response, which `connectionTimeout` alone
-/// does not catch.
+/// Longer than [_connectTimeout] on purpose: a host can accept a connection and
+/// then never write a response, which `connectionTimeout` does not catch.
 const _healthCheckTimeout = Duration(seconds: 5);
 
 /// Brings the real app up, ready to drive.
 ///
-/// Mirrors `main.dart` rather than calling it: `main` is not callable from a test that
-/// has to interleave native automation with startup, and the stream wiring below is
-/// the part that makes `opened` and `dismissed` reachable at all — a harness that
-/// skipped it would quietly make those two events unobservable.
+/// Mirrors `main.dart` rather than calling it, because startup has to interleave
+/// with native automation. The stream wiring below is what makes `opened` and
+/// `dismissed` observable at all.
 Future<void> launchApp(PatrolIntegrationTester $) async {
   await requireApiReachable();
 
@@ -71,10 +62,9 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
   await getIt.reset();
   GladeForms.initialize();
 
-  // Deliberately not awaited yet. `configureDependencies` awaits
-  // `PushSource.requestPermission()`, which on Android 13+ blocks on the system
-  // POST_NOTIFICATIONS dialog — so awaiting it before granting would deadlock the
-  // test against a dialog only native automation can dismiss.
+  // Not awaited yet: `configureDependencies` awaits `requestPermission()`, which
+  // on Android 13+ blocks on the system dialog — awaiting it before granting
+  // deadlocks the test against a dialog only native automation can dismiss.
   final configured = configureDependencies(
     onBackgroundMessage: _onBackgroundMessage,
   );
@@ -93,8 +83,7 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
   await repository.restore();
   await repository.refreshToken();
 
-  // The same two channels `main.dart` wires, for the same reason: FCM reports taps on
-  // the tray entries it drew, the presenter reports taps on the banners the app drew.
+  // The same two channels `main.dart` wires, for the same reason.
   getIt<PushSource>().taps.listen(
     (tap) => repository.requestOpen(tap.id, tap.from, actionId: tap.actionId),
   );
@@ -103,44 +92,33 @@ Future<void> launchApp(PatrolIntegrationTester $) async {
   );
   getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
 
-  // Pinned rather than inherited, and deliberately NOT mirroring main.dart's
-  // read-the-stored-preference block: every finder in this suite is English copy, so
-  // the suite has to run in English regardless of what the handset or a previous
-  // manual walkthrough left behind. Without this it passes only by accident — slang
-  // starts on the base locale and nothing here tells it otherwise.
+  // Pinned, and deliberately not mirroring main.dart's stored-preference block:
+  // every finder here is English copy, so the suite must run in English whatever
+  // the handset was left on.
   LocaleSettings.setLocaleSync(AppLocale.en);
 
-  // `pumpWidget` then `pumpAndTrySettle` rather than the one-shot
-  // `pumpWidgetAndSettle`: `AppShell`'s `IndexedStack` builds `TelemetryView` at
-  // launch, whose cubit immediately calls an unbounded `GET /latency`, and a
-  // spinner keeps frames scheduled for as long as that takes. A strict settle
-  // throws after its own timeout rather than tolerating a still-busy frame, so
-  // once the telemetry database is large enough every test would fail right here
-  // with a bare "pumpAndSettle timed out" and no hint that the remedy is deleting
-  // the database.
+  // `pumpWidget` then `pumpAndTrySettle`, not the one-shot
+  // `pumpWidgetAndSettle`: `TelemetryView` is built at launch and its cubit calls
+  // an unbounded `GET /latency`, whose spinner keeps frames scheduled. A strict
+  // settle would fail every test with a bare "pumpAndSettle timed out" once the
+  // telemetry database grew, never hinting that deleting it is the remedy.
   //
-  // Wrapped in TranslationProvider for the same reason main.dart wraps runApp with
-  // it: App.build reads TranslationProvider.of(context), which throws
-  // 'Please wrap your app with "TranslationProvider".' with no ancestor to find.
-  // The LocaleSettings pin above decides which language; this is the separate,
-  // equally required piece that lets App read any language at all.
+  // TranslationProvider for the reason main.dart wraps runApp in it: App.build
+  // reads it and throws without an ancestor. The pin above chooses the language;
+  // this lets App read any at all.
   await $.pumpWidget(TranslationProvider(child: const App()));
   await $.pumpAndTrySettle();
   await _waitForToken($);
 }
 
-/// Disposes what the previous launch registered, before [getIt]'s own reset
-/// drops the registrations without disposing them.
+/// Disposes what the previous launch registered, before [getIt]'s reset drops the
+/// registrations without disposing them.
 ///
-/// Patrol launches the app once per target and reuses that isolate for every
-/// test in the file, so without this a fifth test in a group file leaves five
-/// `PushRepository`s subscribed to the same broadcast, five presenters, and five
-/// open connections to one telemetry database — every arrival ingested, drawn
-/// and written that many times over. `GetIt.reset()` only disposes a
-/// registration made with a `dispose:` callback or one implementing
-/// `Disposable`; `configureDependencies` registers all of these bare. Guarded by
-/// `isRegistered`, so the very first launch — nothing registered yet — is a
-/// no-op.
+/// One isolate serves every test in a file, so without this the fifth test leaves
+/// five `PushRepository`s on one broadcast, five presenters and five connections to
+/// one database — every arrival ingested, drawn and written five times.
+/// `GetIt.reset()` disposes only registrations made with `dispose:` or
+/// `Disposable`, and these are all registered bare.
 Future<void> _tearDownPreviousLaunch() async {
   if (getIt.isRegistered<PushRepository>()) {
     getIt<PushRepository>().dispose();
@@ -148,9 +126,8 @@ Future<void> _tearDownPreviousLaunch() async {
   if (getIt.isRegistered<NotificationPresenter>()) {
     await getIt<NotificationPresenter>().dispose();
   }
-  // `TelemetryBuffer` is only ever registered as a `DriftTelemetryBuffer` — see
-  // `_registerTelemetry` — but the interface itself declares no `close`, so the
-  // concrete type has to be named here to reach it.
+  // Always registered as a `DriftTelemetryBuffer`, but the interface declares no
+  // `close`, so the concrete type has to be named to reach it.
   if (getIt.isRegistered<TelemetryBuffer>()) {
     final buffer = getIt<TelemetryBuffer>();
     if (buffer is DriftTelemetryBuffer) {
@@ -161,8 +138,8 @@ Future<void> _tearDownPreviousLaunch() async {
 
 /// Fails once, legibly, when the local API is not running.
 ///
-/// Without this the suite produces thirty-six delivery timeouts whose single cause is
-/// one stopped process, and the first one read would send someone into the app.
+/// Without it, one stopped process becomes thirty-six delivery timeouts, and the
+/// first one read sends someone into the app.
 Future<void> requireApiReachable() async {
   final Uri healthUri;
   try {
@@ -220,9 +197,8 @@ Future<void> _waitForToken(PatrolIntegrationTester $) async {
 
 /// The background handler `configureDependencies` requires.
 ///
-/// A no-op: the suite never backgrounds the app, because doing so suspends the very
-/// isolate the test runs in. It exists to satisfy the signature, and is annotated
-/// because the real one has to be.
+/// A no-op — backgrounding the app would suspend the isolate the test runs in. It
+/// exists for the signature, and is annotated because the real one must be.
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async =>
     Future.value();

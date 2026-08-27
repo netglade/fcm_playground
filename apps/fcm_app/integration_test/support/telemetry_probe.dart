@@ -9,18 +9,15 @@ const _pollInterval = Duration(seconds: 2);
 
 /// Opens the Telemetry destination from the shell's drawer.
 ///
-/// Called once per test. The poll loop below reloads in place rather than navigating
-/// again, because a fresh visit rebuilds the page's cubit and would discard the list
-/// mid-wait.
+/// Once per test: the poll loop reloads in place, because a fresh visit rebuilds
+/// the cubit and would discard the list mid-wait.
 Future<void> openTelemetry(PatrolIntegrationTester $) async {
   await $(find.byTooltip('Open navigation menu')).tap();
   await $('Telemetry').tap();
 }
 
-/// The card for [traceId], matched on the widget's own field rather than on its text.
-///
-/// The id is rendered in a monospace `Text`, so a text finder would work — but it
-/// would also match the same id anywhere else on the page, and the field cannot lie.
+/// The card for [traceId], matched on the widget's field rather than its text — a
+/// text finder would also match the same id elsewhere on the page.
 Finder cardForTrace(String traceId) => find.byWidgetPredicate(
   (widget) => widget is TraceCard && widget.timeline.traceId == traceId,
   description: 'TraceCard for trace $traceId',
@@ -28,34 +25,20 @@ Finder cardForTrace(String traceId) => find.byWidgetPredicate(
 
 /// The newest trace whose send was refused *by the send this test just made*.
 ///
-/// For a refused send there is no trace id on screen to match — `SendResultCard`
-/// shows the server's error and nothing else — so the newest *rejected* trace is
-/// the handle, not simply the newest trace. Those are not the same thing, for two
-/// distinct reasons, and scoping to `send_failed` alone only rules out the first:
+/// A refused send puts no trace id on screen, so the handle is the newest
+/// *rejected* trace — which is not simply the newest trace, for two reasons.
 ///
-/// 1. **Displacement.** `GET /events` orders traces by wherever their newest event
-///    landed, so a trace already on screen moves back to the front the moment it
-///    gains one — including a `received_fg` or `displayed` from an earlier
-///    scenario's delivery arriving late. `c2_priority_normal` carries a two-minute
-///    timeout precisely because FCM is entitled to hold a normal-priority push
-///    that long, so a delivery from group C can still land while group K is
-///    running. No delivered scenario ever records `send_failed`, so a late
-///    delivery can never push its way in front of a rejected trace here.
-/// 2. **Staleness.** The telemetry SQLite file persists across runs by design, so
-///    without [notBefore] the newest card carrying `send_failed` could be *this
-///    scenario's own trace from a previous run*, or the other rejected scenario's
-///    trace from minutes earlier — if the send under test fails for an unrelated
-///    reason (a dropped `adb reverse`, a timed-out `POST /send`) and produces no
-///    `send_failed` of its own, the stale card still satisfies every assertion.
-///    [notBefore] closes that gap: only a `send_failed` recorded at or after the
-///    instant this test tapped Send can match. [scenarioId] narrows further, for
-///    the case where two rejections land in the same instant — `SandboxCubit.send`
-///    always sets it from `state.selectedScenario?.id`, so it is safe to pass
-///    whenever the caller knows it.
+/// 1. **Displacement.** `GET /events` orders traces by their newest event, so a
+///    late delivery from an earlier scenario moves that trace back to the front.
+///    Scoping to `send_failed` rules this out: no delivered scenario records one.
+/// 2. **Staleness.** The telemetry file persists across runs, so the newest
+///    `send_failed` could be this scenario's own trace from a previous run. If the
+///    send under test then fails for an unrelated reason and records no
+///    `send_failed`, that stale card would satisfy every assertion. [notBefore]
+///    closes it; [scenarioId] narrows further for two rejections in one instant.
 ///
-/// Matched on `timeline.eventOf` and `timeline.scenarioId`, the same underlying
-/// data `EventRow` reads, rather than on rendered text, for the reason
-/// [cardForTrace] gives.
+/// Matched on `timeline.eventOf` and `timeline.scenarioId` rather than rendered
+/// text, for the reason [cardForTrace] gives.
 Finder newestRejectedCard({required DateTime notBefore, String? scenarioId}) =>
     find.byWidgetPredicate(
       (widget) {
@@ -74,10 +57,8 @@ Finder newestRejectedCard({required DateTime notBefore, String? scenarioId}) =>
 
 /// Whether [card] shows an arrived (non-null) event of [type].
 ///
-/// Read off `EventRow.event` rather than off the row's text: the row draws an em dash
-/// for an absence, and matching a dash would be matching a rendering decision. Kept as
-/// its own function, rather than inlined into [arrivedTypes], so the collection-`for`
-/// it is called from does not itself carry the widget-predicate closure.
+/// Read off `EventRow.event`, not the row's text: an absence draws an em dash, and
+/// matching that would be matching a rendering decision.
 bool _hasArrived(Finder card, TelemetryEventType type) => find
     .descendant(
       of: card,
@@ -95,22 +76,21 @@ Set<TelemetryEventType> arrivedTypes(Finder card) => {
     if (_hasArrived(card, type)) type,
 };
 
-/// Reloads until every type in [expected] has arrived on [card], or [timeout] passes.
+/// Reloads until every type in [expected] has arrived on [card], or [timeout]
+/// passes.
 ///
-/// Returns whatever had arrived when it stopped — including on timeout, so the caller
-/// can report the difference instead of a bare "timed out". Polling rather than one
-/// read: `queued` and `sent` are on the server the moment Send returns, but
-/// `received_fg` and `displayed` travel back from the device afterwards.
+/// Returns whatever had arrived, including on timeout, so the caller reports the
+/// difference rather than a bare "timed out". Polling because `queued` and `sent`
+/// are on the server at once, while the arrivals travel back afterwards.
 Future<Set<TelemetryEventType>> awaitArrival(
   PatrolIntegrationTester $, {
   required Finder card,
   required Set<TelemetryEventType> expected,
   required Duration timeout,
 }) async {
-  // `binding.clock` rather than `DateTime.now()`: the binding is the only thing that
-  // knows whether time is real here. Patrol runs under
-  // `IntegrationTestWidgetsFlutterBinding`, whose clock is the real one, so both agree
-  // today — but a plan that reached past the binding would be right by luck.
+  // `binding.clock`, not `DateTime.now()`: only the binding knows whether time is
+  // real here. They agree under Patrol today, but reaching past it would be right
+  // by luck.
   final deadline = $.tester.binding.clock.now().add(timeout);
   while (true) {
     await $(find.byTooltip('Reload')).tap();
@@ -118,12 +98,9 @@ Future<Set<TelemetryEventType>> awaitArrival(
     final arrived = found ? arrivedTypes(card) : <TelemetryEventType>{};
     if (expected.difference(arrived).isEmpty ||
         $.tester.binding.clock.now().isAfter(deadline)) {
-      // Told apart on purpose: "never found" and "found with these rows empty"
-      // are different diagnoses. `EventsTab` is a `ListView` that builds only the
-      // topmost few cards and nothing here scrolls it, so a trace pushed out of
-      // the built range would otherwise read as nothing having been recorded —
-      // even though the caller demonstrably read a trace id off a successful
-      // send moments earlier.
+      // "Never found" and "found but empty" are different diagnoses.
+      // `EventsTab` builds only the topmost cards and nothing scrolls it, so a
+      // trace pushed out of range would otherwise read as nothing recorded.
       if (!found) {
         fail(
           'The TraceCard never appeared in the Events list within $timeout. '
@@ -134,8 +111,8 @@ Future<Set<TelemetryEventType>> awaitArrival(
 
       return arrived;
     }
-    // A real delay, then one frame. `$.pump(duration)` would be the shorter spelling,
-    // but the wait here is for the API and the device rather than for animation.
+    // A real delay, then one frame: the wait is for the API and the device, not
+    // for animation.
     await Future<void>.delayed(_pollInterval);
     await $.pump();
   }
