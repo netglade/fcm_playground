@@ -74,11 +74,18 @@ first frame.
 
 `push_message.dart`, `push_message_format_exception.dart`,
 `push_message_parser.dart` and `notification_action.dart`, all in
-`apps/fcm_app/lib/domains/push`, import nothing but `dart:core`, so the rules
-for what makes a payload valid run under `melos run --no-select test:core` —
-plain `dart test`, no widget, no Flutter binding, no device. `melos run
---no-select test:app` (`flutter test`) covers everything Flutter-shaped, and
-Firebase itself is never started there either:
+`apps/fcm_app/lib/domains/push`, import nothing but `dart:core` and each
+other — the rules for what makes a payload valid need no widget, no Flutter
+binding, no device to check. That used to be enforced by where the four
+files lived, back when they were a separate pure-Dart package; folding that
+package into the app kept the constraint true but took away the thing that
+proved it, so a test now reads each file's own `import` lines and fails if
+any of them names anything outside the set. `apps/fcm_app` being a Flutter
+package also means their tests run under `melos run --no-select test:app`
+(`flutter test`) alongside everything else Flutter-shaped — the root
+`pubspec.yaml` filters `test:core` to packages with `flutter: false`, which
+excludes the app entirely — even though nothing `push_message_parser_test.dart`
+exercises touches Flutter. Firebase itself is never started there either:
 `apps/fcm_app/test/fakes/fake_push_source.dart`
 implements `PushSource` in memory and is what a test hands to the code under
 test, the same way `DisabledPushSource` is what a real device falls back to.

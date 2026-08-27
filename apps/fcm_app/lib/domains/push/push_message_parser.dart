@@ -8,11 +8,14 @@ import 'push_message_format_exception.dart';
 /// here rather than cast blindly.
 ///
 /// This file and its three siblings — [PushMessage], [PushMessageFormatException]
-/// and `notification_action.dart` — depend on nothing but `dart:core`. They used to
-/// live in a separate package, which enforced that; now only this comment does.
-/// Keeping it true is what lets the parsing rules be tested with no device, no
-/// Flutter binding and no Firebase project, and a Flutter import here would quietly
-/// take that away.
+/// and `notification_action.dart` — depend on nothing but `dart:core` and each
+/// other. They used to live in a separate package, which enforced that; now an
+/// import test in `apps/fcm_app/test/domains/push` does, by reading each file's
+/// own `import` lines. Keeping the constraint true costs nothing on its own —
+/// what it buys is that the rules for what makes a payload valid could be
+/// tested with no device, no Flutter binding and no Firebase project, if a
+/// future split ever wanted them isolated again — and a Flutter import here
+/// would quietly take that away.
 class PushMessageParser {
   const PushMessageParser();
 
