@@ -78,7 +78,9 @@ Android and iOS project files. Run the app again and push works.
 ### Running the API
 
 `apps/fcm_api` is a development tool, not a production service: no
-authentication, bound to loopback only.
+authentication, bound to loopback only — see
+[`docs/telemetry.md`](docs/telemetry.md) for why that bind is the only
+thing protecting it.
 
 ```bash
 GOOGLE_APPLICATION_CREDENTIALS=~/.config/fcm-sandbox-service-account.json \

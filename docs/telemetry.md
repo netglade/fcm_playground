@@ -20,6 +20,18 @@ way a scenario's own send does, which is also why none of the catalogue's
 templates carry one baked in — a template with its own `trace_id` would
 collide with the one the API assigns on every send.
 
+## The loopback bind is load-bearing
+
+Being the sole party present for those events also makes `POST /events` an
+unauthenticated *write* into a queryable store — a different risk from a
+stateless relay that just forwards a send. Binding to loopback rather than
+`0.0.0.0` is the only thing standing between anyone on the network and two
+things: forging arrivals for any trace, which corrupts the measurements
+this pipeline exists to produce rather than merely spending someone's FCM
+quota, and reading every trace, device id and label back out through
+`GET /latency`. There is no second layer behind that bind — widening it for
+convenience removes the only protection this data has.
+
 ## Ten events, recorded on both sides
 
 `queued`, `sent`, and `send_failed` come from the API — the last carrying
