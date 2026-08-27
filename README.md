@@ -18,25 +18,6 @@ templates both sides import).
 
 Everything else, melos included, comes from `pub get`.
 
-### Firebase project
-
-The project is `fcm-sandbox-770fa`, recorded in `.firebaserc` and in
-`firebaseProjectId` in `apps/fcm_app/lib/firebase_setup.dart`. `apiKey`,
-`appId` and `messagingSenderId` in `apps/fcm_app/lib/firebase_options.dart`
-ship as placeholders — they are per-app credentials Firebase issues and
-cannot be derived from the project id — so fetch real ones once:
-
-```bash
-npm install -g firebase-tools && firebase login
-fvm dart pub global activate flutterfire_cli
-cd apps/fcm_app && fvm exec flutterfire configure --project=fcm-sandbox-770fa
-```
-
-That overwrites `firebase_options.dart` with real values and wires the
-Android and iOS project files. Until you do this the app still runs: it
-falls back to a disabled push source and shows a banner with the commands
-above, instead of crashing on a Firebase init that cannot succeed.
-
 ### Bootstrap
 
 Run these from the repo root, not from `apps/fcm_app` or `apps/fcm_api` — the
@@ -61,6 +42,13 @@ with `StdinException: Error getting terminal echo mode`.
 cd apps/fcm_app && fvm flutter run
 ```
 
+With no Firebase project configured yet, the app still starts — it falls
+back to a disabled push source and shows a banner explaining what's missing,
+rather than crashing on an initialization that cannot succeed. That fallback
+is not a special case for this banner; it's the same pattern every data
+source in the app follows, and [`docs/architecture.md`](docs/architecture.md)
+is where it's explained properly.
+
 The first Android build needs core library desugaring enabled, or
 `:app:checkDebugAarMetadata` fails with `Dependency
 ':flutter_local_notifications' requires core library desugaring to be
@@ -68,6 +56,24 @@ enabled for :app`. This repo already sets `isCoreLibraryDesugaringEnabled =
 true` and adds `coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")`
 in `android/app/build.gradle.kts`, so a fresh clone builds clean — worth
 knowing if that file ever gets touched.
+
+### Firebase project
+
+The banner above points at the real project, `fcm-sandbox-770fa`, recorded
+in `.firebaserc` and in `firebaseProjectId` in
+`apps/fcm_app/lib/firebase_setup.dart`. `apiKey`, `appId` and
+`messagingSenderId` in `apps/fcm_app/lib/firebase_options.dart` ship as
+placeholders — they are per-app credentials Firebase issues and cannot be
+derived from the project id — so fetch real ones to make the banner go away:
+
+```bash
+npm install -g firebase-tools && firebase login
+fvm dart pub global activate flutterfire_cli
+cd apps/fcm_app && fvm exec flutterfire configure --project=fcm-sandbox-770fa
+```
+
+That overwrites `firebase_options.dart` with real values and wires the
+Android and iOS project files. Run the app again and push works.
 
 ### Running the API
 
