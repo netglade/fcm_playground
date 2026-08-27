@@ -6,15 +6,14 @@ import 'package:fcm_api/src/sqlite_telemetry_store.dart' show useSystemSqlite;
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-/// The production [RunStore]: the same SQLite file the telemetry uses, for the one
-/// thing `InMemoryRunStore` cannot do — outlive the process.
+/// The production [RunStore]: the same SQLite file the telemetry uses, for what
+/// `InMemoryRunStore` cannot do — outlive the process.
 ///
-/// An item is stored as **its own JSON** plus two indexed columns, `due_at` and
-/// `state`, which are the only fields anything queries on. One spelling of the wire
-/// format rather than a column per field, so adding a field to [ScheduledRunItem]
-/// does not mean a migration and a mapper that can disagree with it. The two
-/// duplicated columns are written in the same statement as the JSON they come from,
-/// so they cannot drift from it.
+/// An item is stored as **its own JSON** plus the two columns anything queries on,
+/// `due_at` and `state`. One spelling of the wire format rather than a column per
+/// field, so a new field on [ScheduledRunItem] needs no migration and no mapper
+/// to disagree with. Both columns are written in the same statement as their
+/// JSON, so they cannot drift.
 class SqliteRunStore implements RunStore {
   /// Registers the library-name override before opening — see [useSystemSqlite].
   factory SqliteRunStore.open(String path) {
@@ -24,9 +23,9 @@ class SqliteRunStore implements RunStore {
   }
 
   SqliteRunStore._(this._db) {
-    // Microseconds since the epoch rather than ISO-8601 text, for the reason
-    // `SqliteTelemetryStore` records: text timestamps of differing precision do not
-    // compare in the order they were written, and `due_at <= ?` is a comparison.
+    // Microseconds, not ISO-8601 text, for the reason `SqliteTelemetryStore`
+    // gives: text timestamps of differing precision do not compare in written
+    // order, and `due_at <= ?` is a comparison.
     _db
       ..execute('''
 CREATE TABLE IF NOT EXISTS runs (
@@ -101,9 +100,8 @@ CREATE TABLE IF NOT EXISTS run_items (
       _runFrom(row['id'] as String, row['created_at'] as int),
   ];
 
-  /// One transaction from the read to the writes, which is what [RunStore.claimDue]
-  /// requires: a cancel arriving between the two would otherwise stop an item that
-  /// is already on its way.
+  /// One transaction from read to writes, as [RunStore.claimDue] requires — a
+  /// cancel between the two would stop an item already on its way.
   @override
   Future<List<ClaimedItem>> claimDue(DateTime now) async {
     final claimed = <ClaimedItem>[];
@@ -166,8 +164,8 @@ CREATE TABLE IF NOT EXISTS run_items (
     _db.dispose();
   }
 
-  /// The single writer, so `due_at` and `state` are never written apart from the
-  /// JSON they are copied out of.
+  /// The single writer, so `due_at` and `state` are never written apart from
+  /// their JSON.
   void _writeItem(String runId, ScheduledRunItem item) => _db.execute(
     'INSERT OR REPLACE INTO run_items (run_id, idx, due_at, state, item) '
     'VALUES (?, ?, ?, ?, ?)',
@@ -183,17 +181,14 @@ CREATE TABLE IF NOT EXISTS run_items (
   /// Reads a run's items, skipping any this store cannot parse rather than
   /// failing the whole run — or the whole boot.
   ///
-  /// This table has no migration story (`CREATE TABLE IF NOT EXISTS`) and stores
-  /// each item as its own JSON blob, so a future required field on
-  /// [ScheduledRunItem] would turn every existing row into a permanent
-  /// `FormatException` the moment it is read. That read happens inside
-  /// [unfinished], which `recover()` calls before the server ever starts
-  /// serving — so letting it throw would mean one bad row keeps the process from
-  /// booting at all, forever, until someone edits the database by hand. A
-  /// scheduling tool that starts and reports the row it could not read is worth
-  /// more than one that will not start. Nothing here writes to the database:
-  /// this is a read path, and a skip must not turn into a silent mutation of
-  /// data a human has not looked at yet.
+  /// The table has no migration story, so a future required field on
+  /// [ScheduledRunItem] would make every existing row a permanent
+  /// `FormatException`. That read happens in [unfinished], which `recover()`
+  /// calls before the server serves anything — so throwing would stop the process
+  /// booting at all until someone hand-edits the database.
+  ///
+  /// A skip writes nothing: this is a read path, and it must not quietly mutate
+  /// data nobody has looked at.
   ScheduledRun _runFrom(String id, int createdAtMicros) {
     final items = <ScheduledRunItem>[];
     for (final row in _db.select(
@@ -221,7 +216,6 @@ CREATE TABLE IF NOT EXISTS run_items (
   }
 }
 
-/// Through `fromJson` rather than a mapping of its own, so a hand-edited row is
-/// refused rather than guessed at.
+/// Via `fromJson`, so a hand-edited row is refused rather than guessed at.
 ScheduledRunItem _itemFrom(String json) =>
     ScheduledRunItem.fromJson(jsonDecode(json) as Map<String, Object?>);
