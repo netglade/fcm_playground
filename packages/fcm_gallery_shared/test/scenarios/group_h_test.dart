@@ -39,15 +39,15 @@ void main() {
       ]);
     });
 
-    test('only the two safe iOS interruption levels work today', () {
+    test('h2 and the two safe iOS interruption levels work today', () {
       // hasLength(5) backs the word "two". `isSupported` is just `needs.isEmpty`, so
       // it passes for any blocked entries carrying any needs at all, including ones
       // filed under the wrong sub-project — hence needs pinned exactly.
       expect(groupH, hasLength(5));
 
       const expected = {
-        'h1_dnd_bypass': [ScenarioNeed.channels, ScenarioNeed.externalApproval],
-        'h2_category_alarm': [ScenarioNeed.channels],
+        'h1_dnd_bypass': [ScenarioNeed.externalApproval],
+        'h2_category_alarm': <ScenarioNeed>[],
         'h3_ios_time_sensitive': <ScenarioNeed>[],
         'h4_ios_critical': [ScenarioNeed.externalApproval],
         'h5_ios_passive': <ScenarioNeed>[],
@@ -58,6 +58,7 @@ void main() {
       }
 
       expect(groupH.where((s) => s.isSupported).map((s) => s.id), [
+        'h2_category_alarm',
         'h3_ios_time_sensitive',
         'h5_ios_passive',
       ]);
@@ -139,8 +140,14 @@ void main() {
           isFalse,
           reason: id,
         );
-        expect(scenario.needs, contains(ScenarioNeed.channels), reason: id);
       }
+
+      // h1 still needs the user's notification-policy consent to bypass DND;
+      // h2's alarm category needs nothing further now that the channels exist.
+      expect(
+        scenarioH('h1_dnd_bypass').needs,
+        contains(ScenarioNeed.externalApproval),
+      );
 
       // FCM's data map is map<string, string>, so h2's category rides as a
       // string; the round-trip catches a bare symbol, this names the value.

@@ -55,11 +55,10 @@ const _sendRefused = {TelemetryEventType.queued, TelemetryEventType.sendFailed};
 
 /// Per-scenario expectations, keyed by [Scenario.id].
 ///
-/// Thirty entries: the twenty-six that run on Android plus the four iOS-only
-/// ones, which are written so that unblocking iOS is a skip-policy change
-/// rather than a table rewrite. `b3_killed` and `f5_deeplink_killed` have no
-/// entry on purpose — [skipReasonFor] turns each away before the table is
-/// consulted.
+/// Forty entries: the thirty-six that run on Android plus the four iOS-only
+/// ones, which are written so that unblocking iOS is a skip-policy change rather
+/// than a table rewrite. `b3_killed` and `f5_deeplink_killed` have no entry on
+/// purpose — [skipReasonFor] turns each away before the table is consulted.
 ///
 /// **Derived from reading the code, not from watching a device.** See
 /// `integration_test/CALIBRATION.md` for how to settle it.
@@ -118,6 +117,48 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
   'c4_ttl_long': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+
+  // Group D — the channels. Every one of these delivers and draws; what differs
+  // is the channel it draws through, and telemetry cannot see a channel. What
+  // these assert is that the push arrives and is drawn under the id the payload
+  // named — the importance, the sound and the vibration are read off the
+  // Channels page by a human. See CALIBRATION.md.
+  'd1_importance_high': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  'd2_importance_default': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  // d3, d4 and i1 draw through low and min importance, where no banner pops at
+  // all — and still record `displayed`, because `_show` reports it once
+  // `plugin.show()` returns rather than according to what the user saw. The
+  // table matches the app; it does not mean what a reader might assume.
+  'd3_importance_low': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  'd4_importance_min': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  'd5_custom_sound': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  'd6_vibration_pattern': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  'd7_channel_immutability': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+  'd8_channel_group': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
   ),
@@ -212,9 +253,21 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
     absentEvents: _quiet,
   ),
 
+  // Group H — h2's alarm category is drawn through a channel like any other;
+  // the category itself is not something telemetry can see, so the assertion
+  // is delivery and drawing, same as Group D.
+  'h2_category_alarm': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
+
   // Group I — a silent data sync. Same note as a4_no_display: the row it writes
   // is silent, but the blank tray entry the app also draws is not — the
   // catalogue's copy now says so.
+  'i1_silent_no_sound': ScenarioExpectation(
+    events: _deliveredAndDrawn,
+    absentEvents: _quiet,
+  ),
   'i2_silent_data_sync': ScenarioExpectation(
     events: _deliveredAndDrawn,
     absentEvents: _quiet,
@@ -264,7 +317,7 @@ const Map<String, ScenarioExpectation> scenarioExpectations = {
 String? skipReasonFor(Scenario scenario) {
   if (scenario.needs.isNotEmpty) {
     // `name` rather than a localized label: this is a skip reason in a test
-    // report, not UI. `needs channels, styles` reads as well as the prose did,
+    // report, not UI. `needs interaction, styles` reads as well as the prose did,
     // and the enum name is stable where a translated label would mean building
     // translations inside the Patrol harness for no benefit.
     return 'needs ${scenario.needs.map((need) => need.name).join(', ')}';

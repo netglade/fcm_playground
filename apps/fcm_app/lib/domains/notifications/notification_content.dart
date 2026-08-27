@@ -7,10 +7,6 @@ import '../push/push_message.dart';
 /// draws while the app is backgrounded are heads-up too.
 const notificationChannelId = 'fcm_sample_high';
 
-const notificationChannelName = 'Sample pushes';
-
-const notificationChannelDescription = 'Pushes received by the FCM sample app.';
-
 /// The `data` key that makes a notification undismissable.
 ///
 /// Only the exact string `true` counts. The Sandbox accepts any text a user

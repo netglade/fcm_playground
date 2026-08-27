@@ -3,18 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'di/service_locator.dart';
-import 'domains/notifications/notification_presenter.dart';
-import 'domains/push/push_repository.dart';
-import 'domains/runs/active_run_store.dart';
-import 'domains/runs/run_scheduler.dart';
-import 'domains/runs/start_run.dart';
-import 'domains/sandbox/notification_sender.dart';
-import 'domains/telemetry/push_telemetry.dart';
-import 'domains/telemetry/telemetry_reader.dart';
+import 'domains/domains.dart';
 import 'i18n/translations.g.dart';
-import 'pages/inbox/cubit/inbox_cubit.dart';
-import 'pages/sandbox/cubit/sandbox_cubit.dart';
-import 'pages/shell/app_shell.dart';
+import 'pages/pages.dart';
 
 /// Root widget, and the one place the cubits are created.
 ///
@@ -53,6 +44,9 @@ class App extends StatelessWidget {
       ),
       RepositoryProvider<TelemetryReader>(
         create: (_) => getIt<TelemetryReader>(),
+      ),
+      RepositoryProvider<NotificationChannelReader>(
+        create: (_) => getIt<NotificationChannelReader>(),
       ),
       RepositoryProvider<NotificationPresenter>(
         create: (_) => getIt<NotificationPresenter>(),

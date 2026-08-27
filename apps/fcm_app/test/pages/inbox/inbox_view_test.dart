@@ -1,3 +1,4 @@
+import 'package:fcm_app/domains/notifications/notification_channel_reader.dart';
 import 'package:fcm_app/domains/notifications/notification_presenter.dart';
 import 'package:fcm_app/domains/push/push_repository.dart';
 import 'package:fcm_app/domains/runs/active_run_store.dart';
@@ -22,6 +23,7 @@ import '../../fakes/fake_run_scheduler.dart';
 import '../../fakes/fake_telemetry_reader.dart';
 import '../../fakes/in_memory_active_run_store.dart';
 import '../../fakes/recording_notification_presenter.dart';
+import '../../fakes/fake_channel_reader.dart';
 
 Map<String, Object?> payload({String id = 'msg-1'}) => {
   'id': id,
@@ -69,6 +71,9 @@ void main() {
               ),
               RepositoryProvider<TelemetryReader>.value(
                 value: FakeTelemetryReader(),
+              ),
+              RepositoryProvider<NotificationChannelReader>.value(
+                value: FakeChannelReader([]),
               ),
               RepositoryProvider<NotificationPresenter>.value(value: presenter),
             ],

@@ -63,7 +63,7 @@ void main() {
   testWidgets('flags a scenario that cannot be demonstrated here', (
     tester,
   ) async {
-    final blocked = scenario('d1_importance_high');
+    final blocked = scenario('e1_long_text');
     expect(blocked.isSupported, isFalse, reason: 'the fixture must be blocked');
 
     await pump(tester, blocked);

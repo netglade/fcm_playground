@@ -31,14 +31,14 @@ void main() {
       ]);
     });
 
-    test('only the two data scenarios work today', () {
-      // hasLength(4) backs the word "two". `isSupported` is only `needs.isEmpty`, so
-      // it passes for any blocked entries carrying any needs at all, including ones
-      // filed under the wrong sub-project — hence needs pinned exactly.
+    test('all but the burst scenario work today', () {
+      // hasLength(4) backs the word "burst". `isSupported` is only `needs.isEmpty`,
+      // so it passes for any blocked entries carrying any needs at all, including
+      // ones filed under the wrong sub-project — hence needs pinned exactly.
       expect(groupI, hasLength(4));
 
       const expected = {
-        'i1_silent_no_sound': [ScenarioNeed.channels],
+        'i1_silent_no_sound': <ScenarioNeed>[],
         'i2_silent_data_sync': <ScenarioNeed>[],
         'i3_ios_content_available': <ScenarioNeed>[],
         'i4_burst': [ScenarioNeed.manualStep],
@@ -49,6 +49,7 @@ void main() {
       }
 
       expect(groupI.where((s) => s.isSupported).map((s) => s.id), [
+        'i1_silent_no_sound',
         'i2_silent_data_sync',
         'i3_ios_content_available',
       ]);

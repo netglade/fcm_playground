@@ -69,5 +69,46 @@ void main() {
         expect(payload['body'], '');
       },
     );
+
+    test('carries the channel the notification block names', () {
+      final payload = remoteMessageToPayload(
+        const RemoteMessage(
+          notification: RemoteNotification(
+            title: 'Title',
+            body: 'Body',
+            android: AndroidNotification(channelId: 'importance_low'),
+          ),
+        ),
+      );
+
+      expect(payload, containsPair(pushChannelKey, 'importance_low'));
+    });
+
+    test('omits the channel for a data-only push', () {
+      // Nothing to carry, and a blank would look like a channel named ''.
+      final payload = remoteMessageToPayload(
+        const RemoteMessage(data: {'event': 'sync'}),
+      );
+
+      expect(payload, isNot(contains(pushChannelKey)));
+    });
+
+    test(
+      'lets data win over the notification block, as every other field does',
+      () {
+        final payload = remoteMessageToPayload(
+          const RemoteMessage(
+            notification: RemoteNotification(
+              title: 'Title',
+              body: 'Body',
+              android: AndroidNotification(channelId: 'importance_low'),
+            ),
+            data: {pushChannelKey: 'alarms'},
+          ),
+        );
+
+        expect(payload[pushChannelKey], 'alarms');
+      },
+    );
   });
 }

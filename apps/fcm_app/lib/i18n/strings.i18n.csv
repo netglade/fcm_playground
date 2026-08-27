@@ -14,6 +14,7 @@ drawer.scenarios,Scenarios,Scénáře,Drawer destination
 drawer.sandbox,Sandbox,Sandbox,Drawer destination
 drawer.runs,Runs,Běhy,Drawer destination
 drawer.telemetry,Telemetry,Telemetrie,Drawer destination
+drawer.channels,Channels,Kanály,Drawer destination
 inbox.registration_token,Registration token,Registrační token,Tile above the FCM token
 inbox.clear_notifications,Clear notifications,Vymazat notifikace,"Button that empties the notification tray, leaving the inbox list untouched"
 inbox.empty,No pushes received yet.,Zatím nedorazil žádný push.,Empty state
@@ -287,7 +288,6 @@ scenario_group.h,H — Intrusive and priority,H — Rušivost a priorita,Display
 scenario_group.i,I — Silent and data,I — Tiché a datové,Display name of scenario group I
 scenario_group.j,J — Targeting,J — Cílení,Display name of scenario group J
 scenario_group.k,K — Edge cases and errors,K — Krajní případy a chyby,Display name of scenario group K
-scenario_need.channels,notification channels,notifikační kanály,Label for the channels scenario need
 scenario_need.styles,notification styles,styly notifikací,Label for the styles scenario need
 scenario_need.badge,launcher badge,odznak na ikoně aplikace,Label for the badge scenario need
 scenario_need.targeting,a device registry,registr zařízení,Label for the targeting scenario need
@@ -313,3 +313,40 @@ sandbox.send_blocked.no_token,"No registration token yet, so there is nowhere to
 sandbox.send_blocked.sending,Sending…,Odesílám…,"Reason Send is disabled while this page's own send is in flight; kept apart from reply.sending, which titles a background notification for an unrelated send"
 sandbox.send_blocked.invalid_field,"A field is invalid. The sections marked with an error icon say which.","Některé pole je neplatné. Které, poznáš podle sekcí s ikonou chyby.",Reason Send is disabled: the payload form has an invalid field
 inbox.setup_error,"Stored pushes could not be read: $error","Uložené pushe se nepodařilo načíst: $error",Banner shown when the push store fails to restore its history on launch
+channels.fcm_sample_high.name,Sample pushes,Ukázkové pushe,Android channel name shown in system settings
+channels.fcm_sample_high.description,Pushes received by the FCM sample app.,Pushe přijaté ukázkovou aplikací FCM.,Android channel description shown in system settings
+channels.importance_high.name,Importance: high,Důležitost: vysoká,Android channel name; d1
+channels.importance_high.description,Pops as a banner and makes a sound.,Vyskočí jako banner a zazní.,Android channel description; d1
+channels.importance_default.name,Importance: default,Důležitost: výchozí,Android channel name; d2
+channels.importance_default.description,Makes a sound but does not pop.,"Zazní, ale nevyskočí.",Android channel description; d2
+channels.importance_low.name,Importance: low,Důležitost: nízká,Android channel name; d3 and i1
+channels.importance_low.description,Silent. Appears in the shade only.,Tiše. Objeví se jen v liště.,Android channel description; d3 and i1
+channels.importance_min.name,Importance: min,Důležitost: minimální,Android channel name; d4
+channels.importance_min.description,Collapsed in the shade with no icon.,Sbalená v liště bez ikony.,Android channel description; d4
+channels.custom_sound.name,Custom sound,Vlastní zvuk,Android channel name; d5
+channels.custom_sound.description,Plays a bundled chime instead of the default.,Přehraje přibalený tón místo výchozího.,Android channel description; d5
+channels.vibration_pattern.name,Vibration pattern,Vibrační vzor,Android channel name; d6
+channels.vibration_pattern.description,"Short, pause, short — set when the channel was created.","Krátce, pauza, krátce — nastaveno při vzniku kanálu.",Android channel description; d6
+channels.chat_v1.name,Chat (v1),Chat (v1),"Android channel name; d7. A version tag, so the same in both"
+channels.chat_v1.description,The first attempt. Its importance can no longer be changed.,První pokus. Jeho důležitost už nejde změnit.,Android channel description; d7
+channels.chat_v2.name,Chat (v2),Chat (v2),"Android channel name; d8. A version tag, so the same in both"
+channels.chat_v2.description,The replacement — a new id is the only way to change importance.,Náhrada — nové id je jediná cesta ke změně důležitosti.,Android channel description; d8
+channels.dnd_bypass.name,Do Not Disturb bypass,Obejití režimu Nerušit,Android channel name; h1
+channels.dnd_bypass.description,Requested. Granted only with notification-policy access.,Vyžádáno. Uděleno jen s přístupem k zásadám oznámení.,Android channel description; h1
+channels.alarms.name,Alarms,Budíky,Android channel name; h2
+channels.alarms.description,Uses the alarm audio stream rather than the notification one.,Používá zvukový kanál budíku místo oznámení.,Android channel description; h2
+channels.group.chat.name,Chat,Chat,"Android channel group heading; d8. A product word, so the same in both"
+channels.title,Notification channels,Kanály oznámení,AppBar title on the Channels page
+channels.requested,Requested,Vyžádáno,"Column heading: what the app asked Android for"
+channels.reported,Reported by the system,Hlášeno systémem,"Column heading: what Android answered"
+channels.not_registered,Not registered,Neregistrováno,Shown when the system holds no channel with this id
+channels.importance,Importance,Důležitost,Row label on a channel card
+channels.sound,Sound,Zvuk,Row label on a channel card
+channels.default_sound,Default,Výchozí,Shown for a reported sound that is the platform default rather than something this app requested
+channels.vibration,Vibration,Vibrace,Row label on a channel card
+channels.bypass_dnd,Bypasses Do Not Disturb,Obchází Nerušit,Row label on a channel card
+channels.group_label,Group,Skupina,"Row label on a channel card; not channels.group.chat.name, which already exists as a nested key for the group heading"
+channels.badge,Shows a badge,Zobrazuje odznak,Row label on a channel card
+channels.try_lower,Try to lower it,Zkusit snížit,"Button on chat_v1; performs d7 by asking Android to change a frozen importance"
+channels.immutability_hint,Importance is frozen when a channel is created. Press this and watch the reported value stay put — pressing it also cancels any notification currently on screen for this channel.,"Důležitost se zmrazí při vzniku kanálu. Zmáčkni a sleduj, že se hlášená hodnota nehne — stisknutím se ale zruší i oznámení, které pro tento kanál právě visí v liště.",Explains what the d7 button does; also warns that pressing it cancels the notification currently shown for this channel
+channels.refresh,Refresh,Načíst znovu,AppBar action on the Channels page

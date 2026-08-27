@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fcm_app/i18n/scenario_text.dart';
 import 'package:fcm_app/i18n/translations.g.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
@@ -74,6 +76,49 @@ void main() {
       for (final need in ScenarioNeed.values) {
         expect(en.scenarioNeedLabel(need), isNotEmpty, reason: need.name);
       }
+    });
+
+    // Closes the guard above from the other direction. That one catches an enum
+    // value with no CSV row; this one catches the opposite — a CSV row with no
+    // enum value, which nothing else calls and so nothing else fails on. This is
+    // exactly how `scenario_need.channels` outlived the `channels` enum value it
+    // labelled once every scenario stopped naming it. Reads the CSV directly,
+    // the same way csv_coverage_test.dart does, rather than through the
+    // generated flat map, which is a private extension on `Translations` and not
+    // reachable from here.
+    test('every scenario_need CSV row still names a live ScenarioNeed', () {
+      final lines = File('lib/i18n/strings.i18n.csv').readAsLinesSync();
+      // Underscores included on purpose: the CSV spells these keys both ways —
+      // `manualStep` beside `native_code` — because slang's `key_case: snake`
+      // normalises either to the same generated key, so both spellings work and
+      // both have been used. A pattern that stopped at the underscore would skip
+      // the snake_case rows silently, which is the failure this test exists to
+      // catch rather than commit.
+      final needPattern = RegExp(r'^scenario_need\.([A-Za-z0-9_]+),');
+      final rowNames = <String>{};
+      for (final line in lines) {
+        final match = needPattern.firstMatch(line);
+        if (match != null) rowNames.add(match.group(1)!);
+      }
+
+      // Compared against both spellings for the same reason.
+      final enumNames = {
+        for (final need in ScenarioNeed.values) ...{
+          need.name,
+          need.name.replaceAllMapped(
+            RegExp('[A-Z]'),
+            (m) => '_${m.group(0)!.toLowerCase()}',
+          ),
+        },
+      };
+
+      expect(
+        rowNames.difference(enumNames),
+        isEmpty,
+        reason:
+            'a scenario_need.* row names no live ScenarioNeed — delete the '
+            'row and regenerate',
+      );
     });
 
     // These came from Dart literals until the previous task and now come from CSV

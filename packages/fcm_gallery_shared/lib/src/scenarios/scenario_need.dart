@@ -1,15 +1,16 @@
 /// What a scenario needs, beyond a payload, before it demonstrates anything.
 ///
-/// Most values are a planned sub-project, so "which scenarios does the channels work
+/// Most values are a planned sub-project, so "which scenarios does the styles work
 /// unblock?" is a filter rather than a search through prose. Two values are
 /// exceptions, for different reasons: [externalApproval] is permanently outside
 /// this project's control, while [nativeCode] names something this project has
 /// decided never to build.
+///
+/// A value no scenario names any more has finished its sub-project and is retired
+/// from here rather than left to sit unused — `interaction` and `channels` both
+/// left this way. `scenario_gallery_test.dart` enforces that: an unused value
+/// fails the suite until someone removes it.
 enum ScenarioNeed {
-  /// Several notification channels, their importance, and a screen that reads
-  /// that importance back from the system.
-  channels,
-
   /// Local notification styles: big picture, big text, inbox, messaging,
   /// progress, large icon.
   styles,

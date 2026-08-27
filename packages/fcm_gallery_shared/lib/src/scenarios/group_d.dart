@@ -1,5 +1,4 @@
 import 'scenario.dart';
-import 'scenario_need.dart';
 
 /// **D — Channels and importance.** What the user, not the sender, controls.
 ///
@@ -22,7 +21,6 @@ const groupD = <Scenario>[
         'notification': {'channel_id': 'importance_high'},
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'd2_importance_default',
@@ -34,7 +32,6 @@ const groupD = <Scenario>[
         'notification': {'channel_id': 'importance_default'},
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'd3_importance_low',
@@ -46,7 +43,6 @@ const groupD = <Scenario>[
         'notification': {'channel_id': 'importance_low'},
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'd4_importance_min',
@@ -58,7 +54,6 @@ const groupD = <Scenario>[
         'notification': {'channel_id': 'importance_min'},
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'd5_custom_sound',
@@ -70,7 +65,6 @@ const groupD = <Scenario>[
         'notification': {'channel_id': 'custom_sound', 'sound': 'chime'},
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'd6_vibration_pattern',
@@ -86,7 +80,6 @@ const groupD = <Scenario>[
         },
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'd7_channel_immutability',
@@ -98,7 +91,6 @@ const groupD = <Scenario>[
         'notification': {'channel_id': 'chat_v1'},
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'd8_channel_group',
@@ -110,6 +102,5 @@ const groupD = <Scenario>[
         'notification': {'channel_id': 'chat_v2'},
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
 ];

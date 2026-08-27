@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../../i18n/channel_text.dart';
+import '../../../i18n/translations.g.dart';
 import '../push/push_message.dart';
 import 'notification_content.dart';
 import 'notification_group_store.dart';
@@ -98,8 +100,8 @@ Future<void> postGroupSummary(
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           notificationChannelId,
-          notificationChannelName,
-          channelDescription: notificationChannelDescription,
+          t.channelName(notificationChannelId),
+          channelDescription: t.channelDescription(notificationChannelId),
           importance: Importance.high,
           priority: Priority.high,
           groupKey: group,

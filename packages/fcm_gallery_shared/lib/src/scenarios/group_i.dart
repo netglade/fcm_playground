@@ -6,10 +6,9 @@ import 'scenario_need.dart';
 /// The distinction that matters here is *visible but quiet* versus *no text to
 /// read*: i1 posts a real banner through a low-importance channel, while i2's
 /// payload carries no title or body, so what appears is a blank tray entry
-/// rather than a wholly absent one. The first is a channel-importance question
-/// and so is blocked; the second is just a `data` payload and works today. i4 is
-/// the odd one out: twenty pushes in ten seconds is about rate limiting, and
-/// MIUI in particular will start dropping them.
+/// rather than a wholly absent one. i4 is the odd one out: twenty pushes in ten
+/// seconds is about rate limiting, and MIUI in particular will start dropping
+/// them.
 const groupI = <Scenario>[
   Scenario(
     id: 'i1_silent_no_sound',
@@ -21,7 +20,6 @@ const groupI = <Scenario>[
         'notification': {'channel_id': 'importance_low'},
       },
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'i2_silent_data_sync',

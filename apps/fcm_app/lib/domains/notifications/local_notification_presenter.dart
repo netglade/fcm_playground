@@ -1,17 +1,16 @@
+import '../push/push_message.dart';
+import '../push/push_tap.dart';
 import 'dart:async';
-
+import 'notification_channels.dart';
+import 'notification_content.dart';
+import 'notification_details_builder.dart';
+import 'notification_group_store.dart';
+import 'notification_group_summary.dart';
+import 'notification_presenter.dart';
+import 'notification_reply.dart';
 import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import '../push/push_message.dart';
-import '../push/push_tap.dart';
-import 'notification_content.dart';
-import 'notification_group_store.dart';
-import 'notification_presenter.dart';
-import 'notification_details_builder.dart';
-import 'notification_group_summary.dart';
-import 'notification_reply.dart';
 import 'shared_preferences_notification_group_store.dart';
 
 /// A [NotificationPresenter] over `flutter_local_notifications`, needed only
@@ -74,18 +73,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
       onDidReceiveBackgroundNotificationResponse: onNotificationReply,
     );
 
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(
-          const AndroidNotificationChannel(
-            notificationChannelId,
-            notificationChannelName,
-            description: notificationChannelDescription,
-            importance: Importance.high,
-          ),
-        );
+    await registerNotificationChannels(_plugin);
 
     // Last, so the channel exists and both streams are live before a press that
     // started the process is announced on them.

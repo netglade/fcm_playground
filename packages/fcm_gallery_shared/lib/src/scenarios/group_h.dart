@@ -20,7 +20,7 @@ const groupH = <Scenario>[
         'notification': {'channel_id': 'dnd_bypass'},
       },
     },
-    needs: [ScenarioNeed.channels, ScenarioNeed.externalApproval],
+    needs: [ScenarioNeed.externalApproval],
   ),
   Scenario(
     id: 'h2_category_alarm',
@@ -34,7 +34,6 @@ const groupH = <Scenario>[
       },
       'data': {'category': 'alarm'},
     },
-    needs: [ScenarioNeed.channels],
   ),
   Scenario(
     id: 'h3_ios_time_sensitive',

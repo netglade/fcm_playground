@@ -52,26 +52,26 @@ void main() {
       );
     });
 
-    test('runs twenty-six scenarios and skips forty of sixty-six', () {
+    test('runs thirty-six scenarios and skips thirty of sixty-six', () {
       final running = scenarioGallery.where((s) => skipReasonFor(s) == null);
 
       // Pinned to literals because the split is a claim the spec makes, and drift
       // in either direction is what is worth catching: a scenario becoming
       // unblocked should show up here rather than be absorbed silently.
       expect(scenarioGallery, hasLength(66));
-      expect(running, hasLength(26));
-      expect(scenarioGallery.length - running.length, 40);
+      expect(running, hasLength(36));
+      expect(scenarioGallery.length - running.length, 30);
     });
 
     test('a blocked scenario is skipped for its own need, named in words', () {
       final blocked = scenarioGallery.firstWhere(
-        (s) => s.needs.contains(ScenarioNeed.channels),
+        (s) => s.needs.contains(ScenarioNeed.styles),
       );
 
       // The reason comes from ScenarioNeed.name now — a stable enum name rather
       // than a localized label, which is right for a test report but means the
       // word here is the bare enum member, not the prose the UI shows.
-      expect(skipReasonFor(blocked), contains('channels'));
+      expect(skipReasonFor(blocked), contains('styles'));
     });
 
     test('an iOS-only scenario is skipped, naming the platform', () {
@@ -122,12 +122,12 @@ void main() {
       }
     });
 
-    test('thirty-four scenarios are skipped for an unbuilt ScenarioNeed', () {
+    test('twenty-four scenarios are skipped for an unbuilt ScenarioNeed', () {
       final blockedByNeed = scenarioGallery.where(
         (s) => _skipBucket(s) == 'needs',
       );
 
-      expect(blockedByNeed, hasLength(34));
+      expect(blockedByNeed, hasLength(24));
     });
 
     test('four scenarios are skipped for being iOS-only', () {
@@ -148,7 +148,7 @@ void main() {
       expect(appKillOnly.map((s) => s.id), ['b3_killed', 'f5_deeplink_killed']);
     });
 
-    test('the skip buckets add up to forty, with none unclassified', () {
+    test('the skip buckets add up to thirty, with none unclassified', () {
       final needsCount = scenarioGallery
           .where((s) => _skipBucket(s) == 'needs')
           .length;
@@ -171,14 +171,14 @@ void main() {
       expect(unclassified, isEmpty);
 
       // The buckets must not drift apart from the totals the file already
-      // pins above: 34 + 4 + 2 is the 40 skipped, and 40 + 26 is the
+      // pins above: 24 + 4 + 2 is the 30 skipped, and 30 + 36 is the
       // catalogue's 66.
       expect(
         needsCount + iosCount + appKillCount + unclassified.length,
         skippedCount,
       );
-      expect(skippedCount, 40);
-      expect(skippedCount + 26, 66);
+      expect(skippedCount, 30);
+      expect(skippedCount + 36, 66);
     });
 
     test('a rejected send expects nothing device-side', () {
