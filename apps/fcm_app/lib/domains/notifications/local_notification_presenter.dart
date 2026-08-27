@@ -13,9 +13,8 @@ import 'package:fcm_gallery_shared/fcm_gallery_shared.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-/// A [NotificationPresenter] over `flutter_local_notifications`, needed only
-/// because Android shows nothing for a message that arrives while the app is in
-/// use.
+/// A [NotificationPresenter] over `flutter_local_notifications`, needed because
+/// Android draws nothing for a push arriving while the app is on screen.
 class LocalNotificationPresenter implements NotificationPresenter {
   LocalNotificationPresenter({
     FlutterLocalNotificationsPlugin? plugin,
@@ -27,33 +26,25 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   final FlutterLocalNotificationsPlugin _plugin;
 
-  /// Injected so the tests can say which state a press arrived in. There is no
+  /// Injected so tests can say which state a press arrived in — there is no
   /// other way to drive `WidgetsBinding`'s lifecycle from a unit test.
   final AppLifecycleState Function() _lifecycleState;
 
-  /// The same store [postGroupSummary] writes to, so [clearAll] can forget what
-  /// it forgot to draw.
+  /// The store [postGroupSummary] writes to, so [clearAll] can forget it too.
   final NotificationGroupStore _groups;
 
   // Single-subscription, not broadcast: initialize() emits the launching press
-  // before anything subscribes, and a broadcast controller discards events added
-  // while nothing is listening. Each is consumed by exactly one subscriber
-  // either way, so single-subscription costs nothing.
+  // before anything subscribes, and a broadcast controller would discard it.
+  // Each has exactly one subscriber anyway.
   final _taps = StreamController<PushTap>();
   final _dismissals = StreamController<String>();
 
   /// The press that launched the app, remembered only until the next response.
   ///
-  /// The plugin documents `getNotificationAppLaunchDetails` as the route for a
-  /// notification that started the process and `onDidReceiveNotificationResponse`
-  /// as the route for one pressed while it was already running. Not reproducible
-  /// on the pinned Android plugin version — `didReceiveNotificationResponse` is
-  /// invoked only from `onNewIntent`, and `onAttachedToActivity` deliberately does
-  /// not re-dispatch the launch intent — so this is insurance against a future
-  /// plugin version re-delivering the launching press through both routes, not a
-  /// workaround for something observed. Two `opened` events for one press would
-  /// be a telemetry bug, so the first response matching this is dropped, however
-  /// much later it arrives.
+  /// Insurance, not a fix for an observed bug: the pinned plugin version reports
+  /// a launching press through one route only. Should a future version deliver
+  /// it through both, two `opened` events for one press would be a telemetry
+  /// bug, so the first matching response is dropped however late it arrives.
   ({String id, String? actionId})? _launchResponse;
 
   @override
@@ -75,14 +66,12 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
     await registerNotificationChannels(_plugin);
 
-    // Last, so the channel exists and both streams are live before a press that
-    // started the process is announced on them.
+    // Last, so the channel exists and both streams are live before a launching
+    // press is announced on them.
     //
-    // Caught locally rather than left to propagate: a throw here would reach
-    // `_startPresenter`, which reacts to *any* failure of `initialize()` by
-    // discarding this presenter for a `SilentNotificationPresenter` — no banners
-    // for the rest of the session. A launch press this call cannot read is one
-    // lost tap, not a reason to go silent for everything that follows.
+    // Caught locally: a throw would reach `_startPresenter`, which answers any
+    // `initialize()` failure by swapping in a silent presenter — no banners for
+    // the whole session. An unreadable launch press is one lost tap, not that.
     try {
       handleLaunchDetails(await _plugin.getNotificationAppLaunchDetails());
     } on Object catch (error) {
@@ -97,8 +86,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
       title: message.title,
       body: message.body,
       notificationDetails: buildNotificationDetails(message),
-      // The payload is the message id, which is how a tap resolves back to a
-      // message the inbox already holds.
+      // The message id — how a tap resolves back to a held message.
       payload: message.id,
     );
     await postGroupSummary(message, plugin: _plugin, store: _groups);
@@ -106,25 +94,24 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   @override
   Future<void> clearAll() async {
-    // The plugin call first: if it throws, the store still describes what the
-    // tray still shows, which is the truthful order.
+    // Plugin first: if it throws, the store still describes what the tray
+    // shows.
     await _plugin.cancelAll();
     await _groups.clear();
   }
 
   @override
   Future<void> dispose() async {
-    // Not awaited: a single-subscription controller's close() future only
-    // completes once a listener has received the done event, and dispose can run
-    // before anything ever subscribes. Closing still stops further adds.
+    // Unawaited: close() only completes once a listener takes the done event,
+    // and dispose can run before anything subscribes. It still stops adds.
     unawaited(_taps.close());
     unawaited(_dismissals.close());
   }
 
   /// Routes one plugin response to the stream it belongs on.
   ///
-  /// Visible for testing because this is where the tap/dismissal distinction lives, and
-  /// the plugin hands it to us through a callback there is otherwise no way to invoke.
+  /// Visible for testing: the tap/dismissal distinction lives here, and the
+  /// plugin only supplies it through an uninvokable callback.
   @visibleForTesting
   void handleResponse(NotificationResponse response) {
     if (response.payload case final id? when id.isNotEmpty) {
@@ -135,12 +122,10 @@ class LocalNotificationPresenter implements NotificationPresenter {
         return;
       }
 
-      // Consumed by the first response either way, whenever it arrives: the
-      // guard is a one-shot check against `(id, actionId)`, not a check against
-      // *when* the response came in. `cancelNotification: true` makes a genuine
-      // re-press of the same button nearly unreachable, so in practice this
-      // drops the echo and nothing else — but that is a consequence of the
-      // guard, not what it tests for.
+      // A one-shot check on `(id, actionId)`, not on timing, so the first
+      // matching response is consumed whenever it arrives. In practice that is
+      // only ever the echo, since `cancelNotification: true` makes a genuine
+      // re-press nearly unreachable.
       if (_launchResponse case final launch?) {
         _launchResponse = null;
         if (launch.id == id && launch.actionId == response.actionId) {
@@ -148,9 +133,8 @@ class LocalNotificationPresenter implements NotificationPresenter {
         }
       }
 
-      // The state has to be read, not assumed: since the background isolate
-      // draws through the same builder, a press can reach this callback with the
-      // app off screen.
+      // Read, not assumed: the background isolate draws through the same
+      // builder, so a press can arrive with the app off screen.
       final from = _lifecycleState() == AppLifecycleState.resumed
           ? OpenedFrom.foreground
           : OpenedFrom.background;
@@ -160,12 +144,12 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   /// Reports the press that started the process, if one did.
   ///
-  /// Called once from [initialize]. The mirror of `FirebasePushSource`'s
-  /// `getInitialMessage()` — and the only route for these scenarios, because a
-  /// data-only payload never reaches `getInitialMessage` at all.
+  /// Called once from [initialize]. Mirrors `FirebasePushSource`'s
+  /// `getInitialMessage()`, and is the only route for a data-only payload, which
+  /// never reaches that method at all.
   ///
-  /// Visible for testing because the plugin supplies the details through a
-  /// method there is otherwise no way to drive.
+  /// Visible for testing: the plugin supplies the details through an undrivable
+  /// method.
   @visibleForTesting
   void handleLaunchDetails(NotificationAppLaunchDetails? details) {
     if (details == null || !details.didNotificationLaunchApp) {
@@ -185,8 +169,7 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
 /// The binding's view of the app state, defaulting to resumed.
 ///
-/// Null before the first lifecycle event reaches the binding. Foreground is the
-/// honest reading there: it is what this presenter claimed unconditionally until
-/// now, and an unknown state must not fabricate a background open.
+/// Null before the first lifecycle event. Foreground is the honest reading: an
+/// unknown state must not fabricate a background open.
 AppLifecycleState _bindingLifecycleState() =>
     WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;

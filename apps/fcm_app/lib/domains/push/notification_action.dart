@@ -1,8 +1,7 @@
 /// The `data` key a payload names its action buttons in.
 ///
-/// A convention of this project rather than an FCM field: FCM has no way to
-/// express an action button, so the buttons ride in `data` and the client builds
-/// them.
+/// This project's convention, not an FCM field — FCM cannot express a button,
+/// so they ride in `data` and the client builds them.
 const notificationActionsKey = 'actions';
 
 /// Android shows a fourth action only by overflowing, which reads as a bug in a
@@ -18,12 +17,10 @@ class NotificationAction {
 
   final String label;
 
-  /// Whether pressing this action opens a text field in the notification rather
-  /// than opening the app.
+  /// Whether pressing this opens a text field in the notification instead of
+  /// opening the app.
   ///
-  /// Defaulted so every existing construction keeps its meaning: an action that
-  /// says nothing about input is a plain button, which is what all of them were
-  /// before inline reply existed.
+  /// Defaulted: an action saying nothing about input is a plain button.
   final bool takesInput;
 
   @override
@@ -43,14 +40,11 @@ class NotificationAction {
 
 /// Parses the `|`-separated `id:Label[:input]` list in [raw].
 ///
-/// The optional third field marks an action as taking typed input rather than
-/// just being pressed: it is a flag only when the segment trailing the last
-/// colon trims to exactly `input`, so a label may still contain a colon of its
-/// own, as it always could.
+/// The third field marks an action as taking typed input, and counts as a flag
+/// only when it trims to exactly `input` — so a label may still contain a colon.
 ///
-/// Never throws. A missing key, a malformed pair, or a repeated id costs the
-/// caller that button and nothing else: a payload typed by hand in the Sandbox
-/// must not lose its notification to a typo in one field.
+/// Never throws: a missing key, malformed pair or repeated id costs that button
+/// alone. A Sandbox payload must not lose its notification to one typo.
 List<NotificationAction> parseNotificationActions(String? raw) {
   if (raw == null || raw.trim().isEmpty) {
     return const [];
@@ -69,11 +63,10 @@ List<NotificationAction> parseNotificationActions(String? raw) {
     // separates the id from it.
     var label = entry.substring(separator + 1).trim();
 
-    // The trailing segment is a flag only when it is exactly `input`. Anything
-    // else is part of the label, which is what keeps `open:Open: build 128`
-    // working — the case P1 pinned by test. A label genuinely ending in
-    // `:input` is unreachable as a result; an escape syntax would tax every
-    // payload to buy a case nobody has.
+    // A flag only when exactly `input`; anything else belongs to the label,
+    // which keeps `open:Open: build 128` working. A label truly ending in
+    // `:input` is unreachable — an escape syntax would tax every payload for a
+    // case nobody has.
     final flagAt = label.lastIndexOf(':');
     final takesInput =
         flagAt >= 0 && label.substring(flagAt + 1).trim() == 'input';
@@ -96,9 +89,8 @@ List<NotificationAction> parseNotificationActions(String? raw) {
 
 /// The label [raw] gave [id], or [id] itself when it names no such action.
 ///
-/// The fallback is load-bearing: a press is stored against the message and read
-/// back later, by which time the payload may name different buttons — or the id
-/// may have come from a Sandbox payload nobody kept.
+/// The fallback is load-bearing: a press is read back later, when the payload
+/// may name different buttons, or none that were kept.
 String notificationActionLabel(String? raw, String id) {
   for (final action in parseNotificationActions(raw)) {
     if (action.id == id) {

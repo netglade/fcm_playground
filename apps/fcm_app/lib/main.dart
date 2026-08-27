@@ -17,21 +17,17 @@ import 'package:glade_forms/glade_forms.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Every GladeModel built below depends on this having run, and it has to run
-  // exactly once, before the first one exists.
+  // Every GladeModel below needs this, exactly once, before the first exists.
   GladeForms.initialize();
 
-  // Ahead of configureDependencies, not just ahead of the first frame: a channel's
-  // name and description are frozen the moment Android first creates it, and
-  // configureDependencies is what builds LocalNotificationPresenter, whose
-  // initialize() registers every channel. If the locale were still whatever slang
-  // defaults to (the base locale, English) when that happens, a fresh install would
-  // get English channel names forever, regardless of the language the user picked —
-  // the block at the bottom of this function that reads the real preference would
-  // already be too late. This early call does not need getIt: unlike that later
-  // block, it reads the locale store directly. The later block still has to run —
-  // it also subscribes to device locale changes, which this one-shot restore
-  // deliberately does not.
+  // Ahead of configureDependencies, not merely ahead of the first frame:
+  // channel names freeze when Android first creates them, and
+  // configureDependencies is what registers the channels. Leave the locale at
+  // slang's English default until then and a fresh install keeps English
+  // channel names forever. Reads the store directly, so it needs no getIt.
+  //
+  // The block at the end of this function still has to run — it also subscribes
+  // to device locale changes, which this one-shot restore does not.
   await restoreStoredLocale();
 
   await configureDependencies(onBackgroundMessage: _onBackgroundMessage);
@@ -40,28 +36,26 @@ Future<void> main() async {
   final repository = getIt<PushRepository>()..listen();
   await repository.restore();
   await repository.refreshToken();
-  // Sends what the background isolate buffered while the app was not running:
-  // those arrivals deliberately did not flush themselves. Not awaited — the first
-  // frame does not wait for a network round trip.
+  // Sends what the background isolate buffered: those arrivals deliberately did
+  // not flush themselves. Unawaited — the first frame waits for no network.
   unawaited(_flushQuietly(telemetry));
 
-  // Both channels mean the same thing to the repository: FCM reports taps on the
-  // tray entries it drew itself, the presenter reports taps on the banners the app
-  // posted while in the foreground. Each labels its own, which is why the repository
-  // can say which state an `opened` came from.
+  // Two routes, one meaning: FCM reports taps on tray entries it drew, the
+  // presenter on banners the app drew. Each labels its own, which is how the
+  // repository knows which state an `opened` came from.
   getIt<PushSource>().taps.listen(
     (tap) => repository.requestOpen(tap.id, tap.from, actionId: tap.actionId),
   );
   getIt<NotificationPresenter>().taps.listen(
     (tap) => repository.requestOpen(tap.id, tap.from, actionId: tap.actionId),
   );
-  // Only the presenter has dismissals: FCM's own tray entries were never posted
-  // through the plugin, so nothing reports when one of those is swiped away.
+  // Only the presenter has dismissals — FCM's tray entries never went through
+  // the plugin, so a swipe on one reports nothing.
   getIt<NotificationPresenter>().dismissals.listen(repository.reportDismissed);
 
-  // Applied before the first frame so the app never flashes English on its way to
-  // the stored language. `useDeviceLocaleSync` is what "follow the system" means:
-  // slang picks the closest supported locale and keeps listening for device changes.
+  // Before the first frame, so the app never flashes English on the way to the
+  // stored language. `useDeviceLocaleSync` is "follow the system": closest
+  // supported locale, and it keeps listening for device changes.
   final storedLocale = await getIt<LocaleStore>().read();
   if (storedLocale == null) {
     LocaleSettings.useDeviceLocaleSync();
@@ -80,24 +74,20 @@ Future<void> _flushQuietly(PushTelemetry telemetry) async {
   }
 }
 
-/// Handles pushes that arrive while the app is backgrounded or terminated.
+/// Handles pushes arriving while the app is backgrounded or terminated.
 ///
-/// Must be a top-level function, and annotated so AOT compilation keeps it
-/// reachable from the background isolate. It persists, records, and — for a
-/// data-only payload, which FCM does not draw — draws the notification itself.
-/// That is what lets an action button exist at all: an FCM-drawn tray entry
-/// cannot carry one. Only ever runs for a payload carrying `data`; a
-/// notification-only push never wakes this handler.
+/// Top-level and annotated, so AOT keeps it reachable. It persists, records,
+/// and draws data-only payloads itself — which is the only way an action button
+/// can exist, since an FCM-drawn tray entry cannot carry one. Runs only for a
+/// payload carrying `data`.
 ///
-/// Everything here is built by hand: this runs in its own isolate, so
-/// `configureDependencies` has not run and a `getIt` lookup would throw.
-/// Configuring a locator here instead would build a presenter, a sender and a
-/// repository this handler must never use, and start Firebase Messaging's
-/// listeners in an isolate that is about to be killed.
+/// Everything is built by hand: `configureDependencies` has not run here, so
+/// `getIt` would throw. Running it instead would build collaborators this
+/// handler must never use and start listeners in a dying isolate.
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
-  // This isolate has its own memory and its own plugin registry, so both need
-  // setting up before shared_preferences can be reached.
+  // Own memory, own plugin registry — both need setting up before
+  // shared_preferences is reachable.
   DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -112,16 +102,15 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
       );
       drawn = true;
     } on Object catch (error) {
-      // A malformed payload or a failing plugin costs the notification, not the
-      // record of the arrival that is about to be written below.
+      // A bad payload or failing plugin costs the notification, not the record
+      // of the arrival written below.
       debugPrint('No background notification for ${message.messageId}: $error');
     }
   }
 
-  // Recorded and deliberately not flushed: this isolate can be killed at any
-  // moment, so a request in flight would lose the event it was carrying. Closed
-  // either way, so a handset that wakes for twenty pushes does not leave twenty
-  // connections to the file open.
+  // Recorded, deliberately not flushed: this isolate can die mid-request and
+  // lose the event. Closed either way, so twenty wakes do not leave twenty
+  // open connections.
   final buffer = openTelemetryBuffer();
   if (buffer == null) {
     return;

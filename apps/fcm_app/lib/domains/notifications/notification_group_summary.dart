@@ -6,10 +6,10 @@ import 'package:fcm_app/i18n/i18n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-/// [groups] with [messageId] recorded in [group], unchanged if it is already there.
+/// [groups] with [messageId] recorded in [group], unchanged if already there.
 ///
-/// Pure so the membership rule can be tested without a plugin: the posting around
-/// it cannot be.
+/// Pure, so the membership rule is testable without a plugin — the posting
+/// around it is not.
 Map<String, List<String>> withMemberAdded(
   Map<String, List<String>> groups,
   String group,
@@ -28,31 +28,21 @@ Map<String, List<String>> withMemberAdded(
 
 /// What the summary row says.
 ///
-/// The group name is the sender's word and is used as given: the app has no way
-/// to know its singular, and guessing one would be wrong more often than right.
+/// The group name is used as the sender gave it — the app cannot know its
+/// singular, and guessing would be wrong more often than not.
 String groupSummaryText(int count, String group) => '$count $group';
 
 /// Records [message] in its group and redraws that group's summary.
 ///
-/// Called by both drawing paths immediately after the notification itself is
-/// drawn — the foreground presenter and the background isolate — so a summary
-/// never appears in one state and not the other. [plugin] is injectable so each
-/// caller can pass the instance already initialised in its own isolate, and both
-/// do. [store] is injectable for the same shape: `LocalNotificationPresenter`
-/// passes the same store it hands `clearAll`, so a Clear also forgets what this
-/// call recorded; the background isolate has no such instance to share and
-/// still lets this default to its own, which is fine because both write the
-/// same key. There is still no test seam over the posting itself, which is
-/// covered by inspection and the manual checklist.
+/// Called by both drawing paths right after the notification itself, so a
+/// summary never appears in one app state and not the other. [plugin] and
+/// [store] are injectable so each caller can pass the instance its own isolate
+/// already has; the background isolate has none and defaults, which is safe
+/// because both write the same key. The posting itself has no test seam.
 ///
-/// A summary is a convenience over the notification it accompanies, not the
-/// notification itself, so every fallible step here — loading the group store,
-/// saving it, drawing the summary row — is caught and logged rather than left to
-/// throw. Both callers await [message]'s own notification before this runs, and
-/// both treat any exception from the function they call as proof that nothing
-/// was drawn, skipping the `displayed` telemetry event for a notification that
-/// in fact appeared. Letting a failure here escape would make this function's
-/// own trouble look like that notification's trouble.
+/// Every fallible step is caught and logged rather than thrown: the callers
+/// read any exception as "nothing was drawn" and skip the `displayed` event, so
+/// a failure escaping here would be blamed on a notification that did appear.
 ///
 /// Does nothing for a message naming no group.
 Future<void> postGroupSummary(
@@ -73,8 +63,7 @@ Future<void> postGroupSummary(
     'Could not load notification groups while posting the summary for "$group"',
   );
   if (!didLoad) {
-    // Nothing to add the message to and no known count to show, so there is
-    // nothing safe left for this call to do.
+    // No group to join and no count to show — nothing safe left to do.
     return;
   }
 
@@ -86,12 +75,11 @@ Future<void> postGroupSummary(
   );
 
   await _attempt(
-    // The saved count and the drawn count can disagree if the save above just
-    // failed — drawing from [updated] regardless is still the best answer this
-    // call can give, and the next member to arrive will resave the true count.
+    // If the save above failed, saved and drawn counts disagree. Drawing from
+    // [updated] anyway is the best answer available; the next member resaves.
     () => (plugin ?? FlutterLocalNotificationsPlugin()).show(
-      // Keyed on the group rather than a message, so the summary updates in
-      // place as members arrive instead of stacking one row per notification.
+      // Keyed on the group, so the summary updates in place instead of
+      // stacking a row per notification.
       id: notificationIdFor(group),
       title: group,
       body: groupSummaryText(updated[group]!.length, group),
@@ -104,10 +92,9 @@ Future<void> postGroupSummary(
           priority: Priority.high,
           groupKey: group,
           setAsGroupSummary: true,
-          // The summary is a container for the member notifications, not news
-          // of its own — without this it defaults to GroupAlertBehavior.all
-          // and alerts on top of the member that was just drawn, so every
-          // grouped push buzzes twice.
+          // The summary is a container, not news of its own. The default,
+          // GroupAlertBehavior.all, alerts on top of the member just drawn —
+          // so every grouped push buzzes twice.
           groupAlertBehavior: GroupAlertBehavior.children,
         ),
         iOS: const DarwinNotificationDetails(),
@@ -120,12 +107,9 @@ Future<void> postGroupSummary(
 /// Runs [action], logging rather than propagating a failure, and reporting
 /// whether it succeeded.
 ///
-/// The same idiom `notification_reply.dart`'s `_attempt` uses in the
-/// neighbouring isolate, for the same reason: [postGroupSummary] runs after the
-/// message's own notification has already been drawn, and an exception left to
-/// escape from here would be blamed on that notification instead of on the
-/// summary step that actually failed. [label] names the step, so the log line
-/// says which one without the caller having to repeat it.
+/// Same idiom as `notification_reply.dart`'s `_attempt`, same reason: an
+/// exception escaping here would be blamed on the notification already drawn.
+/// [label] names the failing step.
 Future<bool> _attempt(Future<void> Function() action, String label) async {
   try {
     await action();

@@ -7,29 +7,23 @@ import 'package:fcm_app/domains/push/push_message_format_exception.dart';
 /// plugin surfaces them as `Map<String, Object?>`, so every field is validated
 /// here rather than cast blindly.
 ///
-/// This file and its three siblings — [PushMessage], [PushMessageFormatException]
-/// and `notification_action.dart` — depend on nothing but `dart:core` and each
-/// other. They used to live in a separate package, which enforced that; now an
-/// import test in `apps/fcm_app/test/domains/push` does, by reading each file's
-/// own `import` lines. Keeping the constraint true costs nothing on its own —
-/// what it buys is that the rules for what makes a payload valid could be
-/// tested with no device, no Flutter binding and no Firebase project, if a
-/// future split ever wanted them isolated again — and a Flutter import here
-/// would quietly take that away.
+/// This file and its three siblings — [PushMessage],
+/// [PushMessageFormatException] and `notification_action.dart` — import nothing
+/// but `dart:core` and each other, which `dart_core_only_test.dart` enforces by
+/// reading their import lines. It keeps payload validity testable with no
+/// device, binding or Firebase project; one Flutter import here removes that.
 class PushMessageParser {
   const PushMessageParser();
 
-  /// Keys this parser reads itself; anything else is passed through in
+  /// Keys this parser reads itself; anything else passes through in
   /// [PushMessage.data].
   ///
-  /// `trace_id` and `scenario_id` are plumbing the send API injects, so showing
-  /// either as an "extra data" row would present a detail of ours as something the
-  /// sender chose. Neither is in [requiredKeys] — a push sent by hand has no trace
-  /// id, and a hand-composed payload belongs to no scenario.
+  /// `trace_id` and `scenario_id` are plumbing the send API injects, so listing
+  /// either as "extra data" would credit the sender with a detail of ours.
+  /// Neither is required: a hand-sent push has no trace id and no scenario.
   ///
-  /// `tag` joins them for the same reason: it is the real `android.notification.tag`
-  /// field the app reads to key its own drawing, not a value the sender typed into
-  /// `data`.
+  /// `tag` joins them as the real `android.notification.tag` the app keys its
+  /// drawing on, not something the sender typed into `data`.
   static const reservedKeys = {
     'id',
     'title',
@@ -40,9 +34,9 @@ class PushMessageParser {
     'tag',
   };
 
-  /// `id` de-duplicates repeat deliveries and `sentAt` orders the inbox, so neither
-  /// can be inferred. `title` and `body` are absent from a data-only push, so they
-  /// are read as optional.
+  /// `id` de-duplicates repeat deliveries and `sentAt` orders the inbox, so
+  /// neither can be inferred. `title` and `body` are optional — a data-only
+  /// push has neither.
   static const requiredKeys = {'id', 'sentAt'};
 
   /// Parses [payload], or throws [PushMessageFormatException] if a required
@@ -85,8 +79,8 @@ class PushMessageParser {
     return value;
   }
 
-  /// A data-only push carries no title and no body, so an empty headline is a value
-  /// rather than a fault. A wrong-typed value still is one.
+  /// A data-only push has no title or body, so an empty headline is a value, not
+  /// a fault. A wrong-typed one still is.
   String _optionalText(Map<String, Object?> payload, String field) {
     final value = payload[field];
     if (value == null) {

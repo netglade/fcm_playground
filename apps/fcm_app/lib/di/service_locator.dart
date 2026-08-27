@@ -16,22 +16,19 @@ import 'package:http/http.dart' as http;
 
 /// The app's locator, holding only what outlives a page.
 ///
-/// No cubit is ever registered here. A cubit in a locator outlives the page that
-/// shows it, carries the previous page's state into the next one, and no test can
-/// be given a fresh one without resetting a global. Cubits are created by the
-/// widget that owns them; what they are built *from* is what lives here.
+/// Never a cubit: one here would outlive its page and carry state into the
+/// next. Cubits are made by the widget that owns them; what they are built
+/// *from* lives here.
 final getIt = GetIt.instance;
 
 /// Builds and registers every long-lived collaborator, once, before the first
 /// frame.
 ///
-/// [onBackgroundMessage] is passed in rather than named here because the handler
-/// runs in its own isolate: it has to be a top-level function in `main.dart` for
-/// AOT to keep it reachable, and it cannot see anything registered below.
+/// [onBackgroundMessage] is passed in because it runs in its own isolate: it
+/// must be top-level in `main.dart` for AOT to keep it reachable, and it cannot
+/// see anything registered here.
 ///
-/// [options] and [isWeb] are seams for the tests — one to hand over placeholder
-/// credentials and watch the sentinel fall back, the other to check the web
-/// decision in [openTelemetryBuffer] from the VM.
+/// [options] and [isWeb] are test seams.
 Future<void> configureDependencies({
   required BackgroundMessageHandler onBackgroundMessage,
   FirebaseOptions? options,
@@ -41,10 +38,9 @@ Future<void> configureDependencies({
     onBackgroundMessage,
     options ?? DefaultFirebaseOptions.currentPlatform,
   );
-  // Shared with the channel reader below, though "shared" undersells it:
-  // `FlutterLocalNotificationsPlugin()` is a factory constructor that always
-  // returns the same singleton instance, so there is no second one to have
-  // instead — this is simply the one the plugin hands out.
+  // Shared with the channel reader below — and unavoidably so:
+  // `FlutterLocalNotificationsPlugin()` is a factory that always returns the
+  // same singleton.
   final plugin = FlutterLocalNotificationsPlugin();
   final presenter = await _startPresenter(plugin);
   getIt
@@ -63,9 +59,8 @@ Future<void> configureDependencies({
     ..registerSingleton<NotificationSender>(_senderFor(setupError))
     ..registerSingleton<RunScheduler>(_runSchedulerFor(setupError))
     ..registerSingleton<TelemetryReader>(
-      // Unconditional, unlike the sender and the scheduler: those need a registration
-      // token before they can do anything, and reading telemetry needs nothing from
-      // Firebase at all.
+      // Unconditional, unlike the sender and scheduler: those need a
+      // registration token, reading telemetry needs no Firebase at all.
       HttpTelemetryReader(
         client: http.Client(),
         baseUrl: Uri.parse(defaultApiBaseUrl),
@@ -75,16 +70,16 @@ Future<void> configureDependencies({
     StartRun(scheduler: getIt<RunScheduler>(), active: getIt<ActiveRunStore>()),
   );
   _registerTelemetry(isWeb: isWeb);
-  // A singleton necessarily: the repository owns the push subscription and the
-  // token, so a second instance would subscribe twice to a single-subscription
-  // stream — which throws — and leave the app with two inboxes that disagree.
+  // Necessarily a singleton: a second instance would subscribe twice to a
+  // single-subscription stream, which throws, and give the app two disagreeing
+  // inboxes.
   getIt.registerSingleton<PushRepository>(
     PushRepository(
       getIt<PushSource>(),
       store: getIt<PushPayloadStore>(),
       presenter: getIt<NotificationPresenter>(),
-      // The same reporter the sandbox sends through, so a `not_received` and the
-      // `sent` it contradicts land in one buffer and one database.
+      // The reporter the sandbox also sends through, so a `not_received` and
+      // the `sent` it contradicts share one database.
       telemetry: getIt<PushTelemetry>(),
       pressedActions: getIt<PressedActionStore>(),
       replies: getIt<ReplyStore>(),
@@ -96,20 +91,19 @@ Future<void> configureDependencies({
 /// Opens the on-device event buffer, or null where there is none.
 ///
 /// Public because the background isolate needs the same construction and cannot
-/// reach [getIt]: both sides have to name the same file, since a `received_bg`
-/// written to one database and flushed from another would never be sent.
+/// reach [getIt] — both sides must name the same file, or a `received_bg`
+/// written to one database is flushed from another and never sent.
 ///
-/// Null on web deliberately. `drift_flutter`'s web path throws `ArgumentError`
-/// *synchronously* without a `web:` argument naming a `sqlite3.wasm` and a worker,
-/// so the build compiles and then dies at startup. This app cannot receive a push
-/// on web without a VAPID key anyway.
+/// Null on web deliberately: `drift_flutter`'s web path throws `ArgumentError`
+/// *synchronously* without a `web:` argument, so the build compiles and dies at
+/// startup.
 DriftTelemetryBuffer? openTelemetryBuffer({bool isWeb = kIsWeb}) =>
     isWeb ? null : DriftTelemetryBuffer(driftDatabase(name: 'fcm_telemetry'));
 
 /// The reporter over [buffer] for the install [identity] names.
 ///
-/// The identity is a parameter rather than a lookup so the background isolate can
-/// pass its own: nothing is registered in that isolate's locator.
+/// A parameter, not a lookup, so the background isolate can pass its own —
+/// nothing is registered in that isolate.
 TelemetryReporter telemetryReporterOn(
   TelemetryBuffer buffer,
   DeviceIdentity identity,
@@ -122,9 +116,8 @@ TelemetryReporter telemetryReporterOn(
 /// Registers the buffer and the telemetry hook, or silence where there is no
 /// buffer.
 ///
-/// `TelemetryBuffer` is left unregistered rather than given a do-nothing stand-in:
-/// every hook already treats telemetry as optional through [PushTelemetry], so
-/// silence belongs at that seam.
+/// `TelemetryBuffer` is left unregistered rather than stubbed: [PushTelemetry]
+/// is already the seam where telemetry is optional.
 void _registerTelemetry({required bool isWeb}) {
   final buffer = openTelemetryBuffer(isWeb: isWeb);
   if (buffer == null) {
@@ -142,9 +135,8 @@ void _registerTelemetry({required bool isWeb}) {
 
 /// Registers the live [PushSource], or a disabled one, answering why.
 ///
-/// Conditional, never eager: a fresh clone still holds the placeholder
-/// credentials, and registering a `FirebasePushSource` regardless would crash at
-/// startup instead of opening and explaining what to run.
+/// Never eager: a fresh clone still holds placeholder credentials, and starting
+/// Firebase regardless would crash instead of explaining what to run.
 Future<String?> _registerPushSource(
   BackgroundMessageHandler onBackgroundMessage,
   FirebaseOptions options,
@@ -163,11 +155,10 @@ Future<String?> _registerPushSource(
 
 /// Starts Firebase and returns a live [PushSource].
 ///
-/// Throws [StateError] while `firebase_options.dart` still holds the
-/// placeholder credentials it ships with. Every field is a placeholder, so any
-/// of them would do as the signal; the API key is the one checked because it is
-/// the field `Firebase.initializeApp` itself rejects, and it does so far later
-/// with a far less useful message than [firebaseSetupInstructions].
+/// Throws [StateError] while `firebase_options.dart` holds its shipped
+/// placeholders. Any field would serve as the signal; the API key is checked
+/// because it is the one `Firebase.initializeApp` rejects itself, later and far
+/// less legibly than [firebaseSetupInstructions].
 Future<PushSource> _startPushSource(
   BackgroundMessageHandler onBackgroundMessage,
   FirebaseOptions options,
@@ -186,8 +177,8 @@ Future<PushSource> _startPushSource(
   return source;
 }
 
-/// Starts local notifications, degrading to silence rather than failing: a broken
-/// plugin should cost the banners, not the app.
+/// Starts local notifications, degrading to silence: a broken plugin should
+/// cost the banners, not the app.
 Future<NotificationPresenter> _startPresenter(
   FlutterLocalNotificationsPlugin plugin,
 ) async {
