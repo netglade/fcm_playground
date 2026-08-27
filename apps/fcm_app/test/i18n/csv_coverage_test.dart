@@ -6,13 +6,12 @@ import 'package:fcm_app/i18n/translations.g.dart';
 
 /// The CSV, checked against what was generated from it.
 ///
-/// The generated files are committed so a fresh clone needs no codegen step; the
-/// cost is that editing the CSV and forgetting to regenerate leaves the two out of
-/// step. This turns that into a failure in `melos run test`, which is where whoever
-/// edited the CSV will be looking.
+/// The generated files are committed so a fresh clone needs no codegen, at the cost
+/// of the two drifting when someone edits the CSV and forgets to regenerate. This
+/// makes that a failure in `melos run test`.
 ///
-/// It reads keys rather than re-deriving slang's output: reimplementing the
-/// generator to check the generator is how a test comes to agree with a bug.
+/// Reads keys rather than re-deriving slang's output — reimplementing the generator
+/// to check the generator is how a test comes to agree with a bug.
 void main() {
   late List<String> keys;
 
@@ -56,9 +55,8 @@ void main() {
   });
 
   test('every key resolves in Czech', () {
-    // An empty cs cell surfaces here rather than in the UI. slang has no fallback
-    // worth relying on: a missing translation is a person's omission and needs a
-    // person to notice it.
+    // An empty cs cell surfaces here rather than in the UI: a missing translation
+    // is a person's omission and needs a person to notice.
     final cs = AppLocale.cs.buildSync();
 
     for (final key in keys) {
@@ -113,9 +111,8 @@ void main() {
   );
 
   test('_keysIn skips a false key inside a wrapped quoted cell', () {
-    // The second line resumes a quoted cell that wrapped, and starts with `e.g.,` —
-    // which matches the row-start shape just as well as a real key does. A naive
-    // line-by-line regex would return three keys, the middle one bogus.
+    // The second line resumes a wrapped quoted cell and starts with `e.g.,`,
+    // which matches the row-start shape as well as a real key does.
     final keys = _keysIn([
       'a.b,English one,Czech one,"a description that wraps and resumes with',
       'e.g., a worked example"',
@@ -135,10 +132,9 @@ final _rowStart = RegExp(r'^[a-z][a-z0-9_.]*,');
 
 /// The keys the CSV declares, one per row *start*.
 ///
-/// A quoted cell may hold newlines, so a physical line begins a row only when every
-/// quote before it is closed. Matching the line's shape alone is not enough: a
-/// description that wrapped and resumed with `e.g.,` looks exactly like a key, and
-/// would fail this test for a key that never existed.
+/// A quoted cell may hold newlines, so a line begins a row only when every quote
+/// before it is closed. Shape alone is not enough — a wrapped description resuming
+/// with `e.g.,` looks exactly like a key.
 List<String> _keysIn(Iterable<String> rows) {
   final keys = <String>[];
   var insideQuotedCell = false;
@@ -149,8 +145,8 @@ List<String> _keysIn(Iterable<String> rows) {
       if (match != null) keys.add(line.substring(0, match.end - 1));
     }
 
-    // An odd number of quotes on a line opens or closes a cell. Escaped quotes ("")
-    // flip parity twice, so counting every quote is right without special-casing them.
+    // An odd count opens or closes a cell. Escaped quotes ("") flip parity
+    // twice, so counting all of them needs no special case.
     if (line.split('"').length.isEven) {
       insideQuotedCell = !insideQuotedCell;
     }
@@ -162,12 +158,12 @@ List<String> _keysIn(Iterable<String> rows) {
 /// The CLDR categories slang treats as plural branches rather than key segments.
 const _pluralCategories = {'zero', 'one', 'two', 'few', 'many', 'other'};
 
-/// The key a row's lookup should use: a plural's rows share one generated function.
+/// The key a row's lookup should use — a plural's rows share one generated
+/// function.
 ///
-/// Decided by whether the row has plural *siblings*, not by how its last segment
-/// happens to be spelled. Folding on the spelling alone would quietly swallow an
-/// ordinary key called `something.other` — it would be looked up as `something`,
-/// and a missing translation for it would stop failing this test.
+/// Decided by whether the row has plural *siblings*, not by its last segment's
+/// spelling: folding on spelling alone would swallow an ordinary key called
+/// `something.other`, and stop catching a missing translation for it.
 String _lookupKey(String csvKey, Set<String> allKeys) {
   final lastDot = csvKey.lastIndexOf('.');
   if (lastDot < 0) return csvKey;
@@ -177,9 +173,8 @@ String _lookupKey(String csvKey, Set<String> allKeys) {
 
   final parent = csvKey.substring(0, lastDot);
 
-  // A plural always has more than one branch, so a sibling category under the same
-  // parent is what distinguishes a real plural from a key that merely ends in a
-  // category word.
+  // A plural always has more than one branch, so a sibling category under the
+  // same parent is what tells a real plural from a key that merely ends in one.
   final hasPluralSibling = _pluralCategories
       .where((sibling) => sibling != category)
       .any((sibling) => allKeys.contains('$parent.$sibling'));
