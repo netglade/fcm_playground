@@ -179,6 +179,8 @@ Run any of these as `fvm dart run melos run --no-select <name>`:
 
 ## Where to read next
 
+- [`docs/overview.md`](docs/overview.md) — start here: what the app does, what
+  notifications you can build, how Firebase and tokens fit together
 - [`docs/architecture.md`](docs/architecture.md) — how the workspace and the
   app's code are laid out, and why
 - [`docs/notifications.md`](docs/notifications.md) — what a push actually
