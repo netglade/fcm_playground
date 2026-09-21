@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:fcm_app/domains/push/push_message.dart';
 import 'package:fcm_app/domains/notifications/notification_details_builder.dart';
 import 'package:fcm_app/domains/notifications/notification_content.dart';
@@ -254,6 +256,53 @@ void main() {
       );
 
       expect(details.android?.category, isNull);
+    });
+  });
+
+  group('appearance', () {
+    test('carries the default big text style through', () {
+      final details = buildNotificationDetails(message());
+
+      expect(details.android!.styleInformation, isA<BigTextStyleInformation>());
+    });
+
+    test('puts an inbox payload on styleInformation', () {
+      final details = buildNotificationDetails(
+        message(data: {'style': 'inbox', 'lines': 'one|two'}),
+      );
+
+      expect(details.android!.styleInformation, isA<InboxStyleInformation>());
+    });
+
+    test('puts a downloaded avatar on largeIcon, not on the style', () {
+      final details = buildNotificationDetails(
+        message(data: {'style': 'large_icon'}),
+        largeIcon: Uint8List.fromList([1, 2]),
+      );
+
+      expect(details.android!.largeIcon, isA<ByteArrayAndroidBitmap>());
+      expect(details.android!.styleInformation, isA<BigTextStyleInformation>());
+    });
+
+    test('spreads a progress payload over the three progress fields', () {
+      final details = buildNotificationDetails(
+        message(data: {'style': 'progress', 'progress': '40', 'max': '100'}),
+      );
+
+      expect(details.android!.showProgress, isTrue);
+      expect(details.android!.progress, 40);
+      expect(details.android!.maxProgress, 100);
+    });
+
+    // The bytes are the whole difference between a big picture and a plain
+    // expandable notification, so the fallback is worth pinning here too.
+    test('a big_picture with no bytes still draws, as big text', () {
+      final details = buildNotificationDetails(
+        message(data: {'style': 'big_picture'}),
+      );
+
+      expect(details.android!.styleInformation, isA<BigTextStyleInformation>());
+      expect(details.android!.largeIcon, isNull);
     });
   });
 }

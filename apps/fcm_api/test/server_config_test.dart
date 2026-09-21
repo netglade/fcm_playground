@@ -8,8 +8,8 @@ void main() {
   const keyPath = '/keys/service-account.json';
   final keyJson = jsonEncode({
     'type': 'service_account',
-    'project_id': 'fcm-sandbox-770fa',
-    'client_email': 'sender@fcm-sandbox-770fa.iam.gserviceaccount.com',
+    'project_id': 'your-project-id',
+    'client_email': 'sender@your-project-id.iam.gserviceaccount.com',
     'private_key': '-----BEGIN PRIVATE KEY-----\nnot-a-real-key\n',
   });
 
@@ -38,7 +38,7 @@ void main() {
     test('defaults the project id to the key\'s own project', () {
       final config = read(const {'GOOGLE_APPLICATION_CREDENTIALS': keyPath});
 
-      expect(config.projectId, 'fcm-sandbox-770fa');
+      expect(config.projectId, 'your-project-id');
     });
 
     test('lets FCM_PROJECT_ID override it', () {
@@ -78,8 +78,8 @@ void main() {
       // would allow. The last two pin that a relative key stays relative.
       final expected = {
         keyPath: '/keys/fcm-telemetry.sqlite',
-        '/home/martin/secrets/fcm-key.json':
-            '/home/martin/secrets/fcm-telemetry.sqlite',
+        '/home/dev/secrets/fcm-key.json':
+            '/home/dev/secrets/fcm-telemetry.sqlite',
         'secrets/sa.json': 'secrets/fcm-telemetry.sqlite',
         'sa.json': 'fcm-telemetry.sqlite',
       };

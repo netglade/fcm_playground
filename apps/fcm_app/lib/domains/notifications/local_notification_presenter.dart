@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fcm_app/domains/notifications/notification_channels.dart';
 import 'package:fcm_app/domains/notifications/notification_content.dart';
 import 'package:fcm_app/domains/notifications/notification_details_builder.dart';
+import 'package:fcm_app/domains/notifications/notification_images.dart';
 import 'package:fcm_app/domains/notifications/notification_group_store.dart';
 import 'package:fcm_app/domains/notifications/notification_group_summary.dart';
 import 'package:fcm_app/domains/notifications/notification_presenter.dart';
@@ -81,11 +82,19 @@ class LocalNotificationPresenter implements NotificationPresenter {
 
   @override
   Future<void> show(PushMessage message) async {
+    // Fetched before the draw, and a no-op for every style that needs no
+    // image — so only `big_picture` and `large_icon` ever wait on a network.
+    final images = await loadNotificationImages(message);
+
     await _plugin.show(
       id: notificationIdOf(message),
       title: message.title,
       body: message.body,
-      notificationDetails: buildNotificationDetails(message),
+      notificationDetails: buildNotificationDetails(
+        message,
+        picture: images.picture,
+        largeIcon: images.largeIcon,
+      ),
       // The message id — how a tap resolves back to a held message.
       payload: message.id,
     );

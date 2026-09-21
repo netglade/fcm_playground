@@ -5,41 +5,30 @@
   // The Dart extension finds the SDK via `dart.flutterSdkPath` in
   // settings.json, which points at the fvm pin — so none of this depends on
   // Flutter being on PATH.
+  //
+  // None of these pins a `deviceId`: a serial is specific to one machine's
+  // paired handset, so VS Code uses whatever is selected in the status bar and
+  // prompts when nothing is. Run `fvm flutter devices` to see the choices, and
+  // add `"deviceId": "<serial>"` locally if you tire of picking.
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "fcm_app · Android phone",
+      "name": "fcm_app · device",
       "type": "dart",
       "request": "launch",
       "cwd": "apps/fcm_app",
       "program": "lib/main.dart",
-      "flutterMode": "debug",
-      // `flutter run -d` matches a prefix of the device *id or name* — it does
-      // not accept a platform, so "android" resolves to nothing. This is the
-      // serial of the phone paired with this machine; run `fvm flutter devices`
-      // and substitute your own, or use the "pick device" config below.
-      "deviceId": "RZCY10GR1QA"
+      "flutterMode": "debug"
     },
     {
-      "name": "fcm_app · Android phone (profile)",
+      "name": "fcm_app · device (profile)",
       "type": "dart",
       "request": "launch",
       "cwd": "apps/fcm_app",
       "program": "lib/main.dart",
       // Profile mode: real-world performance, DevTools timeline available, no
       // hot reload. Debug-mode frame times on a phone are not representative.
-      "flutterMode": "profile",
-      "deviceId": "RZCY10GR1QA"
-    },
-    {
-      "name": "fcm_app · pick device",
-      "type": "dart",
-      "request": "launch",
-      "cwd": "apps/fcm_app",
-      "program": "lib/main.dart",
-      "flutterMode": "debug"
-      // No deviceId: VS Code uses the device selected in the status bar, or
-      // prompts. Portable — use this one on a machine that isn't this one.
+      "flutterMode": "profile"
     },
     {
       "name": "fcm_app · Chrome",

@@ -695,9 +695,6 @@ class _Translations$scenario_need$cs implements Translations$scenario_need$en {
 
 	// Translations
 
-	/// Label for the styles scenario need
-	@override String get styles => 'styly notifikací';
-
 	/// Label for the badge scenario need
 	@override String get badge => 'odznak na ikoně aplikace';
 
@@ -2531,7 +2528,6 @@ extension on TranslationsCs {
 			'scenario_group.i' => 'I — Tiché a datové',
 			'scenario_group.j' => 'J — Cílení',
 			'scenario_group.k' => 'K — Krajní případy a chyby',
-			'scenario_need.styles' => 'styly notifikací',
 			'scenario_need.badge' => 'odznak na ikoně aplikace',
 			'scenario_need.targeting' => 'registr zařízení',
 			'scenario_need.manual_step' => 'manuální krok',

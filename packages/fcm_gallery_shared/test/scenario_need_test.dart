@@ -26,7 +26,7 @@ void main() {
       l10nKey: 'x',
       group: 'A',
       payloadTemplate: <String, dynamic>{},
-      needs: [ScenarioNeed.styles],
+      needs: [ScenarioNeed.badge],
     );
 
     expect(scenario.isSupported, isFalse);

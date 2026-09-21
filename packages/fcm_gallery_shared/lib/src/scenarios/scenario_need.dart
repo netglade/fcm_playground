@@ -7,14 +7,10 @@
 /// decided never to build.
 ///
 /// A value no scenario names any more has finished its sub-project and is retired
-/// from here rather than left to sit unused — `interaction` and `channels` both
-/// left this way. `scenario_gallery_test.dart` enforces that: an unused value
-/// fails the suite until someone removes it.
+/// from here rather than left to sit unused — `interaction`, `channels` and
+/// `styles` all left this way. `scenario_gallery_test.dart` enforces that: an
+/// unused value fails the suite until someone removes it.
 enum ScenarioNeed {
-  /// Local notification styles: big picture, big text, inbox, messaging,
-  /// progress, large icon.
-  styles,
-
   /// The launcher icon's badge count.
   badge,
 

@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:fcm_app/domains/notifications/notification_appearance.dart';
 import 'package:fcm_app/domains/notifications/notification_channels.dart';
 import 'package:fcm_app/domains/notifications/notification_content.dart';
 import 'package:fcm_app/domains/push/push.dart';
@@ -15,12 +18,25 @@ const pushCategoryKey = 'category';
 /// Top-level, not a method on the presenter: the background isolate needs the
 /// same construction, and a second copy would let a notification drawn while the
 /// app was dead differ from one drawn on screen.
-NotificationDetails buildNotificationDetails(PushMessage message) {
+///
+/// [picture] and [largeIcon] are the bytes `loadNotificationImages` fetched, if
+/// any. They arrive as arguments rather than being downloaded here so this stays
+/// synchronous, and so the suite can pin every style without a network.
+NotificationDetails buildNotificationDetails(
+  PushMessage message, {
+  Uint8List? picture,
+  Uint8List? largeIcon,
+}) {
   // An unknown id falls back rather than passing through: an unregistered
   // channel draws nothing at all on Android O+, so obeying the payload
   // literally would lose the notification.
   final channel =
       channelById(message.data[pushChannelKey]) ?? defaultNotificationChannel;
+  final appearance = appearanceFor(
+    message,
+    picture: picture,
+    largeIcon: largeIcon,
+  );
 
   return NotificationDetails(
     android: AndroidNotificationDetails(
@@ -30,6 +46,13 @@ NotificationDetails buildNotificationDetails(PushMessage message) {
       importance: channel.importance,
       priority: _priorityFor(channel.importance),
       category: _categoryFor(message.data[pushCategoryKey]),
+      // The style, the avatar and the progress bar all come from one reading of
+      // the payload — see `appearanceFor` for why they are gathered together.
+      styleInformation: appearance.style,
+      largeIcon: appearance.largeIcon,
+      showProgress: appearance.showProgress,
+      maxProgress: appearance.maxProgress,
+      progress: appearance.progress,
       // Without this a swipe is not reported at all. `main`, because a
       // background dismissal reaches a fresh isolate holding only the message
       // id, and `dismissed` needs the trace id on the stored payload.

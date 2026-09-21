@@ -40,7 +40,7 @@ void main() {
       l10nKey: 'a1_notification_only',
       group: 'A',
       payloadTemplate: {},
-      needs: [ScenarioNeed.styles, ScenarioNeed.externalApproval],
+      needs: [ScenarioNeed.badge, ScenarioNeed.externalApproval],
     );
 
     await pump(tester, pair);
@@ -65,7 +65,7 @@ void main() {
     final single = scenario('e1_long_text');
     // Guards the assertion below against a scenario that quietly lost its
     // needs: the copy could then only be missing, never wrong.
-    expect(single.needs, [ScenarioNeed.styles]);
+    expect(single.needs, [ScenarioNeed.badge]);
 
     await pump(tester, single);
 
