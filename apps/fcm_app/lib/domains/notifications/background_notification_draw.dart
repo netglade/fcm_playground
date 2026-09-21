@@ -1,6 +1,7 @@
 import 'package:fcm_app/domains/notifications/notification_channels.dart';
 import 'package:fcm_app/domains/notifications/notification_content.dart';
 import 'package:fcm_app/domains/notifications/notification_details_builder.dart';
+import 'package:fcm_app/domains/notifications/notification_images.dart';
 import 'package:fcm_app/domains/notifications/notification_group_summary.dart';
 import 'package:fcm_app/domains/notifications/notification_reply.dart';
 import 'package:fcm_app/domains/push/push.dart';
@@ -48,11 +49,19 @@ Future<void> drawBackgroundNotification(PushMessage message) async {
   await restoreStoredLocale();
   await registerNotificationChannels(plugin);
 
+  // The same fetch the foreground path makes, so a styled notification looks
+  // the same whether the app was on screen or dead when it arrived.
+  final images = await loadNotificationImages(message);
+
   await plugin.show(
     id: notificationIdOf(message),
     title: message.title,
     body: message.body,
-    notificationDetails: buildNotificationDetails(message),
+    notificationDetails: buildNotificationDetails(
+      message,
+      picture: images.picture,
+      largeIcon: images.largeIcon,
+    ),
     // The same payload the foreground path uses, so a press resolves back to the
     // message through exactly one code path.
     payload: message.id,

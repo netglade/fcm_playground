@@ -71,3 +71,8 @@ docs/superpowers/
 # before this line existed (.claude/worktrees/fcm-notification-sandbox, added by
 # b034f3e); this stops the next one repeating that.
 .claude/worktrees/
+
+# npm has no business in a Flutter app. `npm install -g firebase-tools` (see
+# README) is global, but a stray non-global install once left a lockfile here.
+apps/*/package-lock.json
+apps/*/node_modules/

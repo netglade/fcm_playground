@@ -881,11 +881,6 @@ class Translations$scenario_need$en {
 
 	// Translations
 
-	/// Label for the styles scenario need
-	///
-	/// en: 'notification styles'
-	String get styles => 'notification styles';
-
 	/// Label for the badge scenario need
 	///
 	/// en: 'launcher badge'
@@ -3206,7 +3201,6 @@ extension on Translations {
 			'scenario_group.i' => 'I — Silent and data',
 			'scenario_group.j' => 'J — Targeting',
 			'scenario_group.k' => 'K — Edge cases and errors',
-			'scenario_need.styles' => 'notification styles',
 			'scenario_need.badge' => 'launcher badge',
 			'scenario_need.targeting' => 'a device registry',
 			'scenario_need.manual_step' => 'a manual step',

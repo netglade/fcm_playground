@@ -61,12 +61,12 @@ void main() {
 
     test('a blocked scenario is skipped for its own need, named in words', () {
       final blocked = scenarioGallery.firstWhere(
-        (s) => s.needs.contains(ScenarioNeed.styles),
+        (s) => s.needs.contains(ScenarioNeed.targeting),
       );
 
       // The bare enum name, not the prose the UI shows — right for a test
       // report.
-      expect(skipReasonFor(blocked), contains('styles'));
+      expect(skipReasonFor(blocked), contains('targeting'));
     });
 
     test('an iOS-only scenario is skipped, naming the platform', () {

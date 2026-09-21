@@ -32,10 +32,16 @@ melos scripts.
 
 ```bash
 fvm install                             # fetch the SDK named in .fvmrc
-fvm dart pub get                        # resolve the workspace (needed once, for melos)
+fvm flutter pub get                     # resolve the workspace (needed once, for melos)
 fvm dart run melos bootstrap            # link packages, generate IDE files
 fvm dart run melos run --no-select ci   # format check → analyze → DCM → tests
 ```
+
+`flutter pub get`, not `dart pub get`: the workspace contains a Flutter app,
+and `dart pub` resolves it without the Flutter SDK — either failing outright
+(`shared_preferences_platform_interface … requires the Flutter SDK`, which
+`dart pub` itself answers with *"Flutter users should use `flutter pub`"*) or
+writing a lockfile that pins a different, Flutter-less dependency set.
 
 melos is a dev dependency of the workspace root, not a global install, so run
 it as `fvm dart run melos …`. In a non-interactive shell, every `melos run`
@@ -191,3 +197,7 @@ Run any of these as `fvm dart run melos run --no-select <name>`:
   trace id starts at the API
 - [`docs/localization.md`](docs/localization.md) — how a string gets from the
   CSV into the app
+
+## License
+
+[MIT](LICENSE).

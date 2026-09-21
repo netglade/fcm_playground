@@ -37,18 +37,13 @@ void main() {
     test('exactly five of the eleven work today; the six others need styles', () {
       // Two halves of one claim: `isSupported` only reads "needs is empty", so an
       // entry filed under the wrong need would still be absent from this list and
-      // look correct. Hence every unsupported entry's needs pinned to [styles].
       expect(groupE, hasLength(11));
-      expect(groupE.where((s) => s.isSupported).map((s) => s.id), [
-        'e2_image_remote',
-        'e4_image_huge',
-        'e5_image_404',
-        'e10_color_and_icon',
-        'e11_emoji_rtl',
-      ]);
 
-      for (final scenario in groupE.where((s) => !s.isSupported)) {
-        expect(scenario.needs, [ScenarioNeed.styles], reason: scenario.id);
+      // Every entry works now that the client builds the styles itself. The
+      // list was five long while big picture, large icon, inbox, messaging and
+      // progress were still unbuilt.
+      for (final scenario in groupE) {
+        expect(scenario.needs, isEmpty, reason: scenario.id);
       }
     });
 

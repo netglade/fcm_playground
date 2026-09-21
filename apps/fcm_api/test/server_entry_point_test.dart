@@ -25,7 +25,7 @@ void main() {
 /// The entry point resolves its configuration and opens its database, then dies on
 /// the credential with exit 255 — so everything before the credential is observable,
 /// and 64 means "the configuration was refused" rather than "the process failed".
-const _keyJson = '{"type": "service_account", "project_id": "fcm-sandbox"}';
+const _keyJson = '{"type": "service_account", "project_id": "your-project-id"}';
 
 /// The failures that need no database and no temporary files.
 void _configurationFailures() {

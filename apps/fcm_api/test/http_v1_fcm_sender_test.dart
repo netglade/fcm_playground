@@ -20,7 +20,7 @@ void main() {
       });
 
   HttpV1FcmSender senderWith(http.Client client) =>
-      HttpV1FcmSender(client: client, projectId: 'fcm-sandbox-770fa');
+      HttpV1FcmSender(client: client, projectId: 'your-project-id');
 
   Map<String, Object?> fcmError({
     required String status,
@@ -55,7 +55,7 @@ void main() {
 
       expect(
         requests.single.url.toString(),
-        'https://fcm.googleapis.com/v1/projects/fcm-sandbox-770fa/messages:send',
+        'https://fcm.googleapis.com/v1/projects/your-project-id/messages:send',
       );
       expect(requests.single.method, 'POST');
     });

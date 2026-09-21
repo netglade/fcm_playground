@@ -3,10 +3,12 @@ import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
 
 /// **E — Appearance.** How a notification looks once something decides to draw it.
 ///
-/// Split down the middle: `notification.image`, `color` and long or awkward text
-/// are FCM fields and work now, while big-picture-from-a-download, large icons and
-/// the inbox, messaging and progress styles are all things the *client* builds and
-/// FCM has no field for. That division is why half this group is blocked.
+/// Split down the middle, though both halves work now: `notification.image`,
+/// `color` and long or awkward text are FCM fields, while
+/// big-picture-from-a-download, large icons and the inbox, messaging and
+/// progress styles are things FCM has no field for at all — the client reads
+/// them off `data.style` and builds them itself. See
+/// `notification_appearance.dart`.
 const groupE = <Scenario>[
   Scenario(
     id: 'e1_long_text',
@@ -29,7 +31,6 @@ const groupE = <Scenario>[
             'styl notifikace nebo zkrátit obsah na serveru ještě před odesláním.',
       },
     },
-    needs: [ScenarioNeed.styles],
   ),
   Scenario(
     id: 'e2_image_remote',
@@ -55,7 +56,6 @@ const groupE = <Scenario>[
         'body': 'Built by the app, not the platform.',
       },
     },
-    needs: [ScenarioNeed.styles],
   ),
   Scenario(
     id: 'e4_image_huge',
@@ -93,7 +93,6 @@ const groupE = <Scenario>[
         'body': 'Round icon on the right.',
       },
     },
-    needs: [ScenarioNeed.styles],
   ),
   Scenario(
     id: 'e7_inbox_style',
@@ -108,7 +107,6 @@ const groupE = <Scenario>[
             'passed|build 124 passed|build 123 failed|build 122 passed',
       },
     },
-    needs: [ScenarioNeed.styles],
   ),
   Scenario(
     id: 'e8_messaging_style',
@@ -121,7 +119,6 @@ const groupE = <Scenario>[
         'messages': 'Ada:ready when you are|Grace:shipping now|Ada:👍',
       },
     },
-    needs: [ScenarioNeed.styles],
   ),
   Scenario(
     id: 'e9_progress',
@@ -135,7 +132,6 @@ const groupE = <Scenario>[
         'max': '100',
       },
     },
-    needs: [ScenarioNeed.styles],
   ),
   Scenario(
     id: 'e10_color_and_icon',

@@ -288,7 +288,6 @@ scenario_group.h,H — Intrusive and priority,H — Rušivost a priorita,Display
 scenario_group.i,I — Silent and data,I — Tiché a datové,Display name of scenario group I
 scenario_group.j,J — Targeting,J — Cílení,Display name of scenario group J
 scenario_group.k,K — Edge cases and errors,K — Krajní případy a chyby,Display name of scenario group K
-scenario_need.styles,notification styles,styly notifikací,Label for the styles scenario need
 scenario_need.badge,launcher badge,odznak na ikoně aplikace,Label for the badge scenario need
 scenario_need.targeting,a device registry,registr zařízení,Label for the targeting scenario need
 scenario_need.manualStep,a manual step,manuální krok,Label for the manualStep scenario need
