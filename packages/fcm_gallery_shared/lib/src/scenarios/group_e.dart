@@ -1,5 +1,4 @@
 import 'package:fcm_gallery_shared/src/scenarios/scenario.dart';
-import 'package:fcm_gallery_shared/src/scenarios/scenario_need.dart';
 
 /// **E — Appearance.** How a notification looks once something decides to draw it.
 ///

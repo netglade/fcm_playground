@@ -53,11 +53,15 @@ final List<AppNotificationChannel> notificationChannels = [
     sound: RawResourceAndroidNotificationSound('chime'),
   ),
   // d6, same lesson as d5: payload `vibrate_timings` cannot reach a channel
-  // created without a pattern.
+  // created without a pattern. `_v3` because the earlier patterns were too
+  // short to tell apart from the default buzz, and a channel's pattern is frozen
+  // at creation — a new id is the only way a phone that already has an older
+  // `vibration_pattern*` channel picks up the new one.
   AppNotificationChannel(
-    id: 'vibration_pattern',
+    id: 'vibration_pattern_v3',
     importance: Importance.defaultImportance,
-    vibrationPattern: Int64List.fromList([0, 400, 200, 400]),
+    // Three taps, a pause, one long buzz — long enough to count by hand.
+    vibrationPattern: Int64List.fromList([0, 300, 300, 300, 300, 300, 800, 1500]),
   ),
   // d7 and d8. chat_v1 is the mistake, chat_v2 is the only fix Android allows.
   const AppNotificationChannel(

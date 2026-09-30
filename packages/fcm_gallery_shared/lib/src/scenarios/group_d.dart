@@ -71,12 +71,14 @@ const groupD = <Scenario>[
     l10nKey: 'd6_vibration_pattern',
     group: 'D',
     payloadTemplate: {
-      'notification': {'title': 'Buzz', 'body': 'Short, long, short.'},
+      'notification': {'title': 'Buzz', 'body': 'Three taps, then one long.'},
       'android': {
         'notification': {
-          'channel_id': 'vibration_pattern',
+          'channel_id': 'vibration_pattern_v3',
           'default_vibrate_timings': false,
-          'vibrate_timings': ['0s', '0.4s', '0.2s', '0.4s'],
+          'vibrate_timings': [
+            '0s', '0.3s', '0.3s', '0.3s', '0.3s', '0.3s', '0.8s', '1.5s',
+          ],
         },
       },
     },

@@ -781,7 +781,7 @@ class _Translations$channels$cs implements Translations$channels$en {
 	@override late final _Translations$channels$importance_low$cs importance_low = _Translations$channels$importance_low$cs._(_root);
 	@override late final _Translations$channels$importance_min$cs importance_min = _Translations$channels$importance_min$cs._(_root);
 	@override late final _Translations$channels$custom_sound$cs custom_sound = _Translations$channels$custom_sound$cs._(_root);
-	@override late final _Translations$channels$vibration_pattern$cs vibration_pattern = _Translations$channels$vibration_pattern$cs._(_root);
+	@override late final _Translations$channels$vibration_pattern_v3$cs vibration_pattern_v3 = _Translations$channels$vibration_pattern_v3$cs._(_root);
 	@override late final _Translations$channels$chat_v1$cs chat_v1 = _Translations$channels$chat_v1$cs._(_root);
 	@override late final _Translations$channels$chat_v2$cs chat_v2 = _Translations$channels$chat_v2$cs._(_root);
 	@override late final _Translations$channels$dnd_bypass$cs dnd_bypass = _Translations$channels$dnd_bypass$cs._(_root);
@@ -2142,9 +2142,9 @@ class _Translations$channels$custom_sound$cs implements Translations$channels$cu
 	@override String get description => 'Přehraje přibalený tón místo výchozího.';
 }
 
-// Path: channels.vibration_pattern
-class _Translations$channels$vibration_pattern$cs implements Translations$channels$vibration_pattern$en {
-	_Translations$channels$vibration_pattern$cs._(this._root);
+// Path: channels.vibration_pattern_v3
+class _Translations$channels$vibration_pattern_v3$cs implements Translations$channels$vibration_pattern_v3$en {
+	_Translations$channels$vibration_pattern_v3$cs._(this._root);
 
 	final TranslationsCs _root; // ignore: unused_field
 
@@ -2154,7 +2154,7 @@ class _Translations$channels$vibration_pattern$cs implements Translations$channe
 	@override String get name => 'Vibrační vzor';
 
 	/// Android channel description; d6
-	@override String get description => 'Krátce, pauza, krátce — nastaveno při vzniku kanálu.';
+	@override String get description => 'Tři krátká ťuknutí a jedno dlouhé — nastaveno při vzniku kanálu.';
 }
 
 // Path: channels.chat_v1
@@ -2559,8 +2559,8 @@ extension on TranslationsCs {
 			'channels.importance_min.description' => 'Sbalená v liště bez ikony.',
 			'channels.custom_sound.name' => 'Vlastní zvuk',
 			'channels.custom_sound.description' => 'Přehraje přibalený tón místo výchozího.',
-			'channels.vibration_pattern.name' => 'Vibrační vzor',
-			'channels.vibration_pattern.description' => 'Krátce, pauza, krátce — nastaveno při vzniku kanálu.',
+			'channels.vibration_pattern_v3.name' => 'Vibrační vzor',
+			'channels.vibration_pattern_v3.description' => 'Tři krátká ťuknutí a jedno dlouhé — nastaveno při vzniku kanálu.',
 			'channels.chat_v1.name' => 'Chat (v1)',
 			'channels.chat_v1.description' => 'První pokus. Jeho důležitost už nejde změnit.',
 			'channels.chat_v2.name' => 'Chat (v2)',

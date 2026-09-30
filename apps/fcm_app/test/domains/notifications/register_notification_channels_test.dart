@@ -75,7 +75,7 @@ void main() {
         Importance.min.value,
       );
       expect(argumentsFor('chat_v1')['groupId'], chatChannelGroupId);
-      expect(argumentsFor('vibration_pattern')['vibrationPattern'], isNotNull);
+      expect(argumentsFor('vibration_pattern_v3')['vibrationPattern'], isNotNull);
     });
 
     test('names every channel from the translations', () async {

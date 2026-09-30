@@ -324,8 +324,8 @@ channels.importance_min.name,Importance: min,Důležitost: minimální,Android c
 channels.importance_min.description,Collapsed in the shade with no icon.,Sbalená v liště bez ikony.,Android channel description; d4
 channels.custom_sound.name,Custom sound,Vlastní zvuk,Android channel name; d5
 channels.custom_sound.description,Plays a bundled chime instead of the default.,Přehraje přibalený tón místo výchozího.,Android channel description; d5
-channels.vibration_pattern.name,Vibration pattern,Vibrační vzor,Android channel name; d6
-channels.vibration_pattern.description,"Short, pause, short — set when the channel was created.","Krátce, pauza, krátce — nastaveno při vzniku kanálu.",Android channel description; d6
+channels.vibration_pattern_v3.name,Vibration pattern,Vibrační vzor,Android channel name; d6
+channels.vibration_pattern_v3.description,"Three short taps, then one long buzz — set when the channel was created.","Tři krátká ťuknutí a jedno dlouhé — nastaveno při vzniku kanálu.",Android channel description; d6
 channels.chat_v1.name,Chat (v1),Chat (v1),"Android channel name; d7. A version tag, so the same in both"
 channels.chat_v1.description,The first attempt. Its importance can no longer be changed.,První pokus. Jeho důležitost už nejde změnit.,Android channel description; d7
 channels.chat_v2.name,Chat (v2),Chat (v2),"Android channel name; d8. A version tag, so the same in both"

@@ -1004,7 +1004,7 @@ class Translations$channels$en {
 	late final Translations$channels$importance_low$en importance_low = Translations$channels$importance_low$en._(_root);
 	late final Translations$channels$importance_min$en importance_min = Translations$channels$importance_min$en._(_root);
 	late final Translations$channels$custom_sound$en custom_sound = Translations$channels$custom_sound$en._(_root);
-	late final Translations$channels$vibration_pattern$en vibration_pattern = Translations$channels$vibration_pattern$en._(_root);
+	late final Translations$channels$vibration_pattern_v3$en vibration_pattern_v3 = Translations$channels$vibration_pattern_v3$en._(_root);
 	late final Translations$channels$chat_v1$en chat_v1 = Translations$channels$chat_v1$en._(_root);
 	late final Translations$channels$chat_v2$en chat_v2 = Translations$channels$chat_v2$en._(_root);
 	late final Translations$channels$dnd_bypass$en dnd_bypass = Translations$channels$dnd_bypass$en._(_root);
@@ -2793,9 +2793,9 @@ class Translations$channels$custom_sound$en {
 	String get description => 'Plays a bundled chime instead of the default.';
 }
 
-// Path: channels.vibration_pattern
-class Translations$channels$vibration_pattern$en {
-	Translations$channels$vibration_pattern$en._(this._root);
+// Path: channels.vibration_pattern_v3
+class Translations$channels$vibration_pattern_v3$en {
+	Translations$channels$vibration_pattern_v3$en._(this._root);
 
 	final Translations _root; // ignore: unused_field
 
@@ -2808,8 +2808,8 @@ class Translations$channels$vibration_pattern$en {
 
 	/// Android channel description; d6
 	///
-	/// en: 'Short, pause, short — set when the channel was created.'
-	String get description => 'Short, pause, short — set when the channel was created.';
+	/// en: 'Three short taps, then one long buzz — set when the channel was created.'
+	String get description => 'Three short taps, then one long buzz — set when the channel was created.';
 }
 
 // Path: channels.chat_v1
@@ -3232,8 +3232,8 @@ extension on Translations {
 			'channels.importance_min.description' => 'Collapsed in the shade with no icon.',
 			'channels.custom_sound.name' => 'Custom sound',
 			'channels.custom_sound.description' => 'Plays a bundled chime instead of the default.',
-			'channels.vibration_pattern.name' => 'Vibration pattern',
-			'channels.vibration_pattern.description' => 'Short, pause, short — set when the channel was created.',
+			'channels.vibration_pattern_v3.name' => 'Vibration pattern',
+			'channels.vibration_pattern_v3.description' => 'Three short taps, then one long buzz — set when the channel was created.',
 			'channels.chat_v1.name' => 'Chat (v1)',
 			'channels.chat_v1.description' => 'The first attempt. Its importance can no longer be changed.',
 			'channels.chat_v2.name' => 'Chat (v2)',

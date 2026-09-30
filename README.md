@@ -197,6 +197,10 @@ Run any of these as `fvm dart run melos run --no-select <name>`:
   trace id starts at the API
 - [`docs/localization.md`](docs/localization.md) — how a string gets from the
   CSV into the app
+- [Push notifikace naživo](https://claude.ai/artifact/8NbAbebuf15AE6yYdrfzgw)
+  — workshop handout in Czech: how a push travels, tokens, payload shapes,
+  channels, and every demo scenario with its payload and a screenshot from a
+  real phone
 
 ## License
 
